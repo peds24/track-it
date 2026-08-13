@@ -55,8 +55,15 @@ export function TrackRow({
 
   // Only a series has something to be part-way through numerically; a standalone
   // book or movie draws no bar, and the absence is the signal.
+  //
+  // A finished series draws no bar either. The bar exists to show how far in you
+  // are, which is not a question a completed track raises — and the Done shelf is
+  // deliberately de-emphasised, so a full-width accent bar on every row would make
+  // the least important screen the most colourful one in the app.
   const fraction =
-    progress && progress.total > 0 ? Math.min(1, Math.max(0, progress.done / progress.total)) : null;
+    progress && progress.total > 0 && track.shelf !== 'done'
+      ? Math.min(1, Math.max(0, progress.done / progress.total))
+      : null;
 
   return (
     <View style={styles.row}>

@@ -76,6 +76,27 @@ test('a standalone track draws no progress bar', async () => {
 });
 
 /**
+ * A completed series keeps its count but loses its bar. "How far in am I" is not
+ * a question a finished track raises, and the Done shelf is deliberately
+ * de-emphasised — a full-width accent bar on every row would make the least
+ * important screen the most colourful one in the app.
+ */
+test('a finished series keeps its count but draws no progress bar', async () => {
+  const finished: TrackSummary = {
+    ...show,
+    title: 'Chainsaw Man',
+    category: 'manga',
+    shelf: 'done',
+    progress: { done: 11, total: 11 },
+    nextEntryId: null,
+    nextEntryTitle: null,
+  };
+  await render(<TrackRow track={finished} onAdvance={() => {}} />);
+  expect(screen.getByText('11 of 11')).toBeTruthy();
+  expect(screen.queryByTestId('progress-track')).toBeNull();
+});
+
+/**
  * The `nextEntryId && nextEntryTitle` guard is the one branch keeping a finished
  * track from rendering a button whose tap would throw "already done". Asserting
  * the title still renders proves the button is absent, not the whole row.
