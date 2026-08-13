@@ -23,7 +23,8 @@ export default function TabsLayout() {
     >
       <Tabs.Screen name="index" options={{ title: 'Currently' }} />
       <Tabs.Screen name="backlog" options={{ title: 'Backlog' }} />
-      <Tabs.Screen name="settings" options={{ title: 'Settings' }} />
+      {/* No Settings tab: export/import is deferred past v1, and it was the only
+          thing Settings held. An empty tab is worse than one fewer tab. */}
     </Tabs>
   );
 }

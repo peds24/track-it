@@ -397,6 +397,22 @@ one at the UI boundary: the Done view renders the same row component and offers
 an advance action whenever `nextEntryId` is non-null, so the action would have
 been offered on an already-finished book and failed when used.
 
+**A3 — Export/import is deferred past v1, and D6's safety net goes with it.**
+The Settings screen was removed before release, and with it the only user-facing
+path to a backup. `src/data/backup.ts` and its tests remain in the tree,
+unreferenced by `app/`, so re-enabling the feature means adding a screen rather
+than rebuilding the logic.
+
+This is a deliberate scope cut, but it is not a neutral one. D6 accepted
+local-only storage *specifically because* export covered the one thing sync
+would have bought — protection against losing the device. Without it, v1 has no
+recovery path of any kind: a lost, wiped or reinstalled phone loses the library
+outright, and the app never warns anyone of that. Anyone relying on v1 for real
+data should know it is single-copy storage.
+
+The tab bar drops to two tabs, Currently and Backlog. An empty Settings tab
+would have been worse than one fewer tab.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:

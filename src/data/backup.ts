@@ -1,3 +1,16 @@
+/**
+ * JSON export and import.
+ *
+ * NOT SURFACED IN v1. The Settings screen that drove this was removed before
+ * release; nothing in `app/` imports this module today. It is kept, with its
+ * tests, because the logic is complete and validated — including the
+ * all-or-nothing restore, which is the hard part and the part worth not
+ * rewriting from scratch. Re-enabling it means adding a screen, not rebuilding
+ * the feature.
+ *
+ * Consequence to keep in view: with this unsurfaced, the app has no backup path
+ * at all. A lost phone is a lost library.
+ */
 import type { SqlDriver } from '@/db/driver';
 import { isStatusValid } from '@/domain/mode';
 import type { Entry, EntryMediaType, Series, Status } from '@/domain/types';
