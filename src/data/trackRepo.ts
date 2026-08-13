@@ -1,4 +1,5 @@
 import type { SqlDriver } from '@/db/driver';
+import { advance } from '@/domain/advance';
 import { nextEntry, progressFor, shelfForEntry, shelfForSeries } from '@/domain/shelf';
 import type { Category, Entry, Series, Shelf } from '@/domain/types';
 import type { SeriesDraft } from '@/providers/types';
@@ -154,4 +155,20 @@ export async function listTracks(
     .filter((t) => t.shelf === shelf)
     .filter((t) => category === undefined || t.category === category)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+/** Transition rules live in domain/advance; this only persists the result (D8). */
+export async function advanceEntry(db: SqlDriver, entryId: string, now: string): Promise<void> {
+  const rows = await db.all<EntryRow>('SELECT * FROM entry WHERE id = ?', [entryId]);
+  const row = rows[0];
+  if (!row) throw new Error(`Entry ${entryId} not found`);
+
+  const updated = advance(toEntry(row), now);
+
+  await db.run('UPDATE entry SET status = ?, started_at = ?, finished_at = ? WHERE id = ?', [
+    updated.status,
+    updated.startedAt,
+    updated.finishedAt,
+    updated.id,
+  ]);
 }
