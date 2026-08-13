@@ -3,7 +3,7 @@ import { ActivityIndicator, Text, View } from 'react-native';
 import type { SqlDriver } from '@/db/driver';
 import { openExpoDatabase } from '@/db/expoDriver';
 import { migrate } from '@/db/schema';
-import { theme } from '@/ui/theme';
+import { space, useTheme } from '@/ui/theme';
 
 const DatabaseContext = createContext<SqlDriver | null>(null);
 
@@ -14,6 +14,7 @@ export function useDatabase(): SqlDriver {
 }
 
 export function DatabaseProvider({ children }: { children: ReactNode }) {
+  const c = useTheme();
   const [db, setDb] = useState<SqlDriver | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,15 +29,17 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
 
   if (error) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', padding: theme.space.lg }}>
-        <Text style={{ color: theme.color.text }}>Could not open your library: {error}</Text>
+      <View
+        style={{ flex: 1, justifyContent: 'center', padding: space.lg, backgroundColor: c.bg }}
+      >
+        <Text style={{ color: c.ink }}>Could not open your library: {error}</Text>
       </View>
     );
   }
 
   if (!db) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center' }}>
+      <View style={{ flex: 1, justifyContent: 'center', backgroundColor: c.bg }}>
         <ActivityIndicator />
       </View>
     );
