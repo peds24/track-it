@@ -175,6 +175,50 @@ tool, not a browsing app.
 4. **Reviewing what you completed** — deliberately de-emphasised. Reachable, but
    not a primary destination and not a tab.
 
+### D9 — Backlog navigation: sorted by date added, filtered by media type
+
+The backlog sorts by date added, and offers a filter by media type (show, movie,
+book, comic, manga). No other sorts or filters in v1.
+
+**Rejected:** sorting by title, and grouping series separately from standalone
+books and movies.
+
+**Why:** D8 ranked backlog navigation third in importance and called for real
+filtering rather than a flat list. Date added and media type are the two axes that
+match how a backlog is actually used — "what did I add recently" and "I want
+something to read, not something to watch". Alphabetical sorting answers a
+question nobody asks of their own backlog.
+
+### D10 — Adding a track starts by choosing a category
+
+**"Track" is the user-facing name for anything you add to the app.** In the data
+model a track is either a `series` (show, comic, manga) or a standalone `entry`
+(book, movie) — see D1. The distinction is deliberately invisible to the user.
+
+Adding a track begins with an explicit category choice — show, movie, book, comic,
+manga — and only then presents the add form. The category is chosen by the user,
+never inferred.
+
+**Rejected:** a single global search box that queries every source at once and
+infers the category from the result.
+
+**Why:** the category determines which catalogue answers the question (D5), and
+those catalogues do not overlap — Metron indexes comic issues, Google Books
+indexes ISBNs. A global search would have to fan out to every provider, merge
+results of different shapes, and guess which one the user meant, producing a
+ranked list mixing a manga volume with a TV series of the same name. Choosing the
+category first turns one ambiguous query into one precise query.
+
+It also keeps v1 honest: with `ManualProvider` there is nothing to search, so the
+category choice is the *only* thing that structures the add flow. The screen the
+user learns in v1 is the same screen that later gains search.
+
+**Architectural consequence:** providers are registered per category, not
+globally. A `MetadataProvider` is resolved by the chosen category, so adding
+Google Books for books does not require touching the comic path, and a category
+with no provider simply falls back to `ManualProvider`. There is no aggregation
+layer to build, now or later.
+
 ---
 
 ## Architecture
@@ -291,6 +335,22 @@ generates N numbered entries from a title and a count. A Metron or Google Books
 provider (D5) implements the same two methods. Because D1 made every medium the
 same shape, the interface stays this small.
 
+**Resolution is per category (D10), not global:**
+
+```ts
+type Category = 'show' | 'movie' | 'book' | 'comic' | 'manga';
+
+// Registry lookup; falls back to ManualProvider when a category has no
+// catalogue provider registered. v1 registers none, so every category
+// resolves to ManualProvider.
+function providerFor(category: Category): MetadataProvider;
+```
+
+The add flow asks for a category, resolves exactly one provider, and queries only
+that. Categories are added to the registry independently — wiring up Google Books
+for books touches no other path — and there is no fan-out or result-merging layer
+to build.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:
@@ -325,11 +385,6 @@ test, and the UI layer stays thin enough to need little testing.
 These do not affect the schema and can be settled during planning, but they are
 unresolved and should not be invented silently.
 
-- **What "navigating the backlog" means.** D8 ranks this third in importance and
-  says it deserves real filtering and sorting, but the behaviour is unspecified.
-  Filter by media type? Sort by date added, or by title? Group series separately
-  from standalone books and movies? This is the priority the user named as
-  mattering most, so it warrants an explicit decision rather than a default.
 - **How completed things are reached.** D8 says Done is not a tab and not a
   primary destination, which leaves open whether it is a filter on the backlog
   screen, a link in settings, or something else.
