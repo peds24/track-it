@@ -44,6 +44,37 @@ test('a read-mode track uses read wording', async () => {
   expect(screen.getByLabelText('Mark Dune read')).toBeTruthy();
 });
 
+/** The medium is a word, not a colour — every row names its kind (design language). */
+test('a row names its medium in the meta line', async () => {
+  await render(<TrackRow track={show} onAdvance={() => {}} />);
+  expect(screen.getByText('SHOW')).toBeTruthy();
+});
+
+/**
+ * The bar depicts a count, so it exists only where a count does. A standalone
+ * book has nothing to be part-way through numerically — absence is the signal.
+ */
+test('a series draws a progress bar', async () => {
+  await render(<TrackRow track={show} onAdvance={() => {}} />);
+  expect(screen.getByTestId('progress-track')).toBeTruthy();
+});
+
+test('a standalone track draws no progress bar', async () => {
+  const book: TrackSummary = {
+    ...show,
+    kind: 'entry',
+    id: 'b1',
+    title: 'Piranesi',
+    category: 'book',
+    progress: null,
+    nextEntryId: 'b1',
+    nextEntryTitle: 'Piranesi',
+  };
+  await render(<TrackRow track={book} onAdvance={() => {}} />);
+  expect(screen.getByText('Piranesi')).toBeTruthy();
+  expect(screen.queryByTestId('progress-track')).toBeNull();
+});
+
 /**
  * The `nextEntryId && nextEntryTitle` guard is the one branch keeping a finished
  * track from rendering a button whose tap would throw "already done". Asserting
