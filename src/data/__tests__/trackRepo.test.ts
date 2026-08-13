@@ -257,3 +257,137 @@ test('a fully completed series also reports nothing left to advance', async () =
   expect(done[0]!.nextEntryId).toBeNull();
   expect(done[0]!.nextEntryTitle).toBeNull();
 });
+
+/** Advances an entry at a caller-chosen instant, so ordering can be observed. */
+async function advanceAt(db: SqlDriver, entryId: string, now: string): Promise<void> {
+  const rows = await db.all<Parameters<typeof toEntry>[0]>('SELECT * FROM entry WHERE id = ?', [
+    entryId,
+  ]);
+  const advanced = advance(toEntry(rows[0]!), now);
+  await db.run('UPDATE entry SET status = ?, started_at = ?, finished_at = ? WHERE id = ?', [
+    advanced.status,
+    advanced.startedAt,
+    advanced.finishedAt,
+    advanced.id,
+  ]);
+}
+
+/**
+ * D12: the thing you touched last session sits at the top next session. The
+ * earlier-added track was advanced more recently, so a createdAt sort puts it
+ * last — this is the case that discriminates the two orderings.
+ */
+test('Currently is ordered by most recently advanced, not by date added', async () => {
+  const db = await freshDb();
+  const older = await createStandaloneTrack(
+    db,
+    { title: 'Older', category: 'book' },
+    '2026-08-01T00:00:00.000Z',
+  );
+  const newer = await createStandaloneTrack(
+    db,
+    { title: 'Newer', category: 'book' },
+    '2026-08-10T00:00:00.000Z',
+  );
+
+  await advanceAt(db, newer, '2026-08-11T00:00:00.000Z');
+  await advanceAt(db, older, '2026-08-12T00:00:00.000Z');
+
+  const currently = await listTracks(db, 'currently');
+  expect(currently.map((t) => t.title)).toEqual(['Older', 'Newer']);
+});
+
+/** D9: the backlog is ordered by date added, and advancing elsewhere must not disturb it. */
+test('backlog ordering stays by date added even when another track is advanced', async () => {
+  const db = await freshDb();
+  await createStandaloneTrack(db, { title: 'Older', category: 'book' }, '2026-08-01T00:00:00.000Z');
+  await createStandaloneTrack(db, { title: 'Newer', category: 'book' }, '2026-08-10T00:00:00.000Z');
+  const middle = await createStandaloneTrack(
+    db,
+    { title: 'Middle', category: 'book' },
+    '2026-08-05T00:00:00.000Z',
+  );
+
+  await advanceAt(db, middle, '2026-08-12T00:00:00.000Z'); // moves Middle to Currently
+
+  const backlog = await listTracks(db, 'backlog');
+  expect(backlog.map((t) => t.title)).toEqual(['Newer', 'Older']);
+});
+
+/** A track can sit in Currently with no timestamps: a series with one done child and one unstarted. */
+test('a Currently track with no advance timestamps sorts after ones that have them', async () => {
+  const db = await freshDb();
+
+  await createSeriesTrack(
+    db,
+    {
+      title: 'Untouched',
+      mediaType: 'show',
+      unitLabel: 'episode',
+      entries: [
+        { ordinal: 1, title: 'Episode 1' },
+        { ordinal: 2, title: 'Episode 2' },
+      ],
+    },
+    '2026-08-20T00:00:00.000Z',
+  );
+  const rows = await db.all<{ id: string }>(
+    'SELECT id FROM entry WHERE series_id IS NOT NULL ORDER BY ordinal',
+  );
+  await advanceAt(db, rows[0]!.id, '2026-08-21T00:00:00.000Z');
+  // Blank the timestamps: shelf stays 'currently' (1 of 2 done) but nothing is dated.
+  await db.run('UPDATE entry SET started_at = NULL, finished_at = NULL WHERE id = ?', [
+    rows[0]!.id,
+  ]);
+
+  const dated = await createStandaloneTrack(
+    db,
+    { title: 'Dated', category: 'book' },
+    '2026-08-01T00:00:00.000Z',
+  );
+  await advanceAt(db, dated, '2026-08-02T00:00:00.000Z');
+
+  const currently = await listTracks(db, 'currently');
+  expect(currently.map((t) => t.title)).toEqual(['Dated', 'Untouched']);
+  expect(currently[1]!.lastAdvancedAt).toBeNull();
+});
+
+/** The maximum across children, not the first or the last one. */
+test('a series reports the latest advance across all of its children', async () => {
+  const db = await freshDb();
+  await createSeriesTrack(
+    db,
+    {
+      title: 'Severance',
+      mediaType: 'show',
+      unitLabel: 'episode',
+      entries: [
+        { ordinal: 1, title: 'Episode 1' },
+        { ordinal: 2, title: 'Episode 2' },
+        { ordinal: 3, title: 'Episode 3' },
+        { ordinal: 4, title: 'Episode 4' },
+      ],
+    },
+    NOW,
+  );
+  const rows = await db.all<{ id: string }>('SELECT id FROM entry ORDER BY ordinal');
+
+  // Out of ordinal order, and the maximum is neither the first nor the last advanced.
+  await advanceAt(db, rows[0]!.id, '2026-08-13T00:00:00.000Z');
+  await advanceAt(db, rows[2]!.id, '2026-08-19T00:00:00.000Z');
+  await advanceAt(db, rows[1]!.id, '2026-08-15T00:00:00.000Z');
+
+  const currently = await listTracks(db, 'currently');
+  expect(currently).toHaveLength(1);
+  expect(currently[0]!.lastAdvancedAt).toBe('2026-08-19T00:00:00.000Z');
+});
+
+/** Read mode sets startedAt only, so lastAdvancedAt must not depend on finishedAt alone. */
+test('a track advanced only to in_progress reports its start as its last advance', async () => {
+  const db = await freshDb();
+  const id = await createStandaloneTrack(db, { title: 'Dune', category: 'book' }, NOW);
+  await advanceAt(db, id, '2026-08-14T00:00:00.000Z');
+
+  const currently = await listTracks(db, 'currently');
+  expect(currently[0]!.lastAdvancedAt).toBe('2026-08-14T00:00:00.000Z');
+});

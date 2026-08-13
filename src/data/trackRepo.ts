@@ -14,6 +14,8 @@ export type TrackSummary = {
   progress: { done: number; total: number } | null;
   nextEntryId: string | null;
   nextEntryTitle: string | null;
+  /** When this track last moved forward. Derived at read time (D3), never stored. */
+  lastAdvancedAt: string | null;
 };
 
 type SeriesRow = {
@@ -104,6 +106,50 @@ export async function createStandaloneTrack(
   return id;
 }
 
+/**
+ * The later of an entry's two timestamps, or null if it has never been touched.
+ * Read mode sets startedAt on the first tap and finishedAt on the second, so
+ * neither column alone is enough. ISO-8601 sorts lexicographically in
+ * chronological order, which is what the createdAt sort already relies on.
+ */
+function lastAdvanceOf(entry: Entry): string | null {
+  const { startedAt, finishedAt } = entry;
+  if (startedAt === null) return finishedAt;
+  if (finishedAt === null) return startedAt;
+  return finishedAt.localeCompare(startedAt) >= 0 ? finishedAt : startedAt;
+}
+
+/** The most recent advance across a series' children — the maximum, not the last one written. */
+function lastAdvanceAcross(children: readonly Entry[]): string | null {
+  let latest: string | null = null;
+  for (const child of children) {
+    const stamp = lastAdvanceOf(child);
+    if (stamp === null) continue;
+    if (latest === null || stamp.localeCompare(latest) > 0) latest = stamp;
+  }
+  return latest;
+}
+
+/** D9: the backlog and Done shelves are ordered by date added. */
+function byDateAdded(a: TrackSummary, b: TrackSummary): number {
+  return b.createdAt.localeCompare(a.createdAt);
+}
+
+/**
+ * D12: Currently is ordered by most recently advanced, so the thing you touched
+ * last session sits at the top next session. Tracks with no advance timestamp at
+ * all sort last, and ties fall back to date added.
+ */
+function byMostRecentlyAdvanced(a: TrackSummary, b: TrackSummary): number {
+  if (a.lastAdvancedAt === null && b.lastAdvancedAt !== null) return 1;
+  if (a.lastAdvancedAt !== null && b.lastAdvancedAt === null) return -1;
+  if (a.lastAdvancedAt !== null && b.lastAdvancedAt !== null) {
+    const cmp = b.lastAdvancedAt.localeCompare(a.lastAdvancedAt);
+    if (cmp !== 0) return cmp;
+  }
+  return byDateAdded(a, b);
+}
+
 /** Shelf is computed in domain/, never queried for directly (D3). */
 export async function listTracks(
   db: SqlDriver,
@@ -129,6 +175,7 @@ export async function listTracks(
       progress: progressFor(children),
       nextEntryId: next?.id ?? null,
       nextEntryTitle: next?.title ?? null,
+      lastAdvancedAt: lastAdvanceAcross(children),
     });
   }
 
@@ -148,13 +195,14 @@ export async function listTracks(
       // finished book, and tapping it would throw "already done".
       nextEntryId: entry.status === 'done' ? null : entry.id,
       nextEntryTitle: entry.status === 'done' ? null : entry.title,
+      lastAdvancedAt: lastAdvanceOf(entry),
     });
   }
 
   return summaries
     .filter((t) => t.shelf === shelf)
     .filter((t) => category === undefined || t.category === category)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    .sort(shelf === 'currently' ? byMostRecentlyAdvanced : byDateAdded);
 }
 
 /** Transition rules live in domain/advance; this only persists the result (D8). */
