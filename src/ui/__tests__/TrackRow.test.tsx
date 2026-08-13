@@ -12,6 +12,7 @@ const show: TrackSummary = {
   progress: { done: 3, total: 9 },
   nextEntryId: 'e4',
   nextEntryTitle: 'Episode 4',
+  lastAdvancedAt: '2026-08-12T11:00:00.000Z',
 };
 
 test('a series row shows its title, next unit and progress', async () => {
@@ -41,4 +42,26 @@ test('a read-mode track uses read wording', async () => {
   };
   await render(<TrackRow track={book} onAdvance={() => {}} />);
   expect(screen.getByLabelText('Mark Dune read')).toBeTruthy();
+});
+
+/**
+ * The `nextEntryId && nextEntryTitle` guard is the one branch keeping a finished
+ * track from rendering a button whose tap would throw "already done". Asserting
+ * the title still renders proves the button is absent, not the whole row.
+ */
+test('a track with nothing left to advance renders no advance button', async () => {
+  const finished: TrackSummary = {
+    ...show,
+    kind: 'entry',
+    id: 'b2',
+    title: 'Dune',
+    category: 'book',
+    shelf: 'done',
+    progress: null,
+    nextEntryId: null,
+    nextEntryTitle: null,
+  };
+  await render(<TrackRow track={finished} onAdvance={() => {}} />);
+  expect(screen.getByText('Dune')).toBeTruthy();
+  expect(screen.queryByLabelText(/^Mark /)).toBeNull();
 });
