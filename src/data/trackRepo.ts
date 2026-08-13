@@ -18,6 +18,8 @@ export type TrackSummary = {
    * tell "Reading Volume 5" from "Next Volume 5" — a read-mode entry that is
    * already in progress is not one you are about to start.
    */
+  /** A4: still being published — no total, no bar, never reaches Done. */
+  ongoing: boolean;
   nextEntryStatus: Status | null;
   nextEntryId: string | null;
   nextEntryTitle: string | null;
@@ -30,6 +32,7 @@ type SeriesRow = {
   title: string;
   media_type: Series['mediaType'];
   unit_label: Series['unitLabel'];
+  ongoing: number;
   created_at: string;
   external_source: string | null;
   external_id: string | null;
@@ -87,14 +90,15 @@ export async function createSeriesTrack(
 
   await db.transaction(async () => {
     await db.run(
-      `INSERT INTO series (id, title, media_type, unit_label, created_at, external_source, external_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO series (id, title, media_type, unit_label, created_at, ongoing, external_source, external_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         seriesId,
         draft.title,
         draft.mediaType,
         draft.unitLabel,
         now,
+        draft.ongoing === true ? 1 : 0,
         draft.externalSource ?? null,
         draft.externalId ?? null,
       ],
@@ -198,7 +202,10 @@ export async function listTracks(
       category: row.media_type,
       shelf: shelfForSeries(children),
       createdAt: row.created_at,
-      progress: progressFor(children),
+      // An ongoing series has no denominator, so it reports no progress at all
+      // rather than a total that is really "however many I have added so far".
+      progress: row.ongoing === 1 ? null : progressFor(children),
+      ongoing: row.ongoing === 1,
       nextEntryStatus: next?.status ?? null,
       nextEntryId: next?.id ?? null,
       nextEntryTitle: next?.title ?? null,
@@ -221,6 +228,7 @@ export async function listTracks(
       shelf: shelfForEntry(entry),
       createdAt: entry.createdAt,
       progress: null,
+      ongoing: false,
       // Non-null means advanceable. A finished standalone track yields null,
       // matching what nextEntry() already does for a fully-done series —
       // otherwise the Done filter would render a working advance button on a
@@ -252,4 +260,44 @@ export async function advanceEntry(db: SqlDriver, entryId: string, now: string):
     updated.finishedAt,
     updated.id,
   ]);
+
+  if (updated.status === 'done') await appendNextOngoingEntry(db, updated, now);
 }
+
+/**
+ * A4: an ongoing series has no pre-generated list, so finishing its last entry
+ * appends the next one. That is what keeps it out of Done — an unfinished
+ * series is not something you have finished — and it falls out of the derived
+ * shelves rather than needing a rule of its own.
+ */
+async function appendNextOngoingEntry(db: SqlDriver, finished: Entry, now: string): Promise<void> {
+  if (finished.seriesId === null) return;
+
+  const seriesRows = await db.all<SeriesRow>('SELECT * FROM series WHERE id = ?', [
+    finished.seriesId,
+  ]);
+  const series = seriesRows[0];
+  if (!series || series.ongoing !== 1) return;
+
+  const siblings = await db.all<EntryRow>('SELECT * FROM entry WHERE series_id = ?', [
+    finished.seriesId,
+  ]);
+  // Only extend from the end. Finishing an earlier entry out of order must not
+  // append a duplicate.
+  const highest = siblings.reduce((max, r) => Math.max(max, r.ordinal ?? 0), 0);
+  if ((finished.ordinal ?? 0) < highest) return;
+
+  const ordinal = highest + 1;
+  await db.run(
+    `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at)
+     VALUES (?, ?, ?, ?, ?, 'unstarted', ?)`,
+    [newId(), series.id, `${UNIT_TITLE[series.unit_label]} ${ordinal}`, ordinal, series.unit_label, now],
+  );
+}
+
+/** Matches the titles ManualProvider generates, so both paths read alike. */
+const UNIT_TITLE: Record<Series['unitLabel'], string> = {
+  episode: 'Episode',
+  issue: 'Issue',
+  volume: 'Volume',
+};

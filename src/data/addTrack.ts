@@ -6,7 +6,7 @@ import { providerFor } from '@/providers/registry';
 
 export async function addTrack(
   db: SqlDriver,
-  input: { title: string; category: Category; count: number },
+  input: { title: string; category: Category; count: number; ongoing?: boolean },
   now: string,
 ): Promise<void> {
   const title = input.title.trim();
@@ -25,6 +25,7 @@ export async function addTrack(
     title,
     category: input.category,
     count: input.count,
+    ongoing: input.ongoing === true,
   });
 
   await createSeriesTrack(db, draft, now);

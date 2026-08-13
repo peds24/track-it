@@ -37,6 +37,7 @@ export async function exportLibrary(db: SqlDriver): Promise<string> {
       mediaType: r.media_type as Series['mediaType'],
       unitLabel: r.unit_label as Series['unitLabel'],
       createdAt: String(r.created_at),
+      ongoing: r.ongoing === 1,
       externalSource: (r.external_source as string | null) ?? null,
       externalId: (r.external_id as string | null) ?? null,
     })),
@@ -93,6 +94,8 @@ function parseSeries(value: unknown): Series {
     mediaType: mediaType as Series['mediaType'],
     unitLabel: unitLabel as Series['unitLabel'],
     createdAt,
+    // A4. Absent in v1 backups, which predate ongoing series — those are finite.
+    ongoing: value.ongoing === true,
     externalSource: requireNullableString(value.externalSource, 'series.externalSource'),
     externalId: requireNullableString(value.externalId, 'series.externalId'),
   };
@@ -187,9 +190,9 @@ export async function importLibrary(db: SqlDriver, json: string): Promise<void> 
 
     for (const s of backup.series) {
       await db.run(
-        `INSERT INTO series (id, title, media_type, unit_label, created_at, external_source, external_id)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [s.id, s.title, s.mediaType, s.unitLabel, s.createdAt, s.externalSource, s.externalId],
+        `INSERT INTO series (id, title, media_type, unit_label, created_at, ongoing, external_source, external_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [s.id, s.title, s.mediaType, s.unitLabel, s.createdAt, s.ongoing ? 1 : 0, s.externalSource, s.externalId],
       );
     }
 

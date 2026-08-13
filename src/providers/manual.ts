@@ -32,7 +32,9 @@ export class ManualProvider implements MetadataProvider {
   }
 
   async hydrate(result: SearchResult): Promise<SeriesDraft> {
-    if (result.count < 1) {
+    // A4: an ongoing series has no count to validate — it starts at entry 1 and
+    // grows as each one is finished.
+    if (!result.ongoing && result.count < 1) {
       throw new Error('A track must have at least 1 unit');
     }
     // Validated here rather than on the Add screen so every caller is covered.
@@ -50,11 +52,14 @@ export class ManualProvider implements MetadataProvider {
       throw new Error(`${result.category} is a standalone track and has no entries to generate`);
     }
 
+    const length = result.ongoing ? 1 : result.count;
+
     return {
+      ongoing: result.ongoing === true,
       title: result.title,
       mediaType: result.category as SeriesDraft['mediaType'],
       unitLabel,
-      entries: Array.from({ length: result.count }, (_, i) => ({
+      entries: Array.from({ length }, (_, i) => ({
         ordinal: i + 1,
         title: `${DISPLAY[unitLabel]} ${i + 1}`,
       })),

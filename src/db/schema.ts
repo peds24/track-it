@@ -31,6 +31,11 @@ const MIGRATIONS: readonly string[] = [
   CREATE INDEX IF NOT EXISTS idx_entry_series ON entry(series_id);
   CREATE INDEX IF NOT EXISTS idx_entry_status ON entry(status);
   `,
+  // A4: a series that is still being published has no final count. Existing
+  // rows default to 0, so every series already in a library stays finite.
+  `
+  ALTER TABLE series ADD COLUMN ongoing INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 /**

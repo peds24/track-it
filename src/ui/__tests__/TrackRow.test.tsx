@@ -11,6 +11,7 @@ const show: TrackSummary = {
   createdAt: '2026-08-12T10:00:00.000Z',
   progress: { done: 3, total: 9 },
   nextEntryId: 'e4',
+  ongoing: false,
   nextEntryStatus: 'unstarted',
   nextEntryTitle: 'Episode 4',
   lastAdvancedAt: '2026-08-12T11:00:00.000Z',
@@ -141,4 +142,31 @@ test('a series whose next entry is in progress reads "Reading", not "Next"', asy
 test('a series whose next entry is unstarted reads "Next"', async () => {
   await render(<TrackRow track={show} onAdvance={() => {}} />);
   expect(screen.getByText('Next Episode 4')).toBeTruthy();
+});
+
+/**
+ * A4: an ongoing series has no total, so it reports no fraction. The bar needs
+ * one, and "absence is the signal" already means "nothing to measure".
+ */
+test('an ongoing series shows Ongoing and draws no progress bar', async () => {
+  const ongoing: TrackSummary = {
+    ...show,
+    title: 'One Piece',
+    category: 'manga',
+    ongoing: true,
+    progress: null,
+    nextEntryStatus: 'unstarted',
+    nextEntryId: 'v8',
+    nextEntryTitle: 'Volume 8',
+  };
+  await render(<TrackRow track={ongoing} onAdvance={() => {}} />);
+  expect(screen.getByText('Ongoing')).toBeTruthy();
+  expect(screen.getByText('Next Volume 8')).toBeTruthy();
+  expect(screen.queryByTestId('progress-track')).toBeNull();
+});
+
+test('a finite series still shows its count', async () => {
+  await render(<TrackRow track={show} onAdvance={() => {}} />);
+  expect(screen.getByText('3 of 9')).toBeTruthy();
+  expect(screen.queryByText('Ongoing')).toBeNull();
 });

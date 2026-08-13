@@ -413,6 +413,27 @@ data should know it is single-copy storage.
 The tab bar drops to two tabs, Currently and Backlog. An empty Settings tab
 would have been worse than one fewer tab.
 
+**A4 — Ongoing series have no total, and grow one entry at a time.**
+A series may be marked *ongoing*: still being published, with no final count.
+This breaks two things D3 assumed, so both change for ongoing series only:
+
+- **No "4 of 34".** There is no denominator, so the count is replaced by the
+  word *Ongoing* and the number you are on. Inventing a total would be a lie
+  that goes stale the week the next volume ships.
+- **No progress bar.** A bar needs a fraction. Absence is already the signal
+  for a standalone book, and it means the same thing here: nothing to measure
+  against.
+
+**How the list grows.** An ongoing series is created with one entry. Finishing
+its last entry appends the next one, so the series always has something next.
+A consequence worth stating: **an ongoing series never reaches Done.** That is
+correct — an unfinished series is not something you have finished — and it
+falls out of the derived shelves (D3) rather than needing a rule of its own.
+
+**Rejected:** asking for a guessed total and correcting it later. It puts a
+number the user does not have in front of them at the one moment they are least
+able to supply it, and every ongoing series would drift wrong over time.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:

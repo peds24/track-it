@@ -82,6 +82,14 @@ export function TrackRow({
           <Text style={styles.position} numberOfLines={1}>
             {positionLabel(track)}
           </Text>
+          {/* A4: an ongoing series has no denominator, so the word replaces the
+              count rather than a total the app would have to invent. */}
+          {track.ongoing && (
+            <>
+              <Text style={styles.dot}>·</Text>
+              <Text style={styles.count}>Ongoing</Text>
+            </>
+          )}
           {progress && (
             <>
               <Text style={styles.dot}>·</Text>

@@ -22,6 +22,8 @@ export type Series = {
   mediaType: SeriesMediaType;
   unitLabel: UnitLabel;
   createdAt: string;
+  /** A4: still being published, so it has no total and never reaches Done. */
+  ongoing: boolean;
   externalSource: string | null;
   externalId: string | null;
 };

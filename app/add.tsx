@@ -26,8 +26,11 @@ export default function AddTrackScreen() {
   // and has to be cleared before it can be typed over.
   const [count, setCount] = useState('');
   const [saving, setSaving] = useState(false);
+  // A4: still being published, so there is no count to ask for.
+  const [ongoing, setOngoing] = useState(false);
 
-  const needsCount = category !== null && unitLabelFor(category) !== null;
+  const isSeries = category !== null && unitLabelFor(category) !== null;
+  const needsCount = isSeries && !ongoing;
   const unit = category ? unitLabelFor(category) : null;
 
   async function handleSave() {
@@ -45,7 +48,11 @@ export default function AddTrackScreen() {
 
     setSaving(true);
     try {
-      await addTrack(db, { title, category, count: parsedCount }, new Date().toISOString());
+      await addTrack(
+        db,
+        { title, category, count: parsedCount, ongoing: isSeries && ongoing },
+        new Date().toISOString(),
+      );
       router.back();
     } catch (error) {
       Alert.alert('Could not add track', error instanceof Error ? error.message : String(error));
@@ -101,6 +108,22 @@ export default function AddTrackScreen() {
         />
       )}
 
+      {/* A4: a series still being published has no count to give. Reusing the
+          filter-chip shape rather than a switch keeps the screen to one idiom. */}
+      {isSeries && (
+        <Pressable
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: ongoing }}
+          accessibilityLabel="Ongoing series"
+          onPress={() => setOngoing((v) => !v)}
+          style={[styles.toggle, ongoing && styles.toggleOn]}
+        >
+          <Text style={[styles.toggleText, ongoing && styles.toggleTextOn]}>
+            Ongoing series
+          </Text>
+        </Pressable>
+      )}
+
       <Pressable style={styles.save} onPress={handleSave} accessibilityRole="button">
         <Text style={styles.saveText}>Add to backlog</Text>
       </Pressable>
@@ -135,6 +158,19 @@ function createStyles(c: Palette) {
       borderColor: c.rule,
       borderRadius: radius.md,
     },
+    toggle: {
+      alignSelf: 'flex-start',
+      marginHorizontal: layout.inset,
+      marginBottom: 10,
+      paddingVertical: 6,
+      paddingHorizontal: 13,
+      borderWidth: 1,
+      borderColor: c.rule,
+      borderRadius: radius.chip,
+    },
+    toggleOn: { backgroundColor: c.ink, borderColor: c.ink },
+    toggleText: { ...font.control, color: c.muted },
+    toggleTextOn: { color: c.bg },
     // The one filled control on the screen, so it carries ink rather than accent.
     save: {
       marginTop: 6,
