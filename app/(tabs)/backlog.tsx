@@ -1,0 +1,108 @@
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { advanceEntry } from '@/data/trackRepo';
+import type { Category } from '@/domain/types';
+import { useDatabase } from '@/ui/DatabaseProvider';
+import { FilterBar } from '@/ui/FilterBar';
+import { font, layout, useTheme, type Palette } from '@/ui/theme';
+import { TrackRow } from '@/ui/TrackRow';
+import { useTracks } from '@/ui/useTracks';
+
+export default function BacklogScreen() {
+  const db = useDatabase();
+  const palette = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
+  const [category, setCategory] = useState<Category | null>(null);
+  const [showDone, setShowDone] = useState(false);
+  const { tracks, reload } = useTracks(showDone ? 'done' : 'backlog', category ?? undefined);
+
+  /** A failed read has to reach the user; an unhandled rejection would not. */
+  const reloadSafely = useCallback(async () => {
+    try {
+      await reload();
+    } catch (e: unknown) {
+      Alert.alert('Could not load your tracks', e instanceof Error ? e.message : String(e));
+    }
+  }, [reload]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void reloadSafely();
+    }, [reloadSafely]),
+  );
+
+  /**
+   * Mirrors the Currently screen: `onAdvance` is fire-and-forget, so a stale tap
+   * can hit an entry that is already done and throw — surface it, and reload
+   * either way so the list resynchronises with what is actually stored. The
+   * reload sits after the try rather than inside a `finally`, where its own
+   * rejection would escape the catch above it and go unhandled.
+   */
+  function handleAdvance(entryId: string): void {
+    void (async () => {
+      try {
+        await advanceEntry(db, entryId, new Date().toISOString());
+      } catch (e: unknown) {
+        Alert.alert('Could not update', e instanceof Error ? e.message : String(e));
+      }
+      await reloadSafely();
+    })();
+  }
+
+  return (
+    <SafeAreaView style={styles.screen} edges={['top']}>
+      <View style={styles.header}>
+        <Text style={styles.title}>{showDone ? 'Done' : 'Backlog'}</Text>
+      </View>
+
+      <FilterBar
+        category={category}
+        onCategoryChange={setCategory}
+        showDone={showDone}
+        onShowDoneChange={setShowDone}
+      />
+
+      <FlatList
+        data={tracks}
+        keyExtractor={(t) => `${t.kind}:${t.id}`}
+        renderItem={({ item }) => <TrackRow track={item} onAdvance={handleAdvance} />}
+        ListEmptyComponent={<Text style={styles.empty}>Nothing here yet.</Text>}
+        ListFooterComponent={
+          showDone && tracks.length > 0 ? (
+            <Text style={styles.note}>Nothing here can be advanced, so no control is drawn.</Text>
+          ) : null
+        }
+      />
+    </SafeAreaView>
+  );
+}
+
+function createStyles(c: Palette) {
+  return StyleSheet.create({
+    screen: { flex: 1, backgroundColor: c.bg },
+    header: {
+      paddingTop: layout.headerTop,
+      paddingBottom: layout.headerBottom,
+      paddingHorizontal: layout.inset,
+    },
+    title: { ...font.screenTitle, color: c.ink },
+    note: {
+      ...font.meta,
+      color: c.muted,
+      paddingTop: 10,
+      paddingBottom: 24,
+      paddingHorizontal: layout.inset,
+    },
+    empty: {
+      fontSize: 14,
+      color: c.muted,
+      paddingTop: 18,
+      paddingBottom: 26,
+      paddingHorizontal: layout.inset,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: c.rule,
+    },
+  });
+}

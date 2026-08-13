@@ -1,0 +1,55 @@
+import type { SqlDriver } from '@/db/driver';
+
+/**
+ * There is no `mode` column: mode is derived from media_type.
+ * There is no shelf or status column on `series`: shelf is derived from children.
+ */
+const MIGRATIONS: readonly string[] = [
+  `
+  CREATE TABLE IF NOT EXISTS series (
+    id              TEXT PRIMARY KEY NOT NULL,
+    title           TEXT NOT NULL,
+    media_type      TEXT NOT NULL CHECK (media_type IN ('show','comic','manga')),
+    unit_label      TEXT NOT NULL CHECK (unit_label IN ('episode','issue','volume')),
+    created_at      TEXT NOT NULL,
+    external_source TEXT,
+    external_id     TEXT
+  );
+
+  CREATE TABLE IF NOT EXISTS entry (
+    id          TEXT PRIMARY KEY NOT NULL,
+    series_id   TEXT REFERENCES series(id) ON DELETE CASCADE,
+    title       TEXT NOT NULL,
+    ordinal     INTEGER,
+    media_type  TEXT NOT NULL CHECK (media_type IN ('episode','issue','volume','book','movie')),
+    status      TEXT NOT NULL CHECK (status IN ('unstarted','in_progress','done')),
+    started_at  TEXT,
+    finished_at TEXT,
+    created_at  TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_entry_series ON entry(series_id);
+  CREATE INDEX IF NOT EXISTS idx_entry_status ON entry(status);
+  `,
+];
+
+/**
+ * Runs pending migrations in one transaction. A partial migration is the only
+ * unrecoverable state in an app with no server-side backup, so failure must
+ * leave the previous schema untouched.
+ */
+export async function migrate(db: SqlDriver): Promise<void> {
+  await db.exec('CREATE TABLE IF NOT EXISTS schema_version (version INTEGER NOT NULL)');
+  const rows = await db.all<{ version: number }>('SELECT version FROM schema_version LIMIT 1');
+  const current = rows[0]?.version ?? 0;
+
+  if (current >= MIGRATIONS.length) return;
+
+  await db.transaction(async () => {
+    for (let i = current; i < MIGRATIONS.length; i += 1) {
+      await db.exec(MIGRATIONS[i]!);
+    }
+    await db.run('DELETE FROM schema_version');
+    await db.run('INSERT INTO schema_version (version) VALUES (?)', [MIGRATIONS.length]);
+  });
+}
