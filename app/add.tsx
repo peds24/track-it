@@ -1,11 +1,11 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { addTrack } from '@/data/addTrack';
 import type { Category } from '@/domain/types';
 import { unitLabelFor } from '@/providers/manual';
 import { useDatabase } from '@/ui/DatabaseProvider';
-import { theme } from '@/ui/theme';
+import { font, layout, radius, useTheme, type Palette } from '@/ui/theme';
 
 const CATEGORIES: readonly { value: Category; label: string }[] = [
   { value: 'show', label: 'Show' },
@@ -18,6 +18,8 @@ const CATEGORIES: readonly { value: Category; label: string }[] = [
 export default function AddTrackScreen() {
   const db = useDatabase();
   const router = useRouter();
+  const palette = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
   const [category, setCategory] = useState<Category | null>(null);
   const [title, setTitle] = useState('');
   const [count, setCount] = useState('1');
@@ -54,23 +56,31 @@ export default function AddTrackScreen() {
   if (category === null) {
     return (
       <View style={styles.screen}>
-        <Text style={styles.prompt}>What are you adding?</Text>
+        <View style={styles.header}>
+          <Text style={styles.prompt}>What are you adding?</Text>
+        </View>
         {CATEGORIES.map((c) => (
           <Pressable key={c.value} style={styles.option} onPress={() => setCategory(c.value)}>
             <Text style={styles.optionText}>{c.label}</Text>
           </Pressable>
         ))}
+        <Text style={styles.note}>
+          The category is always chosen first. It decides which catalogue answers later.
+        </Text>
       </View>
     );
   }
 
   return (
     <View style={styles.screen}>
-      <Text style={styles.prompt}>{CATEGORIES.find((c) => c.value === category)?.label}</Text>
+      <View style={styles.header}>
+        <Text style={styles.prompt}>{CATEGORIES.find((c) => c.value === category)?.label}</Text>
+      </View>
 
       <TextInput
         style={styles.input}
         placeholder="Title"
+        placeholderTextColor={palette.faint}
         accessibilityLabel="Title"
         value={title}
         onChangeText={setTitle}
@@ -81,6 +91,7 @@ export default function AddTrackScreen() {
         <TextInput
           style={styles.input}
           placeholder={`How many ${unit}s?`}
+          placeholderTextColor={palette.faint}
           accessibilityLabel="Count"
           value={count}
           onChangeText={setCount}
@@ -95,28 +106,49 @@ export default function AddTrackScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: theme.color.bg, padding: theme.space.lg, gap: theme.space.sm },
-  prompt: { ...theme.font.title, color: theme.color.text, marginBottom: theme.space.md },
-  option: {
-    paddingVertical: theme.space.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: theme.color.line,
-  },
-  optionText: { ...theme.font.row, color: theme.color.text },
-  input: {
-    ...theme.font.row,
-    color: theme.color.text,
-    borderWidth: 1,
-    borderColor: theme.color.line,
-    borderRadius: theme.radius.sm,
-    padding: theme.space.md,
-  },
-  save: {
-    marginTop: theme.space.md,
-    padding: theme.space.md,
-    borderRadius: theme.radius.sm,
-    backgroundColor: theme.color.accent,
-  },
-  saveText: { ...theme.font.row, color: theme.color.bg, textAlign: 'center' },
-});
+function createStyles(c: Palette) {
+  return StyleSheet.create({
+    screen: { flex: 1, backgroundColor: c.bg },
+    header: {
+      paddingTop: layout.headerTop,
+      paddingBottom: layout.headerBottom,
+      paddingHorizontal: layout.inset,
+    },
+    prompt: { ...font.screenTitle, color: c.ink },
+    option: {
+      paddingVertical: 15,
+      paddingHorizontal: layout.inset,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: c.rule,
+    },
+    optionText: { ...font.option, color: c.ink },
+    input: {
+      ...font.body,
+      color: c.ink,
+      marginHorizontal: layout.inset,
+      marginBottom: 10,
+      paddingVertical: 13,
+      paddingHorizontal: 14,
+      borderWidth: 1,
+      borderColor: c.rule,
+      borderRadius: radius.md,
+    },
+    // The one filled control on the screen, so it carries ink rather than accent.
+    save: {
+      marginTop: 6,
+      marginHorizontal: layout.inset,
+      marginBottom: 24,
+      padding: 14,
+      borderRadius: radius.md,
+      backgroundColor: c.ink,
+    },
+    saveText: { ...font.body, color: c.bg, textAlign: 'center' },
+    note: {
+      ...font.meta,
+      color: c.muted,
+      paddingTop: 10,
+      paddingBottom: 24,
+      paddingHorizontal: layout.inset,
+    },
+  });
+}

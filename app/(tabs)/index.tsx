@@ -1,15 +1,17 @@
 import { Link, useFocusEffect } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { advanceEntry } from '@/data/trackRepo';
 import { useDatabase } from '@/ui/DatabaseProvider';
-import { theme } from '@/ui/theme';
+import { font, layout, useTheme, type Palette } from '@/ui/theme';
 import { TrackRow } from '@/ui/TrackRow';
 import { useTracks } from '@/ui/useTracks';
 
 export default function CurrentlyScreen() {
   const db = useDatabase();
+  const palette = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
   const { tracks, reload } = useTracks('currently');
 
   /** A failed read has to reach the user; an unhandled rejection would not. */
@@ -69,16 +71,29 @@ export default function CurrentlyScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: theme.color.bg },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'space-between',
-    paddingHorizontal: theme.space.lg,
-    paddingVertical: theme.space.md,
-  },
-  title: { ...theme.font.title, color: theme.color.text },
-  add: { ...theme.font.row, color: theme.color.accent },
-  empty: { ...theme.font.meta, color: theme.color.muted, padding: theme.space.lg },
-});
+function createStyles(c: Palette) {
+  return StyleSheet.create({
+    screen: { flex: 1, backgroundColor: c.bg },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      justifyContent: 'space-between',
+      gap: layout.rowGap,
+      paddingTop: layout.headerTop,
+      paddingBottom: layout.headerBottom,
+      paddingHorizontal: layout.inset,
+    },
+    title: { ...font.screenTitle, color: c.ink },
+    add: { ...font.body, color: c.accent },
+    empty: {
+      // 14pt: the empty state sits between meta and body, per the mockup.
+      fontSize: 14,
+      color: c.muted,
+      paddingTop: 18,
+      paddingBottom: 26,
+      paddingHorizontal: layout.inset,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: c.rule,
+    },
+  });
+}

@@ -1,11 +1,12 @@
 import * as DocumentPicker from 'expo-document-picker';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import { useMemo } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { exportLibrary, importLibrary } from '@/data/backup';
 import { useDatabase } from '@/ui/DatabaseProvider';
-import { theme } from '@/ui/theme';
+import { font, layout, useTheme, type Palette } from '@/ui/theme';
 
 /** Named so the success alert can tell the user where the safety net landed. */
 const PRE_IMPORT_BACKUP = 'track-it-pre-import-backup.json';
@@ -26,6 +27,8 @@ function confirmReplace(fileName: string): Promise<boolean> {
 
 export default function SettingsScreen() {
   const db = useDatabase();
+  const palette = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
 
   async function handleExport() {
     try {
@@ -84,26 +87,49 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
-      <Text style={styles.title}>Settings</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Settings</Text>
+      </View>
 
-      <View style={styles.group}>
+      <View>
         <Pressable style={styles.action} onPress={handleExport} accessibilityRole="button">
           <Text style={styles.actionText}>Export library</Text>
         </Pressable>
         <Pressable style={styles.action} onPress={handleImport} accessibilityRole="button">
           <Text style={styles.actionText}>Import library</Text>
         </Pressable>
-        <Text style={styles.note}>Importing replaces everything currently in the app.</Text>
+        <Text style={styles.note}>
+          Importing replaces everything currently in the app. Your library is saved to a backup file
+          first, and this cannot be undone.
+        </Text>
       </View>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: theme.color.bg, paddingHorizontal: theme.space.lg },
-  title: { ...theme.font.title, color: theme.color.text, paddingVertical: theme.space.md },
-  group: { gap: theme.space.sm },
-  action: { paddingVertical: theme.space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.color.line },
-  actionText: { ...theme.font.row, color: theme.color.text },
-  note: { ...theme.font.meta, color: theme.color.muted, paddingTop: theme.space.sm },
-});
+function createStyles(c: Palette) {
+  return StyleSheet.create({
+    screen: { flex: 1, backgroundColor: c.bg },
+    header: {
+      paddingTop: layout.headerTop,
+      paddingBottom: layout.headerBottom,
+      paddingHorizontal: layout.inset,
+    },
+    title: { ...font.screenTitle, color: c.ink },
+    action: {
+      paddingVertical: 15,
+      paddingHorizontal: layout.inset,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: c.rule,
+    },
+    actionText: { ...font.option, color: c.ink },
+    // A warning is carried by ink, not by a red badge — one signal only.
+    note: {
+      ...font.meta,
+      color: c.ink,
+      paddingTop: 10,
+      paddingBottom: 24,
+      paddingHorizontal: layout.inset,
+    },
+  });
+}

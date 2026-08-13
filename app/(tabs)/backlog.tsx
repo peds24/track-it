@@ -1,17 +1,19 @@
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { advanceEntry } from '@/data/trackRepo';
 import type { Category } from '@/domain/types';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { FilterBar } from '@/ui/FilterBar';
-import { theme } from '@/ui/theme';
+import { font, layout, useTheme, type Palette } from '@/ui/theme';
 import { TrackRow } from '@/ui/TrackRow';
 import { useTracks } from '@/ui/useTracks';
 
 export default function BacklogScreen() {
   const db = useDatabase();
+  const palette = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
   const [category, setCategory] = useState<Category | null>(null);
   const [showDone, setShowDone] = useState(false);
   const { tracks, reload } = useTracks(showDone ? 'done' : 'backlog', category ?? undefined);
@@ -67,14 +69,40 @@ export default function BacklogScreen() {
         keyExtractor={(t) => `${t.kind}:${t.id}`}
         renderItem={({ item }) => <TrackRow track={item} onAdvance={handleAdvance} />}
         ListEmptyComponent={<Text style={styles.empty}>Nothing here yet.</Text>}
+        ListFooterComponent={
+          showDone && tracks.length > 0 ? (
+            <Text style={styles.note}>Nothing here can be advanced, so no control is drawn.</Text>
+          ) : null
+        }
       />
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: theme.color.bg },
-  header: { paddingHorizontal: theme.space.lg, paddingVertical: theme.space.md },
-  title: { ...theme.font.title, color: theme.color.text },
-  empty: { ...theme.font.meta, color: theme.color.muted, padding: theme.space.lg },
-});
+function createStyles(c: Palette) {
+  return StyleSheet.create({
+    screen: { flex: 1, backgroundColor: c.bg },
+    header: {
+      paddingTop: layout.headerTop,
+      paddingBottom: layout.headerBottom,
+      paddingHorizontal: layout.inset,
+    },
+    title: { ...font.screenTitle, color: c.ink },
+    note: {
+      ...font.meta,
+      color: c.muted,
+      paddingTop: 10,
+      paddingBottom: 24,
+      paddingHorizontal: layout.inset,
+    },
+    empty: {
+      fontSize: 14,
+      color: c.muted,
+      paddingTop: 18,
+      paddingBottom: 26,
+      paddingHorizontal: layout.inset,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: c.rule,
+    },
+  });
+}
