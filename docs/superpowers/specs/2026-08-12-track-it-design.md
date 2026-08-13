@@ -375,6 +375,28 @@ that. Categories are added to the registry independently — wiring up Google Bo
 for books touches no other path — and there is no fan-out or result-merging layer
 to build.
 
+### Amendments made during implementation
+
+Two decisions were refined while building v1. Both are recorded here so the spec
+and the code do not drift apart.
+
+**A1 — `expo-sqlite` transactions must use the same connection.** The storage
+layer wraps writes in `SqlDriver.transaction(fn)`, where `fn` takes no arguments
+and runs its statements on the driver's own connection. Expo SDK 57's
+`withExclusiveTransactionAsync` passes the callback a *separate* connection that
+every inner statement must use, so statements issued through the original
+connection would execute outside the transaction — silently losing atomicity on
+migrations rather than failing loudly. The driver uses `withTransactionAsync`,
+which is a plain BEGIN/COMMIT/ROLLBACK on the same connection.
+
+**A2 — "nothing left to advance" is expressed one way for both track kinds.**
+`nextEntryId` is `null` whenever a track has nothing advanceable, including a
+finished standalone book or movie. Originally standalone tracks self-referenced
+unconditionally, which made a finished book indistinguishable from an unstarted
+one at the UI boundary: the Done view renders the same row component and offers
+an advance action whenever `nextEntryId` is non-null, so the action would have
+been offered on an already-finished book and failed when used.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:
