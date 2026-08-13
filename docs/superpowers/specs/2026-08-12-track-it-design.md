@@ -219,6 +219,30 @@ Google Books for books does not require touching the comic path, and a category
 with no provider simply falls back to `ManualProvider`. There is no aggregation
 layer to build, now or later.
 
+### D11 — Completed tracks are a filter on the backlog screen, not a screen
+
+Done is reached by a "Done" filter on the backlog screen, reusing the media-type
+filter controls from D9.
+
+**Rejected:** a dedicated Done/Archive screen, and a bottom-nav tab.
+
+**Why:** D8 states completed things are deliberately de-emphasised — reachable but
+not a primary destination. A filter is reachable without being a destination, and
+it adds no new screen to build or navigate.
+
+### D12 — The Currently screen is one flat list
+
+Ordered by most recently advanced. No grouping by media type.
+
+**Rejected:** grouping by media type with section headers.
+
+**Why:** the screen should hold roughly three to six things. Grouping that few
+items adds headers without adding navigation. D9 already placed the media-type
+filter on the backlog screen, which is where browsing actually happens.
+
+Most-recently-advanced ordering means the thing you touched last session sits at
+the top next session, which is usually the thing you want again.
+
 ---
 
 ## Architecture
@@ -382,14 +406,11 @@ test, and the UI layer stays thin enough to need little testing.
 
 ## Open questions
 
-These do not affect the schema and can be settled during planning, but they are
-unresolved and should not be invented silently.
+None. All design questions raised during brainstorming are resolved in D1–D12.
 
-- **How completed things are reached.** D8 says Done is not a tab and not a
-  primary destination, which leaves open whether it is a filter on the backlog
-  screen, a link in settings, or something else.
-- **Whether the Currently screen groups by media type** or presents one flat list
-  of everything in progress.
+One item is deferred by decision rather than left open: the merge path for
+reconciling hand-typed series with catalogue records (D5), which is a v2 concern.
+The schema accommodates it via the nullable `external_*` columns.
 
 ## Out of scope for v1
 
