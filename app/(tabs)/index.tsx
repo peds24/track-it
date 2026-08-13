@@ -1,6 +1,6 @@
 import { Link, useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { advanceEntry } from '@/data/trackRepo';
 import { useDatabase } from '@/ui/DatabaseProvider';
@@ -18,9 +18,22 @@ export default function CurrentlyScreen() {
     }, [reload]),
   );
 
-  async function handleAdvance(entryId: string) {
-    await advanceEntry(db, entryId, new Date().toISOString());
-    await reload();
+  /**
+   * `onAdvance` is fire-and-forget, so nothing downstream can await this. A
+   * double tap before the first reload lands means the second advance hits an
+   * entry that is already done and throws — surface it, and reload either way so
+   * the list resynchronises with what is actually stored.
+   */
+  function handleAdvance(entryId: string): void {
+    void (async () => {
+      try {
+        await advanceEntry(db, entryId, new Date().toISOString());
+      } catch (e: unknown) {
+        Alert.alert('Could not update', e instanceof Error ? e.message : String(e));
+      } finally {
+        await reload();
+      }
+    })();
   }
 
   return (
