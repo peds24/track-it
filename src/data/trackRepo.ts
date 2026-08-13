@@ -141,8 +141,12 @@ export async function listTracks(
       shelf: shelfForEntry(entry),
       createdAt: entry.createdAt,
       progress: null,
-      nextEntryId: entry.id,
-      nextEntryTitle: entry.title,
+      // Non-null means advanceable. A finished standalone track yields null,
+      // matching what nextEntry() already does for a fully-done series —
+      // otherwise the Done filter would render a working advance button on a
+      // finished book, and tapping it would throw "already done".
+      nextEntryId: entry.status === 'done' ? null : entry.id,
+      nextEntryTitle: entry.status === 'done' ? null : entry.title,
     });
   }
 

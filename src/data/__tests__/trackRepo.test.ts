@@ -180,3 +180,80 @@ test('listTracks excludes tracks that are on another shelf', async () => {
   expect((await listTracks(db, 'backlog')).map((t) => t.title)).toEqual(['Dune']);
   expect((await listTracks(db, 'currently')).map((t) => t.title)).toEqual(['Berserk']);
 });
+
+/** Advances the entry with the given id once, through the real domain transition. */
+async function advanceEntry(db: SqlDriver, entryId: string): Promise<void> {
+  const rows = await db.all<Parameters<typeof toEntry>[0]>('SELECT * FROM entry WHERE id = ?', [
+    entryId,
+  ]);
+  const advanced = advance(toEntry(rows[0]!), NOW);
+  await db.run('UPDATE entry SET status = ?, started_at = ?, finished_at = ? WHERE id = ?', [
+    advanced.status,
+    advanced.startedAt,
+    advanced.finishedAt,
+    advanced.id,
+  ]);
+}
+
+test('a finished standalone book has nothing left to advance', async () => {
+  const db = await freshDb();
+  const id = await createStandaloneTrack(db, { title: 'Dune', category: 'book' }, NOW);
+  await advanceEntry(db, id); // unstarted -> in_progress
+  await advanceEntry(db, id); // in_progress -> done
+
+  const done = await listTracks(db, 'done');
+  expect(done).toHaveLength(1);
+  expect(done[0]!.nextEntryId).toBeNull();
+  expect(done[0]!.nextEntryTitle).toBeNull();
+});
+
+test('a finished standalone movie has nothing left to advance', async () => {
+  const db = await freshDb();
+  const id = await createStandaloneTrack(db, { title: 'Arrival', category: 'movie' }, NOW);
+  await advanceEntry(db, id); // watch mode: unstarted -> done in one step
+
+  const done = await listTracks(db, 'done');
+  expect(done).toHaveLength(1);
+  expect(done[0]!.nextEntryId).toBeNull();
+  expect(done[0]!.nextEntryTitle).toBeNull();
+});
+
+test('a standalone book in progress still points at itself to advance', async () => {
+  const db = await freshDb();
+  const id = await createStandaloneTrack(db, { title: 'Dune', category: 'book' }, NOW);
+  await advanceEntry(db, id); // unstarted -> in_progress
+
+  const currently = await listTracks(db, 'currently');
+  expect(currently).toHaveLength(1);
+  expect(currently[0]!.nextEntryId).toBe(id);
+  expect(currently[0]!.nextEntryTitle).toBe('Dune');
+});
+
+/** The two track kinds must agree on what a null next entry means. */
+test('a fully completed series also reports nothing left to advance', async () => {
+  const db = await freshDb();
+  await createSeriesTrack(
+    db,
+    {
+      title: 'Severance',
+      mediaType: 'show',
+      unitLabel: 'episode',
+      entries: [
+        { ordinal: 1, title: 'Episode 1' },
+        { ordinal: 2, title: 'Episode 2' },
+      ],
+    },
+    NOW,
+  );
+
+  const rows = await db.all<{ id: string }>('SELECT id FROM entry ORDER BY ordinal');
+  for (const row of rows) {
+    await advanceEntry(db, row.id); // watch mode: straight to done
+  }
+
+  const done = await listTracks(db, 'done');
+  expect(done).toHaveLength(1);
+  expect(done[0]!.kind).toBe('series');
+  expect(done[0]!.nextEntryId).toBeNull();
+  expect(done[0]!.nextEntryTitle).toBeNull();
+});
