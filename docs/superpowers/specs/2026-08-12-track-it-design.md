@@ -1,6 +1,6 @@
 # Track It — Design
 
-**Status:** in progress (brainstorming)
+**Status:** design approved — awaiting implementation plan
 **Date:** 2026-08-12
 
 A mobile app for tracking shows, movies, books, comics, and manga as you watch and
@@ -184,15 +184,22 @@ tool, not a browsing app.
 There is no status column on `series`, and no "shelf" concept in the database.
 The three views are queries over the same two tables:
 
-| View          | Series                                  | Standalone entry     |
-| ------------- | --------------------------------------- | -------------------- |
-| **Currently** | ≥1 child done **and** ≥1 child not done | status `in_progress` |
-| **Backlog**   | zero children done                      | status `unstarted`   |
-| **Done**      | all children done                       | status `done`        |
+| View          | Series                                                              | Standalone entry     |
+| ------------- | ------------------------------------------------------------------- | -------------------- |
+| **Currently** | any child `in_progress`, **or** ≥1 child `done` and ≥1 child not `done` | status `in_progress` |
+| **Backlog**   | no child `done` **and** no child `in_progress`                        | status `unstarted`   |
+| **Done**      | all children `done`                                                   | status `done`        |
 
 This follows D3. A backlog series moves to Currently the moment its first episode
 is marked — no separate "start" action, no extra state to keep in sync, and no way
 for a series to appear in two shelves at once.
+
+The `in_progress` clause is load-bearing, not defensive. Without it, a manga where
+you are reading volume 1 and have finished nothing has zero `done` children and
+would be classified as Backlog — actively reading, filed under "not started yet".
+Read-mode series (D2) reach Currently through `in_progress` before they ever have
+a `done` child; watch-mode series, which have no `in_progress` state, reach it
+through the first `done` child. The two clauses cover the two consumption modes.
 
 ### Data model
 
@@ -204,16 +211,31 @@ Two tables.
 
 **`entry`** — `id` (UUID), `series_id` (nullable FK), `title`, `ordinal`
 (nullable), `media_type` (`episode` | `issue` | `volume` | `book` | `movie`),
-`mode` (`watch` | `read`), `status`, `started_at`, `finished_at`, `created_at`.
+`status`, `started_at`, `finished_at`, `created_at`.
 
 `series_id` is null for books and movies, which have no container (D1). The
 nullable `external_*` columns exist from day one so the D5 merge path does not
 require a migration later.
 
+**`mode` is not a column.** It is derived from `media_type` in `domain/`:
+`episode` and `movie` are `watch`; `book`, `issue` and `volume` are `read`. The
+mapping is total and fixed, so storing it would be a second source of truth for a
+fact `media_type` already determines — the same reasoning as D3. A stored `mode`
+could disagree with its own `media_type`; a derived one cannot.
+
+**Invariant:** for an entry with a parent, `media_type` must equal the parent's
+`unit_label`. Enforced in `domain/` at creation, since entries are only ever
+created in bulk from a `SeriesDraft`.
+
+**On `series.unit_label`:** it is stored rather than derived from `media_type`
+because the mapping is *not* total — a comic series may be tracked in issues or in
+collected volumes, and that is the user's choice, not a property of the medium.
+This is the deliberate exception to the rule applied to `mode` above.
+
 ### One status column, constrained by mode
 
 `status` is a single enum — `unstarted` | `in_progress` | `done` — and `mode`
-determines which values are legal:
+(derived above) determines which values are legal:
 
 - `mode = 'watch'` → `unstarted` and `done` only; `in_progress` is rejected.
 - `mode = 'read'` → all three.
@@ -295,3 +317,27 @@ There is no offline case to handle, because there is no network.
 
 The bias is deliberate: most logic lives in `domain/`, where it is cheapest to
 test, and the UI layer stays thin enough to need little testing.
+
+---
+
+## Open questions
+
+These do not affect the schema and can be settled during planning, but they are
+unresolved and should not be invented silently.
+
+- **What "navigating the backlog" means.** D8 ranks this third in importance and
+  says it deserves real filtering and sorting, but the behaviour is unspecified.
+  Filter by media type? Sort by date added, or by title? Group series separately
+  from standalone books and movies? This is the priority the user named as
+  mattering most, so it warrants an explicit decision rather than a default.
+- **How completed things are reached.** D8 says Done is not a tab and not a
+  primary destination, which leaves open whether it is a filter on the backlog
+  screen, a link in settings, or something else.
+- **Whether the Currently screen groups by media type** or presents one flat list
+  of everything in progress.
+
+## Out of scope for v1
+
+Named explicitly so planning does not absorb them: catalogue API integrations
+(D5), cover art, sync and accounts (D6), ratings and reviews, social features,
+reading statistics, and the activity log rejected in D8.
