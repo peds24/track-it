@@ -1,5 +1,6 @@
 import type { SqlDriver } from '@/db/driver';
 import { advance } from '@/domain/advance';
+import { modeFor } from '@/domain/mode';
 import { nextEntry, progressFor, shelfForEntry, shelfForSeries } from '@/domain/shelf';
 import type { Category, Entry, Series, Shelf, Status } from '@/domain/types';
 import { assertEntryInvariants, assertIsoTimestamp, isStandaloneMediaType } from '@/domain/validate';
@@ -252,7 +253,14 @@ export async function advanceEntry(db: SqlDriver, entryId: string, now: string):
   const row = rows[0];
   if (!row) throw new Error(`Entry ${entryId} not found`);
 
-  const updated = advance(toEntry(row), now);
+  const entry = toEntry(row);
+  // A5: a series child goes straight to done. Finishing volume 7 and starting
+  // volume 8 is one act, so the app moves in_progress forward rather than
+  // charging a second tap for it. A standalone book keeps both steps (D2).
+  const updated =
+    entry.seriesId !== null && entry.status !== 'done'
+      ? { ...entry, status: 'done' as const, startedAt: entry.startedAt ?? now, finishedAt: now }
+      : advance(entry, now);
 
   await db.run('UPDATE entry SET status = ?, started_at = ?, finished_at = ? WHERE id = ?', [
     updated.status,
@@ -261,7 +269,10 @@ export async function advanceEntry(db: SqlDriver, entryId: string, now: string):
     updated.id,
   ]);
 
-  if (updated.status === 'done') await appendNextOngoingEntry(db, updated, now);
+  if (updated.status === 'done') {
+    await appendNextOngoingEntry(db, updated, now);
+    await startNextInSeries(db, updated, now);
+  }
 }
 
 /**
@@ -293,6 +304,27 @@ async function appendNextOngoingEntry(db: SqlDriver, finished: Entry, now: strin
      VALUES (?, ?, ?, ?, ?, 'unstarted', ?)`,
     [newId(), series.id, `${UNIT_TITLE[series.unit_label]} ${ordinal}`, ordinal, series.unit_label, now],
   );
+}
+
+/**
+ * A5: mark the following unit as in progress, so the row reads "Reading Volume
+ * 8" the moment volume 7 is finished. Watch mode has no in_progress state (D2),
+ * so an episode is left unstarted and reads "Next Episode 4".
+ */
+async function startNextInSeries(db: SqlDriver, finished: Entry, now: string): Promise<void> {
+  if (finished.seriesId === null) return;
+  if (modeFor(finished.mediaType) !== 'read') return;
+
+  const rows = await db.all<EntryRow>('SELECT * FROM entry WHERE series_id = ?', [
+    finished.seriesId,
+  ]);
+  const next = nextEntry(rows.map(toEntry));
+  if (!next || next.status !== 'unstarted') return;
+
+  await db.run("UPDATE entry SET status = 'in_progress', started_at = ? WHERE id = ?", [
+    now,
+    next.id,
+  ]);
 }
 
 /** Matches the titles ManualProvider generates, so both paths read alike. */

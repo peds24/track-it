@@ -434,6 +434,28 @@ falls out of the derived shelves (D3) rather than needing a rule of its own.
 number the user does not have in front of them at the one moment they are least
 able to supply it, and every ongoing series would drift wrong over time.
 
+**A5 — One tap finishes the current unit of a series and starts the next.**
+D2 gave read-mode entries three states so you could be half-way through a book.
+That is right for a *book*, and wrong for a *volume*: finishing volume 7 of a
+manga and starting volume 8 is one act, not two, and requiring two taps made the
+common case cost double.
+
+- **Series children** (episodes, issues, volumes) go straight to `done` on one
+  tap, and the next child is immediately marked `in_progress` — so the row reads
+  "Reading Volume 8" the moment volume 7 is finished.
+- **Standalone books keep both steps.** A book has no next unit to move to, so
+  "started" and "finished" remain genuinely different states, exactly as D2 said.
+
+`in_progress` therefore still exists and still means the same thing. What
+changed is who sets it: the app moves it forward for you inside a series,
+instead of asking you to.
+
+**Deliberately not added: a confirmation before starting the next unit.** The
+request that prompted this asked for one, but a dialog on every completion
+reinstates the second interaction this amendment exists to remove. The choice a
+dialog would offer — next unit to Currently or to Backlog — only becomes real
+once a catalogue can say whether a next unit exists (D5). Revisit it then.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:

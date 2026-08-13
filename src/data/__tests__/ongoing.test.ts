@@ -39,14 +39,16 @@ test('finishing the last entry appends the next one', async () => {
   const db = await freshDb();
   await addTrack(db, { title: 'One Piece', category: 'manga', count: 0, ongoing: true }, NOW);
 
-  // Read mode: two taps to finish volume 1.
-  await advanceTimes(db, 2);
+  // A5: one tap finishes volume 1 and starts volume 2.
+  await advanceTimes(db, 1);
 
   const rows = await db.all<{ title: string }>('SELECT title FROM entry ORDER BY ordinal');
   expect(rows.map((r) => r.title)).toEqual(['Volume 1', 'Volume 2']);
 
   const [track] = await listTracks(db, 'currently');
   expect(track!.nextEntryTitle).toBe('Volume 2');
+  // A5: the next volume is already in progress, so the row reads "Reading".
+  expect(track!.nextEntryStatus).toBe('in_progress');
 });
 
 test('an ongoing series never reaches the Done shelf', async () => {
@@ -54,7 +56,7 @@ test('an ongoing series never reaches the Done shelf', async () => {
   await addTrack(db, { title: 'One Piece', category: 'manga', count: 0, ongoing: true }, NOW);
 
   // Finish three volumes. A finite series would be Done by now.
-  await advanceTimes(db, 6);
+  await advanceTimes(db, 3);
 
   expect(await listTracks(db, 'done')).toHaveLength(0);
   const [track] = await listTracks(db, 'currently');
@@ -65,7 +67,7 @@ test('a finite series is unaffected — no entry is appended', async () => {
   const db = await freshDb();
   await addTrack(db, { title: 'Berserk', category: 'manga', count: 2 }, NOW);
 
-  await advanceTimes(db, 4);
+  await advanceTimes(db, 2);
 
   expect(await db.all('SELECT id FROM entry')).toHaveLength(2);
   const [done] = await listTracks(db, 'done');
@@ -87,7 +89,7 @@ test('an ongoing show appends episodes, not volumes', async () => {
 test('finishing an earlier entry out of order does not append', async () => {
   const db = await freshDb();
   await addTrack(db, { title: 'One Piece', category: 'manga', count: 0, ongoing: true }, NOW);
-  await advanceTimes(db, 2); // volume 1 done, volume 2 created
+  await advanceTimes(db, 1); // volume 1 done, volume 2 created and started
 
   const [first] = await db.all<{ id: string }>(
     "SELECT id FROM entry WHERE ordinal = 1",
@@ -95,7 +97,6 @@ test('finishing an earlier entry out of order does not append', async () => {
   // Re-finishing volume 1 would throw; instead reset it and finish it again,
   // which is the shape of any out-of-order completion.
   await db.run("UPDATE entry SET status = 'unstarted' WHERE id = ?", [first!.id]);
-  await advanceEntry(db, first!.id, NOW);
   await advanceEntry(db, first!.id, NOW);
 
   const rows = await db.all('SELECT id FROM entry');
