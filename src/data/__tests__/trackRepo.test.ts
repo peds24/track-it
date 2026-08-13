@@ -391,3 +391,57 @@ test('a track advanced only to in_progress reports its start as its last advance
   const currently = await listTracks(db, 'currently');
   expect(currently[0]!.lastAdvancedAt).toBe('2026-08-14T00:00:00.000Z');
 });
+
+// --- Entry invariants enforced at creation (domain/validate) ---
+
+test('creating a series track with a bad ordinal writes nothing', async () => {
+  const db = await freshDb();
+
+  await expect(
+    createSeriesTrack(
+      db,
+      { title: 'Berserk', mediaType: 'manga', unitLabel: 'volume', entries: [{ ordinal: -4.5, title: 'Volume ?' }] },
+      NOW,
+    ),
+  ).rejects.toThrow(/non-negative whole number/);
+
+  // Rejected before the transaction opens, so not even the series row exists.
+  expect(await db.all('SELECT id FROM series')).toHaveLength(0);
+  expect(await db.all('SELECT id FROM entry')).toHaveLength(0);
+});
+
+test('creating a track with a non-ISO timestamp is rejected', async () => {
+  const db = await freshDb();
+
+  await expect(
+    createStandaloneTrack(db, { title: 'Dune', category: 'book' }, 'not-a-date'),
+  ).rejects.toThrow(/createdAt/);
+  expect(await db.all('SELECT id FROM entry')).toHaveLength(0);
+
+  await expect(
+    createSeriesTrack(
+      db,
+      { title: 'Berserk', mediaType: 'manga', unitLabel: 'volume', entries: [{ ordinal: 1, title: 'Volume 1' }] },
+      'not-a-date',
+    ),
+  ).rejects.toThrow(/createdAt/);
+  expect(await db.all('SELECT id FROM series')).toHaveLength(0);
+});
+
+test('listTracks skips a parentless row whose media type is a unit label', async () => {
+  const db = await freshDb();
+  await createStandaloneTrack(db, { title: 'Dune', category: 'book' }, NOW);
+  // Written straight to SQL: no supported path can produce this any more, but a
+  // row left by an older build must not surface with a category outside the union.
+  await db.run(
+    `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at)
+     VALUES ('legacy', NULL, 'Orphan', NULL, 'episode', 'unstarted', ?)`,
+    [NOW],
+  );
+
+  const backlog = await listTracks(db, 'backlog');
+  expect(backlog.map((t) => t.title)).toEqual(['Dune']);
+  for (const track of backlog) {
+    expect(['show', 'movie', 'book', 'comic', 'manga']).toContain(track.category);
+  }
+});

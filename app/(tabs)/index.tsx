@@ -12,17 +12,28 @@ export default function CurrentlyScreen() {
   const db = useDatabase();
   const { tracks, reload } = useTracks('currently');
 
+  /** A failed read has to reach the user; an unhandled rejection would not. */
+  const reloadSafely = useCallback(async () => {
+    try {
+      await reload();
+    } catch (e: unknown) {
+      Alert.alert('Could not load your tracks', e instanceof Error ? e.message : String(e));
+    }
+  }, [reload]);
+
   useFocusEffect(
     useCallback(() => {
-      void reload();
-    }, [reload]),
+      void reloadSafely();
+    }, [reloadSafely]),
   );
 
   /**
    * `onAdvance` is fire-and-forget, so nothing downstream can await this. A
    * double tap before the first reload lands means the second advance hits an
    * entry that is already done and throws — surface it, and reload either way so
-   * the list resynchronises with what is actually stored.
+   * the list resynchronises with what is actually stored. The reload sits after
+   * the try rather than inside a `finally`, where its own rejection would escape
+   * the catch above it and go unhandled.
    */
   function handleAdvance(entryId: string): void {
     void (async () => {
@@ -30,9 +41,8 @@ export default function CurrentlyScreen() {
         await advanceEntry(db, entryId, new Date().toISOString());
       } catch (e: unknown) {
         Alert.alert('Could not update', e instanceof Error ? e.message : String(e));
-      } finally {
-        await reload();
       }
+      await reloadSafely();
     })();
   }
 

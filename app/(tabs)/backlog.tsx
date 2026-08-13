@@ -16,16 +16,27 @@ export default function BacklogScreen() {
   const [showDone, setShowDone] = useState(false);
   const { tracks, reload } = useTracks(showDone ? 'done' : 'backlog', category ?? undefined);
 
+  /** A failed read has to reach the user; an unhandled rejection would not. */
+  const reloadSafely = useCallback(async () => {
+    try {
+      await reload();
+    } catch (e: unknown) {
+      Alert.alert('Could not load your tracks', e instanceof Error ? e.message : String(e));
+    }
+  }, [reload]);
+
   useFocusEffect(
     useCallback(() => {
-      void reload();
-    }, [reload]),
+      void reloadSafely();
+    }, [reloadSafely]),
   );
 
   /**
    * Mirrors the Currently screen: `onAdvance` is fire-and-forget, so a stale tap
    * can hit an entry that is already done and throw — surface it, and reload
-   * either way so the list resynchronises with what is actually stored.
+   * either way so the list resynchronises with what is actually stored. The
+   * reload sits after the try rather than inside a `finally`, where its own
+   * rejection would escape the catch above it and go unhandled.
    */
   function handleAdvance(entryId: string): void {
     void (async () => {
@@ -33,9 +44,8 @@ export default function BacklogScreen() {
         await advanceEntry(db, entryId, new Date().toISOString());
       } catch (e: unknown) {
         Alert.alert('Could not update', e instanceof Error ? e.message : String(e));
-      } finally {
-        await reload();
       }
+      await reloadSafely();
     })();
   }
 

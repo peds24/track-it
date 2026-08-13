@@ -2,6 +2,7 @@ import type { SqlDriver } from '@/db/driver';
 import { advance } from '@/domain/advance';
 import { nextEntry, progressFor, shelfForEntry, shelfForSeries } from '@/domain/shelf';
 import type { Category, Entry, Series, Shelf } from '@/domain/types';
+import { assertEntryInvariants, assertIsoTimestamp, isStandaloneMediaType } from '@/domain/validate';
 import type { SeriesDraft } from '@/providers/types';
 
 export type TrackSummary = {
@@ -65,6 +66,19 @@ export async function createSeriesTrack(
 ): Promise<string> {
   const seriesId = newId();
 
+  // Enforce the invariants before opening the transaction: a rejected draft
+  // should never have touched the database at all.
+  assertIsoTimestamp(now, 'series createdAt');
+  for (const entry of draft.entries) {
+    assertEntryInvariants({
+      label: `Entry "${entry.title}"`,
+      mediaType: draft.unitLabel,
+      parentUnitLabel: draft.unitLabel,
+      ordinal: entry.ordinal,
+      createdAt: now,
+    });
+  }
+
   await db.transaction(async () => {
     await db.run(
       `INSERT INTO series (id, title, media_type, unit_label, created_at, external_source, external_id)
@@ -98,6 +112,12 @@ export async function createStandaloneTrack(
   now: string,
 ): Promise<string> {
   const id = newId();
+  assertEntryInvariants({
+    label: `Entry "${input.title}"`,
+    mediaType: input.category,
+    parentUnitLabel: null,
+    createdAt: now,
+  });
   await db.run(
     `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at)
      VALUES (?, NULL, ?, NULL, ?, 'unstarted', ?)`,
@@ -181,11 +201,16 @@ export async function listTracks(
 
   for (const entry of entries) {
     if (entry.seriesId !== null) continue;
+    // A parentless entry is a book or a movie (the invariant every write path
+    // now enforces). Checking instead of asserting keeps a row written by an
+    // older build out of the list rather than giving it a category outside the
+    // union, which would render under no filter chip at all.
+    if (!isStandaloneMediaType(entry.mediaType)) continue;
     summaries.push({
       kind: 'entry',
       id: entry.id,
       title: entry.title,
-      category: entry.mediaType as Category,
+      category: entry.mediaType,
       shelf: shelfForEntry(entry),
       createdAt: entry.createdAt,
       progress: null,

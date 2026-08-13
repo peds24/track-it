@@ -21,17 +21,32 @@ export default function AddTrackScreen() {
   const [category, setCategory] = useState<Category | null>(null);
   const [title, setTitle] = useState('');
   const [count, setCount] = useState('1');
+  const [saving, setSaving] = useState(false);
 
   const needsCount = category !== null && unitLabelFor(category) !== null;
   const unit = category ? unitLabelFor(category) : null;
 
   async function handleSave() {
     if (!category) return;
+    // A second tap before the insert resolves would create a second track, and
+    // there is no delete UI to undo it.
+    if (saving) return;
+
+    // Parsed strictly: "2.5" or "abc" must be an error, not a silent 1.
+    const parsedCount = /^\d+$/.test(count.trim()) ? Number.parseInt(count.trim(), 10) : Number.NaN;
+    if (needsCount && !Number.isInteger(parsedCount)) {
+      Alert.alert('Could not add track', `Enter how many ${unit}s as a whole number`);
+      return;
+    }
+
+    setSaving(true);
     try {
-      await addTrack(db, { title, category, count: Number(count) || 1 }, new Date().toISOString());
+      await addTrack(db, { title, category, count: parsedCount }, new Date().toISOString());
       router.back();
     } catch (error) {
       Alert.alert('Could not add track', error instanceof Error ? error.message : String(error));
+    } finally {
+      setSaving(false);
     }
   }
 

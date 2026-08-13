@@ -219,3 +219,67 @@ test('an empty library exports to a payload that imports cleanly', async () => {
   expect(await listTracks(target, 'done')).toEqual([]);
 });
 
+
+// --- Entry invariants (domain/validate), enforced on import as well as creation ---
+
+/** Every malformed payload must be rejected *and* leave the existing library intact. */
+async function expectRejectedAndLibraryIntact(json: string, message: RegExp): Promise<void> {
+  const db = await freshDb();
+  await addTrack(db, { title: 'Dune', category: 'book', count: 1 }, NOW);
+
+  await expect(importLibrary(db, json)).rejects.toThrow(message);
+  expect((await listTracks(db, 'backlog')).map((t) => t.title)).toEqual(['Dune']);
+}
+
+test('a parentless entry typed as a unit label is rejected', async () => {
+  // Would otherwise import as category "episode" — outside the Category union,
+  // so it matches no filter chip and cannot be removed without editing JSON.
+  await expectRejectedAndLibraryIntact(
+    payload({ entries: [entryFixture({ seriesId: null, mediaType: 'episode' })] }),
+    /no parent series/,
+  );
+});
+
+test('a child whose media type disagrees with its series unit label is rejected', async () => {
+  // A volume-tracked manga with an "episode" child would advance under
+  // watch-mode rules while labelled with read wording.
+  await expectRejectedAndLibraryIntact(
+    payload({
+      series: [seriesFixture({ id: 's1', mediaType: 'manga', unitLabel: 'volume' })],
+      entries: [entryFixture({ seriesId: 's1', ordinal: 1, mediaType: 'episode' })],
+    }),
+    /tracked in volumes/,
+  );
+});
+
+test('a non-ISO createdAt is rejected — it would corrupt every sort order', async () => {
+  await expectRejectedAndLibraryIntact(
+    payload({ entries: [entryFixture({ createdAt: 'not-a-date' })] }),
+    /createdAt/,
+  );
+});
+
+test('a negative fractional ordinal is rejected', async () => {
+  await expectRejectedAndLibraryIntact(
+    payload({
+      series: [seriesFixture({ id: 's1' })],
+      entries: [entryFixture({ seriesId: 's1', mediaType: 'volume', ordinal: -4.5 })],
+    }),
+    /non-negative whole number/,
+  );
+});
+
+test('bad startedAt, finishedAt and series createdAt are all rejected', async () => {
+  await expectRejectedAndLibraryIntact(
+    payload({ entries: [entryFixture({ startedAt: 'yesterday', status: 'in_progress' })] }),
+    /startedAt/,
+  );
+  await expectRejectedAndLibraryIntact(
+    payload({ entries: [entryFixture({ finishedAt: 'soon', status: 'done' })] }),
+    /finishedAt/,
+  );
+  await expectRejectedAndLibraryIntact(
+    payload({ series: [seriesFixture({ createdAt: 'whenever' })] }),
+    /series.createdAt/,
+  );
+});

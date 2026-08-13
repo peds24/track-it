@@ -1,6 +1,7 @@
 import type { SqlDriver } from '@/db/driver';
 import { isStatusValid } from '@/domain/mode';
 import type { Entry, EntryMediaType, Series, Status } from '@/domain/types';
+import { assertEntryInvariants, assertIsoTimestamp } from '@/domain/validate';
 
 const VERSION = 1;
 
@@ -70,18 +71,21 @@ function parseSeries(value: unknown): Series {
     throw new Error(`Unknown unit label: ${unitLabel}`);
   }
 
+  const createdAt = requireString(value.createdAt, 'series.createdAt');
+  assertIsoTimestamp(createdAt, 'series.createdAt');
+
   return {
     id: requireString(value.id, 'series.id'),
     title: requireString(value.title, 'series.title'),
     mediaType: mediaType as Series['mediaType'],
     unitLabel: unitLabel as Series['unitLabel'],
-    createdAt: requireString(value.createdAt, 'series.createdAt'),
+    createdAt,
     externalSource: requireNullableString(value.externalSource, 'series.externalSource'),
     externalId: requireNullableString(value.externalId, 'series.externalId'),
   };
 }
 
-function parseEntry(value: unknown, seriesIds: ReadonlySet<string>): Entry {
+function parseEntry(value: unknown, unitLabelBySeriesId: ReadonlyMap<string, Series['unitLabel']>): Entry {
   if (!isRecord(value)) throw new Error('An entry in the backup is not an object');
 
   const id = requireString(value.id, 'entry.id');
@@ -100,7 +104,7 @@ function parseEntry(value: unknown, seriesIds: ReadonlySet<string>): Entry {
   }
 
   const seriesId = requireNullableString(value.seriesId, 'entry.seriesId');
-  if (seriesId !== null && !seriesIds.has(seriesId)) {
+  if (seriesId !== null && !unitLabelBySeriesId.has(seriesId)) {
     throw new Error(`Entry ${id} refers to a missing series`);
   }
 
@@ -109,6 +113,22 @@ function parseEntry(value: unknown, seriesIds: ReadonlySet<string>): Entry {
     throw new Error(`Entry ${id} has a non-numeric ordinal`);
   }
 
+  const startedAt = requireNullableString(value.startedAt, 'entry.startedAt');
+  const finishedAt = requireNullableString(value.finishedAt, 'entry.finishedAt');
+  const createdAt = requireString(value.createdAt, 'entry.createdAt');
+
+  // The parent/child and timestamp invariants live in domain/, so an imported
+  // entry is held to exactly the same rules as a freshly created one.
+  assertEntryInvariants({
+    label: `Entry ${id}`,
+    mediaType: mediaType as EntryMediaType,
+    parentUnitLabel: seriesId === null ? null : (unitLabelBySeriesId.get(seriesId) ?? null),
+    ordinal,
+    createdAt,
+    startedAt,
+    finishedAt,
+  });
+
   return {
     id,
     seriesId,
@@ -116,9 +136,9 @@ function parseEntry(value: unknown, seriesIds: ReadonlySet<string>): Entry {
     ordinal,
     mediaType: mediaType as EntryMediaType,
     status: status as Status,
-    startedAt: requireNullableString(value.startedAt, 'entry.startedAt'),
-    finishedAt: requireNullableString(value.finishedAt, 'entry.finishedAt'),
-    createdAt: requireString(value.createdAt, 'entry.createdAt'),
+    startedAt,
+    finishedAt,
+    createdAt,
   };
 }
 
@@ -133,10 +153,12 @@ function parseBackup(json: string): Backup {
   }
 
   const series = raw.series.map(parseSeries);
-  const seriesIds = new Set(series.map((s) => s.id));
-  if (seriesIds.size !== series.length) throw new Error('Backup contains duplicate series ids');
+  const unitLabelBySeriesId = new Map(series.map((s) => [s.id, s.unitLabel]));
+  if (unitLabelBySeriesId.size !== series.length) {
+    throw new Error('Backup contains duplicate series ids');
+  }
 
-  const entries = raw.entries.map((entry) => parseEntry(entry, seriesIds));
+  const entries = raw.entries.map((entry) => parseEntry(entry, unitLabelBySeriesId));
   const entryIds = new Set(entries.map((e) => e.id));
   if (entryIds.size !== entries.length) throw new Error('Backup contains duplicate entry ids');
 

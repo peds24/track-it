@@ -1,4 +1,4 @@
-import { ManualProvider, unitLabelFor } from '@/providers/manual';
+import { ManualProvider, MAX_UNITS, unitLabelFor } from '@/providers/manual';
 import { providerFor } from '@/providers/registry';
 
 test('manual search returns nothing — there is no catalogue in v1', async () => {
@@ -76,3 +76,29 @@ test.each(['book', 'movie'] as const)(
     ).rejects.toThrow(`${category} is a standalone track and has no entries to generate`);
   },
 );
+
+test('hydrate rejects a fractional count rather than silently truncating it', async () => {
+  await expect(
+    new ManualProvider().hydrate({ id: 'manual', title: 'X', category: 'show', count: 2.5 }),
+  ).rejects.toThrow(/whole number/);
+});
+
+test('hydrate rejects a count above the upper bound', async () => {
+  // A mistyped "3000000" would issue that many INSERTs in one transaction.
+  await expect(
+    new ManualProvider().hydrate({ id: 'manual', title: 'X', category: 'show', count: 3_000_000 }),
+  ).rejects.toThrow(new RegExp(`more than ${MAX_UNITS}`));
+  await expect(
+    new ManualProvider().hydrate({ id: 'manual', title: 'X', category: 'show', count: MAX_UNITS + 1 }),
+  ).rejects.toThrow(/more than/);
+});
+
+test('hydrate accepts a count exactly at the bound', async () => {
+  const draft = await new ManualProvider().hydrate({
+    id: 'manual',
+    title: 'X',
+    category: 'show',
+    count: MAX_UNITS,
+  });
+  expect(draft.entries).toHaveLength(MAX_UNITS);
+});

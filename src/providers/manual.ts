@@ -20,6 +20,9 @@ const DISPLAY: Record<UnitLabel, string> = {
   volume: 'Volume',
 };
 
+/** Upper bound on generated entries — far above any real series, far below a freeze. */
+export const MAX_UNITS = 5000;
+
 export class ManualProvider implements MetadataProvider {
   readonly id = 'manual';
 
@@ -31,6 +34,15 @@ export class ManualProvider implements MetadataProvider {
   async hydrate(result: SearchResult): Promise<SeriesDraft> {
     if (result.count < 1) {
       throw new Error('A track must have at least 1 unit');
+    }
+    // Validated here rather than on the Add screen so every caller is covered.
+    // A fractional count silently truncates, and a mistyped huge one issues that
+    // many INSERTs in a single transaction — unrecoverable with no delete UI.
+    if (!Number.isInteger(result.count)) {
+      throw new Error('A unit count must be a whole number');
+    }
+    if (result.count > MAX_UNITS) {
+      throw new Error(`A track cannot have more than ${MAX_UNITS} units`);
     }
 
     const unitLabel = unitLabelFor(result.category);
