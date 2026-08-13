@@ -18,7 +18,10 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.peds24.trackit"
+      "package": "com.peds24.trackit",
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -34,6 +37,12 @@
       "eas": {
         "projectId": "d319cc51-6ebe-43b0-b50b-f0e843d1903c"
       }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/d319cc51-6ebe-43b0-b50b-f0e843d1903c"
+    },
+    "runtimeVersion": {
+      "policy": "fingerprint"
     }
   }
 }
