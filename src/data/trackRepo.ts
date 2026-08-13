@@ -253,3 +253,39 @@ export async function advanceEntry(db: SqlDriver, entryId: string, now: string):
     updated.id,
   ]);
 }
+
+/**
+ * Remove a track and everything under it.
+ *
+ * v1 had no delete at all, which is what made several small mistakes
+ * unrecoverable — a mistyped volume count or a track added to the wrong
+ * category was permanent. Deleting a series relies on the schema's
+ * `ON DELETE CASCADE` to take its entries with it.
+ */
+export async function deleteTrack(
+  db: SqlDriver,
+  track: { kind: 'series' | 'entry'; id: string },
+): Promise<void> {
+  const table = track.kind === 'series' ? 'series' : 'entry';
+  await db.run(`DELETE FROM ${table} WHERE id = ?`, [track.id]);
+}
+
+/**
+ * Send a track back to the Backlog shelf.
+ *
+ * Backlog is not a stored flag — it is *defined* as "no child done and none in
+ * progress" (D3, D4). So returning a track there necessarily clears its
+ * progress; there is no representation of "out of Currently but still part-way
+ * through". Callers must confirm with the user before calling this, because the
+ * progress is not recoverable.
+ */
+export async function returnTrackToBacklog(
+  db: SqlDriver,
+  track: { kind: 'series' | 'entry'; id: string },
+): Promise<void> {
+  const where = track.kind === 'series' ? 'series_id = ?' : 'id = ?';
+  await db.run(
+    `UPDATE entry SET status = 'unstarted', started_at = NULL, finished_at = NULL WHERE ${where}`,
+    [track.id],
+  );
+}
