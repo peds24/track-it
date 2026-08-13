@@ -9,9 +9,16 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
+        // Each screen draws its own title, so the navigator's header would be a
+        // second, smaller "Currently" stacked above ours.
+        headerShown: false,
         tabBarActiveTintColor: c.accent,
         tabBarInactiveTintColor: c.faint,
         tabBarStyle: { backgroundColor: c.bg, borderTopColor: c.rule },
+        // The design is text-only. Without this the navigator reserves space for
+        // an icon and fills it with a missing-glyph placeholder box.
+        tabBarIconStyle: { display: 'none' },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600', marginTop: 0 },
       }}
     >
       <Tabs.Screen name="index" options={{ title: 'Currently' }} />

@@ -1,7 +1,7 @@
 import type { SqlDriver } from '@/db/driver';
 import { advance } from '@/domain/advance';
 import { nextEntry, progressFor, shelfForEntry, shelfForSeries } from '@/domain/shelf';
-import type { Category, Entry, Series, Shelf } from '@/domain/types';
+import type { Category, Entry, Series, Shelf, Status } from '@/domain/types';
 import { assertEntryInvariants, assertIsoTimestamp, isStandaloneMediaType } from '@/domain/validate';
 import type { SeriesDraft } from '@/providers/types';
 
@@ -13,6 +13,12 @@ export type TrackSummary = {
   shelf: Shelf;
   createdAt: string;
   progress: { done: number; total: number } | null;
+  /**
+   * The status of the entry the advance control would act on. The UI needs it to
+   * tell "Reading Volume 5" from "Next Volume 5" — a read-mode entry that is
+   * already in progress is not one you are about to start.
+   */
+  nextEntryStatus: Status | null;
   nextEntryId: string | null;
   nextEntryTitle: string | null;
   /** When this track last moved forward. Derived at read time (D3), never stored. */
@@ -193,6 +199,7 @@ export async function listTracks(
       shelf: shelfForSeries(children),
       createdAt: row.created_at,
       progress: progressFor(children),
+      nextEntryStatus: next?.status ?? null,
       nextEntryId: next?.id ?? null,
       nextEntryTitle: next?.title ?? null,
       lastAdvancedAt: lastAdvanceAcross(children),
@@ -218,6 +225,7 @@ export async function listTracks(
       // matching what nextEntry() already does for a fully-done series —
       // otherwise the Done filter would render a working advance button on a
       // finished book, and tapping it would throw "already done".
+      nextEntryStatus: entry.status === 'done' ? null : entry.status,
       nextEntryId: entry.status === 'done' ? null : entry.id,
       nextEntryTitle: entry.status === 'done' ? null : entry.title,
       lastAdvancedAt: lastAdvanceOf(entry),

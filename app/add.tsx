@@ -22,7 +22,9 @@ export default function AddTrackScreen() {
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [category, setCategory] = useState<Category | null>(null);
   const [title, setTitle] = useState('');
-  const [count, setCount] = useState('1');
+  // Empty, not '1' — a pre-filled value hides the "How many volumes?" prompt
+  // and has to be cleared before it can be typed over.
+  const [count, setCount] = useState('');
   const [saving, setSaving] = useState(false);
 
   const needsCount = category !== null && unitLabelFor(category) !== null;

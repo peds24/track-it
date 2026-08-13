@@ -26,7 +26,14 @@ export function FilterBar({
   const styles = useMemo(() => createStyles(palette), [palette]);
 
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.bar}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      // Without `flexGrow: 0` a horizontal ScrollView stretches to fill its
+      // column parent, and the chips grow to the full height of the screen.
+      style={styles.scroller}
+      contentContainerStyle={styles.bar}
+    >
       {CATEGORIES.map((c) => {
         const active = category === c.value;
         return (
@@ -53,7 +60,9 @@ export function FilterBar({
 
 function createStyles(c: Palette) {
   return StyleSheet.create({
+    scroller: { flexGrow: 0, flexShrink: 0 },
     bar: {
+      alignItems: 'center',
       paddingTop: 2,
       paddingBottom: space.md,
       paddingHorizontal: layout.inset,

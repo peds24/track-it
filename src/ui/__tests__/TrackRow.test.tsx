@@ -11,6 +11,7 @@ const show: TrackSummary = {
   createdAt: '2026-08-12T10:00:00.000Z',
   progress: { done: 3, total: 9 },
   nextEntryId: 'e4',
+  nextEntryStatus: 'unstarted',
   nextEntryTitle: 'Episode 4',
   lastAdvancedAt: '2026-08-12T11:00:00.000Z',
 };
@@ -116,4 +117,28 @@ test('a track with nothing left to advance renders no advance button', async () 
   await render(<TrackRow track={finished} onAdvance={() => {}} />);
   expect(screen.getByText('Dune')).toBeTruthy();
   expect(screen.queryByLabelText(/^Mark /)).toBeNull();
+});
+
+/**
+ * "Next" and "Reading" are not interchangeable: a volume already in progress is
+ * one you are part-way through, not one you are about to begin. Only read-mode
+ * entries ever reach in_progress (D2).
+ */
+test('a series whose next entry is in progress reads "Reading", not "Next"', async () => {
+  const manga: TrackSummary = {
+    ...show,
+    title: 'Berserk',
+    category: 'manga',
+    progress: { done: 0, total: 34 },
+    nextEntryStatus: 'in_progress',
+    nextEntryId: 'v1',
+    nextEntryTitle: 'Volume 1',
+  };
+  await render(<TrackRow track={manga} onAdvance={() => {}} />);
+  expect(screen.getByText('Reading Volume 1')).toBeTruthy();
+});
+
+test('a series whose next entry is unstarted reads "Next"', async () => {
+  await render(<TrackRow track={show} onAdvance={() => {}} />);
+  expect(screen.getByText('Next Episode 4')).toBeTruthy();
 });

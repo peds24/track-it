@@ -37,7 +37,11 @@ export function positionLabel(track: TrackSummary): string {
   }
   if (track.shelf === 'backlog') return 'Not started';
   if (track.nextEntryTitle && track.nextEntryTitle !== track.title) {
-    return `Next ${track.nextEntryTitle}`;
+    // An entry already in progress is one you are part-way through, not one you
+    // are about to begin. Only read mode ever reaches in_progress (D2), which is
+    // why the mockups show "Reading Volume 5" but "Next Issue 13".
+    const verb = track.nextEntryStatus === 'in_progress' ? 'Reading' : 'Next';
+    return `${verb} ${track.nextEntryTitle}`;
   }
   return read ? 'Reading' : 'Watching';
 }
