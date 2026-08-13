@@ -1,6 +1,8 @@
 import { migrate } from '@/db/schema';
-import { createSeriesTrack, createStandaloneTrack, listTracks } from '@/data/trackRepo';
+import { createSeriesTrack, createStandaloneTrack, listTracks, toEntry } from '@/data/trackRepo';
 import type { SqlDriver } from '@/db/driver';
+import { advance } from '@/domain/advance';
+import type { Entry } from '@/domain/types';
 import { createMemoryDriver } from '../../../test/memoryDriver';
 
 const NOW = '2026-08-12T10:00:00.000Z';
@@ -71,4 +73,110 @@ test('listTracks sorts by date added, newest first', async () => {
 
   const backlog = await listTracks(db, 'backlog');
   expect(backlog.map((t) => t.title)).toEqual(['Newer', 'Older']);
+});
+
+/**
+ * Every field gets a distinct, recognisable value — the two timestamps most of all —
+ * so a swapped snake_case -> camelCase mapping fails loudly instead of silently.
+ */
+test('toEntry maps every column to its own domain field', () => {
+  const entry = toEntry({
+    id: 'entry-id',
+    series_id: 'series-id',
+    title: 'Episode 7',
+    ordinal: 7,
+    media_type: 'episode',
+    status: 'done',
+    started_at: '2026-01-01T00:00:00.000Z',
+    finished_at: '2026-02-02T00:00:00.000Z',
+    created_at: '2026-03-03T00:00:00.000Z',
+  });
+
+  const expected: Entry = {
+    id: 'entry-id',
+    seriesId: 'series-id',
+    title: 'Episode 7',
+    ordinal: 7,
+    mediaType: 'episode',
+    status: 'done',
+    startedAt: '2026-01-01T00:00:00.000Z',
+    finishedAt: '2026-02-02T00:00:00.000Z',
+    createdAt: '2026-03-03T00:00:00.000Z',
+  };
+
+  expect(entry).toEqual(expected);
+});
+
+/** Wraps a driver so that the Nth `run` call throws, leaving everything else intact. */
+function failingOnRun(inner: SqlDriver, failOnCall: number): SqlDriver {
+  let calls = 0;
+  return {
+    async exec(sql: string): Promise<void> {
+      await inner.exec(sql);
+    },
+    async all<T>(sql: string, params?: readonly unknown[]): Promise<T[]> {
+      return inner.all<T>(sql, params);
+    },
+    async run(sql: string, params?: readonly unknown[]): Promise<void> {
+      calls += 1;
+      if (calls === failOnCall) throw new Error('simulated write failure');
+      await inner.run(sql, params);
+    },
+    async transaction(fn: () => Promise<void>): Promise<void> {
+      await inner.transaction(fn);
+    },
+  };
+}
+
+test('a series that fails partway through its entries persists nothing', async () => {
+  const db = await freshDb();
+  // Call 1 is the series insert, calls 2..4 are the three entries: fail in the middle.
+  const flaky = failingOnRun(db, 3);
+
+  await expect(
+    createSeriesTrack(
+      flaky,
+      {
+        title: 'Severance',
+        mediaType: 'show',
+        unitLabel: 'episode',
+        entries: [
+          { ordinal: 1, title: 'Episode 1' },
+          { ordinal: 2, title: 'Episode 2' },
+          { ordinal: 3, title: 'Episode 3' },
+        ],
+      },
+      NOW,
+    ),
+  ).rejects.toThrow('simulated write failure');
+
+  const seriesCount = await db.all<{ n: number }>('SELECT count(*) AS n FROM series');
+  const entryCount = await db.all<{ n: number }>('SELECT count(*) AS n FROM entry');
+  expect(seriesCount[0]!.n).toBe(0);
+  expect(entryCount[0]!.n).toBe(0);
+});
+
+test('listTracks excludes tracks that are on another shelf', async () => {
+  const db = await freshDb();
+  // Read mode, so one advance lands on in_progress -> 'currently' rather than 'done'.
+  await createSeriesTrack(
+    db,
+    { title: 'Berserk', mediaType: 'manga', unitLabel: 'volume', entries: [{ ordinal: 1, title: 'Volume 1' }] },
+    NOW,
+  );
+  await createStandaloneTrack(db, { title: 'Dune', category: 'book' }, NOW);
+
+  const rows = await db.all<Parameters<typeof toEntry>[0]>(
+    'SELECT * FROM entry WHERE series_id IS NOT NULL',
+  );
+  const advanced = advance(toEntry(rows[0]!), NOW);
+  await db.run('UPDATE entry SET status = ?, started_at = ?, finished_at = ? WHERE id = ?', [
+    advanced.status,
+    advanced.startedAt,
+    advanced.finishedAt,
+    advanced.id,
+  ]);
+
+  expect((await listTracks(db, 'backlog')).map((t) => t.title)).toEqual(['Dune']);
+  expect((await listTracks(db, 'currently')).map((t) => t.title)).toEqual(['Berserk']);
 });
