@@ -134,16 +134,164 @@ is used in most: offline, mid-book, marking a volume finished.
 migration. The always-online assumption is the one that is painful to reverse, so
 it is the one avoided.
 
+### D7 — Expo / React Native with TypeScript, `expo-sqlite` for storage
+
+Cross-platform iOS and Android from one codebase.
+
+**Rejected:** (a) SwiftUI, iOS-only — better-feeling result and a natural fit for a
+typography-led minimal app, but locks the platform permanently and requires
+Xcode; (b) Flutter — good visual control, but Dart and a thinner ecosystem for the
+catalogue integrations D5 defers.
+
+**Why:** the developer already works in React and TypeScript, so this is the
+shortest path from decision to a build running on a real phone. D5 committed to
+proving the tracking loop before doing the impressive work, which argues for the
+fastest feedback loop rather than the highest visual ceiling. `expo-sqlite`
+satisfies D6 directly, and JSON export is trivial in this stack.
+
 ---
 
-## Open questions
+### D8 — The app opens to "Currently"
 
+The home screen shows only what is in progress. Each row carries its single next
+action: `Severance · next S1E4` → one tap marks it watched and the row advances
+itself. Completed things fall off the screen.
 
-- Platform and stack.
-- What the home screen actually shows.
+**Rejected:** (a) a cover-grid shelf — D5 means there are no covers in v1, and a
+grid of coverless boxes is a poor front door; (b) a reverse-chronological activity
+log — it answers "what did I do" rather than "what's next".
+
+**Why:** the intended experience is a place to keep track of what you are in the
+middle of, add to easily, and rarely look back at. That is a one-tap-per-session
+tool, not a browsing app.
+
+**Experience priorities, in order:**
+
+1. **Advancing something you are mid-way through** — one tap from app launch.
+2. **Adding something to the backlog** — reachable directly from the Currently
+   screen, not buried in a separate section.
+3. **Navigating the backlog** — this is where browsing effort belongs, and it
+   deserves real filtering and sorting rather than a flat list.
+4. **Reviewing what you completed** — deliberately de-emphasised. Reachable, but
+   not a primary destination and not a tab.
 
 ---
 
 ## Architecture
 
-_To be written once the open questions are settled._
+### Shelves are derived, not stored
+
+There is no status column on `series`, and no "shelf" concept in the database.
+The three views are queries over the same two tables:
+
+| View          | Series                                  | Standalone entry     |
+| ------------- | --------------------------------------- | -------------------- |
+| **Currently** | ≥1 child done **and** ≥1 child not done | status `in_progress` |
+| **Backlog**   | zero children done                      | status `unstarted`   |
+| **Done**      | all children done                       | status `done`        |
+
+This follows D3. A backlog series moves to Currently the moment its first episode
+is marked — no separate "start" action, no extra state to keep in sync, and no way
+for a series to appear in two shelves at once.
+
+### Data model
+
+Two tables.
+
+**`series`** — `id` (UUID), `title`, `media_type` (`show` | `comic` | `manga`),
+`unit_label` (`episode` | `issue` | `volume`), `created_at`,
+`external_source` (nullable), `external_id` (nullable).
+
+**`entry`** — `id` (UUID), `series_id` (nullable FK), `title`, `ordinal`
+(nullable), `media_type` (`episode` | `issue` | `volume` | `book` | `movie`),
+`mode` (`watch` | `read`), `status`, `started_at`, `finished_at`, `created_at`.
+
+`series_id` is null for books and movies, which have no container (D1). The
+nullable `external_*` columns exist from day one so the D5 merge path does not
+require a migration later.
+
+### One status column, constrained by mode
+
+`status` is a single enum — `unstarted` | `in_progress` | `done` — and `mode`
+determines which values are legal:
+
+- `mode = 'watch'` → `unstarted` and `done` only; `in_progress` is rejected.
+- `mode = 'read'` → all three.
+
+**Why one column rather than two enums:** D2 says status validity *follows from*
+consumption mode, which is a constraint, not a second vocabulary. Two enums would
+force every query spanning media types to branch. The user-facing words differ per
+mode — "watched" vs "read" — but that is presentation, and it belongs in the UI
+layer, not the schema.
+
+### Module boundaries
+
+Each module has one purpose and depends only on those below it.
+
+- **`db/`** — SQLite schema, migrations, queries. Knows storage, knows nothing
+  about the product.
+- **`domain/`** — pure TypeScript, no I/O: status transitions and their mode
+  constraints, shelf classification, progress computation, entry generation from a
+  count. The rules live here, which makes them testable without a database or a
+  renderer.
+- **`data/`** — repositories mapping rows to domain objects. The only module that
+  talks to both `db/` and `domain/`.
+- **`providers/`** — the `MetadataProvider` interface and the manual
+  implementation.
+- **`ui/`** — screens and components. Reads through `data/`, never touches `db/`.
+
+The rule that keeps this honest: `domain/` imports nothing from `db/` or `ui/`. If
+a rule needs a database call to decide something, it is in the wrong module.
+
+### The `MetadataProvider` interface
+
+```ts
+type EntryDraft = { ordinal: number; title: string };
+
+type SeriesDraft = {
+  title: string;
+  mediaType: 'show' | 'comic' | 'manga';
+  unitLabel: 'episode' | 'issue' | 'volume';
+  entries: EntryDraft[];
+  externalSource?: string;
+  externalId?: string;
+};
+
+interface MetadataProvider {
+  readonly id: string;
+  search(query: string): Promise<SearchResult[]>;
+  hydrate(result: SearchResult): Promise<SeriesDraft>;
+}
+```
+
+`ManualProvider` is the v1 implementation: `search` returns nothing, and `hydrate`
+generates N numbered entries from a title and a count. A Metron or Google Books
+provider (D5) implements the same two methods. Because D1 made every medium the
+same shape, the interface stays this small.
+
+### Error handling
+
+A local-only app (D6) has few failure modes, and they concentrate in two places:
+
+- **Migrations** — failure must abort before any write, leaving the previous
+  schema and data untouched. A partially migrated database is the one
+  unrecoverable state in an app with no server-side backup.
+- **JSON import** — validate the whole payload first, then apply in a single
+  transaction. All-or-nothing; a half-imported library is indistinguishable from
+  corruption to the user.
+
+Ordinary write failures surface inline and leave the UI on its previous state.
+There is no offline case to handle, because there is no network.
+
+### Testing
+
+- **`domain/`** — unit tests, no mocks required since it is pure. Status
+  transitions including rejected ones, shelf classification at the boundaries (a
+  series with zero children; with all children done), progress arithmetic.
+- **`data/`** — repository tests against an in-memory SQLite database, covering
+  round-trips and the full export/import cycle.
+- **`ui/`** — component tests for the one-tap advance on the Currently screen,
+  since that is the core loop.
+
+The bias is deliberate: most logic lives in `domain/`, where it is cheapest to
+test, and the UI layer stays thin enough to need little testing.
