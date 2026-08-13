@@ -112,11 +112,33 @@ Splitting comics between Metron (single issues) and Google Books (collected
 editions) matches how the two formats are actually catalogued — issues are not
 reliably in ISBN databases, and trades are not reliably in issue databases.
 
+### D6 — Local-only storage, with JSON export/import as the safety net
+
+All data lives in an on-device SQLite database. No accounts, no backend, no
+network dependency. The user can export the full library to a JSON file and
+import it back.
+
+**Rejected:** (a) local-first with a sync backend; (b) cloud-backed from the start
+(e.g. Supabase as source of truth).
+
+**Why:** the data is small, single-user, and of no value to anyone else, so the
+only thing sync genuinely buys is protection against losing the device — and
+export covers most of that at a fraction of the cost. Sync's hard part is conflict
+resolution, and two devices marking episodes watched while offline is a real merge
+problem that would be paid for up front and used rarely.
+
+Cloud-first was rejected specifically because it breaks in the situation the app
+is used in most: offline, mid-book, marking a volume finished.
+
+**Migration note:** adding sync later to a local-first schema is a normal
+migration. The always-online assumption is the one that is painful to reverse, so
+it is the one avoided.
+
 ---
 
 ## Open questions
 
-- Local-only storage, or accounts and cross-device sync?
+
 - Platform and stack.
 - What the home screen actually shows.
 
