@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Track It — a local-only tracker for shows, books, comics and manga</title>
+<meta name="description" content="Track It records what you are part-way through — shows, movies, books, comics, manga — on your device, with no account and no server. Open, tap once, close.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232B50E0'/%3E%3Cpath d='M8 16.5l5.2 5.2L24 11' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+
+<style>
+  /* ============================================================
+     PAGE TOKENS — lifted verbatim from docs/design/design-language.html.
+     Light is the base; dark redefines tokens only.
+     ============================================================ */
+  :root {
+    --ground: #FCFCFD;
+    --raised: #FFFFFF;
+    --ink: #16181D;
+    --muted: #6E727B;
+    --faint: #9AA0AA;
+    --rule: #E4E6EA;
+    --rule-soft: #EFF1F4;
+    --accent: #2B50E0;
+    --accent-soft: #EDF0FE;
+
+    --sp-1: 4px;
+    --sp-2: 8px;
+    --sp-3: 16px;
+    --sp-4: 24px;
+    --sp-5: 40px;
+    --sp-6: 64px;
+
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+    --measure: 68ch;
+
+    /* page-layout rhythm — rescaled per breakpoint, nothing else changes */
+    --gutter: var(--sp-4);
+    --section-y: var(--sp-6);
+    --maxw: 1080px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0E1013;
+      --raised: #16191E;
+      --ink: #EDEFF2;
+      --muted: #969CA6;
+      --faint: #6B7079;
+      --rule: #262A31;
+      --rule-soft: #1D2127;
+      --accent: #8AA0FF;
+      --accent-soft: #1A2140;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0E1013;
+    --raised: #16191E;
+    --ink: #EDEFF2;
+    --muted: #969CA6;
+    --faint: #6B7079;
+    --rule: #262A31;
+    --rule-soft: #1D2127;
+    --accent: #8AA0FF;
+    --accent-soft: #1A2140;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -webkit-text-size-adjust: 100%;
+    overflow-x: hidden;
+  }
+
+  .wrap {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding-left: max(var(--gutter), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+  }
+
+  section { padding-top: var(--section-y); }
+
+  a { color: var(--accent); }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(32px, 6vw, 46px);
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    font-weight: 640;
+    text-wrap: balance;
+  }
+  h2 {
+    margin: 0 0 var(--sp-3);
+    font-size: 12px;
+    font-weight: 640;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+  h3 {
+    margin: 0 0 var(--sp-2);
+    font-size: 21px;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    font-weight: 620;
+    text-wrap: balance;
+  }
+  p { margin: 0 0 var(--sp-3); max-width: var(--measure); text-wrap: pretty; }
+  p:last-child { margin-bottom: 0; }
+  .lede { font-size: 17px; }
+  strong { font-weight: 620; }
+  em { font-style: normal; color: var(--accent); }
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  /* ---------- nav ---------- */
+  .nav {
+    border-bottom: 1px solid var(--rule);
+    background: var(--ground);
+  }
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    padding-top: var(--sp-3);
+    padding-bottom: var(--sp-3);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-weight: 640;
+    letter-spacing: -0.015em;
+    font-size: 17px;
+    color: var(--ink);
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  .brand-mark {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    background: var(--accent);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+  .brand-mark svg { display: block; }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    overflow-x: auto;
+    scrollbar-width: none;
+    min-width: 0;
+  }
+  .nav-links::-webkit-scrollbar { display: none; }
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 14px;
+    white-space: nowrap;
+    padding: 4px 0;
+  }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-links a.is-primary { color: var(--accent); font-weight: 560; }
+
+  /* ---------- hero ---------- */
+  .hero {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    padding-top: var(--sp-6);
+    padding-bottom: var(--sp-2);
+  }
+  .standfirst {
+    margin: 0;
+    max-width: var(--measure);
+    font-size: 18px;
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+  .cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    margin-top: var(--sp-2);
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--rule);
+    font-size: 16px;
+    font-weight: 540;
+    text-decoration: none;
+    color: var(--ink);
+    background: transparent;
+  }
+  .btn.is-primary {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--ground);
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn.is-primary:hover { opacity: 0.9; border-color: var(--ink); }
+
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2) var(--sp-3);
+    margin-top: var(--sp-4);
+    padding-top: var(--sp-3);
+    border-top: 1px solid var(--rule);
+    font-size: 13px;
+    color: var(--muted);
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+  }
+  .facts li { white-space: nowrap; }
+  .facts b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- feature / principle grids ---------- */
+  .principles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+    gap: var(--sp-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .principles li {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    padding-top: var(--sp-3);
+    border-top: 2px solid var(--ink);
+  }
+  .principles h3 { margin: 0; font-size: 17px; }
+  .principles p { font-size: 15px; color: var(--muted); }
+
+  /* ---------- annotation list ---------- */
+  .anno {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+    gap: var(--sp-3);
+    margin: var(--sp-4) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .anno li {
+    padding-left: var(--sp-3);
+    border-left: 2px solid var(--rule);
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .anno b {
+    display: block;
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.01em;
+  }
+
+  /* ---------- tables ---------- */
+  .table-scroll { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 640;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--faint);
+    padding: 0 var(--sp-3) var(--sp-2) 0;
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+  td {
+    padding: var(--sp-2) var(--sp-3) var(--sp-2) 0;
+    border-bottom: 1px solid var(--rule-soft);
+    vertical-align: top;
+  }
+  td.code { font-family: var(--mono); white-space: nowrap; }
+  td.note { color: var(--muted); }
+
+  /* ---------- code ---------- */
+  pre {
+    margin: 0;
+    padding: var(--sp-3);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: var(--raised);
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: var(--ink);
+    -webkit-overflow-scrolling: touch;
+  }
+  pre .c { color: var(--faint); }
+  code { font-family: var(--mono); font-size: 0.94em; overflow-wrap: anywhere; }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+    gap: var(--sp-4);
+    align-items: start;
+  }
+  .step h3 { font-size: 17px; }
+  .step p { font-size: 15px; color: var(--muted); }
+
+  /* ---------- do-not list ---------- */
+  .nots { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--sp-3); }
+  .nots li {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: var(--sp-3);
+    align-items: baseline;
+    padding-bottom: var(--sp-3);
+    border-bottom: 1px solid var(--rule-soft);
+    max-width: var(--measure);
+  }
+  .nots li:last-child { border-bottom: 0; padding-bottom: 0; }
+  .no {
+    font-size: 11px;
+    font-weight: 640;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .nots p { font-size: 15px; margin: 0; }
+  .nots b { font-weight: 600; }
+
+  /* ============================================================
+     APP MOCKUPS — markup and tokens lifted from the design language
+     document. Live HTML at 390pt, not screenshots.
+     ============================================================ */
+  /* the mockups are specified at 390pt, so the tracks cap there rather than
+     stretching — a wider column would misreport the row's real measure */
+  .screens {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 390px));
+    justify-content: start;
+    gap: var(--sp-4);
+    align-items: start;
+  }
+  /* grid items must be allowed to go narrower than their content's
+     intrinsic minimum, or a 390pt mockup pushes the page sideways */
+  .screens > * { min-width: 0; }
+
+  .screen {
+    --a-bg: #FFFFFF;
+    --a-ink: #16181D;
+    --a-muted: #6E727B;
+    --a-faint: #9AA0AA;
+    --a-rule: #E7E9ED;
+    --a-accent: #2B50E0;
+    --a-accent-soft: #EDF0FE;
+    --a-chip: #F2F3F6;
+
+    width: 100%;
+    max-width: 390px;
+    background: var(--a-bg);
+    color: var(--a-ink);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    overflow: hidden;
+    font-size: 15px;
+  }
+  .screen.is-dark {
+    --a-bg: #0B0D10;
+    --a-ink: #F2F4F7;
+    --a-muted: #979DA7;
+    --a-faint: #6A6F78;
+    --a-rule: #23272E;
+    --a-accent: #8AA0FF;
+    --a-accent-soft: #182040;
+    --a-chip: #191D23;
+    border-color: #23272E;
+  }
+
+  .screen-label {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--sp-2);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: var(--sp-2);
+  }
+
+  .s-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    padding: 28px 20px 14px;
+  }
+  .s-title {
+    font-size: 27px;
+    font-weight: 660;
+    letter-spacing: -0.022em;
+  }
+  .s-action {
+    font-size: 16px;
+    font-weight: 520;
+    color: var(--a-accent);
+  }
+
+  /* the row — the core component */
+  .row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 20px 15px;
+    border-top: 1px solid var(--a-rule);
+  }
+  .row-text { flex: 1; min-width: 0; }
+  .row-title {
+    font-size: 17px;
+    font-weight: 520;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .row-meta {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 3px;
+    font-size: 13px;
+    color: var(--a-muted);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .kind {
+    flex-shrink: 0;
+    font-size: 10.5px;
+    font-weight: 640;
+    letter-spacing: 0.085em;
+    text-transform: uppercase;
+    color: var(--a-accent);
+  }
+  .dot { color: var(--a-faint); }
+  .count { font-variant-numeric: tabular-nums; }
+
+  .advance {
+    flex-shrink: 0;
+    padding: 6px 13px;
+    border: 1px solid var(--a-rule);
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 520;
+    color: var(--a-ink);
+    background: transparent;
+  }
+  .advance.is-pressed {
+    background: var(--a-accent);
+    border-color: var(--a-accent);
+    color: #FFFFFF;
+  }
+
+  .progress-track {
+    height: 3px;
+    margin-top: 8px;
+    border-radius: 1.5px;
+    background: var(--a-rule);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 1.5px;
+    background: var(--a-accent);
+  }
+
+  .filters {
+    display: flex;
+    gap: 7px;
+    padding: 2px 20px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .filters::-webkit-scrollbar { display: none; }
+  .fchip {
+    flex-shrink: 0;
+    padding: 5px 12px;
+    border-radius: 9px;
+    border: 1px solid var(--a-rule);
+    font-size: 13px;
+    color: var(--a-muted);
+    background: transparent;
+  }
+  .fchip.is-on {
+    background: var(--a-ink);
+    border-color: var(--a-ink);
+    color: var(--a-bg);
+  }
+
+  .s-empty {
+    padding: 18px 20px 26px;
+    font-size: 14px;
+    color: var(--a-muted);
+    border-top: 1px solid var(--a-rule);
+  }
+
+  .opt {
+    padding: 15px 20px;
+    border-top: 1px solid var(--a-rule);
+    font-size: 17px;
+    font-weight: 480;
+  }
+  .field {
+    margin: 0 20px 10px;
+    padding: 13px 14px;
+    border: 1px solid var(--a-rule);
+    border-radius: 8px;
+    font-size: 16px;
+    color: var(--a-faint);
+  }
+  .field.is-filled { color: var(--a-ink); }
+  .cta {
+    margin: 6px 20px 24px;
+    padding: 14px;
+    border-radius: 8px;
+    background: var(--a-ink);
+    color: var(--a-bg);
+    text-align: center;
+    font-size: 16px;
+    font-weight: 540;
+  }
+  .s-note {
+    padding: 10px 20px 24px;
+    font-size: 13px;
+    color: var(--a-muted);
+  }
+  .s-note.is-warn { color: var(--a-ink); }
+
+  .tabbar {
+    display: flex;
+    border-top: 1px solid var(--a-rule);
+    padding: 9px 0 13px;
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 560;
+    letter-spacing: 0.02em;
+    color: var(--a-faint);
+  }
+  .tab.is-on { color: var(--a-accent); }
+
+  /* ---------- footer ---------- */
+  footer {
+    margin-top: var(--section-y);
+    padding-top: var(--sp-4);
+    padding-bottom: var(--sp-5);
+    border-top: 1px solid var(--rule);
+    font-size: 13px;
+    color: var(--faint);
+  }
+  .footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+    margin-bottom: var(--sp-2);
+    font-size: 14px;
+  }
+  .footer-links a { text-decoration: none; }
+  .footer-links a:hover { text-decoration: underline; }
+
+  /* ---------- breakpoints: rescale the two rhythm tokens ---------- */
+  @media (max-width: 1024px) {
+    :root { --section-y: var(--sp-5); }
+  }
+  @media (max-width: 640px) {
+    :root { --gutter: var(--sp-3); --section-y: var(--sp-5); }
+    .hero { padding-top: var(--sp-5); }
+    .standfirst { font-size: 17px; }
+    .cta-row .btn { flex: 1 1 100%; }
+    .screens,
+    .principles,
+    .anno,
+    .steps { grid-template-columns: 1fr; }
+    .screen { margin: 0 auto; max-width: min(390px, 100%); }
+    .nots li { grid-template-columns: 1fr; gap: var(--sp-1); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="14" height="14" viewBox="0 0 32 32"><path d="M8 16.5l5.2 5.2L24 11" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      Track It
+    </a>
+    <div class="nav-links">
+      <a href="#screens">Screens</a>
+      <a href="#how">How it works</a>
+      <a href="#build">Built with</a>
+      <a href="#run">Run it</a>
+      <a class="is-primary" href="https://github.com/peds24/track-it">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<header class="wrap hero" id="top">
+  <div class="eyebrow">Track It · v1 · iOS and Android</div>
+  <h1>Keep track of what you are part-way through</h1>
+  <p class="standfirst">
+    Shows, movies, books, comics and manga in one list, stored entirely on your phone.
+    No account, no server, no cover art. You open it, tap once to mark the next episode
+    or volume finished, and close it again.
+  </p>
+  <div class="cta-row">
+    <a class="btn is-primary" href="https://github.com/peds24/track-it">View the source</a>
+    <a class="btn" href="#run">How to run it</a>
+  </div>
+  <ul class="facts">
+    <li><b>Local only</b> — on-device SQLite</li>
+    <li><b>No accounts</b> — nothing to sign in to</li>
+    <li><b>JSON</b> export and import</li>
+    <li><b>Expo</b> / React Native / TypeScript</li>
+  </ul>
+</header>
+
+<main>
+
+<section class="wrap" id="screens">
+  <h2>The app</h2>
+  <p class="lede">
+    Every screen below is <em>live HTML</em> rendered at 390pt from the project's own design
+    tokens — the same values the app's interface specification defines. They are not
+    screenshots, and not a mock-up of something that does not exist.
+  </p>
+
+  <div class="screens" style="margin-top:var(--sp-4)">
+    <div>
+      <div class="screen-label"><span>Currently</span><span>Home</span></div>
+      <div class="screen">
+        <div class="s-head"><div class="s-title">Currently</div><div class="s-action">Add</div></div>
+        <div class="row">
+          <div class="row-text">
+            <div class="row-title">Severance</div>
+            <div class="row-meta"><span class="kind">Show</span><span class="dot">·</span> <span>Next Episode 4</span><span class="dot">·</span><span class="count">3 of 9</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width:33%"></div></div>
+          </div>
+          <div class="advance">Done</div>
+        </div>
+        <div class="row">
+          <div class="row-text">
+            <div class="row-title">Berserk</div>
+            <div class="row-meta"><span class="kind">Manga</span><span class="dot">·</span> <span>Reading Volume 5</span><span class="dot">·</span><span class="count">4 of 34</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width:12%"></div></div>
+          </div>
+          <div class="advance">Done</div>
+        </div>
+        <div class="row">
+          <div class="row-text">
+            <div class="row-title">Saga</div>
+            <div class="row-meta"><span class="kind">Comic</span><span class="dot">·</span> <span>Next Issue 13</span><span class="dot">·</span><span class="count">12 of 60</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width:20%"></div></div>
+          </div>
+          <div class="advance is-pressed">Done</div>
+        </div>
+        <div class="tabbar">
+          <div class="tab is-on">Currently</div><div class="tab">Backlog</div><div class="tab">Settings</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="screen-label"><span>Backlog</span><span>Filtered</span></div>
+      <div class="screen">
+        <div class="s-head"><div class="s-title">Backlog</div></div>
+        <div class="filters">
+          <div class="fchip">Shows</div><div class="fchip">Movies</div>
+          <div class="fchip is-on">Books</div><div class="fchip">Comics</div>
+          <div class="fchip">Manga</div><div class="fchip">Done</div>
+        </div>
+        <div class="row">
+          <div class="row-text">
+            <div class="row-title">Piranesi</div>
+            <div class="row-meta"><span class="kind">Book</span><span class="dot">·</span> <span>Not started</span></div>
+          </div>
+          <div class="advance">Done</div>
+        </div>
+        <div class="row">
+          <div class="row-text">
+            <div class="row-title">The Left Hand of Darkness</div>
+            <div class="row-meta"><span class="kind">Book</span><span class="dot">·</span> <span>Not started</span></div>
+          </div>
+          <div class="advance">Done</div>
+        </div>
+        <div class="row">
+          <div class="row-text">
+            <div class="row-title">Solaris</div>
+            <div class="row-meta"><span class="kind">Book</span><span class="dot">·</span> <span>Not started</span></div>
+          </div>
+          <div class="advance">Done</div>
+        </div>
+        <div class="tabbar">
+          <div class="tab">Currently</div><div class="tab is-on">Backlog</div><div class="tab">Settings</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="screen-label"><span>Done</span><span>Same screen, one chip</span></div>
+      <div class="screen is-dark">
+        <div class="s-head"><div class="s-title">Done</div></div>
+        <div class="filters">
+          <div class="fchip">Shows</div><div class="fchip">Movies</div>
+          <div class="fchip">Books</div><div class="fchip">Comics</div>
+          <div class="fchip">Manga</div><div class="fchip is-on">Done</div>
+        </div>
+        <div class="row">
+          <div class="row-text">
+            <div class="row-title">Arrival</div>
+            <div class="row-meta"><span class="kind">Movie</span><span class="dot">·</span> <span>Watched</span></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="row-text">
+            <div class="row-title">Chainsaw Man</div>
+            <div class="row-meta"><span class="kind">Manga</span><span class="dot">·</span> <span>Finished</span><span class="dot">·</span><span class="count">11 of 11</span></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="row-text">
+            <div class="row-title">Dune</div>
+            <div class="row-meta"><span class="kind">Book</span><span class="dot">·</span> <span>Read</span></div>
+          </div>
+        </div>
+        <div class="s-note">Nothing here can be advanced, so no control is drawn.</div>
+        <div class="tabbar">
+          <div class="tab">Currently</div><div class="tab is-on">Backlog</div><div class="tab">Settings</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="screen-label"><span>Add</span><span>Step 1 — category</span></div>
+      <div class="screen">
+        <div class="s-head"><div class="s-title">What are you adding?</div></div>
+        <div class="opt">Show</div>
+        <div class="opt">Movie</div>
+        <div class="opt">Book</div>
+        <div class="opt">Comic</div>
+        <div class="opt">Manga</div>
+        <div class="s-note">The category is always chosen first. It decides which catalogue answers later.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="screen-label"><span>Add</span><span>Step 2 — series</span></div>
+      <div class="screen">
+        <div class="s-head"><div class="s-title">Manga</div></div>
+        <div class="field is-filled" style="margin-top:6px">Vagabond</div>
+        <div class="field">How many volumes?</div>
+        <div class="cta">Add to backlog</div>
+        <div class="s-note">Volumes are generated as individually tracked entries — Volume 1 to Volume 37.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="screen-label"><span>Settings</span><span>Local only</span></div>
+      <div class="screen is-dark">
+        <div class="s-head"><div class="s-title">Settings</div></div>
+        <div class="opt">Export library</div>
+        <div class="opt">Import library</div>
+        <div class="s-note is-warn">
+          Importing replaces everything currently in the app. Your library is saved to a
+          backup file first, and this cannot be undone.
+        </div>
+        <div class="tabbar">
+          <div class="tab">Currently</div><div class="tab">Backlog</div><div class="tab is-on">Settings</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ul class="anno">
+    <li><b>The title owns its line</b> Full width to truncate into, with nothing competing with the one thing you are scanning for.</li>
+    <li><b>Kind label leads the meta line</b> Set in accent, in a fixed first position, so the eye learns one place and one colour for "what is this".</li>
+    <li><b>The count sits directly above its bar</b> Number and measure occupy the same block, so "4 of 34" and the width depicting it are read together.</li>
+    <li><b>Standalone books have no bar</b> Nothing to be part-way through numerically, so no progress is drawn — absence is the signal.</li>
+    <li><b>One control, one word</b> "Done" works for an episode and a volume alike. It fills with accent only while held.</li>
+  </ul>
+</section>
+
+<section class="wrap">
+  <h2>Why it is built this way</h2>
+  <ul class="principles">
+    <li>
+      <h3>Text is the artwork</h3>
+      <p>
+        No covers, no thumbnails, no placeholder tiles. A title set well at 17pt identifies a
+        book faster than a small cover, and never shows a grey box where the artwork is missing.
+      </p>
+    </li>
+    <li>
+      <h3>Your library stays on your phone</h3>
+      <p>
+        Everything lives in an on-device SQLite database. There is no account, no backend and
+        no network call — so it works the same offline, mid-book, at 1am.
+      </p>
+    </li>
+    <li>
+      <h3>Export instead of sync</h3>
+      <p>
+        The whole library exports to a single JSON file and imports back. Import validates the
+        payload first and applies it in one transaction: all of it, or none of it.
+      </p>
+    </li>
+    <li>
+      <h3>One list, one tap</h3>
+      <p>
+        The app opens to Currently — only what you are in the middle of, ordered by what you
+        advanced most recently. Marking the next episode or volume finished is a single tap.
+      </p>
+    </li>
+  </ul>
+</section>
+
+<section class="wrap" id="how">
+  <h2>How it works</h2>
+  <div class="steps">
+    <div class="step">
+      <h3>1 · Pick a category</h3>
+      <p>
+        Show, movie, book, comic or manga. The category is chosen by you, never guessed — it
+        decides the shape of the form, and later, which catalogue is asked.
+      </p>
+    </div>
+    <div class="step">
+      <h3>2 · Give a title and a count</h3>
+      <p>
+        A series takes a title and a number of episodes, issues or volumes, and the app
+        generates that many individually tracked entries. A book or a movie is just a title.
+      </p>
+    </div>
+    <div class="step">
+      <h3>3 · Tap Done as you go</h3>
+      <p>
+        Each tap finishes the next entry and advances the row. Once something has its first
+        entry finished it moves to Currently by itself, and falls off when it is complete.
+      </p>
+    </div>
+  </div>
+
+  <p style="margin-top:var(--sp-5)">
+    <strong>There are no shelves in the database.</strong> Currently, Backlog and Done are
+    queries over the same two tables — a track is in Currently if any part of it is started
+    but not all of it is finished. Nothing has to be moved between lists, and nothing can
+    appear in two of them at once.
+  </p>
+
+  <div class="table-scroll" style="margin-top:var(--sp-3)">
+    <table>
+      <thead>
+        <tr><th>Media</th><th>Container</th><th>What you tick off</th><th>States</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Show</td><td>the show</td><td class="code">episode</td><td class="note">unwatched → watched</td></tr>
+        <tr><td>Comic</td><td>the series</td><td class="code">issue</td><td class="note">not started → reading → read</td></tr>
+        <tr><td>Manga</td><td>the series</td><td class="code">volume</td><td class="note">not started → reading → read</td></tr>
+        <tr><td>Book</td><td class="note">—</td><td class="code">the book</td><td class="note">not started → reading → read</td></tr>
+        <tr><td>Movie</td><td class="note">—</td><td class="code">the movie</td><td class="note">unwatched → watched</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin-top:var(--sp-3); font-size:14px; color:var(--muted)">
+    You can sit half-way inside a book in a way worth recording; you cannot really do that with
+    an episode. So watched things are binary and read things have a middle state.
+  </p>
+</section>
+
+<section class="wrap" id="build">
+  <h2>Built with</h2>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Piece</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td class="code">Expo / React&nbsp;Native</td><td class="note">One TypeScript codebase for iOS and Android, and the fastest path to a build on a real phone.</td></tr>
+        <tr><td class="code">TypeScript</td><td class="note">Strict mode throughout. The rules live in types before they live in tests.</td></tr>
+        <tr><td class="code">expo-sqlite</td><td class="note">The on-device database. Satisfies local-only storage directly, with plain migrations.</td></tr>
+        <tr><td class="code">expo-router</td><td class="note">File-based routing for the three tabs and the add flow.</td></tr>
+        <tr><td class="code">Jest</td><td class="note">Unit tests for the pure domain rules, repository tests against an in-memory database.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin-top:var(--sp-4)">
+    The layering is deliberate: <code>domain/</code> is pure TypeScript with no I/O — status
+    transitions, shelf classification, progress arithmetic — and imports nothing from the
+    database or the UI. If a rule needs a query to decide something, it is in the wrong module.
+  </p>
+</section>
+
+<section class="wrap" id="run">
+  <h2>Run it</h2>
+  <p class="lede">
+    Track It is not published to any app store. It runs from source with Expo — clone it,
+    install, and open it on your phone with Expo Go or a development build.
+  </p>
+  <pre><span class="c"># clone</span>
+git clone https://github.com/peds24/track-it.git
+cd track-it
+
+<span class="c"># install</span>
+npm install
+
+<span class="c"># start the dev server, then scan the QR code</span>
+npm start
+
+<span class="c"># or go straight to a simulator</span>
+npm run ios
+npm run android
+
+<span class="c"># tests and types</span>
+npm test
+npm run typecheck</pre>
+</section>
+
+<section class="wrap">
+  <h2>Not in v1</h2>
+  <ul class="nots">
+    <li>
+      <div class="no">No</div>
+      <p><b>Catalogue search.</b> Entries are typed by hand from a title and a count. Entry generation already sits behind a provider interface, so a real catalogue can be added per category later without touching the model or the tracking flow.</p>
+    </li>
+    <li>
+      <div class="no">No</div>
+      <p><b>Cover art or thumbnails.</b> The v1 library is hand-typed, so most covers would be missing anyway — and a grid of grey placeholders is a worse first impression than a clean list.</p>
+    </li>
+    <li>
+      <div class="no">No</div>
+      <p><b>Accounts or sync.</b> The data is small, single-user and of no value to anyone else. Export covers losing the device at a fraction of the cost of conflict resolution.</p>
+    </li>
+    <li>
+      <div class="no">No</div>
+      <p><b>Ratings, streaks or statistics.</b> They turn a record of what you are reading into a scoreboard about it.</p>
+    </li>
+  </ul>
+</section>
+
+</main>
+
+<footer class="wrap">
+  <div class="footer-links">
+    <a href="https://github.com/peds24/track-it">Source on GitHub</a>
+    <a href="design/design-language.html">Design language</a>
+    <a href="https://github.com/peds24/track-it/blob/main/docs/superpowers/specs/2026-08-12-track-it-design.md">Design decisions (D1–D12)</a>
+  </div>
+  <p>
+    Track It · a personal, local-only media tracker. The screens on this page are live HTML
+    at 390pt, rendered from the project's own design tokens — not images of a design.
+  </p>
+</footer>
+
+</body>
+</html>
