@@ -134,7 +134,11 @@ function parseBackup(json: string): Backup {
 
   const series = raw.series.map(parseSeries);
   const seriesIds = new Set(series.map((s) => s.id));
+  if (seriesIds.size !== series.length) throw new Error('Backup contains duplicate series ids');
+
   const entries = raw.entries.map((entry) => parseEntry(entry, seriesIds));
+  const entryIds = new Set(entries.map((e) => e.id));
+  if (entryIds.size !== entries.length) throw new Error('Backup contains duplicate entry ids');
 
   return { version: VERSION, series, entries };
 }
