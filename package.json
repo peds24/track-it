@@ -1,7 +1,7 @@
 {
   "name": "track-it",
   "version": "1.0.0",
-  "main": "index.ts",
+  "main": "expo-router/entry",
   "dependencies": {
     "expo": "~57.0.12",
     "expo-document-picker": "~57.0.1",
