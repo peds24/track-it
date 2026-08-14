@@ -6,7 +6,7 @@
 <title>Track It — a local-only tracker for shows, books, comics and manga</title>
 <meta name="description" content="Track It records what you are part-way through — shows, movies, books, comics, manga — on your device, with no account and no server. Open, tap once, close.">
 <meta name="color-scheme" content="light dark">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232B50E0'/%3E%3Cpath d='M8 16.5l5.2 5.2L24 11' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='9' fill='%23111208'/%3E%3Cpath d='M26 52 42 68 75 33' fill='none' stroke='%23DCDFD0' stroke-width='12' stroke-linecap='butt' stroke-linejoin='miter'/%3E%3C/svg%3E">
 
 <style>
   /* ============================================================
@@ -14,15 +14,14 @@
      Light is the base; dark redefines tokens only.
      ============================================================ */
   :root {
-    --ground: #FCFCFD;
-    --raised: #FFFFFF;
-    --ink: #16181D;
-    --muted: #6E727B;
-    --faint: #9AA0AA;
-    --rule: #E4E6EA;
-    --rule-soft: #EFF1F4;
-    --accent: #2B50E0;
-    --accent-soft: #EDF0FE;
+    --ground: #DCDFD0;
+    --raised: #DCDFD0;
+    --ink: #111208;
+    --muted: #4B4F3F;
+    --faint: #767A67;
+    --rule: #C6CAB6;
+    --rule-soft: #D2D5C4;
+    --rule-strong: #111208;
 
     --sp-1: 4px;
     --sp-2: 8px;
@@ -31,8 +30,9 @@
     --sp-5: 40px;
     --sp-6: 64px;
 
-    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    /* No proportional face left in the system — the platform's own font,
+       just its monospace register. */
+    --face: ui-monospace, "SF Mono", "Roboto Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
     --measure: 68ch;
 
@@ -44,28 +44,26 @@
 
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --ground: #0E1013;
-      --raised: #16191E;
-      --ink: #EDEFF2;
-      --muted: #969CA6;
-      --faint: #6B7079;
-      --rule: #262A31;
-      --rule-soft: #1D2127;
-      --accent: #8AA0FF;
-      --accent-soft: #1A2140;
+      --ground: #08090B;
+      --raised: #131518;
+      --ink: #F3F4F6;
+      --muted: #C6C9CF;
+      --faint: #8B8F97;
+      --rule: #2A2E34;
+      --rule-soft: #1C1F24;
+      --rule-strong: #F3F4F6;
     }
   }
 
   :root[data-theme="dark"] {
-    --ground: #0E1013;
-    --raised: #16191E;
-    --ink: #EDEFF2;
-    --muted: #969CA6;
-    --faint: #6B7079;
-    --rule: #262A31;
-    --rule-soft: #1D2127;
-    --accent: #8AA0FF;
-    --accent-soft: #1A2140;
+    --ground: #08090B;
+    --raised: #131518;
+    --ink: #F3F4F6;
+    --muted: #C6C9CF;
+    --faint: #8B8F97;
+    --rule: #2A2E34;
+    --rule-soft: #1C1F24;
+    --rule-strong: #F3F4F6;
   }
 
   * { box-sizing: border-box; }
@@ -76,7 +74,7 @@
     margin: 0;
     background: var(--ground);
     color: var(--ink);
-    font-family: var(--sans);
+    font-family: var(--face);
     font-size: 16px;
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
@@ -93,37 +91,50 @@
 
   section { padding-top: var(--section-y); }
 
-  a { color: var(--accent); }
+  a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+  }
 
   h1 {
     margin: 0;
     font-size: clamp(32px, 6vw, 46px);
     line-height: 1.02;
-    letter-spacing: -0.025em;
-    font-weight: 640;
+    letter-spacing: 0;
+    font-weight: 700;
     text-wrap: balance;
   }
   h2 {
     margin: 0 0 var(--sp-3);
     font-size: 12px;
-    font-weight: 640;
-    letter-spacing: 0.11em;
+    font-weight: 700;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--faint);
+    color: var(--ink);
   }
   h3 {
     margin: 0 0 var(--sp-2);
     font-size: 21px;
     line-height: 1.25;
-    letter-spacing: -0.015em;
-    font-weight: 620;
+    letter-spacing: 0;
+    font-weight: 700;
     text-wrap: balance;
   }
   p { margin: 0 0 var(--sp-3); max-width: var(--measure); text-wrap: pretty; }
   p:last-child { margin-bottom: 0; }
   .lede { font-size: 17px; }
-  strong { font-weight: 620; }
-  em { font-style: normal; color: var(--accent); }
+  strong { font-weight: 700; }
+  /* Underline replaces colour as the one mark reserved for something that
+     needs to stand out from running text. */
+  em {
+    font-style: normal;
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+  }
   .eyebrow {
     font-size: 11px;
     font-weight: 600;
@@ -149,8 +160,8 @@
     display: flex;
     align-items: center;
     gap: var(--sp-2);
-    font-weight: 640;
-    letter-spacing: -0.015em;
+    font-weight: 700;
+    letter-spacing: 0;
     font-size: 17px;
     color: var(--ink);
     text-decoration: none;
@@ -159,8 +170,8 @@
   .brand-mark {
     width: 22px;
     height: 22px;
-    border-radius: 5px;
-    background: var(--accent);
+    border-radius: 3px;
+    background: var(--ink);
     display: grid;
     place-items: center;
     flex-shrink: 0;
@@ -183,7 +194,13 @@
     padding: 4px 0;
   }
   .nav-links a:hover { color: var(--ink); }
-  .nav-links a.is-primary { color: var(--accent); font-weight: 560; }
+  .nav-links a.is-primary {
+    color: var(--ink);
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+  }
 
   /* ---------- hero ---------- */
   .hero {
@@ -212,10 +229,10 @@
     justify-content: center;
     min-height: 44px;
     padding: 10px 18px;
-    border-radius: 8px;
-    border: 1px solid var(--rule);
+    border-radius: 4px;
+    border: 1.5px solid var(--rule-strong);
     font-size: 16px;
-    font-weight: 540;
+    font-weight: 700;
     text-decoration: none;
     color: var(--ink);
     background: transparent;
@@ -225,7 +242,9 @@
     border-color: var(--ink);
     color: var(--ground);
   }
-  .btn:hover { border-color: var(--accent); }
+  /* No accent to shift on hover — the secondary button inverts instead,
+     the same way a pressed control does elsewhere in the system. */
+  .btn:hover { background: var(--ink); border-color: var(--ink); color: var(--ground); }
   .btn.is-primary:hover { opacity: 0.9; border-color: var(--ink); }
 
   .facts {
@@ -258,7 +277,7 @@
     flex-direction: column;
     gap: var(--sp-2);
     padding-top: var(--sp-3);
-    border-top: 2px solid var(--ink);
+    border-top: 3px solid var(--ink);
   }
   .principles h3 { margin: 0; font-size: 17px; }
   .principles p { font-size: 15px; color: var(--muted); }
@@ -296,12 +315,12 @@
   th {
     text-align: left;
     font-size: 11px;
-    font-weight: 640;
+    font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--faint);
+    color: var(--ink);
     padding: 0 var(--sp-3) var(--sp-2) 0;
-    border-bottom: 1px solid var(--rule);
+    border-bottom: 2px solid var(--ink);
     white-space: nowrap;
   }
   td {
@@ -309,7 +328,7 @@
     border-bottom: 1px solid var(--rule-soft);
     vertical-align: top;
   }
-  td.code { font-family: var(--mono); white-space: nowrap; }
+  td.code { font-family: var(--face); white-space: nowrap; }
   td.note { color: var(--muted); }
 
   /* ---------- code ---------- */
@@ -317,17 +336,17 @@
     margin: 0;
     padding: var(--sp-3);
     border: 1px solid var(--rule);
-    border-radius: 8px;
+    border-radius: 4px;
     background: var(--raised);
     overflow-x: auto;
-    font-family: var(--mono);
+    font-family: var(--face);
     font-size: 13.5px;
     line-height: 1.7;
     color: var(--ink);
     -webkit-overflow-scrolling: touch;
   }
   pre .c { color: var(--faint); }
-  code { font-family: var(--mono); font-size: 0.94em; overflow-wrap: anywhere; }
+  code { font-family: var(--face); font-size: 0.94em; overflow-wrap: anywhere; }
 
   .steps {
     display: grid;
@@ -352,13 +371,16 @@
   .nots li:last-child { border-bottom: 0; padding-bottom: 0; }
   .no {
     font-size: 11px;
-    font-weight: 640;
+    font-weight: 700;
     letter-spacing: 0.09em;
     text-transform: uppercase;
-    color: var(--accent);
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
   }
   .nots p { font-size: 15px; margin: 0; }
-  .nots b { font-weight: 600; }
+  .nots b { font-weight: 700; }
 
   /* ============================================================
      APP MOCKUPS — markup and tokens lifted from the design language
@@ -378,34 +400,32 @@
   .screens > * { min-width: 0; }
 
   .screen {
-    --a-bg: #FFFFFF;
-    --a-ink: #16181D;
-    --a-muted: #6E727B;
-    --a-faint: #9AA0AA;
-    --a-rule: #E7E9ED;
-    --a-accent: #2B50E0;
-    --a-accent-soft: #EDF0FE;
-    --a-chip: #F2F3F6;
+    --a-bg: #DCDFD0;
+    --a-ink: #111208;
+    --a-muted: #4B4F3F;
+    --a-faint: #767A67;
+    --a-rule: #C6CAB6;
+    --a-rule-strong: #111208;
+    --a-chip: #D2D5C4;
 
     width: 100%;
     max-width: 390px;
     background: var(--a-bg);
     color: var(--a-ink);
-    border: 1px solid var(--rule);
-    border-radius: 12px;
+    border: 1px solid var(--a-rule-strong);
+    border-radius: 6px;
     overflow: hidden;
     font-size: 15px;
+    font-family: var(--face);
   }
   .screen.is-dark {
-    --a-bg: #0B0D10;
-    --a-ink: #F2F4F7;
-    --a-muted: #979DA7;
-    --a-faint: #6A6F78;
-    --a-rule: #23272E;
-    --a-accent: #8AA0FF;
-    --a-accent-soft: #182040;
-    --a-chip: #191D23;
-    border-color: #23272E;
+    --a-bg: #08090B;
+    --a-ink: #F3F4F6;
+    --a-muted: #C6C9CF;
+    --a-faint: #8B8F97;
+    --a-rule: #2A2E34;
+    --a-rule-strong: #F3F4F6;
+    --a-chip: #191C21;
   }
 
   .screen-label {
@@ -428,14 +448,17 @@
     padding: 28px 20px 14px;
   }
   .s-title {
-    font-size: 27px;
-    font-weight: 660;
-    letter-spacing: -0.022em;
+    font-size: 25px;
+    font-weight: 700;
+    letter-spacing: 0;
   }
   .s-action {
     font-size: 16px;
-    font-weight: 520;
-    color: var(--a-accent);
+    font-weight: 600;
+    color: var(--a-ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
   }
 
   /* the row — the core component */
@@ -449,9 +472,9 @@
   }
   .row-text { flex: 1; min-width: 0; }
   .row-title {
-    font-size: 17px;
-    font-weight: 520;
-    letter-spacing: -0.01em;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -462,48 +485,55 @@
     gap: 7px;
     margin-top: 3px;
     font-size: 13px;
+    font-weight: 400;
     color: var(--a-muted);
     white-space: nowrap;
     overflow: hidden;
   }
+  /* Underline does the job colour used to: the one fixed mark that means
+     "what kind of thing is this". */
   .kind {
     flex-shrink: 0;
-    font-size: 10.5px;
-    font-weight: 640;
-    letter-spacing: 0.085em;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--a-accent);
+    color: var(--a-ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
   }
   .dot { color: var(--a-faint); }
-  .count { font-variant-numeric: tabular-nums; }
+  .count { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--a-ink); }
 
   .advance {
     flex-shrink: 0;
-    padding: 6px 13px;
-    border: 1px solid var(--a-rule);
-    border-radius: 7px;
+    padding: 7px 14px;
+    border: 1.5px solid var(--a-rule-strong);
+    border-radius: 3px;
     font-size: 13px;
-    font-weight: 520;
+    font-weight: 700;
     color: var(--a-ink);
     background: transparent;
   }
+  /* No accent to fill with — pressed inverts instead, ink for ground and
+     ground for ink, the way an e-ink pixel flips rather than tints. */
   .advance.is-pressed {
-    background: var(--a-accent);
-    border-color: var(--a-accent);
-    color: #FFFFFF;
+    background: var(--a-ink);
+    border-color: var(--a-ink);
+    color: var(--a-bg);
   }
 
+  /* Square ends, not a pill — a measure reads as a bar, not a badge. */
   .progress-track {
-    height: 3px;
+    height: 4px;
     margin-top: 8px;
-    border-radius: 1.5px;
     background: var(--a-rule);
     overflow: hidden;
   }
   .progress-fill {
     height: 100%;
-    border-radius: 1.5px;
-    background: var(--a-accent);
+    background: var(--a-ink);
   }
 
   .filters {
@@ -517,9 +547,10 @@
   .fchip {
     flex-shrink: 0;
     padding: 5px 12px;
-    border-radius: 9px;
-    border: 1px solid var(--a-rule);
+    border-radius: 3px;
+    border: 1.5px solid var(--a-rule-strong);
     font-size: 13px;
+    font-weight: 600;
     color: var(--a-muted);
     background: transparent;
   }
@@ -540,48 +571,56 @@
     padding: 15px 20px;
     border-top: 1px solid var(--a-rule);
     font-size: 17px;
-    font-weight: 480;
+    font-weight: 600;
   }
   .field {
     margin: 0 20px 10px;
     padding: 13px 14px;
-    border: 1px solid var(--a-rule);
-    border-radius: 8px;
+    border: 1.5px solid var(--a-rule-strong);
+    border-radius: 3px;
     font-size: 16px;
+    font-weight: 400;
     color: var(--a-faint);
   }
-  .field.is-filled { color: var(--a-ink); }
+  .field.is-filled { color: var(--a-ink); font-weight: 600; }
   .cta {
-    margin: 6px 20px 24px;
+    margin: 6px 20px 10px;
     padding: 14px;
-    border-radius: 8px;
+    border-radius: 3px;
     background: var(--a-ink);
     color: var(--a-bg);
     text-align: center;
     font-size: 16px;
-    font-weight: 540;
+    font-weight: 700;
   }
   .s-note {
     padding: 10px 20px 24px;
     font-size: 13px;
+    font-weight: 400;
     color: var(--a-muted);
   }
-  .s-note.is-warn { color: var(--a-ink); }
+  .s-note.is-warn { color: var(--a-ink); font-weight: 600; }
 
   .tabbar {
     display: flex;
-    border-top: 1px solid var(--a-rule);
+    border-top: 1.5px solid var(--a-rule-strong);
     padding: 9px 0 13px;
   }
   .tab {
     flex: 1;
     text-align: center;
     font-size: 11px;
-    font-weight: 560;
+    font-weight: 600;
     letter-spacing: 0.02em;
     color: var(--a-faint);
   }
-  .tab.is-on { color: var(--a-accent); }
+  .tab.is-on {
+    color: var(--a-ink);
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 4px;
+  }
 
   /* ---------- footer ---------- */
   footer {
@@ -631,7 +670,7 @@
   <div class="wrap nav-inner">
     <a class="brand" href="#top">
       <span class="brand-mark" aria-hidden="true">
-        <svg width="14" height="14" viewBox="0 0 32 32"><path d="M8 16.5l5.2 5.2L24 11" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg width="14" height="14" viewBox="0 0 100 100"><path d="M26 52 42 68 75 33" fill="none" style="stroke:var(--ground)" stroke-width="12" stroke-linecap="butt" stroke-linejoin="miter"/></svg>
       </span>
       Track It
     </a>
@@ -808,10 +847,10 @@
 
   <ul class="anno">
     <li><b>The title owns its line</b> Full width to truncate into, with nothing competing with the one thing you are scanning for.</li>
-    <li><b>Kind label leads the meta line</b> Set in accent, in a fixed first position, so the eye learns one place and one colour for "what is this".</li>
+    <li><b>Kind label leads the meta line</b> Underlined, in a fixed first position, so the eye learns one place and one mark for "what is this".</li>
     <li><b>The count sits directly above its bar</b> Number and measure occupy the same block, so "4 of 34" and the width depicting it are read together.</li>
     <li><b>Standalone books have no bar</b> Nothing to be part-way through numerically, so no progress is drawn — absence is the signal.</li>
-    <li><b>One control, one word</b> "Done" works for an episode and a volume alike. It fills with accent only while held.</li>
+    <li><b>One control, one word</b> "Done" works for an episode and a volume alike. Pressed, it inverts to solid ink rather than filling with a colour that no longer exists.</li>
   </ul>
 </section>
 

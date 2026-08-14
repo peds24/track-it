@@ -8,6 +8,8 @@ export type SearchResult = {
   category: Category;
   /** How many units the track has. Supplied by the user in v1. */
   count: number;
+  /** When true, `count` is ignored and one entry is generated. */
+  ongoing?: boolean;
 };
 
 export type SeriesDraft = {
@@ -15,6 +17,8 @@ export type SeriesDraft = {
   mediaType: SeriesMediaType;
   unitLabel: UnitLabel;
   entries: EntryDraft[];
+  /** A4: no known total; the list grows as you finish each entry. */
+  ongoing?: boolean;
   externalSource?: string;
   externalId?: string;
 };

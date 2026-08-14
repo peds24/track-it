@@ -31,6 +31,20 @@ const MIGRATIONS: readonly string[] = [
   CREATE INDEX IF NOT EXISTS idx_entry_series ON entry(series_id);
   CREATE INDEX IF NOT EXISTS idx_entry_status ON entry(status);
   `,
+  // A4: a series that is still being published has no final count. Existing
+  // rows default to 0, so every series already in a library stays finite.
+  `
+  ALTER TABLE series ADD COLUMN ongoing INTEGER NOT NULL DEFAULT 0;
+  `,
+  // A6: paused is a separate bit from status, not a fourth status value —
+  // pausing must not disturb what advance()/D2 already enforce about which
+  // statuses a given mode can hold. A paused track is pulled into Backlog by
+  // shelfForSeries/shelfForEntry while its children's statuses (and thus its
+  // progress) sit untouched, so resuming needs only clear the flag.
+  `
+  ALTER TABLE series ADD COLUMN paused INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE entry ADD COLUMN paused INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 /**
