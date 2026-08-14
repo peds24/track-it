@@ -1,12 +1,28 @@
+import { CameraView, useCameraPermissions, type BarcodeType } from 'expo-camera';
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { addTrack } from '@/data/addTrack';
 import { advanceEntry, firstEntryOf } from '@/data/trackRepo';
 import type { Category } from '@/domain/types';
+import { MetronProvider } from '@/providers/metron';
 import { unitLabelFor } from '@/providers/manual';
+import { providerFor } from '@/providers/registry';
+import type { SearchResult } from '@/providers/types';
 import { useDatabase } from '@/ui/DatabaseProvider';
-import { font, layout, radius, useTheme, type Palette } from '@/ui/theme';
+import { font, layout, radius, underline, useTheme, type Palette } from '@/ui/theme';
+
+/** book/manga are ISBN barcodes (EAN-13); comic is UPC-A. Show/movie have no
+ * retail barcode at all — TMDB is search-by-title only (D5/A9). */
+const BARCODE_TYPES: Partial<Record<Category, BarcodeType[]>> = {
+  book: ['ean13', 'ean8'],
+  manga: ['ean13', 'ean8'],
+  comic: ['upc_a'],
+};
+
+/** Debounce for search-as-you-type — long enough that a typing burst issues
+ * one request, short enough that a result still feels immediate. */
+const SEARCH_DEBOUNCE_MS = 300;
 
 const CATEGORIES: readonly { value: Category; label: string }[] = [
   { value: 'show', label: 'Show' },
@@ -30,9 +46,115 @@ export default function AddTrackScreen() {
   // A4: still being published, so there is no count to ask for.
   const [ongoing, setOngoing] = useState(false);
 
+  // A9: search-as-you-type and barcode scanning both just fill in the title
+  // field — a faster way to reach the same manual entry-generation flow, not
+  // a different feature. `picked` remembers which result that was, so submit
+  // time can hydrate from real matched data instead of the typed string; it
+  // is cleared the moment the user types past what they picked.
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [picked, setPicked] = useState<SearchResult | null>(null);
+  const [scanning, setScanning] = useState(false);
+  // A comic scan resolves to a UPC-A only — expo-camera cannot read the
+  // 5-digit EAN-5 supplemental that actually pins the issue number, so this
+  // holds the scanned code while a small, skippable prompt asks for it.
+  const [pendingUpc, setPendingUpc] = useState<string | null>(null);
+  const [ean5, setEan5] = useState('');
+  const [permission, requestPermission] = useCameraPermissions();
+  const scanHandled = useRef(false);
+
   const isSeries = category !== null && unitLabelFor(category) !== null;
   const needsCount = isSeries && !ongoing;
   const unit = category ? unitLabelFor(category) : null;
+  const barcodeTypes = category ? BARCODE_TYPES[category] : undefined;
+
+  // A search hit only ever confirms a title (D5) — once one is picked there
+  // is nothing left to search for until the user types past it again.
+  useEffect(() => {
+    if (!category || picked) {
+      setResults([]);
+      return;
+    }
+    const query = title.trim();
+    if (query.length === 0) {
+      setResults([]);
+      return;
+    }
+    let cancelled = false;
+    const handle = setTimeout(() => {
+      void (async () => {
+        try {
+          const hits = await providerFor(category).search(query);
+          if (!cancelled) setResults(hits);
+        } catch {
+          // Search is progressive enhancement, never a blocking requirement
+          // (D5) — offline, misconfigured, or a failed request all just mean
+          // no suggestions, and typing a title still works exactly as today.
+          if (!cancelled) setResults([]);
+        }
+      })();
+    }, SEARCH_DEBOUNCE_MS);
+    return () => {
+      cancelled = true;
+      clearTimeout(handle);
+    };
+  }, [title, category, picked]);
+
+  function pick(result: SearchResult): void {
+    setTitle(result.title);
+    setPicked(result);
+    setResults([]);
+  }
+
+  async function handleScanPress(): Promise<void> {
+    if (!category) return;
+    let perm = permission;
+    if (!perm || !perm.granted) {
+      perm = await requestPermission();
+    }
+    if (!perm.granted) {
+      Alert.alert('Camera access needed', 'Camera access is needed to scan a barcode.');
+      return;
+    }
+    scanHandled.current = false;
+    setScanning(true);
+  }
+
+  function handleBarcodeScanned({ data }: { data: string }): void {
+    if (scanHandled.current || !category) return;
+    scanHandled.current = true;
+    setScanning(false);
+
+    // A UPC-A alone identifies a comic's series, not its issue (A9) — the
+    // 5-digit supplemental prompt decides the query, so defer the lookup.
+    if (category === 'comic') {
+      setEan5('');
+      setPendingUpc(data);
+      return;
+    }
+
+    void (async () => {
+      try {
+        setResults(await providerFor(category).search(data));
+        setPicked(null);
+      } catch {
+        setResults([]);
+      }
+    })();
+  }
+
+  async function submitEan5(code: string | undefined): Promise<void> {
+    const upc = pendingUpc;
+    setPendingUpc(null);
+    if (!upc) return;
+    const provider = providerFor('comic');
+    if (!(provider instanceof MetronProvider)) return;
+    try {
+      setResults(await provider.searchByUpc(upc, code));
+      setPicked(null);
+    } catch {
+      setResults([]);
+    }
+  }
 
   // `startNow` skips the trip to the Backlog tab and the Start tap that would
   // otherwise follow — the same reason a "Start" swipe or button exists once a
@@ -55,7 +177,13 @@ export default function AddTrackScreen() {
       const now = new Date().toISOString();
       const created = await addTrack(
         db,
-        { title, category, count: parsedCount, ongoing: isSeries && ongoing },
+        {
+          title,
+          category,
+          count: parsedCount,
+          ongoing: isSeries && ongoing,
+          match: picked ?? undefined,
+        },
         now,
       );
       if (startNow) {
@@ -89,6 +217,27 @@ export default function AddTrackScreen() {
     );
   }
 
+  // Full-screen while scanning — an inline conditional view rather than a
+  // separate route, so no state has to round-trip through router params.
+  if (scanning && barcodeTypes) {
+    return (
+      <View style={styles.screen}>
+        <CameraView
+          style={StyleSheet.absoluteFill}
+          barcodeScannerSettings={{ barcodeTypes }}
+          onBarcodeScanned={handleBarcodeScanned}
+        />
+        <Pressable
+          style={styles.scanCancel}
+          onPress={() => setScanning(false)}
+          accessibilityRole="button"
+        >
+          <Text style={styles.scanCancelText}>Cancel</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
@@ -101,12 +250,37 @@ export default function AddTrackScreen() {
         placeholderTextColor={palette.faint}
         accessibilityLabel="Title"
         value={title}
-        onChangeText={setTitle}
+        onChangeText={(t) => {
+          setTitle(t);
+          setPicked(null);
+        }}
         autoFocus
         cursorColor={palette.ink}
         selectionColor={palette.ink}
         underlineColorAndroid="transparent"
       />
+
+      {results.length > 0 && (
+        <View style={styles.results}>
+          {results.slice(0, 8).map((r) => (
+            <Pressable key={r.id} style={styles.resultRow} onPress={() => pick(r)}>
+              <Text style={styles.resultText} numberOfLines={1}>
+                {r.title}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
+
+      {barcodeTypes && (
+        <Pressable
+          style={styles.scanButton}
+          onPress={() => void handleScanPress()}
+          accessibilityRole="button"
+        >
+          <Text style={styles.scanButtonText}>Scan barcode</Text>
+        </Pressable>
+      )}
 
       {needsCount && (
         <TextInput
@@ -153,6 +327,53 @@ export default function AddTrackScreen() {
       >
         <Text style={styles.saveSecondaryText}>Add to backlog</Text>
       </Pressable>
+
+      {/* A9: expo-camera cannot read the EAN-5 supplemental that pins a
+          comic's issue number — this is the one extra step a comic scan
+          needs, kept skippable so it never blocks adding the track. */}
+      <Modal
+        visible={pendingUpc !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => void submitEan5(undefined)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>5-digit code?</Text>
+            <Text style={styles.modalBody}>
+              The small 5-digit barcode next to the main one pins the exact issue. Skip to see
+              every matching issue instead.
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder="12345"
+              placeholderTextColor={palette.faint}
+              accessibilityLabel="5-digit code"
+              value={ean5}
+              onChangeText={setEan5}
+              keyboardType="number-pad"
+              maxLength={5}
+              cursorColor={palette.ink}
+              selectionColor={palette.ink}
+              underlineColorAndroid="transparent"
+            />
+            <Pressable
+              style={styles.save}
+              onPress={() => void submitEan5(ean5.trim().length === 5 ? ean5.trim() : undefined)}
+              accessibilityRole="button"
+            >
+              <Text style={styles.saveText}>Search</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => void submitEan5(undefined)}
+              accessibilityRole="button"
+              style={styles.modalSkip}
+            >
+              <Text style={[styles.modalSkipText, underline]}>Skip</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -225,5 +446,64 @@ function createStyles(c: Palette) {
       paddingBottom: 24,
       paddingHorizontal: layout.inset,
     },
+    // Reuses the row/list visual language rather than a new component system:
+    // sharp corners, a hairline between rows, ink for the title.
+    results: {
+      marginHorizontal: layout.inset,
+      marginBottom: 10,
+      borderWidth: 1.5,
+      borderColor: c.ruleStrong,
+      borderRadius: radius.md,
+      overflow: 'hidden',
+    },
+    resultRow: {
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: c.rule,
+    },
+    resultText: { ...font.body, color: c.ink },
+    scanButton: {
+      alignSelf: 'flex-start',
+      marginHorizontal: layout.inset,
+      marginBottom: 10,
+      paddingVertical: 6,
+      paddingHorizontal: 13,
+      borderWidth: 1.5,
+      borderColor: c.ruleStrong,
+      borderRadius: radius.chip,
+    },
+    scanButtonText: { ...font.control, color: c.ink },
+    scanCancel: {
+      position: 'absolute',
+      bottom: layout.inset,
+      left: layout.inset,
+      right: layout.inset,
+      padding: 14,
+      borderRadius: radius.md,
+      borderWidth: 1.5,
+      borderColor: c.bg,
+      backgroundColor: c.ink,
+    },
+    scanCancelText: { ...font.body, fontWeight: '700', color: c.bg, textAlign: 'center' },
+    modalBackdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: layout.inset,
+    },
+    modalCard: {
+      width: '100%',
+      backgroundColor: c.bg,
+      borderWidth: 1.5,
+      borderColor: c.ruleStrong,
+      borderRadius: radius.md,
+      padding: layout.inset,
+    },
+    modalTitle: { ...font.rowTitle, color: c.ink, marginBottom: 8 },
+    modalBody: { ...font.meta, color: c.muted, marginBottom: 14 },
+    modalSkip: { alignSelf: 'center', paddingVertical: 6 },
+    modalSkipText: { ...font.control, color: c.muted },
   });
 }

@@ -91,6 +91,8 @@ test('toEntry maps every column to its own domain field', () => {
     finished_at: '2026-02-02T00:00:00.000Z',
     created_at: '2026-03-03T00:00:00.000Z',
     paused: 1,
+    external_source: 'tmdb',
+    external_id: 'ext-id',
   });
 
   const expected: Entry = {
@@ -104,6 +106,8 @@ test('toEntry maps every column to its own domain field', () => {
     finishedAt: '2026-02-02T00:00:00.000Z',
     createdAt: '2026-03-03T00:00:00.000Z',
     paused: true,
+    externalSource: 'tmdb',
+    externalId: 'ext-id',
   };
 
   expect(entry).toEqual(expected);

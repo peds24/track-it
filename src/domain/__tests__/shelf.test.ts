@@ -18,6 +18,8 @@ function child(
     finishedAt: null,
     createdAt: '2026-08-12T10:00:00.000Z',
     paused,
+    externalSource: null,
+    externalId: null,
   };
 }
 

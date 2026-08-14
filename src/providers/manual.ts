@@ -23,6 +23,53 @@ const DISPLAY: Record<UnitLabel, string> = {
 /** Upper bound on generated entries — far above any real series, far below a freeze. */
 export const MAX_UNITS = 5000;
 
+/**
+ * The entry-generation logic every provider shares (A9): given a title and a
+ * count, produce N numbered entries. `ManualProvider` is this and nothing
+ * more. A real provider (Google Books, TMDB, Metron) that cannot improve on
+ * the given count — or has no real catalogue match to improve it with — falls
+ * back to calling this directly, so a manga's volumes or an unmatched show's
+ * episodes are still numbered exactly the way they always were.
+ */
+export function generateEntries(result: SearchResult): SeriesDraft {
+  // A4: an ongoing series has no count to validate — it starts at entry 1 and
+  // grows as each one is finished. The Add screen never collects a count for
+  // one, so result.count is not even a number here.
+  if (!result.ongoing) {
+    if (result.count < 1) {
+      throw new Error('A track must have at least 1 unit');
+    }
+    // Validated here rather than on the Add screen so every caller is covered.
+    // A fractional count silently truncates, and a mistyped huge one issues
+    // that many INSERTs in a single transaction — unrecoverable with no
+    // delete UI.
+    if (!Number.isInteger(result.count)) {
+      throw new Error('A unit count must be a whole number');
+    }
+    if (result.count > MAX_UNITS) {
+      throw new Error(`A track cannot have more than ${MAX_UNITS} units`);
+    }
+  }
+
+  const unitLabel = unitLabelFor(result.category);
+  if (unitLabel === null) {
+    throw new Error(`${result.category} is a standalone track and has no entries to generate`);
+  }
+
+  const length = result.ongoing ? 1 : result.count;
+
+  return {
+    ongoing: result.ongoing === true,
+    title: result.title,
+    mediaType: result.category as SeriesDraft['mediaType'],
+    unitLabel,
+    entries: Array.from({ length }, (_, i) => ({
+      ordinal: i + 1,
+      title: `${DISPLAY[unitLabel]} ${i + 1}`,
+    })),
+  };
+}
+
 export class ManualProvider implements MetadataProvider {
   readonly id = 'manual';
 
@@ -32,41 +79,6 @@ export class ManualProvider implements MetadataProvider {
   }
 
   async hydrate(result: SearchResult): Promise<SeriesDraft> {
-    // A4: an ongoing series has no count to validate — it starts at entry 1 and
-    // grows as each one is finished. The Add screen never collects a count for
-    // one, so result.count is not even a number here.
-    if (!result.ongoing) {
-      if (result.count < 1) {
-        throw new Error('A track must have at least 1 unit');
-      }
-      // Validated here rather than on the Add screen so every caller is covered.
-      // A fractional count silently truncates, and a mistyped huge one issues
-      // that many INSERTs in a single transaction — unrecoverable with no
-      // delete UI.
-      if (!Number.isInteger(result.count)) {
-        throw new Error('A unit count must be a whole number');
-      }
-      if (result.count > MAX_UNITS) {
-        throw new Error(`A track cannot have more than ${MAX_UNITS} units`);
-      }
-    }
-
-    const unitLabel = unitLabelFor(result.category);
-    if (unitLabel === null) {
-      throw new Error(`${result.category} is a standalone track and has no entries to generate`);
-    }
-
-    const length = result.ongoing ? 1 : result.count;
-
-    return {
-      ongoing: result.ongoing === true,
-      title: result.title,
-      mediaType: result.category as SeriesDraft['mediaType'],
-      unitLabel,
-      entries: Array.from({ length }, (_, i) => ({
-        ordinal: i + 1,
-        title: `${DISPLAY[unitLabel]} ${i + 1}`,
-      })),
-    };
+    return generateEntries(result);
   }
 }

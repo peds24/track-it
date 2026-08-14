@@ -53,6 +53,8 @@ type EntryRow = {
   finished_at: string | null;
   created_at: string;
   paused: number;
+  external_source: string | null;
+  external_id: string | null;
 };
 
 export function toEntry(row: EntryRow): Entry {
@@ -67,6 +69,8 @@ export function toEntry(row: EntryRow): Entry {
     finishedAt: row.finished_at,
     createdAt: row.created_at,
     paused: row.paused === 1,
+    externalSource: row.external_source ?? null,
+    externalId: row.external_id ?? null,
   };
 }
 
@@ -124,7 +128,14 @@ export async function createSeriesTrack(
 
 export async function createStandaloneTrack(
   db: SqlDriver,
-  input: { title: string; category: 'book' | 'movie' },
+  input: {
+    title: string;
+    category: 'book' | 'movie';
+    /** A9: set when the title came from a confirmed catalogue match rather
+     * than being typed by hand — a search hit or a barcode scan. */
+    externalSource?: string;
+    externalId?: string;
+  },
   now: string,
 ): Promise<string> {
   const id = newId();
@@ -135,9 +146,9 @@ export async function createStandaloneTrack(
     createdAt: now,
   });
   await db.run(
-    `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at)
-     VALUES (?, NULL, ?, NULL, ?, 'unstarted', ?)`,
-    [id, input.title, input.category, now],
+    `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)
+     VALUES (?, NULL, ?, NULL, ?, 'unstarted', ?, ?, ?)`,
+    [id, input.title, input.category, now, input.externalSource ?? null, input.externalId ?? null],
   );
   return id;
 }

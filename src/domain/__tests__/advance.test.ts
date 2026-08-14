@@ -15,6 +15,8 @@ function entry(over: Partial<Entry> = {}): Entry {
     finishedAt: null,
     createdAt: NOW,
     paused: false,
+    externalSource: null,
+    externalId: null,
     ...over,
   };
 }

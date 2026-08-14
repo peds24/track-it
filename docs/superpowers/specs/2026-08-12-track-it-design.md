@@ -546,6 +546,91 @@ permanently scoped to `useTracks('done', category)`, registered as a third
 `FilterBar` loses its `showDone`/`onShowDoneChange` props and the Done chip
 entirely, along with the test that exercised it.
 
+**A9 — D5's catalogue providers, built: Google Books, TMDB, Metron, plus
+barcode scanning.** D5's candidate table is now committed rather than
+speculative. Registration is exactly D10's per-category rule: Google Books
+answers `book` and `manga` (both ISBN-barcode media), Metron answers `comic`
+alone, TMDB answers `show` and `movie`. Because `MetadataProvider.search()`
+carries no category parameter of its own, `GoogleBooksProvider` and
+`TmdbProvider` each take their category at construction and the registry
+holds two differently-configured instances rather than the interface
+growing a parameter — D5's stated goal, "add a catalogue-backed provider
+without touching the model or the tracking flow," held with zero changes to
+`src/providers/types.ts`.
+
+**Manual entry still needs no network call, anywhere, including through a
+real provider.** `ManualProvider.hydrate`'s count-validation and
+entry-numbering logic moved into an exported `generateEntries()` in
+`manual.ts`; every real provider's `hydrate()` calls it directly for a
+result that has no live catalogue match. "No match" is signalled the same
+way `addTrack.ts` already synthesised a `SearchResult` for `ManualProvider`
+before this work — `result.id === provider.id`, the provider's own id used
+as a sentinel — so a hand-typed title with search offline, unconfigured, or
+just never tapped costs nothing extra and behaves identically to v1.
+
+**Where a real provider does better than a guess:** TMDB sums
+`episode_count` across a matched show's seasons (excluding season 0,
+specials) for a real total, replacing the user's guess unless the series is
+marked ongoing — that flag means "no known total" and a snapshot of aired
+seasons must not silently overrule it. Metron reads a matched issue's
+series `issue_count` for a real issue total. Google Books never overrides
+the given count at all: a single-volume hit cannot tell a manga series has
+34 volumes, so `count` stays exactly what the Add screen collected, same as
+`ManualProvider` — the only thing a Google Books match changes is where the
+*title* came from.
+
+**Metron's query parameters, confirmed against the current API README**
+(`github.com/Metron-Project/metron`, `api/README.md`) rather than assumed:
+`upc` (exact match), `upc_starts_with` (prefix match, documented by Metron
+themselves for mobile scanners that only read the 12-digit UPC-A), and
+`series_name` for a plain title search on issues. All three matched what
+the brief that started this work assumed — no drift to correct.
+
+**The barcode-scanning gap this confirms:** `expo-camera`'s barcode
+scanner (types: aztec, ean13, ean8, qr, pdf417, upc_e, datamatrix, code39,
+code93, itf14, codabar, code128, upc_a) has no EAN-5 support, matching D5's
+own note that a UPC-A alone identifies a comic's series, not its issue. The
+scan flow is therefore: scan the UPC-A (`upc_a` type, comic only; `ean13`/
+`ean8` for book/manga ISBNs), then a small skippable numeric prompt for the
+5-digit EAN-5 supplemental. Given both, concatenate for Metron's exact
+`upc` filter — one confident match. Skipped, fall back to
+`upc_starts_with` and show every candidate issue as a pickable list through
+the same result UI a text search uses — scanning fills the search box
+faster, it is not a second feature.
+
+**Schema:** `entry` gained `external_source`/`external_id` columns
+(`series` already had them, unused until now — D5 left the room
+deliberately). Threaded through `createStandaloneTrack`, `toEntry`, and
+`backup.ts`'s export/import (still unsurfaced per A3, but its round-trip
+must not silently drop a column that now exists).
+
+**TMDB attribution** is a hard requirement of their terms, not a nicety: a
+"?" next to the Done tab's title (the natural home, since TMDB only
+supplies show/movie data and Done is where a finished one is reviewed)
+opens a plain modal with their required sentence verbatim — "This product
+uses the TMDB API but is not endorsed or certified by TMDB." — plus a short
+courtesy credit each for Google Books and Metron.
+
+**Judgment calls worth naming:**
+- No cover art is fetched or stored, ever, even though Google Books and
+  TMDB both return thumbnail/poster URLs in their responses — pulled off
+  the wire and discarded. "Text is the artwork" (design-language.html) is a
+  stated principle, not an oversight to fix once real data exists.
+- Metron's Basic-auth header uses a small hand-rolled base64 encoder rather
+  than a global `btoa` (not reliably present across Hermes/RN version
+  combinations) or a new dependency, for one line of real work.
+- Search-as-you-type is client-debounced (300ms) and swallows every
+  failure into "no suggestions" rather than surfacing an error — search is
+  progressive enhancement per D5/D10, never a blocking requirement, and an
+  `Alert` on every offline keystroke would make it feel like one.
+
+**Deferred / out of scope for this pass:** merging a hand-typed series
+against a later catalogue match (the v2 requirement D5 already flagged);
+hiding the count field when a real TMDB/Metron match makes it moot (left
+visible and simply overridden, to avoid a second behavioural mode); any
+UI test for `add.tsx`'s scanning branch, matching this codebase's existing
+convention of no direct RNTL coverage for screen-level components.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:

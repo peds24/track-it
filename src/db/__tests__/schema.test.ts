@@ -30,6 +30,20 @@ test('the schema rejects an unknown status', async () => {
   ).rejects.toThrow();
 });
 
+test('the entry table has external_source and external_id columns (A9)', async () => {
+  const db = createMemoryDriver();
+  await migrate(db);
+  await db.run(
+    `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)
+     VALUES ('e1', NULL, 'Dune', NULL, 'book', 'unstarted', '2026-08-12', 'google-books', 'abc123')`,
+  );
+  const rows = await db.all<{ external_source: string; external_id: string }>(
+    'SELECT external_source, external_id FROM entry WHERE id = ?',
+    ['e1'],
+  );
+  expect(rows[0]).toEqual({ external_source: 'google-books', external_id: 'abc123' });
+});
+
 test('deleting a series deletes its entries', async () => {
   const db = createMemoryDriver();
   await migrate(db);

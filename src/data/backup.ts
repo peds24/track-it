@@ -53,6 +53,8 @@ export async function exportLibrary(db: SqlDriver): Promise<string> {
       finishedAt: (r.finished_at as string | null) ?? null,
       createdAt: String(r.created_at),
       paused: r.paused === 1,
+      externalSource: (r.external_source as string | null) ?? null,
+      externalId: (r.external_id as string | null) ?? null,
     })),
   };
 
@@ -161,6 +163,9 @@ function parseEntry(value: unknown, unitLabelBySeriesId: ReadonlyMap<string, Ser
     createdAt,
     // A6. Absent in older backups — nothing to resume, so unpaused.
     paused: value.paused === true,
+    // A9. Absent in backups older than provider-sourced tracks — nothing to record.
+    externalSource: requireNullableString(value.externalSource, 'entry.externalSource'),
+    externalId: requireNullableString(value.externalId, 'entry.externalId'),
   };
 }
 
@@ -214,8 +219,8 @@ export async function importLibrary(db: SqlDriver, json: string): Promise<void> 
 
     for (const e of backup.entries) {
       await db.run(
-        `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, started_at, finished_at, created_at, paused)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, started_at, finished_at, created_at, paused, external_source, external_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           e.id,
           e.seriesId,
@@ -227,6 +232,8 @@ export async function importLibrary(db: SqlDriver, json: string): Promise<void> 
           e.finishedAt,
           e.createdAt,
           e.paused ? 1 : 0,
+          e.externalSource,
+          e.externalId,
         ],
       );
     }

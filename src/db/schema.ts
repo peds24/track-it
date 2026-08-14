@@ -45,6 +45,15 @@ const MIGRATIONS: readonly string[] = [
   ALTER TABLE series ADD COLUMN paused INTEGER NOT NULL DEFAULT 0;
   ALTER TABLE entry ADD COLUMN paused INTEGER NOT NULL DEFAULT 0;
   `,
+  // A9: a standalone book or movie added through a real provider (Google
+  // Books, TMDB) needs somewhere to record where it came from, same as
+  // `series` already could (D5) but never used until now. NULL for every
+  // entry that is a series child (the series row records it instead) or was
+  // typed by hand with no catalogue match.
+  `
+  ALTER TABLE entry ADD COLUMN external_source TEXT;
+  ALTER TABLE entry ADD COLUMN external_id TEXT;
+  `,
 ];
 
 /**
