@@ -5,15 +5,18 @@
      PAGE TOKENS — light is the base; dark redefines tokens only.
      ============================================================ */
   :root {
-    --ground: #FCFCFD;
+    --ground: #FFFFFF;
     --raised: #FFFFFF;
-    --ink: #16181D;
-    --muted: #6E727B;
-    --faint: #9AA0AA;
-    --rule: #E4E6EA;
-    --rule-soft: #EFF1F4;
-    --accent: #2B50E0;
-    --accent-soft: #EDF0FE;
+    --ink: #0A0B0D;
+    --muted: #3C3F45;
+    --faint: #6B6F76;
+    --rule: #DDE0E4;
+    --rule-soft: #EDEFF2;
+    --rule-strong: #0A0B0D;
+    --accent: #1830CC;
+    --accent-soft: #E7EAFB;
+    --danger: #B3271E;
+    --pause: #A0530A;
 
     --sp-1: 4px;
     --sp-2: 8px;
@@ -30,28 +33,34 @@
 
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --ground: #0E1013;
-      --raised: #16191E;
-      --ink: #EDEFF2;
-      --muted: #969CA6;
-      --faint: #6B7079;
-      --rule: #262A31;
-      --rule-soft: #1D2127;
-      --accent: #8AA0FF;
-      --accent-soft: #1A2140;
+      --ground: #08090B;
+      --raised: #131518;
+      --ink: #F3F4F6;
+      --muted: #C6C9CF;
+      --faint: #8B8F97;
+      --rule: #2A2E34;
+      --rule-soft: #1C1F24;
+      --rule-strong: #F3F4F6;
+      --accent: #7C97FF;
+      --accent-soft: #1B2450;
+      --danger: #FF6B5C;
+      --pause: #FFA43D;
     }
   }
 
   :root[data-theme="dark"] {
-    --ground: #0E1013;
-    --raised: #16191E;
-    --ink: #EDEFF2;
-    --muted: #969CA6;
-    --faint: #6B7079;
-    --rule: #262A31;
-    --rule-soft: #1D2127;
-    --accent: #8AA0FF;
-    --accent-soft: #1A2140;
+    --ground: #08090B;
+    --raised: #131518;
+    --ink: #F3F4F6;
+    --muted: #C6C9CF;
+    --faint: #8B8F97;
+    --rule: #2A2E34;
+    --rule-soft: #1C1F24;
+    --rule-strong: #F3F4F6;
+    --accent: #7C97FF;
+    --accent-soft: #1B2450;
+    --danger: #FF6B5C;
+    --pause: #FFA43D;
   }
 
   * { box-sizing: border-box; }
@@ -92,7 +101,7 @@
     font-size: clamp(34px, 6vw, 46px);
     line-height: 1.02;
     letter-spacing: -0.025em;
-    font-weight: 640;
+    font-weight: 700;
     text-wrap: balance;
   }
   .standfirst {
@@ -108,17 +117,17 @@
   h2 {
     margin: 0 0 var(--sp-3);
     font-size: 12px;
-    font-weight: 640;
-    letter-spacing: 0.11em;
+    font-weight: 700;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--faint);
+    color: var(--ink);
   }
   h3 {
     margin: 0 0 var(--sp-2);
     font-size: 21px;
     line-height: 1.25;
     letter-spacing: -0.015em;
-    font-weight: 620;
+    font-weight: 680;
     text-wrap: balance;
   }
   p { margin: 0 0 var(--sp-3); max-width: var(--measure); text-wrap: pretty; }
@@ -141,7 +150,7 @@
     flex-direction: column;
     gap: var(--sp-2);
     padding-top: var(--sp-3);
-    border-top: 2px solid var(--ink);
+    border-top: 3px solid var(--ink);
   }
   .principles h3 { margin: 0; font-size: 17px; }
   .principles p { font-size: 15px; color: var(--muted); }
@@ -159,7 +168,7 @@
   }
   .chip {
     height: 76px;
-    border-radius: 5px;
+    border-radius: 3px;
     border: 1px solid var(--rule);
   }
   .swatch-name { font-size: 14px; font-weight: 560; }
@@ -180,12 +189,12 @@
   th {
     text-align: left;
     font-size: 11px;
-    font-weight: 640;
+    font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--faint);
+    color: var(--ink);
     padding: 0 var(--sp-3) var(--sp-2) 0;
-    border-bottom: 1px solid var(--rule);
+    border-bottom: 2px solid var(--ink);
     white-space: nowrap;
   }
   td {
@@ -211,33 +220,40 @@
 
   .screen {
     --a-bg: #FFFFFF;
-    --a-ink: #16181D;
-    --a-muted: #6E727B;
-    --a-faint: #9AA0AA;
-    --a-rule: #E7E9ED;
-    --a-accent: #2B50E0;
-    --a-accent-soft: #EDF0FE;
-    --a-chip: #F2F3F6;
+    --a-ink: #0A0B0D;
+    --a-muted: #3C3F45;
+    --a-faint: #6B6F76;
+    --a-rule: #DDE0E4;
+    --a-rule-strong: #0A0B0D;
+    --a-accent: #1830CC;
+    --a-accent-soft: #E7EAFB;
+    --a-chip: #F0F1F3;
+    --a-danger: #B3271E;
+    --a-pause: #A0530A;
+    --a-on-accent: #FFFFFF;
 
     width: 100%;
     max-width: 390px;
     background: var(--a-bg);
     color: var(--a-ink);
-    border: 1px solid var(--rule);
-    border-radius: 12px;
+    border: 1px solid var(--a-rule-strong);
+    border-radius: 6px;
     overflow: hidden;
     font-size: 15px;
   }
   .screen.is-dark {
-    --a-bg: #0B0D10;
-    --a-ink: #F2F4F7;
-    --a-muted: #979DA7;
-    --a-faint: #6A6F78;
-    --a-rule: #23272E;
-    --a-accent: #8AA0FF;
-    --a-accent-soft: #182040;
-    --a-chip: #191D23;
-    border-color: #23272E;
+    --a-bg: #08090B;
+    --a-ink: #F3F4F6;
+    --a-muted: #C6C9CF;
+    --a-faint: #8B8F97;
+    --a-rule: #2A2E34;
+    --a-rule-strong: #F3F4F6;
+    --a-accent: #7C97FF;
+    --a-accent-soft: #1B2450;
+    --a-chip: #191C21;
+    --a-danger: #FF6B5C;
+    --a-pause: #FFA43D;
+    --a-on-accent: #08090B;
   }
 
   .screen-label {
@@ -261,12 +277,12 @@
   }
   .s-title {
     font-size: 27px;
-    font-weight: 660;
+    font-weight: 740;
     letter-spacing: -0.022em;
   }
   .s-action {
     font-size: 16px;
-    font-weight: 520;
+    font-weight: 600;
     color: var(--a-accent);
   }
 
@@ -282,7 +298,7 @@
   .row-text { flex: 1; min-width: 0; }
   .row-title {
     font-size: 17px;
-    font-weight: 520;
+    font-weight: 620;
     letter-spacing: -0.01em;
     white-space: nowrap;
     overflow: hidden;
@@ -294,6 +310,7 @@
     gap: 7px;
     margin-top: 3px;
     font-size: 13px;
+    font-weight: 500;
     color: var(--a-muted);
     white-space: nowrap;
     overflow: hidden;
@@ -301,42 +318,43 @@
   .kind {
     flex-shrink: 0;
     font-size: 10.5px;
-    font-weight: 640;
-    letter-spacing: 0.085em;
+    font-weight: 750;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
     color: var(--a-accent);
   }
   .dot { color: var(--a-faint); }
-  .count { font-variant-numeric: tabular-nums; }
+  .count { font-weight: 600; font-variant-numeric: tabular-nums; }
 
   .advance {
     flex-shrink: 0;
-    padding: 6px 13px;
-    border: 1px solid var(--a-rule);
-    border-radius: 7px;
+    padding: 7px 14px;
+    border: 1.5px solid var(--a-rule-strong);
+    border-radius: 3px;
     font-size: 13px;
-    font-weight: 520;
+    font-weight: 650;
     color: var(--a-ink);
     background: transparent;
   }
   .advance.is-pressed {
     background: var(--a-accent);
     border-color: var(--a-accent);
-    color: #FFFFFF;
+    color: var(--a-on-accent);
   }
+  .advance.is-danger { border-color: var(--a-danger); color: var(--a-danger); }
+  .advance.is-pause { border-color: var(--a-pause); color: var(--a-pause); }
 
   /* progress sits in the text column, directly under the count it depicts —
-     tall enough to read as a measure, quiet enough not to become a chart */
+     tall enough to read as a measure, quiet enough not to become a chart.
+     Square ends, not a pill — a measure reads as a bar, not a badge. */
   .progress-track {
-    height: 3px;
+    height: 4px;
     margin-top: 8px;
-    border-radius: 1.5px;
     background: var(--a-rule);
     overflow: hidden;
   }
   .progress-fill {
     height: 100%;
-    border-radius: 1.5px;
     background: var(--a-accent);
   }
 
@@ -349,9 +367,10 @@
   .fchip {
     flex-shrink: 0;
     padding: 5px 12px;
-    border-radius: 9px;
-    border: 1px solid var(--a-rule);
+    border-radius: 3px;
+    border: 1.5px solid var(--a-rule-strong);
     font-size: 13px;
+    font-weight: 600;
     color: var(--a-muted);
     background: transparent;
   }
@@ -364,6 +383,7 @@
   .s-empty {
     padding: 18px 20px 26px;
     font-size: 14px;
+    font-weight: 500;
     color: var(--a-muted);
     border-top: 1px solid var(--a-rule);
   }
@@ -373,48 +393,82 @@
     padding: 15px 20px;
     border-top: 1px solid var(--a-rule);
     font-size: 17px;
-    font-weight: 480;
+    font-weight: 560;
   }
   .field {
     margin: 0 20px 10px;
     padding: 13px 14px;
-    border: 1px solid var(--a-rule);
-    border-radius: 8px;
+    border: 1.5px solid var(--a-rule-strong);
+    border-radius: 3px;
     font-size: 16px;
+    font-weight: 500;
     color: var(--a-faint);
   }
-  .field.is-filled { color: var(--a-ink); }
+  .field.is-filled { color: var(--a-ink); font-weight: 600; }
   .cta {
-    margin: 6px 20px 24px;
+    margin: 6px 20px 10px;
     padding: 14px;
-    border-radius: 8px;
+    border-radius: 3px;
     background: var(--a-ink);
     color: var(--a-bg);
     text-align: center;
     font-size: 16px;
-    font-weight: 540;
+    font-weight: 650;
+  }
+  .cta.is-secondary {
+    margin-top: 0;
+    margin-bottom: 24px;
+    background: transparent;
+    color: var(--a-ink);
+    border: 1.5px solid var(--a-rule-strong);
   }
   .s-note {
     padding: 10px 20px 24px;
     font-size: 13px;
+    font-weight: 500;
     color: var(--a-muted);
   }
-  .s-note.is-warn { color: var(--a-ink); }
+  .s-note.is-warn { color: var(--a-ink); font-weight: 600; }
 
   .tabbar {
     display: flex;
-    border-top: 1px solid var(--a-rule);
+    border-top: 1.5px solid var(--a-rule-strong);
     padding: 9px 0 13px;
   }
   .tab {
     flex: 1;
     text-align: center;
     font-size: 11px;
-    font-weight: 560;
-    letter-spacing: 0.02em;
+    font-weight: 650;
+    letter-spacing: 0.03em;
     color: var(--a-faint);
   }
   .tab.is-on { color: var(--a-accent); }
+
+  /* swipe actions — frozen mid-drag, to show what the two revealed controls
+     look like. Pause needs no confirmation (A6); delete always does. */
+  .swipe-demo { position: relative; overflow: hidden; }
+  .swipe-actions {
+    position: absolute;
+    inset: 0;
+    display: flex;
+  }
+  .swipe-action {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #FFFFFF;
+  }
+  .swipe-action.is-pause { background: var(--a-pause); }
+  .swipe-action.is-delete { background: var(--a-danger); justify-content: flex-end; }
+  .swipe-surface {
+    position: relative;
+    background: var(--a-bg);
+    transform: translateX(-92px);
+  }
 
   /* ---------- annotation ---------- */
   .anno {
@@ -498,6 +552,16 @@
       generous spacing, one weight of emphasis, and a willingness to leave a screen almost empty.
       Track It goes further in one respect. It carries no artwork at all.
     </p>
+    <p>
+      This pass pushes that restraint toward a second reference: dedicated e-ink displays —
+      thermostats, hotel room panels, remote controls. Nothing on those devices is trying to
+      look friendly. Every control is a bordered rectangle, every number is set heavy enough to
+      read from across a room, and colour, where it exists at all, is reserved for the one
+      thing that needs to interrupt you. None of that contradicts the principles below — it is
+      what "text is the artwork" looks like taken further: <strong>ornament comes from making
+      the necessary elements assertive, not from adding new ones.</strong> Colour stays for now,
+      deepened rather than removed; whether it survives the next pass is still open.
+    </p>
   </section>
 
   <section>
@@ -533,51 +597,83 @@
           signal, never by colour and weight and a badge together.
         </p>
       </li>
+      <li>
+        <h3>Controls are bordered; lists are not</h3>
+        <p>
+          A hairline still separates one row from the next — a list is read, not operated.
+          Anything you can press draws a full-weight ink border instead, the way a button on a
+          physical panel is a rectangle you can see before you touch it.
+        </p>
+      </li>
     </ul>
   </section>
 
   <section>
     <h2>Palette</h2>
     <p>
-      Neutrals carry a slight blue bias, so they sit with the accent instead of beside it.
-      Pure greys read as unconsidered next to a cobalt this saturated.
+      Every neutral got darker or lighter this pass — ink to near-black, muted to a shade
+      that no longer needs squinting, rules split into two weights. Nothing changed hue.
+      The list should look like it is printed, not projected.
     </p>
     <div class="swatches">
       <div class="swatch">
-        <div class="chip" style="background:#FFFFFF"></div>
+        <div class="chip" style="background:#FFFFFF;border-color:#0A0B0D"></div>
         <div class="swatch-name">Ground</div>
-        <div class="swatch-meta">#FFFFFF · #0B0D10</div>
+        <div class="swatch-meta">#FFFFFF · #08090B</div>
       </div>
       <div class="swatch">
-        <div class="chip" style="background:#16181D"></div>
+        <div class="chip" style="background:#0A0B0D"></div>
         <div class="swatch-name">Ink</div>
-        <div class="swatch-meta">#16181D · #F2F4F7</div>
+        <div class="swatch-meta">#0A0B0D · #F3F4F6</div>
       </div>
       <div class="swatch">
-        <div class="chip" style="background:#6E727B"></div>
+        <div class="chip" style="background:#3C3F45"></div>
         <div class="swatch-name">Muted</div>
-        <div class="swatch-meta">#6E727B · #979DA7</div>
+        <div class="swatch-meta">#3C3F45 · #C6C9CF</div>
       </div>
       <div class="swatch">
-        <div class="chip" style="background:#9AA0AA"></div>
+        <div class="chip" style="background:#6B6F76"></div>
         <div class="swatch-name">Faint</div>
-        <div class="swatch-meta">#9AA0AA · #6A6F78</div>
+        <div class="swatch-meta">#6B6F76 · #8B8F97</div>
       </div>
       <div class="swatch">
-        <div class="chip" style="background:#E7E9ED"></div>
+        <div class="chip" style="background:#DDE0E4"></div>
         <div class="swatch-name">Rule</div>
-        <div class="swatch-meta">#E7E9ED · #23272E</div>
+        <div class="swatch-meta">#DDE0E4 · #2A2E34</div>
       </div>
       <div class="swatch">
-        <div class="chip" style="background:#2B50E0"></div>
+        <div class="chip" style="background:#0A0B0D"></div>
+        <div class="swatch-name">Rule, strong</div>
+        <div class="swatch-meta">Controls only — see below</div>
+      </div>
+      <div class="swatch">
+        <div class="chip" style="background:#1830CC"></div>
         <div class="swatch-name">Accent</div>
-        <div class="swatch-meta">#2B50E0 · #8AA0FF</div>
+        <div class="swatch-meta">#1830CC · #7C97FF</div>
+      </div>
+      <div class="swatch">
+        <div class="chip" style="background:#A0530A"></div>
+        <div class="swatch-name">Pause</div>
+        <div class="swatch-meta">#A0530A · #FFA43D</div>
+      </div>
+      <div class="swatch">
+        <div class="chip" style="background:#B3271E"></div>
+        <div class="swatch-name">Danger</div>
+        <div class="swatch-meta">#B3271E · #FF6B5C</div>
       </div>
     </div>
     <p style="margin-top:var(--sp-4)">
-      Second value is the dark-theme counterpart. The accent lightens rather than inverting —
-      <span class="swatch-meta">#2B50E0</span> on black fails contrast at the 10.5pt the kind
-      label uses, which is now the accent's most frequent appearance on screen.
+      Second value is the dark-theme counterpart. Ink stopped short of true black on white —
+      #0A0B0D reads as ink, not as a rendering bug — but it is as close as body text gets
+      before it starts to look like a design choice rather than a print. <strong>Rule, strong</strong>
+      is new: hairlines still separate rows at 1px, but every bordered control — a button, a chip,
+      a field — now draws its border from ink itself, at 1.5px. A list is quiet; a control is
+      not, and the two should not share a border weight.
+    </p>
+    <p>
+      Pause and danger are also new to this document — they existed in the app before they
+      existed here. Both deepen the same way the accent did: less pastel, more ink, so a
+      swipe action reads as decisive rather than tinted.
     </p>
   </section>
 
@@ -596,36 +692,43 @@
         </thead>
         <tbody>
           <tr>
-            <td class="type-row" style="font-size:22px;letter-spacing:-0.022em;font-weight:660">Screen title</td>
-            <td class="num">27</td><td class="num">660</td><td class="num">−0.022em</td>
+            <td class="type-row" style="font-size:22px;letter-spacing:-0.022em;font-weight:740">Screen title</td>
+            <td class="num">27</td><td class="num">740</td><td class="num">−0.022em</td>
             <td class="note">Currently, Backlog, Done</td>
           </tr>
           <tr>
-            <td class="type-row" style="font-size:17px;font-weight:520">Row title</td>
-            <td class="num">17</td><td class="num">520</td><td class="num">−0.01em</td>
+            <td class="type-row" style="font-size:17px;font-weight:620">Row title</td>
+            <td class="num">17</td><td class="num">620</td><td class="num">−0.01em</td>
             <td class="note">The track's name. Truncates to one line.</td>
           </tr>
           <tr>
-            <td class="type-row" style="font-size:16px;font-weight:480">Body / input</td>
-            <td class="num">16</td><td class="num">480</td><td class="num">0</td>
+            <td class="type-row" style="font-size:16px;font-weight:560">Body / input</td>
+            <td class="num">16</td><td class="num">560</td><td class="num">0</td>
             <td class="note">Form fields, category options</td>
           </tr>
           <tr>
-            <td class="type-row" style="font-size:13px;color:var(--muted)">Meta</td>
-            <td class="num">13</td><td class="num">400</td><td class="num">0</td>
+            <td class="type-row" style="font-size:13px;font-weight:500;color:var(--muted)">Meta</td>
+            <td class="num">13</td><td class="num">500</td><td class="num">0</td>
             <td class="note">Next episode, counts, empty states</td>
           </tr>
           <tr>
-            <td class="type-row" style="font-size:10.5px;font-weight:640;letter-spacing:0.085em;text-transform:uppercase;color:var(--accent)">Kind label</td>
-            <td class="num">10.5</td><td class="num">640</td><td class="num">0.085em</td>
+            <td class="type-row" style="font-size:13px;font-weight:600;color:var(--ink)">Count</td>
+            <td class="num">13</td><td class="num">600</td><td class="num">0</td>
+            <td class="note">"4 of 34" — bolder than the meta it sits beside</td>
+          </tr>
+          <tr>
+            <td class="type-row" style="font-size:10.5px;font-weight:750;letter-spacing:0.09em;text-transform:uppercase;color:var(--accent)">Kind label</td>
+            <td class="num">10.5</td><td class="num">750</td><td class="num">0.09em</td>
             <td class="note">MANGA, BOOK, SHOW, COMIC, MOVIE</td>
           </tr>
         </tbody>
       </table>
     </div>
     <p style="margin-top:var(--sp-4)">
-      Counts use <strong>tabular figures</strong>. In a list of series at 4 of 34, 12 of 24,
-      9 of 9, proportional digits make the column visibly ragged.
+      Every role moved up one or two weight steps this pass — nothing above 400 remains.
+      Counts use <strong>tabular figures</strong> and now their own row in this table: in a
+      list of series at 4 of 34, 12 of 24, 9 of 9, proportional digits make the column
+      visibly ragged, and a count is a number worth reading at a glance, not a footnote.
     </p>
   </section>
 
@@ -726,6 +829,7 @@
       <li><b>The count sits directly above its bar</b> Number and measure occupy the same block, so "4 of 34" and the width that depicts it are read together.</li>
       <li><b>Standalone books have no bar</b> Nothing to be part-way through numerically, so no progress is drawn — absence is the signal.</li>
       <li><b>One control, one word</b> "Done" works for an episode and a volume alike. It fills with accent only while held.</li>
+      <li><b>The control is the only bordered rectangle in the row</b> Everything else is separated by space or a hairline. A full-weight ink border reads as "you can press this" precisely because nothing else on the row uses one.</li>
     </ul>
   </section>
 
@@ -757,10 +861,8 @@
           </div>
           <div class="row">
             <div class="row-text">
-              <div class="row-title">Saga</div>
-              <div class="row-meta"><span class="kind">Comic</span><span class="dot">·</span> <span>Next Issue 13</span><span class="dot">·</span><span class="count">12 of 60</span></div>
-            
-              <div class="progress-track"><div class="progress-fill" style="width:20%"></div></div>
+              <div class="row-title">One Piece</div>
+              <div class="row-meta"><span class="kind">Manga</span><span class="dot">·</span> <span>Reading Volume 108</span><span class="dot">·</span><span class="count">Ongoing</span></div>
             </div>
             <div class="advance">Done</div>
           </div>
@@ -771,7 +873,7 @@
       </div>
 
       <div>
-        <div class="screen-label"><span>Backlog</span><span>Filtered</span></div>
+        <div class="screen-label"><span>Backlog</span><span>Filtered — start, resume, paused</span></div>
         <div class="screen">
           <div class="s-head"><div class="s-title">Backlog</div></div>
           <div class="filters">
@@ -784,24 +886,57 @@
               <div class="row-title">Piranesi</div>
               <div class="row-meta"><span class="kind">Book</span><span class="dot">·</span> <span>Not started</span></div>
             </div>
-            <div class="advance">Done</div>
+            <div class="advance">Start</div>
           </div>
           <div class="row">
             <div class="row-text">
               <div class="row-title">The Left Hand of Darkness</div>
-              <div class="row-meta"><span class="kind">Book</span><span class="dot">·</span> <span>Not started</span></div>
+              <div class="row-meta"><span class="kind">Book</span><span class="dot">·</span> <span>Paused</span></div>
             </div>
-            <div class="advance">Done</div>
+            <div class="advance">Resume</div>
           </div>
           <div class="row">
             <div class="row-text">
               <div class="row-title">Solaris</div>
               <div class="row-meta"><span class="kind">Book</span><span class="dot">·</span> <span>Not started</span></div>
             </div>
-            <div class="advance">Done</div>
+            <div class="advance">Start</div>
           </div>
           <div class="tabbar">
             <div class="tab">Currently</div><div class="tab is-on">Backlog</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="screen-label"><span>Currently</span><span>Swiped — pause or delete</span></div>
+        <div class="screen is-dark">
+          <div class="s-head"><div class="s-title">Currently</div><div class="s-action">Add</div></div>
+          <div class="row" style="border-top:0">
+            <div class="row-text">
+              <div class="row-title">Severance</div>
+              <div class="row-meta"><span class="kind">Show</span><span class="dot">·</span> <span>Watching Episode 4</span><span class="dot">·</span><span class="count">3 of 9</span></div>
+              <div class="progress-track"><div class="progress-fill" style="width:33%"></div></div>
+            </div>
+            <div class="advance">Done</div>
+          </div>
+          <div class="swipe-demo">
+            <div class="swipe-actions">
+              <div class="swipe-action is-pause">Pause</div>
+              <div class="swipe-action is-delete">Delete</div>
+            </div>
+            <div class="row swipe-surface">
+              <div class="row-text">
+                <div class="row-title">Berserk</div>
+                <div class="row-meta"><span class="kind">Manga</span><span class="dot">·</span> <span>Reading Volume 5</span><span class="dot">·</span><span class="count">4 of 34</span></div>
+                <div class="progress-track"><div class="progress-fill" style="width:12%"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="s-note">Dragged past the point where the surface stops moving fires the
+            action on release — pause needs no confirmation, delete still asks.</div>
+          <div class="tabbar">
+            <div class="tab is-on">Currently</div><div class="tab">Backlog</div>
           </div>
         </div>
       </div>
@@ -859,8 +994,10 @@
           <div class="s-head"><div class="s-title">Manga</div></div>
           <div class="field is-filled" style="margin-top:6px">Vagabond</div>
           <div class="field">How many volumes?</div>
-          <div class="cta">Add to backlog</div>
-          <div class="s-note">Volumes are generated as individually tracked entries — Volume 1 to Volume 37.</div>
+          <div class="cta">Start</div>
+          <div class="cta is-secondary">Add to backlog</div>
+          <div class="s-note">Start adds the track and immediately begins Volume 1. Volumes are
+            generated as individually tracked entries — Volume 1 to Volume 37.</div>
         </div>
       </div>
 
@@ -869,7 +1006,8 @@
         <div class="screen">
           <div class="s-head"><div class="s-title">Book</div></div>
           <div class="field is-filled" style="margin-top:6px">Piranesi</div>
-          <div class="cta">Add to backlog</div>
+          <div class="cta">Start</div>
+          <div class="cta is-secondary">Add to backlog</div>
           <div class="s-note">No count field. A book is one thing, so nothing is generated.</div>
         </div>
       </div>
@@ -938,7 +1076,8 @@
   </section>
 
   <footer>
-    Track It v1 · interface specification, 13 August 2026. Mockups are live HTML at 390pt,
+    Track It v1 · interface specification. First published 13 August 2026; revised
+    14 August 2026 toward a bolder, higher-contrast pass. Mockups are live HTML at 390pt,
     rendered from the same token values listed above — not images of a design.
   </footer>
 
