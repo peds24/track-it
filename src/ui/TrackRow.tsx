@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { TrackSummary } from '@/data/trackRepo';
 import type { Category } from '@/domain/types';
-import { font, layout, radius, useTheme, type Palette } from '@/ui/theme';
+import { font, layout, radius, underline, useTheme, type Palette } from '@/ui/theme';
 
 const READ_CATEGORIES: readonly Category[] = ['book', 'comic', 'manga'];
 
@@ -13,8 +13,8 @@ function verbFor(category: Category): string {
 
 /**
  * The medium is a word, not a colour (design language, "Principles"). Every kind
- * uses the same accent, so the colour marks a class of information rather than
- * sorting rows into five groups.
+ * gets the same underline, so the mark identifies a class of information rather
+ * than sorting rows into five groups.
  */
 const KIND_LABEL: Record<Category, string> = {
   show: 'SHOW',
@@ -174,10 +174,10 @@ function createStyles(c: Palette) {
       gap: layout.metaGap,
       marginTop: 3,
     },
-    kind: { ...font.kind, color: c.accent, flexShrink: 0 },
+    kind: { ...font.kind, ...underline, color: c.ink, flexShrink: 0 },
     dot: { ...font.meta, color: c.faint, flexShrink: 0 },
     position: { ...font.meta, color: c.muted, flexShrink: 1 },
-    count: { ...font.meta, color: c.muted, flexShrink: 0, fontVariant: ['tabular-nums'] },
+    count: { ...font.count, color: c.ink, flexShrink: 0, fontVariant: ['tabular-nums'] },
     progressTrack: {
       height: layout.progressHeight,
       marginTop: 8,
@@ -185,18 +185,19 @@ function createStyles(c: Palette) {
       backgroundColor: c.rule,
       overflow: 'hidden',
     },
-    progressFill: { height: '100%', borderRadius: radius.bar, backgroundColor: c.accent },
+    progressFill: { height: '100%', borderRadius: radius.bar, backgroundColor: c.ink },
     advance: {
       flexShrink: 0,
       paddingVertical: 6,
       paddingHorizontal: 13,
-      borderWidth: 1,
-      borderColor: c.rule,
+      borderWidth: 1.5,
+      borderColor: c.ruleStrong,
       borderRadius: radius.sm,
     },
-    // Fills with accent only while held.
-    advancePressed: { backgroundColor: c.accent, borderColor: c.accent },
+    // No accent to fill with — pressed inverts instead, the way an e-ink
+    // pixel flips rather than tints.
+    advancePressed: { backgroundColor: c.ink, borderColor: c.ink },
     advanceText: { ...font.control, color: c.ink },
-    advanceTextPressed: { color: c.onAccent },
+    advanceTextPressed: { color: c.bg },
   });
 }

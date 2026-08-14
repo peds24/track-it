@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { Alert, Animated, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { TrackSummary } from '@/data/trackRepo';
-import { font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
+import { font, layout, radius, space, underline, useTheme, type Palette } from '@/ui/theme';
 import { TrackRow } from '@/ui/TrackRow';
 
 const ACTION_WIDTH = 96;
@@ -217,11 +217,15 @@ function createStyles(c: Palette) {
       marginVertical: space.xs,
       borderRadius: radius.control,
     },
-    pauseAction: { backgroundColor: c.pause, marginLeft: space.sm },
-    deleteAction: { backgroundColor: c.danger, marginRight: space.sm, alignItems: 'flex-end' },
+    // No colour left to tell "reversible" from "destructive" — weight does
+    // that job now. Pause stays as light as the row behind it; delete
+    // inverts to a solid block of ink, the heaviest mark on the screen,
+    // because it is the one action here that cannot be undone.
+    pauseAction: { backgroundColor: c.chip, marginLeft: space.sm },
+    deleteAction: { backgroundColor: c.ink, marginRight: space.sm, alignItems: 'flex-end' },
     actionText: { ...font.control, color: c.ink },
-    pauseText: { color: '#FFFFFF' },
-    deleteText: { color: '#FFFFFF' },
+    pauseText: { ...underline },
+    deleteText: { color: c.bg },
     surface: { backgroundColor: c.bg },
   });
 }

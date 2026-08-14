@@ -9,7 +9,7 @@ import {
   returnTrackToBacklog,
   type TrackSummary, } from '@/data/trackRepo';
 import { useDatabase } from '@/ui/DatabaseProvider';
-import { font, layout, useTheme, type Palette } from '@/ui/theme';
+import { font, layout, underline, useTheme, type Palette } from '@/ui/theme';
 import { SwipeableTrackRow } from '@/ui/SwipeableTrackRow';
 import { useTracks } from '@/ui/useTracks';
 
@@ -131,7 +131,7 @@ function createStyles(c: Palette) {
       paddingHorizontal: layout.inset,
     },
     title: { ...font.screenTitle, color: c.ink },
-    add: { ...font.body, color: c.accent },
+    add: { ...font.body, ...underline, fontWeight: '600', color: c.ink },
     empty: {
       // 14pt: the empty state sits between meta and body, per the mockup.
       fontSize: 14,

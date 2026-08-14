@@ -73,8 +73,8 @@ function createStyles(c: Palette) {
       paddingVertical: 5,
       paddingHorizontal: 12,
       borderRadius: radius.chip,
-      borderWidth: 1,
-      borderColor: c.rule,
+      borderWidth: 1.5,
+      borderColor: c.ruleStrong,
       backgroundColor: 'transparent',
     },
     // Active is filled with ink and reversed — one signal, not colour plus weight.
