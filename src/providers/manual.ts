@@ -32,17 +32,23 @@ export class ManualProvider implements MetadataProvider {
   }
 
   async hydrate(result: SearchResult): Promise<SeriesDraft> {
-    if (result.count < 1) {
-      throw new Error('A track must have at least 1 unit');
-    }
-    // Validated here rather than on the Add screen so every caller is covered.
-    // A fractional count silently truncates, and a mistyped huge one issues that
-    // many INSERTs in a single transaction — unrecoverable with no delete UI.
-    if (!Number.isInteger(result.count)) {
-      throw new Error('A unit count must be a whole number');
-    }
-    if (result.count > MAX_UNITS) {
-      throw new Error(`A track cannot have more than ${MAX_UNITS} units`);
+    // A4: an ongoing series has no count to validate — it starts at entry 1 and
+    // grows as each one is finished. The Add screen never collects a count for
+    // one, so result.count is not even a number here.
+    if (!result.ongoing) {
+      if (result.count < 1) {
+        throw new Error('A track must have at least 1 unit');
+      }
+      // Validated here rather than on the Add screen so every caller is covered.
+      // A fractional count silently truncates, and a mistyped huge one issues
+      // that many INSERTs in a single transaction — unrecoverable with no
+      // delete UI.
+      if (!Number.isInteger(result.count)) {
+        throw new Error('A unit count must be a whole number');
+      }
+      if (result.count > MAX_UNITS) {
+        throw new Error(`A track cannot have more than ${MAX_UNITS} units`);
+      }
     }
 
     const unitLabel = unitLabelFor(result.category);
@@ -50,11 +56,14 @@ export class ManualProvider implements MetadataProvider {
       throw new Error(`${result.category} is a standalone track and has no entries to generate`);
     }
 
+    const length = result.ongoing ? 1 : result.count;
+
     return {
+      ongoing: result.ongoing === true,
       title: result.title,
       mediaType: result.category as SeriesDraft['mediaType'],
       unitLabel,
-      entries: Array.from({ length: result.count }, (_, i) => ({
+      entries: Array.from({ length }, (_, i) => ({
         ordinal: i + 1,
         title: `${DISPLAY[unitLabel]} ${i + 1}`,
       })),

@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { addTrack } from '@/data/addTrack';
+import { advanceEntry, firstEntryOf } from '@/data/trackRepo';
 import type { Category } from '@/domain/types';
 import { unitLabelFor } from '@/providers/manual';
 import { useDatabase } from '@/ui/DatabaseProvider';
@@ -26,11 +27,17 @@ export default function AddTrackScreen() {
   // and has to be cleared before it can be typed over.
   const [count, setCount] = useState('');
   const [saving, setSaving] = useState(false);
+  // A4: still being published, so there is no count to ask for.
+  const [ongoing, setOngoing] = useState(false);
 
-  const needsCount = category !== null && unitLabelFor(category) !== null;
+  const isSeries = category !== null && unitLabelFor(category) !== null;
+  const needsCount = isSeries && !ongoing;
   const unit = category ? unitLabelFor(category) : null;
 
-  async function handleSave() {
+  // `startNow` skips the trip to the Backlog tab and the Start tap that would
+  // otherwise follow — the same reason a "Start" swipe or button exists once a
+  // track is there, just offered at the moment it is most likely wanted.
+  async function handleSave(startNow: boolean) {
     if (!category) return;
     // A second tap before the insert resolves would create a second track, and
     // there is no delete UI to undo it.
@@ -45,7 +52,16 @@ export default function AddTrackScreen() {
 
     setSaving(true);
     try {
-      await addTrack(db, { title, category, count: parsedCount }, new Date().toISOString());
+      const now = new Date().toISOString();
+      const created = await addTrack(
+        db,
+        { title, category, count: parsedCount, ongoing: isSeries && ongoing },
+        now,
+      );
+      if (startNow) {
+        const entryId = await firstEntryOf(db, created);
+        await advanceEntry(db, entryId, now);
+      }
       router.back();
     } catch (error) {
       Alert.alert('Could not add track', error instanceof Error ? error.message : String(error));
@@ -87,6 +103,9 @@ export default function AddTrackScreen() {
         value={title}
         onChangeText={setTitle}
         autoFocus
+        cursorColor={palette.ink}
+        selectionColor={palette.ink}
+        underlineColorAndroid="transparent"
       />
 
       {needsCount && (
@@ -98,11 +117,41 @@ export default function AddTrackScreen() {
           value={count}
           onChangeText={setCount}
           keyboardType="number-pad"
+          cursorColor={palette.ink}
+          selectionColor={palette.ink}
+          underlineColorAndroid="transparent"
         />
       )}
 
-      <Pressable style={styles.save} onPress={handleSave} accessibilityRole="button">
-        <Text style={styles.saveText}>Add to backlog</Text>
+      {/* A4: a series still being published has no count to give. Reusing the
+          filter-chip shape rather than a switch keeps the screen to one idiom. */}
+      {isSeries && (
+        <Pressable
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: ongoing }}
+          accessibilityLabel="Ongoing series"
+          onPress={() => setOngoing((v) => !v)}
+          style={[styles.toggle, ongoing && styles.toggleOn]}
+        >
+          <Text style={[styles.toggleText, ongoing && styles.toggleTextOn]}>
+            Ongoing series
+          </Text>
+        </Pressable>
+      )}
+
+      <Pressable
+        style={styles.save}
+        onPress={() => handleSave(true)}
+        accessibilityRole="button"
+      >
+        <Text style={styles.saveText}>Start</Text>
+      </Pressable>
+      <Pressable
+        style={styles.saveSecondary}
+        onPress={() => handleSave(false)}
+        accessibilityRole="button"
+      >
+        <Text style={styles.saveSecondaryText}>Add to backlog</Text>
       </Pressable>
     </View>
   );
@@ -131,20 +180,44 @@ function createStyles(c: Palette) {
       marginBottom: 10,
       paddingVertical: 13,
       paddingHorizontal: 14,
-      borderWidth: 1,
-      borderColor: c.rule,
+      borderWidth: 1.5,
+      borderColor: c.ruleStrong,
       borderRadius: radius.md,
     },
-    // The one filled control on the screen, so it carries ink rather than accent.
+    toggle: {
+      alignSelf: 'flex-start',
+      marginHorizontal: layout.inset,
+      marginBottom: 10,
+      paddingVertical: 6,
+      paddingHorizontal: 13,
+      borderWidth: 1.5,
+      borderColor: c.ruleStrong,
+      borderRadius: radius.chip,
+    },
+    toggleOn: { backgroundColor: c.ink, borderColor: c.ink },
+    toggleText: { ...font.control, color: c.muted },
+    toggleTextOn: { color: c.bg },
+    // The one filled control on the screen, so it carries ink rather than
+    // accent. Start is primary: adding something is usually the first step
+    // toward starting it, not toward filing it away.
     save: {
       marginTop: 6,
       marginHorizontal: layout.inset,
-      marginBottom: 24,
+      marginBottom: 10,
       padding: 14,
       borderRadius: radius.md,
       backgroundColor: c.ink,
     },
-    saveText: { ...font.body, color: c.bg, textAlign: 'center' },
+    saveText: { ...font.body, fontWeight: '700', color: c.bg, textAlign: 'center' },
+    saveSecondary: {
+      marginHorizontal: layout.inset,
+      marginBottom: 24,
+      padding: 14,
+      borderRadius: radius.md,
+      borderWidth: 1.5,
+      borderColor: c.ruleStrong,
+    },
+    saveSecondaryText: { ...font.body, fontWeight: '700', color: c.ink, textAlign: 'center' },
     note: {
       ...font.meta,
       color: c.muted,

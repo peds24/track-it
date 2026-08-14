@@ -93,6 +93,21 @@ test('hydrate rejects a count above the upper bound', async () => {
   ).rejects.toThrow(/more than/);
 });
 
+test('hydrate accepts an ongoing series with no usable count', async () => {
+  // The Add screen never collects a count for an ongoing series, so it arrives
+  // here as NaN — that must not trip the whole-number check meant for finite
+  // series.
+  const draft = await new ManualProvider().hydrate({
+    id: 'manual',
+    title: 'Pluribus',
+    category: 'show',
+    count: Number.NaN,
+    ongoing: true,
+  });
+  expect(draft.ongoing).toBe(true);
+  expect(draft.entries).toEqual([{ ordinal: 1, title: 'Episode 1' }]);
+});
+
 test('hydrate accepts a count exactly at the bound', async () => {
   const draft = await new ManualProvider().hydrate({
     id: 'manual',

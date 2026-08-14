@@ -1,3 +1,16 @@
+/**
+ * JSON export and import.
+ *
+ * NOT SURFACED IN v1. The Settings screen that drove this was removed before
+ * release; nothing in `app/` imports this module today. It is kept, with its
+ * tests, because the logic is complete and validated — including the
+ * all-or-nothing restore, which is the hard part and the part worth not
+ * rewriting from scratch. Re-enabling it means adding a screen, not rebuilding
+ * the feature.
+ *
+ * Consequence to keep in view: with this unsurfaced, the app has no backup path
+ * at all. A lost phone is a lost library.
+ */
 import type { SqlDriver } from '@/db/driver';
 import { isStatusValid } from '@/domain/mode';
 import type { Entry, EntryMediaType, Series, Status } from '@/domain/types';
@@ -24,6 +37,8 @@ export async function exportLibrary(db: SqlDriver): Promise<string> {
       mediaType: r.media_type as Series['mediaType'],
       unitLabel: r.unit_label as Series['unitLabel'],
       createdAt: String(r.created_at),
+      ongoing: r.ongoing === 1,
+      paused: r.paused === 1,
       externalSource: (r.external_source as string | null) ?? null,
       externalId: (r.external_id as string | null) ?? null,
     })),
@@ -37,6 +52,7 @@ export async function exportLibrary(db: SqlDriver): Promise<string> {
       startedAt: (r.started_at as string | null) ?? null,
       finishedAt: (r.finished_at as string | null) ?? null,
       createdAt: String(r.created_at),
+      paused: r.paused === 1,
     })),
   };
 
@@ -80,6 +96,10 @@ function parseSeries(value: unknown): Series {
     mediaType: mediaType as Series['mediaType'],
     unitLabel: unitLabel as Series['unitLabel'],
     createdAt,
+    // A4. Absent in v1 backups, which predate ongoing series — those are finite.
+    ongoing: value.ongoing === true,
+    // A6. Absent in backups older than pausing — nothing to resume, so unpaused.
+    paused: value.paused === true,
     externalSource: requireNullableString(value.externalSource, 'series.externalSource'),
     externalId: requireNullableString(value.externalId, 'series.externalId'),
   };
@@ -139,6 +159,8 @@ function parseEntry(value: unknown, unitLabelBySeriesId: ReadonlyMap<string, Ser
     startedAt,
     finishedAt,
     createdAt,
+    // A6. Absent in older backups — nothing to resume, so unpaused.
+    paused: value.paused === true,
   };
 }
 
@@ -174,17 +196,38 @@ export async function importLibrary(db: SqlDriver, json: string): Promise<void> 
 
     for (const s of backup.series) {
       await db.run(
-        `INSERT INTO series (id, title, media_type, unit_label, created_at, external_source, external_id)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [s.id, s.title, s.mediaType, s.unitLabel, s.createdAt, s.externalSource, s.externalId],
+        `INSERT INTO series (id, title, media_type, unit_label, created_at, ongoing, paused, external_source, external_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          s.id,
+          s.title,
+          s.mediaType,
+          s.unitLabel,
+          s.createdAt,
+          s.ongoing ? 1 : 0,
+          s.paused ? 1 : 0,
+          s.externalSource,
+          s.externalId,
+        ],
       );
     }
 
     for (const e of backup.entries) {
       await db.run(
-        `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, started_at, finished_at, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [e.id, e.seriesId, e.title, e.ordinal, e.mediaType, e.status, e.startedAt, e.finishedAt, e.createdAt],
+        `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, started_at, finished_at, created_at, paused)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          e.id,
+          e.seriesId,
+          e.title,
+          e.ordinal,
+          e.mediaType,
+          e.status,
+          e.startedAt,
+          e.finishedAt,
+          e.createdAt,
+          e.paused ? 1 : 0,
+        ],
       );
     }
   });

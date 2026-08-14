@@ -12,12 +12,13 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#DCDFD0",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.peds24.trackit"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -26,6 +27,13 @@
       "expo-sqlite",
       "expo-router",
       "expo-sharing"
-    ]
+    ],
+    "owner": "peds24",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d319cc51-6ebe-43b0-b50b-f0e843d1903c"
+      }
+    }
   }
 }

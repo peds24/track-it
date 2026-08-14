@@ -1,5 +1,6 @@
 import type { SqlDriver } from '@/db/driver';
 import { advance } from '@/domain/advance';
+import { modeFor } from '@/domain/mode';
 import { nextEntry, progressFor, shelfForEntry, shelfForSeries } from '@/domain/shelf';
 import type { Category, Entry, Series, Shelf, Status } from '@/domain/types';
 import { assertEntryInvariants, assertIsoTimestamp, isStandaloneMediaType } from '@/domain/validate';
@@ -18,6 +19,10 @@ export type TrackSummary = {
    * tell "Reading Volume 5" from "Next Volume 5" — a read-mode entry that is
    * already in progress is not one you are about to start.
    */
+  /** A4: still being published — no total, no bar, never reaches Done. */
+  ongoing: boolean;
+  /** A6: in Backlog with progress intact — the row offers Resume, not Start. */
+  paused: boolean;
   nextEntryStatus: Status | null;
   nextEntryId: string | null;
   nextEntryTitle: string | null;
@@ -30,6 +35,8 @@ type SeriesRow = {
   title: string;
   media_type: Series['mediaType'];
   unit_label: Series['unitLabel'];
+  ongoing: number;
+  paused: number;
   created_at: string;
   external_source: string | null;
   external_id: string | null;
@@ -45,6 +52,7 @@ type EntryRow = {
   started_at: string | null;
   finished_at: string | null;
   created_at: string;
+  paused: number;
 };
 
 export function toEntry(row: EntryRow): Entry {
@@ -58,6 +66,7 @@ export function toEntry(row: EntryRow): Entry {
     startedAt: row.started_at,
     finishedAt: row.finished_at,
     createdAt: row.created_at,
+    paused: row.paused === 1,
   };
 }
 
@@ -87,14 +96,15 @@ export async function createSeriesTrack(
 
   await db.transaction(async () => {
     await db.run(
-      `INSERT INTO series (id, title, media_type, unit_label, created_at, external_source, external_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO series (id, title, media_type, unit_label, created_at, ongoing, external_source, external_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         seriesId,
         draft.title,
         draft.mediaType,
         draft.unitLabel,
         now,
+        draft.ongoing === true ? 1 : 0,
         draft.externalSource ?? null,
         draft.externalId ?? null,
       ],
@@ -130,6 +140,27 @@ export async function createStandaloneTrack(
     [id, input.title, input.category, now],
   );
   return id;
+}
+
+/**
+ * The entry a freshly added track would advance first: its own row for a
+ * standalone track, or ordinal 1 for a series. Lets a caller (the Add screen)
+ * start a track it just created without a second trip through listTracks to
+ * rediscover what nextEntry() would already say.
+ */
+export async function firstEntryOf(
+  db: SqlDriver,
+  track: { kind: 'series' | 'entry'; id: string },
+): Promise<string> {
+  if (track.kind === 'entry') return track.id;
+
+  const rows = await db.all<EntryRow>(
+    'SELECT * FROM entry WHERE series_id = ? ORDER BY ordinal ASC LIMIT 1',
+    [track.id],
+  );
+  const first = rows[0];
+  if (!first) throw new Error(`Series ${track.id} has no entries`);
+  return first.id;
 }
 
 /**
@@ -196,9 +227,13 @@ export async function listTracks(
       id: row.id,
       title: row.title,
       category: row.media_type,
-      shelf: shelfForSeries(children),
+      shelf: shelfForSeries(children, row.paused === 1),
       createdAt: row.created_at,
-      progress: progressFor(children),
+      // An ongoing series has no denominator, so it reports no progress at all
+      // rather than a total that is really "however many I have added so far".
+      progress: row.ongoing === 1 ? null : progressFor(children),
+      ongoing: row.ongoing === 1,
+      paused: row.paused === 1,
       nextEntryStatus: next?.status ?? null,
       nextEntryId: next?.id ?? null,
       nextEntryTitle: next?.title ?? null,
@@ -221,6 +256,8 @@ export async function listTracks(
       shelf: shelfForEntry(entry),
       createdAt: entry.createdAt,
       progress: null,
+      ongoing: false,
+      paused: entry.paused,
       // Non-null means advanceable. A finished standalone track yields null,
       // matching what nextEntry() already does for a fully-done series —
       // otherwise the Done filter would render a working advance button on a
@@ -244,7 +281,14 @@ export async function advanceEntry(db: SqlDriver, entryId: string, now: string):
   const row = rows[0];
   if (!row) throw new Error(`Entry ${entryId} not found`);
 
-  const updated = advance(toEntry(row), now);
+  const entry = toEntry(row);
+  // A7: advance() already gives every entry, series child or not, the one
+  // status transition its mode allows (D2) — unstarted -> done for watch mode,
+  // unstarted -> in_progress -> done for read mode. A5's "one act" auto-start
+  // is layered on below, only once an entry actually reaches done; it must not
+  // also swallow the first tap on an untouched volume, or starting volume 1
+  // would immediately report it read.
+  const updated = advance(entry, now);
 
   await db.run('UPDATE entry SET status = ?, started_at = ?, finished_at = ? WHERE id = ?', [
     updated.status,
@@ -252,4 +296,137 @@ export async function advanceEntry(db: SqlDriver, entryId: string, now: string):
     updated.finishedAt,
     updated.id,
   ]);
+
+  if (updated.status === 'done') {
+    await appendNextOngoingEntry(db, updated, now);
+    await startNextInSeries(db, updated, now);
+  }
+}
+
+/**
+ * A4: an ongoing series has no pre-generated list, so finishing its last entry
+ * appends the next one. That is what keeps it out of Done — an unfinished
+ * series is not something you have finished — and it falls out of the derived
+ * shelves rather than needing a rule of its own.
+ */
+async function appendNextOngoingEntry(db: SqlDriver, finished: Entry, now: string): Promise<void> {
+  if (finished.seriesId === null) return;
+
+  const seriesRows = await db.all<SeriesRow>('SELECT * FROM series WHERE id = ?', [
+    finished.seriesId,
+  ]);
+  const series = seriesRows[0];
+  if (!series || series.ongoing !== 1) return;
+
+  const siblings = await db.all<EntryRow>('SELECT * FROM entry WHERE series_id = ?', [
+    finished.seriesId,
+  ]);
+  // Only extend from the end. Finishing an earlier entry out of order must not
+  // append a duplicate.
+  const highest = siblings.reduce((max, r) => Math.max(max, r.ordinal ?? 0), 0);
+  if ((finished.ordinal ?? 0) < highest) return;
+
+  const ordinal = highest + 1;
+  await db.run(
+    `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at)
+     VALUES (?, ?, ?, ?, ?, 'unstarted', ?)`,
+    [newId(), series.id, `${UNIT_TITLE[series.unit_label]} ${ordinal}`, ordinal, series.unit_label, now],
+  );
+}
+
+/**
+ * A5: mark the following unit as in progress, so the row reads "Reading Volume
+ * 8" the moment volume 7 is finished. Watch mode has no in_progress state (D2),
+ * so an episode is left unstarted and reads "Next Episode 4".
+ */
+async function startNextInSeries(db: SqlDriver, finished: Entry, now: string): Promise<void> {
+  if (finished.seriesId === null) return;
+  if (modeFor(finished.mediaType) !== 'read') return;
+
+  const rows = await db.all<EntryRow>('SELECT * FROM entry WHERE series_id = ?', [
+    finished.seriesId,
+  ]);
+  const next = nextEntry(rows.map(toEntry));
+  if (!next || next.status !== 'unstarted') return;
+
+  await db.run("UPDATE entry SET status = 'in_progress', started_at = ? WHERE id = ?", [
+    now,
+    next.id,
+  ]);
+}
+
+/** Matches the titles ManualProvider generates, so both paths read alike. */
+const UNIT_TITLE: Record<Series['unitLabel'], string> = {
+  episode: 'Episode',
+  issue: 'Issue',
+  volume: 'Volume',
+};
+
+/**
+ * Remove a track and everything under it.
+ *
+ * v1 had no delete at all, which is what made several small mistakes
+ * unrecoverable — a mistyped volume count or a track added to the wrong
+ * category was permanent. Deleting a series relies on the schema's
+ * `ON DELETE CASCADE` to take its entries with it.
+ */
+export async function deleteTrack(
+  db: SqlDriver,
+  track: { kind: 'series' | 'entry'; id: string },
+): Promise<void> {
+  const table = track.kind === 'series' ? 'series' : 'entry';
+  await db.run(`DELETE FROM ${table} WHERE id = ?`, [track.id]);
+}
+
+/**
+ * Send a track back to the Backlog shelf.
+ *
+ * A6: a track that still has something left to finish is paused, not reset —
+ * the flag pulls it into Backlog while every child's status and timestamps sit
+ * untouched, so Resume puts it back exactly as it was. A track that is already
+ * fully finished has nothing left to preserve, so this still does the original
+ * D4 reset: every child back to unstarted, ready to be watched or read again.
+ */
+export async function returnTrackToBacklog(
+  db: SqlDriver,
+  track: { kind: 'series' | 'entry'; id: string },
+): Promise<void> {
+  if (track.kind === 'series') {
+    const children = await db.all<EntryRow>('SELECT * FROM entry WHERE series_id = ?', [track.id]);
+    const finished = children.length > 0 && children.every((c) => c.status === 'done');
+    if (finished) {
+      await db.run(
+        `UPDATE entry SET status = 'unstarted', started_at = NULL, finished_at = NULL WHERE series_id = ?`,
+        [track.id],
+      );
+      await db.run('UPDATE series SET paused = 0 WHERE id = ?', [track.id]);
+    } else {
+      await db.run('UPDATE series SET paused = 1 WHERE id = ?', [track.id]);
+    }
+    return;
+  }
+
+  const rows = await db.all<EntryRow>('SELECT * FROM entry WHERE id = ?', [track.id]);
+  const entry = rows[0];
+  if (!entry) return;
+  if (entry.status === 'done') {
+    await db.run(
+      `UPDATE entry SET status = 'unstarted', started_at = NULL, finished_at = NULL, paused = 0 WHERE id = ?`,
+      [track.id],
+    );
+  } else {
+    await db.run('UPDATE entry SET paused = 1 WHERE id = ?', [track.id]);
+  }
+}
+
+/**
+ * A6: undo a pause. The child statuses were never touched, so this only clears
+ * the flag — the track reappears in Currently wherever its progress left it.
+ */
+export async function resumeTrack(
+  db: SqlDriver,
+  track: { kind: 'series' | 'entry'; id: string },
+): Promise<void> {
+  const table = track.kind === 'series' ? 'series' : 'entry';
+  await db.run(`UPDATE ${table} SET paused = 0 WHERE id = ?`, [track.id]);
 }

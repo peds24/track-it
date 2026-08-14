@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { TrackSummary } from '@/data/trackRepo';
 import type { Category } from '@/domain/types';
-import { font, layout, radius, useTheme, type Palette } from '@/ui/theme';
+import { font, layout, radius, underline, useTheme, type Palette } from '@/ui/theme';
 
 const READ_CATEGORIES: readonly Category[] = ['book', 'comic', 'manga'];
 
@@ -13,8 +13,8 @@ function verbFor(category: Category): string {
 
 /**
  * The medium is a word, not a colour (design language, "Principles"). Every kind
- * uses the same accent, so the colour marks a class of information rather than
- * sorting rows into five groups.
+ * gets the same underline, so the mark identifies a class of information rather
+ * than sorting rows into five groups.
  */
 const KIND_LABEL: Record<Category, string> = {
   show: 'SHOW',
@@ -35,11 +35,24 @@ export function positionLabel(track: TrackSummary): string {
     if (track.kind === 'series') return 'Finished';
     return read ? 'Read' : 'Watched';
   }
-  if (track.shelf === 'backlog') return 'Not started';
+  if (track.shelf === 'backlog') {
+    // A6: paused keeps the row pointed at wherever it was left, rather than
+    // reporting "Not started" for something that plainly was.
+    if (track.paused && track.nextEntryTitle && track.nextEntryTitle !== track.title) {
+      return `Paused · ${track.nextEntryTitle}`;
+    }
+    if (track.paused) return 'Paused';
+    return 'Not started';
+  }
   if (track.nextEntryTitle && track.nextEntryTitle !== track.title) {
-    // An entry already in progress is one you are part-way through, not one you
-    // are about to begin. Only read mode ever reaches in_progress (D2), which is
-    // why the mockups show "Reading Volume 5" but "Next Issue 13".
+    // Watch mode has no in_progress state (D2) — an episode goes straight from
+    // unstarted to done, so there is no separate "started" tap to distinguish.
+    // But the row only reaches Currently once an earlier episode is done, so
+    // this unstarted one is the one currently up, not one still to come.
+    if (!read) return `Watching ${track.nextEntryTitle}`;
+    // Read mode does distinguish: an entry already in progress is one you are
+    // part-way through, one still unstarted is one you have not opened yet —
+    // "Reading Volume 5" vs "Next Issue 13".
     const verb = track.nextEntryStatus === 'in_progress' ? 'Reading' : 'Next';
     return `${verb} ${track.nextEntryTitle}`;
   }
@@ -49,13 +62,24 @@ export function positionLabel(track: TrackSummary): string {
 export function TrackRow({
   track,
   onAdvance,
+  onResume,
 }: {
   track: TrackSummary;
   onAdvance: (entryId: string) => void;
+  onResume: (track: TrackSummary) => void;
 }) {
   const palette = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const { nextEntryId, nextEntryTitle, progress } = track;
+
+  // A6: a paused row is one that already has progress — Resume must only clear
+  // the flag, never advance an entry, or it would silently mark something done
+  // that was only ever "left off here".
+  const resuming = track.shelf === 'backlog' && track.paused;
+  // Nothing has been touched yet, so the control begins the track rather than
+  // completing part of it. "Done" on an untouched backlog row claims you have
+  // finished something you have not started.
+  const starting = track.shelf === 'backlog' && !track.paused;
 
   // Only a series has something to be part-way through numerically; a standalone
   // book or movie draws no bar, and the absence is the signal.
@@ -82,6 +106,14 @@ export function TrackRow({
           <Text style={styles.position} numberOfLines={1}>
             {positionLabel(track)}
           </Text>
+          {/* A4: an ongoing series has no denominator, so the word replaces the
+              count rather than a total the app would have to invent. */}
+          {track.ongoing && (
+            <>
+              <Text style={styles.dot}>·</Text>
+              <Text style={styles.count}>Ongoing</Text>
+            </>
+          )}
           {progress && (
             <>
               <Text style={styles.dot}>·</Text>
@@ -100,12 +132,20 @@ export function TrackRow({
       {nextEntryId && nextEntryTitle && (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Mark ${nextEntryTitle} ${verbFor(track.category)}`}
-          onPress={() => onAdvance(nextEntryId)}
+          accessibilityLabel={
+            resuming
+              ? `Resume ${track.title}`
+              : starting
+                ? `Start ${track.title}`
+                : `Mark ${nextEntryTitle} ${verbFor(track.category)}`
+          }
+          onPress={() => (resuming ? onResume(track) : onAdvance(nextEntryId))}
           style={({ pressed }) => [styles.advance, pressed && styles.advancePressed]}
         >
           {({ pressed }) => (
-            <Text style={[styles.advanceText, pressed && styles.advanceTextPressed]}>Done</Text>
+            <Text style={[styles.advanceText, pressed && styles.advanceTextPressed]}>
+              {resuming ? 'Resume' : starting ? 'Start' : 'Done'}
+            </Text>
           )}
         </Pressable>
       )}
@@ -134,10 +174,10 @@ function createStyles(c: Palette) {
       gap: layout.metaGap,
       marginTop: 3,
     },
-    kind: { ...font.kind, color: c.accent, flexShrink: 0 },
+    kind: { ...font.kind, ...underline, color: c.ink, flexShrink: 0 },
     dot: { ...font.meta, color: c.faint, flexShrink: 0 },
     position: { ...font.meta, color: c.muted, flexShrink: 1 },
-    count: { ...font.meta, color: c.muted, flexShrink: 0, fontVariant: ['tabular-nums'] },
+    count: { ...font.count, color: c.ink, flexShrink: 0, fontVariant: ['tabular-nums'] },
     progressTrack: {
       height: layout.progressHeight,
       marginTop: 8,
@@ -145,18 +185,19 @@ function createStyles(c: Palette) {
       backgroundColor: c.rule,
       overflow: 'hidden',
     },
-    progressFill: { height: '100%', borderRadius: radius.bar, backgroundColor: c.accent },
+    progressFill: { height: '100%', borderRadius: radius.bar, backgroundColor: c.ink },
     advance: {
       flexShrink: 0,
       paddingVertical: 6,
       paddingHorizontal: 13,
-      borderWidth: 1,
-      borderColor: c.rule,
+      borderWidth: 1.5,
+      borderColor: c.ruleStrong,
       borderRadius: radius.sm,
     },
-    // Fills with accent only while held.
-    advancePressed: { backgroundColor: c.accent, borderColor: c.accent },
+    // No accent to fill with — pressed inverts instead, the way an e-ink
+    // pixel flips rather than tints.
+    advancePressed: { backgroundColor: c.ink, borderColor: c.ink },
     advanceText: { ...font.control, color: c.ink },
-    advanceTextPressed: { color: c.onAccent },
+    advanceTextPressed: { color: c.bg },
   });
 }

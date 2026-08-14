@@ -5,15 +5,14 @@
      PAGE TOKENS — light is the base; dark redefines tokens only.
      ============================================================ */
   :root {
-    --ground: #FCFCFD;
-    --raised: #FFFFFF;
-    --ink: #16181D;
-    --muted: #6E727B;
-    --faint: #9AA0AA;
-    --rule: #E4E6EA;
-    --rule-soft: #EFF1F4;
-    --accent: #2B50E0;
-    --accent-soft: #EDF0FE;
+    --ground: #DCDFD0;
+    --raised: #DCDFD0;
+    --ink: #111208;
+    --muted: #4B4F3F;
+    --faint: #767A67;
+    --rule: #C6CAB6;
+    --rule-soft: #D2D5C4;
+    --rule-strong: #111208;
 
     --sp-1: 4px;
     --sp-2: 8px;
@@ -22,36 +21,35 @@
     --sp-5: 40px;
     --sp-6: 64px;
 
-    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    /* No proportional face left in the system — see Type. Still the
+       platform's own font, just its monospace register. */
+    --face: ui-monospace, "SF Mono", "Roboto Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
     --measure: 68ch;
   }
 
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --ground: #0E1013;
-      --raised: #16191E;
-      --ink: #EDEFF2;
-      --muted: #969CA6;
-      --faint: #6B7079;
-      --rule: #262A31;
-      --rule-soft: #1D2127;
-      --accent: #8AA0FF;
-      --accent-soft: #1A2140;
+      --ground: #08090B;
+      --raised: #131518;
+      --ink: #F3F4F6;
+      --muted: #C6C9CF;
+      --faint: #8B8F97;
+      --rule: #2A2E34;
+      --rule-soft: #1C1F24;
+      --rule-strong: #F3F4F6;
     }
   }
 
   :root[data-theme="dark"] {
-    --ground: #0E1013;
-    --raised: #16191E;
-    --ink: #EDEFF2;
-    --muted: #969CA6;
-    --faint: #6B7079;
-    --rule: #262A31;
-    --rule-soft: #1D2127;
-    --accent: #8AA0FF;
-    --accent-soft: #1A2140;
+    --ground: #08090B;
+    --raised: #131518;
+    --ink: #F3F4F6;
+    --muted: #C6C9CF;
+    --faint: #8B8F97;
+    --rule: #2A2E34;
+    --rule-soft: #1C1F24;
+    --rule-strong: #F3F4F6;
   }
 
   * { box-sizing: border-box; }
@@ -60,7 +58,7 @@
     margin: 0;
     background: var(--ground);
     color: var(--ink);
-    font-family: var(--sans);
+    font-family: var(--face);
     font-size: 16px;
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
@@ -89,10 +87,10 @@
   }
   h1 {
     margin: 0;
-    font-size: clamp(34px, 6vw, 46px);
-    line-height: 1.02;
-    letter-spacing: -0.025em;
-    font-weight: 640;
+    font-size: clamp(30px, 5.4vw, 40px);
+    line-height: 1.08;
+    letter-spacing: 0;
+    font-weight: 700;
     text-wrap: balance;
   }
   .standfirst {
@@ -108,24 +106,32 @@
   h2 {
     margin: 0 0 var(--sp-3);
     font-size: 12px;
-    font-weight: 640;
-    letter-spacing: 0.11em;
+    font-weight: 700;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--faint);
+    color: var(--ink);
   }
   h3 {
     margin: 0 0 var(--sp-2);
-    font-size: 21px;
-    line-height: 1.25;
-    letter-spacing: -0.015em;
-    font-weight: 620;
+    font-size: 19px;
+    line-height: 1.3;
+    letter-spacing: 0;
+    font-weight: 700;
     text-wrap: balance;
   }
   p { margin: 0 0 var(--sp-3); max-width: var(--measure); text-wrap: pretty; }
   p:last-child { margin-bottom: 0; }
   .lede { font-size: 17px; }
-  strong { font-weight: 620; }
-  em { font-style: normal; color: var(--accent); }
+  strong { font-weight: 700; }
+  /* Underline replaces colour as the one mark reserved for something that
+     needs to stand out from running text — see Position. */
+  em {
+    font-style: normal;
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+  }
 
   /* ---------- principles ---------- */
   .principles {
@@ -141,7 +147,7 @@
     flex-direction: column;
     gap: var(--sp-2);
     padding-top: var(--sp-3);
-    border-top: 2px solid var(--ink);
+    border-top: 3px solid var(--ink);
   }
   .principles h3 { margin: 0; font-size: 17px; }
   .principles p { font-size: 15px; color: var(--muted); }
@@ -159,12 +165,12 @@
   }
   .chip {
     height: 76px;
-    border-radius: 5px;
+    border-radius: 3px;
     border: 1px solid var(--rule);
   }
-  .swatch-name { font-size: 14px; font-weight: 560; }
+  .swatch-name { font-size: 14px; font-weight: 600; }
   .swatch-meta {
-    font-family: var(--mono);
+    font-family: var(--face);
     font-size: 12px;
     color: var(--muted);
     font-variant-numeric: tabular-nums;
@@ -180,12 +186,12 @@
   th {
     text-align: left;
     font-size: 11px;
-    font-weight: 640;
+    font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--faint);
+    color: var(--ink);
     padding: 0 var(--sp-3) var(--sp-2) 0;
-    border-bottom: 1px solid var(--rule);
+    border-bottom: 2px solid var(--ink);
     white-space: nowrap;
   }
   td {
@@ -193,10 +199,10 @@
     border-bottom: 1px solid var(--rule-soft);
     vertical-align: top;
   }
-  td.num, td.code { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td.num, td.code { font-family: var(--face); font-variant-numeric: tabular-nums; white-space: nowrap; }
   td.note { color: var(--muted); }
 
-  .type-row { font-weight: 500; }
+  .type-row { font-weight: 400; }
 
   /* ============================================================
      APP MOCKUPS — self-contained tokens so both app themes show
@@ -210,34 +216,32 @@
   }
 
   .screen {
-    --a-bg: #FFFFFF;
-    --a-ink: #16181D;
-    --a-muted: #6E727B;
-    --a-faint: #9AA0AA;
-    --a-rule: #E7E9ED;
-    --a-accent: #2B50E0;
-    --a-accent-soft: #EDF0FE;
-    --a-chip: #F2F3F6;
+    --a-bg: #DCDFD0;
+    --a-ink: #111208;
+    --a-muted: #4B4F3F;
+    --a-faint: #767A67;
+    --a-rule: #C6CAB6;
+    --a-rule-strong: #111208;
+    --a-chip: #D2D5C4;
 
     width: 100%;
     max-width: 390px;
     background: var(--a-bg);
     color: var(--a-ink);
-    border: 1px solid var(--rule);
-    border-radius: 12px;
+    border: 1px solid var(--a-rule-strong);
+    border-radius: 6px;
     overflow: hidden;
     font-size: 15px;
+    font-family: var(--face);
   }
   .screen.is-dark {
-    --a-bg: #0B0D10;
-    --a-ink: #F2F4F7;
-    --a-muted: #979DA7;
-    --a-faint: #6A6F78;
-    --a-rule: #23272E;
-    --a-accent: #8AA0FF;
-    --a-accent-soft: #182040;
-    --a-chip: #191D23;
-    border-color: #23272E;
+    --a-bg: #08090B;
+    --a-ink: #F3F4F6;
+    --a-muted: #C6C9CF;
+    --a-faint: #8B8F97;
+    --a-rule: #2A2E34;
+    --a-rule-strong: #F3F4F6;
+    --a-chip: #191C21;
   }
 
   .screen-label {
@@ -260,14 +264,17 @@
     padding: 28px 20px 14px;
   }
   .s-title {
-    font-size: 27px;
-    font-weight: 660;
-    letter-spacing: -0.022em;
+    font-size: 25px;
+    font-weight: 700;
+    letter-spacing: 0;
   }
   .s-action {
     font-size: 16px;
-    font-weight: 520;
-    color: var(--a-accent);
+    font-weight: 600;
+    color: var(--a-ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
   }
 
   /* the row — the core component */
@@ -281,9 +288,9 @@
   }
   .row-text { flex: 1; min-width: 0; }
   .row-title {
-    font-size: 17px;
-    font-weight: 520;
-    letter-spacing: -0.01em;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -294,50 +301,57 @@
     gap: 7px;
     margin-top: 3px;
     font-size: 13px;
+    font-weight: 400;
     color: var(--a-muted);
     white-space: nowrap;
     overflow: hidden;
   }
+  /* Underline does the job colour used to: the one fixed mark that means
+     "what kind of thing is this", shared by every medium alike. */
   .kind {
     flex-shrink: 0;
-    font-size: 10.5px;
-    font-weight: 640;
-    letter-spacing: 0.085em;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--a-accent);
+    color: var(--a-ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
   }
   .dot { color: var(--a-faint); }
-  .count { font-variant-numeric: tabular-nums; }
+  .count { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--a-ink); }
 
   .advance {
     flex-shrink: 0;
-    padding: 6px 13px;
-    border: 1px solid var(--a-rule);
-    border-radius: 7px;
+    padding: 7px 14px;
+    border: 1.5px solid var(--a-rule-strong);
+    border-radius: 3px;
     font-size: 13px;
-    font-weight: 520;
+    font-weight: 700;
     color: var(--a-ink);
     background: transparent;
   }
+  /* No accent to fill with — pressed inverts instead, ink for ground and
+     ground for ink, the way an e-ink pixel flips rather than tints. */
   .advance.is-pressed {
-    background: var(--a-accent);
-    border-color: var(--a-accent);
-    color: #FFFFFF;
+    background: var(--a-ink);
+    border-color: var(--a-ink);
+    color: var(--a-bg);
   }
 
   /* progress sits in the text column, directly under the count it depicts —
-     tall enough to read as a measure, quiet enough not to become a chart */
+     tall enough to read as a measure, quiet enough not to become a chart.
+     Square ends, not a pill — a measure reads as a bar, not a badge. */
   .progress-track {
-    height: 3px;
+    height: 4px;
     margin-top: 8px;
-    border-radius: 1.5px;
     background: var(--a-rule);
     overflow: hidden;
   }
   .progress-fill {
     height: 100%;
-    border-radius: 1.5px;
-    background: var(--a-accent);
+    background: var(--a-ink);
   }
 
   .filters {
@@ -349,9 +363,10 @@
   .fchip {
     flex-shrink: 0;
     padding: 5px 12px;
-    border-radius: 9px;
-    border: 1px solid var(--a-rule);
+    border-radius: 3px;
+    border: 1.5px solid var(--a-rule-strong);
     font-size: 13px;
+    font-weight: 600;
     color: var(--a-muted);
     background: transparent;
   }
@@ -364,6 +379,7 @@
   .s-empty {
     padding: 18px 20px 26px;
     font-size: 14px;
+    font-weight: 400;
     color: var(--a-muted);
     border-top: 1px solid var(--a-rule);
   }
@@ -373,48 +389,101 @@
     padding: 15px 20px;
     border-top: 1px solid var(--a-rule);
     font-size: 17px;
-    font-weight: 480;
+    font-weight: 600;
   }
   .field {
     margin: 0 20px 10px;
     padding: 13px 14px;
-    border: 1px solid var(--a-rule);
-    border-radius: 8px;
+    border: 1.5px solid var(--a-rule-strong);
+    border-radius: 3px;
     font-size: 16px;
+    font-weight: 400;
     color: var(--a-faint);
   }
-  .field.is-filled { color: var(--a-ink); }
+  .field.is-filled { color: var(--a-ink); font-weight: 600; }
   .cta {
-    margin: 6px 20px 24px;
+    margin: 6px 20px 10px;
     padding: 14px;
-    border-radius: 8px;
+    border-radius: 3px;
     background: var(--a-ink);
     color: var(--a-bg);
     text-align: center;
     font-size: 16px;
-    font-weight: 540;
+    font-weight: 700;
+  }
+  .cta.is-secondary {
+    margin-top: 0;
+    margin-bottom: 24px;
+    background: transparent;
+    color: var(--a-ink);
+    border: 1.5px solid var(--a-rule-strong);
   }
   .s-note {
     padding: 10px 20px 24px;
     font-size: 13px;
+    font-weight: 400;
     color: var(--a-muted);
   }
-  .s-note.is-warn { color: var(--a-ink); }
+  .s-note.is-warn { color: var(--a-ink); font-weight: 600; }
 
   .tabbar {
     display: flex;
-    border-top: 1px solid var(--a-rule);
+    border-top: 1.5px solid var(--a-rule-strong);
     padding: 9px 0 13px;
   }
   .tab {
     flex: 1;
     text-align: center;
     font-size: 11px;
-    font-weight: 560;
+    font-weight: 600;
     letter-spacing: 0.02em;
     color: var(--a-faint);
   }
-  .tab.is-on { color: var(--a-accent); }
+  .tab.is-on {
+    color: var(--a-ink);
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 4px;
+  }
+
+  /* swipe actions — frozen mid-drag, to show what the two revealed controls
+     look like. Pause needs no confirmation (A6); delete always does. Colour
+     used to carry that difference; weight does now. Pause stays the same
+     weight as the row it sits behind — reversible, unremarkable. Delete
+     inverts to a solid ink block, the heaviest mark on the screen, because
+     it is the one action here that cannot be undone. */
+  .swipe-demo { position: relative; overflow: hidden; }
+  .swipe-actions {
+    position: absolute;
+    inset: 0;
+    display: flex;
+  }
+  .swipe-action {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .swipe-action.is-pause {
+    background: var(--a-chip);
+    color: var(--a-ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+  }
+  .swipe-action.is-delete {
+    background: var(--a-ink);
+    color: var(--a-bg);
+    justify-content: flex-end;
+  }
+  .swipe-surface {
+    position: relative;
+    background: var(--a-bg);
+    transform: translateX(-92px);
+  }
 
   /* ---------- annotation ---------- */
   .anno {
@@ -453,13 +522,16 @@
   .nots li:last-child { border-bottom: 0; padding-bottom: 0; }
   .no {
     font-size: 11px;
-    font-weight: 640;
+    font-weight: 700;
     letter-spacing: 0.09em;
     text-transform: uppercase;
-    color: var(--accent);
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
   }
   .nots p { font-size: 15px; margin: 0; }
-  .nots b { font-weight: 600; }
+  .nots b { font-weight: 700; }
 
   footer {
     margin-top: var(--sp-6);
@@ -498,6 +570,24 @@
       generous spacing, one weight of emphasis, and a willingness to leave a screen almost empty.
       Track It goes further in one respect. It carries no artwork at all.
     </p>
+    <p>
+      This pass pushes that restraint toward a second reference: dedicated e-ink displays —
+      thermostats, hotel room panels, remote controls. Nothing on those devices is trying to
+      look friendly. Every control is a bordered rectangle, every number is set heavy enough to
+      read from across a room, and colour, where it exists at all, is reserved for the one
+      thing that needs to interrupt you. None of that contradicts the principles below — it is
+      what "text is the artwork" looks like taken further: <strong>ornament comes from making
+      the necessary elements assertive, not from adding new ones.</strong> Light mode's ground
+      took the reference literally, too — the grey-green of the panel itself, not a software
+      white standing in for paper.
+    </p>
+    <p>
+      Colour did not survive the pass after this one. On a tinted ground built to look like a
+      physical material, a software blue or orange sitting on top of it read as exactly that —
+      software, dropped onto something that was supposed to be a surface. <strong>Underline</strong>
+      replaces it as the one mark reserved for what needs to stand out, and where two states
+      still need to differ in how serious they are, weight now carries that instead of hue.
+    </p>
   </section>
 
   <section>
@@ -518,12 +608,12 @@
         </p>
       </li>
       <li>
-        <h3>One hue, shared by every medium</h3>
+        <h3>One mark, shared by every medium</h3>
         <p>
-          Cobalt marks the kind label and the progress bar — what a thing is, and how far in you
-          are. Every medium uses the same blue, so the colour identifies a <em>class</em> of
-          information rather than sorting rows into five competing groups. Both appearances sit
-          in the text column, so a row reads as one object.
+          An underline marks the kind label; ink alone fills the progress bar — what a thing is,
+          and how far in you are. Every medium gets the same treatment, so the mark identifies
+          a <em>class</em> of information rather than sorting rows into five competing groups.
+          Both appearances sit in the text column, so a row reads as one object.
         </p>
       </li>
       <li>
@@ -533,61 +623,102 @@
           signal, never by colour and weight and a badge together.
         </p>
       </li>
+      <li>
+        <h3>Controls are bordered; lists are not</h3>
+        <p>
+          A hairline still separates one row from the next — a list is read, not operated.
+          Anything you can press draws a full-weight ink border instead, the way a button on a
+          physical panel is a rectangle you can see before you touch it.
+        </p>
+      </li>
     </ul>
   </section>
 
   <section>
     <h2>Palette</h2>
     <p>
-      Neutrals carry a slight blue bias, so they sit with the accent instead of beside it.
-      Pure greys read as unconsidered next to a cobalt this saturated.
+      Light mode now takes its ground from an actual e-ink panel rather than from paper-white
+      software convention — a grey with a cast of green in it, the colour of the film itself
+      rather than of ink on top of it. Dark mode does not chase the same authenticity: e-ink is
+      a reflective, light-only technology, so there is no real panel to match, and a green-tinted
+      dark mode would read as an odd choice rather than a considered one. It stays a plain,
+      properly dark theme.
     </p>
     <div class="swatches">
       <div class="swatch">
-        <div class="chip" style="background:#FFFFFF"></div>
+        <div class="chip" style="background:#DCDFD0;border-color:#111208"></div>
         <div class="swatch-name">Ground</div>
-        <div class="swatch-meta">#FFFFFF · #0B0D10</div>
+        <div class="swatch-meta">#DCDFD0 · #08090B</div>
       </div>
       <div class="swatch">
-        <div class="chip" style="background:#16181D"></div>
+        <div class="chip" style="background:#111208"></div>
         <div class="swatch-name">Ink</div>
-        <div class="swatch-meta">#16181D · #F2F4F7</div>
+        <div class="swatch-meta">#111208 · #F3F4F6</div>
       </div>
       <div class="swatch">
-        <div class="chip" style="background:#6E727B"></div>
+        <div class="chip" style="background:#4B4F3F"></div>
         <div class="swatch-name">Muted</div>
-        <div class="swatch-meta">#6E727B · #979DA7</div>
+        <div class="swatch-meta">#4B4F3F · #C6C9CF</div>
       </div>
       <div class="swatch">
-        <div class="chip" style="background:#9AA0AA"></div>
+        <div class="chip" style="background:#767A67"></div>
         <div class="swatch-name">Faint</div>
-        <div class="swatch-meta">#9AA0AA · #6A6F78</div>
+        <div class="swatch-meta">#767A67 · #8B8F97</div>
       </div>
       <div class="swatch">
-        <div class="chip" style="background:#E7E9ED"></div>
+        <div class="chip" style="background:#C6CAB6"></div>
         <div class="swatch-name">Rule</div>
-        <div class="swatch-meta">#E7E9ED · #23272E</div>
+        <div class="swatch-meta">#C6CAB6 · #2A2E34</div>
       </div>
       <div class="swatch">
-        <div class="chip" style="background:#2B50E0"></div>
-        <div class="swatch-name">Accent</div>
-        <div class="swatch-meta">#2B50E0 · #8AA0FF</div>
+        <div class="chip" style="background:#111208"></div>
+        <div class="swatch-name">Rule, strong</div>
+        <div class="swatch-meta">Controls only — see below</div>
       </div>
     </div>
     <p style="margin-top:var(--sp-4)">
-      Second value is the dark-theme counterpart. The accent lightens rather than inverting —
-      <span class="swatch-meta">#2B50E0</span> on black fails contrast at the 10.5pt the kind
-      label uses, which is now the accent's most frequent appearance on screen.
+      Second value is the dark-theme counterpart. Muted and faint moved off the neutral blue-grey
+      family and picked up the same green cast as the ground, at a fraction of its saturation —
+      grey ink on tinted paper, not a cooler grey sitting on top of a warmer one.
+      <strong>Rule, strong</strong> is new: hairlines still separate rows at 1px, but every
+      bordered control — a button, a chip, a field — now draws its border from ink itself, at
+      1.5px. A list is quiet; a control is not, and the two should not share a border weight.
+    </p>
+    <p>
+      There is no seventh swatch. Accent, pause and danger are gone — every one of them read
+      strange sitting on a tinted ground that was never designed to hold a hue, cobalt or
+      burnt orange both landing as a mismatched software colour dropped onto a physical
+      material. This is now a two-value palette: ink, and everything between ink and ground.
+    </p>
+    <p>
+      What colour used to signal, <strong>underline</strong> signals now — the kind label, a
+      header's action, the active tab, a "no" in the list below. One mark, doing the job one
+      hue used to, and it costs nothing when the ground itself has no fixed colour to be
+      "on" — which a real e-ink panel, lit by whatever is in the room, effectively does not.
+      The two states that still need to differ in how much they matter — delete versus pause,
+      on a swipe — now differ in <strong>actual</strong> weight: pause stays as light as the row
+      behind it, delete inverts to a solid block of ink. See the row and swipe-action examples
+      below.
     </p>
   </section>
 
   <section>
     <h2>Type</h2>
     <p>
-      One family: <strong>the platform system face</strong> — SF Pro on iOS, Roboto on Android.
-      This is a decision, not a default. It is the face the OS renders most sharply at 13pt, it
-      ships with Dynamic Type support we get for free, and a media tracker has no reason to
-      introduce a voice of its own on top of the titles it is listing.
+      Still one family, still the platform's own — but its <strong>monospace register</strong>
+      now: SF Mono on iOS, Roboto Mono on Android, falling back to whatever fixed-width face the
+      OS ships. Every character sits in an equal box, the way it does on the devices this pass
+      is chasing — a thermostat's readout, a terminal, a label typed rather than set. It is
+      sharper at small sizes for the same reason monospace code is: no two glyphs share a curve
+      built to look good next to different neighbours, so there is less for a low-refresh panel
+      to smear.
+    </p>
+    <p>
+      The weight scale collapsed to match — a system monospace face rarely ships the six-step
+      gradient a variable proportional face does. Three stops now do all the work: regular,
+      medium and bold. Negative tracking is gone too; a proportional display face tightens to
+      close up its own curves, but a monospace face is already an even grid, and tightening it
+      just crowds the boxes.
     </p>
     <div class="table-scroll">
       <table>
@@ -596,36 +727,42 @@
         </thead>
         <tbody>
           <tr>
-            <td class="type-row" style="font-size:22px;letter-spacing:-0.022em;font-weight:660">Screen title</td>
-            <td class="num">27</td><td class="num">660</td><td class="num">−0.022em</td>
-            <td class="note">Currently, Backlog, Done, Settings</td>
+            <td class="type-row" style="font-size:22px;font-weight:700">Screen title</td>
+            <td class="num">25</td><td class="num">700</td><td class="num">0</td>
+            <td class="note">Currently, Backlog, Done</td>
           </tr>
           <tr>
-            <td class="type-row" style="font-size:17px;font-weight:520">Row title</td>
-            <td class="num">17</td><td class="num">520</td><td class="num">−0.01em</td>
+            <td class="type-row" style="font-size:16px;font-weight:600">Row title</td>
+            <td class="num">16</td><td class="num">600</td><td class="num">0</td>
             <td class="note">The track's name. Truncates to one line.</td>
           </tr>
           <tr>
-            <td class="type-row" style="font-size:16px;font-weight:480">Body / input</td>
-            <td class="num">16</td><td class="num">480</td><td class="num">0</td>
+            <td class="type-row" style="font-size:16px;font-weight:400">Body / input</td>
+            <td class="num">16</td><td class="num">400</td><td class="num">0</td>
             <td class="note">Form fields, category options</td>
           </tr>
           <tr>
-            <td class="type-row" style="font-size:13px;color:var(--muted)">Meta</td>
+            <td class="type-row" style="font-size:13px;font-weight:400;color:var(--muted)">Meta</td>
             <td class="num">13</td><td class="num">400</td><td class="num">0</td>
             <td class="note">Next episode, counts, empty states</td>
           </tr>
           <tr>
-            <td class="type-row" style="font-size:10.5px;font-weight:640;letter-spacing:0.085em;text-transform:uppercase;color:var(--accent)">Kind label</td>
-            <td class="num">10.5</td><td class="num">640</td><td class="num">0.085em</td>
-            <td class="note">MANGA, BOOK, SHOW, COMIC, MOVIE</td>
+            <td class="type-row" style="font-size:13px;font-weight:600;color:var(--ink)">Count</td>
+            <td class="num">13</td><td class="num">600</td><td class="num">0</td>
+            <td class="note">"4 of 34" — bolder than the meta it sits beside</td>
+          </tr>
+          <tr>
+            <td class="type-row" style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink);text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:3px">Kind label</td>
+            <td class="num">11</td><td class="num">700</td><td class="num">0.08em</td>
+            <td class="note">MANGA, BOOK, SHOW, COMIC, MOVIE — underlined, see Palette</td>
           </tr>
         </tbody>
       </table>
     </div>
     <p style="margin-top:var(--sp-4)">
-      Counts use <strong>tabular figures</strong>. In a list of series at 4 of 34, 12 of 24,
-      9 of 9, proportional digits make the column visibly ragged.
+      Counts use <strong>tabular figures</strong> and keep their own row in this table: in a
+      list of series at 4 of 34, 12 of 24, 9 of 9, ragged digits would be the one thing a
+      monospace face can't excuse, since every other character on the row already lines up.
     </p>
   </section>
 
@@ -722,10 +859,11 @@
 
     <ul class="anno">
       <li><b>The title owns its line</b> Full width to truncate into, and no second element competing with the one thing you are scanning for.</li>
-      <li><b>Kind label leads the meta line</b> Set in accent, in a fixed first position, so the eye learns one place and one colour for "what is this".</li>
+      <li><b>Kind label leads the meta line</b> Underlined, in a fixed first position, so the eye learns one place and one mark for "what is this".</li>
       <li><b>The count sits directly above its bar</b> Number and measure occupy the same block, so "4 of 34" and the width that depicts it are read together.</li>
       <li><b>Standalone books have no bar</b> Nothing to be part-way through numerically, so no progress is drawn — absence is the signal.</li>
-      <li><b>One control, one word</b> "Done" works for an episode and a volume alike. It fills with accent only while held.</li>
+      <li><b>One control, one word</b> "Done" works for an episode and a volume alike. Pressed, it inverts to solid ink rather than filling with a colour that no longer exists.</li>
+      <li><b>The control is the only bordered rectangle in the row</b> Everything else is separated by space or a hairline. A full-weight ink border reads as "you can press this" precisely because nothing else on the row uses one.</li>
     </ul>
   </section>
 
@@ -757,21 +895,19 @@
           </div>
           <div class="row">
             <div class="row-text">
-              <div class="row-title">Saga</div>
-              <div class="row-meta"><span class="kind">Comic</span><span class="dot">·</span> <span>Next Issue 13</span><span class="dot">·</span><span class="count">12 of 60</span></div>
-            
-              <div class="progress-track"><div class="progress-fill" style="width:20%"></div></div>
+              <div class="row-title">One Piece</div>
+              <div class="row-meta"><span class="kind">Manga</span><span class="dot">·</span> <span>Reading Volume 108</span><span class="dot">·</span><span class="count">Ongoing</span></div>
             </div>
             <div class="advance">Done</div>
           </div>
           <div class="tabbar">
-            <div class="tab is-on">Currently</div><div class="tab">Backlog</div><div class="tab">Settings</div>
+            <div class="tab is-on">Currently</div><div class="tab">Backlog</div>
           </div>
         </div>
       </div>
 
       <div>
-        <div class="screen-label"><span>Backlog</span><span>Filtered</span></div>
+        <div class="screen-label"><span>Backlog</span><span>Filtered — start, resume, paused</span></div>
         <div class="screen">
           <div class="s-head"><div class="s-title">Backlog</div></div>
           <div class="filters">
@@ -784,24 +920,57 @@
               <div class="row-title">Piranesi</div>
               <div class="row-meta"><span class="kind">Book</span><span class="dot">·</span> <span>Not started</span></div>
             </div>
-            <div class="advance">Done</div>
+            <div class="advance">Start</div>
           </div>
           <div class="row">
             <div class="row-text">
               <div class="row-title">The Left Hand of Darkness</div>
-              <div class="row-meta"><span class="kind">Book</span><span class="dot">·</span> <span>Not started</span></div>
+              <div class="row-meta"><span class="kind">Book</span><span class="dot">·</span> <span>Paused</span></div>
             </div>
-            <div class="advance">Done</div>
+            <div class="advance">Resume</div>
           </div>
           <div class="row">
             <div class="row-text">
               <div class="row-title">Solaris</div>
               <div class="row-meta"><span class="kind">Book</span><span class="dot">·</span> <span>Not started</span></div>
             </div>
-            <div class="advance">Done</div>
+            <div class="advance">Start</div>
           </div>
           <div class="tabbar">
-            <div class="tab">Currently</div><div class="tab is-on">Backlog</div><div class="tab">Settings</div>
+            <div class="tab">Currently</div><div class="tab is-on">Backlog</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="screen-label"><span>Currently</span><span>Swiped — pause or delete</span></div>
+        <div class="screen is-dark">
+          <div class="s-head"><div class="s-title">Currently</div><div class="s-action">Add</div></div>
+          <div class="row" style="border-top:0">
+            <div class="row-text">
+              <div class="row-title">Severance</div>
+              <div class="row-meta"><span class="kind">Show</span><span class="dot">·</span> <span>Watching Episode 4</span><span class="dot">·</span><span class="count">3 of 9</span></div>
+              <div class="progress-track"><div class="progress-fill" style="width:33%"></div></div>
+            </div>
+            <div class="advance">Done</div>
+          </div>
+          <div class="swipe-demo">
+            <div class="swipe-actions">
+              <div class="swipe-action is-pause">Pause</div>
+              <div class="swipe-action is-delete">Delete</div>
+            </div>
+            <div class="row swipe-surface">
+              <div class="row-text">
+                <div class="row-title">Berserk</div>
+                <div class="row-meta"><span class="kind">Manga</span><span class="dot">·</span> <span>Reading Volume 5</span><span class="dot">·</span><span class="count">4 of 34</span></div>
+                <div class="progress-track"><div class="progress-fill" style="width:12%"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="s-note">Dragged past the point where the surface stops moving fires the
+            action on release — pause needs no confirmation, delete still asks.</div>
+          <div class="tabbar">
+            <div class="tab is-on">Currently</div><div class="tab">Backlog</div>
           </div>
         </div>
       </div>
@@ -835,7 +1004,7 @@
           </div>
           <div class="s-note">Nothing here can be advanced, so no control is drawn.</div>
           <div class="tabbar">
-            <div class="tab">Currently</div><div class="tab is-on">Backlog</div><div class="tab">Settings</div>
+            <div class="tab">Currently</div><div class="tab is-on">Backlog</div>
           </div>
         </div>
       </div>
@@ -859,8 +1028,10 @@
           <div class="s-head"><div class="s-title">Manga</div></div>
           <div class="field is-filled" style="margin-top:6px">Vagabond</div>
           <div class="field">How many volumes?</div>
-          <div class="cta">Add to backlog</div>
-          <div class="s-note">Volumes are generated as individually tracked entries — Volume 1 to Volume 37.</div>
+          <div class="cta">Start</div>
+          <div class="cta is-secondary">Add to backlog</div>
+          <div class="s-note">Start adds the track and immediately begins Volume 1. Volumes are
+            generated as individually tracked entries — Volume 1 to Volume 37.</div>
         </div>
       </div>
 
@@ -869,24 +1040,9 @@
         <div class="screen">
           <div class="s-head"><div class="s-title">Book</div></div>
           <div class="field is-filled" style="margin-top:6px">Piranesi</div>
-          <div class="cta">Add to backlog</div>
+          <div class="cta">Start</div>
+          <div class="cta is-secondary">Add to backlog</div>
           <div class="s-note">No count field. A book is one thing, so nothing is generated.</div>
-        </div>
-      </div>
-
-      <div>
-        <div class="screen-label"><span>Settings</span><span>Local only</span></div>
-        <div class="screen">
-          <div class="s-head"><div class="s-title">Settings</div></div>
-          <div class="opt">Export library</div>
-          <div class="opt">Import library</div>
-          <div class="s-note is-warn">
-            Importing replaces everything currently in the app. Your library is saved to a
-            backup file first, and this cannot be undone.
-          </div>
-          <div class="tabbar">
-            <div class="tab">Currently</div><div class="tab">Backlog</div><div class="tab is-on">Settings</div>
-          </div>
         </div>
       </div>
 
@@ -898,7 +1054,7 @@
             Nothing on the go. Add something, or start something from your backlog.
           </div>
           <div class="tabbar">
-            <div class="tab is-on">Currently</div><div class="tab">Backlog</div><div class="tab">Settings</div>
+            <div class="tab is-on">Currently</div><div class="tab">Backlog</div>
           </div>
         </div>
       </div>
@@ -915,7 +1071,7 @@
       <table>
         <thead><tr><th>Moment</th><th>Duration</th><th>Behaviour</th></tr></thead>
         <tbody>
-          <tr><td>Advance press</td><td class="num">120ms</td><td class="note">Control fills with accent while held, releases on lift</td></tr>
+          <tr><td>Advance press</td><td class="num">120ms</td><td class="note">Control inverts to solid ink while held, releases on lift</td></tr>
           <tr><td>Row leaves Currently</td><td class="num">180ms</td><td class="note">Height collapses and fades; the list closes the gap</td></tr>
           <tr><td>Filter change</td><td class="num">0ms</td><td class="note">Instant. A filter that animates feels slower than one that does not.</td></tr>
         </tbody>
@@ -932,7 +1088,7 @@
       </li>
       <li>
         <div class="no">No</div>
-        <p><b>A different colour per medium.</b> Kind labels are coloured, but all five share one accent. Five hues would consume the whole palette to restate a word already on screen, and would make a mixed list look sorted into groups that mean nothing.</p>
+        <p><b>Colour, anywhere.</b> The kind label used to carry a shared accent; it and every other coloured mark are underlined or bolded now instead. Five hues per medium would have consumed the whole palette to restate a word already on screen — one shared mark does the same job without needing a palette at all.</p>
       </li>
       <li>
         <div class="no">No</div>
@@ -946,11 +1102,16 @@
         <div class="no">No</div>
         <p><b>A Done tab.</b> Finished things are reachable behind one chip, not given equal billing with what you are actually doing.</p>
       </li>
+      <li>
+        <div class="no">Not yet</div>
+        <p><b>Export, import, or any Settings screen.</b> Deferred past v1, which leaves the app with two tabs and — worth stating plainly — no backup path at all. The library lives in one place on one phone.</p>
+      </li>
     </ul>
   </section>
 
   <footer>
-    Track It v1 · interface specification, 13 August 2026. Mockups are live HTML at 390pt,
+    Track It v1 · interface specification. First published 13 August 2026; revised
+    14 August 2026 toward a bolder, higher-contrast pass. Mockups are live HTML at 390pt,
     rendered from the same token values listed above — not images of a design.
   </footer>
 

@@ -397,6 +397,128 @@ one at the UI boundary: the Done view renders the same row component and offers
 an advance action whenever `nextEntryId` is non-null, so the action would have
 been offered on an already-finished book and failed when used.
 
+**A3 — Export/import is deferred past v1, and D6's safety net goes with it.**
+The Settings screen was removed before release, and with it the only user-facing
+path to a backup. `src/data/backup.ts` and its tests remain in the tree,
+unreferenced by `app/`, so re-enabling the feature means adding a screen rather
+than rebuilding the logic.
+
+This is a deliberate scope cut, but it is not a neutral one. D6 accepted
+local-only storage *specifically because* export covered the one thing sync
+would have bought — protection against losing the device. Without it, v1 has no
+recovery path of any kind: a lost, wiped or reinstalled phone loses the library
+outright, and the app never warns anyone of that. Anyone relying on v1 for real
+data should know it is single-copy storage.
+
+The tab bar drops to two tabs, Currently and Backlog. An empty Settings tab
+would have been worse than one fewer tab.
+
+**A4 — Ongoing series have no total, and grow one entry at a time.**
+A series may be marked *ongoing*: still being published, with no final count.
+This breaks two things D3 assumed, so both change for ongoing series only:
+
+- **No "4 of 34".** There is no denominator, so the count is replaced by the
+  word *Ongoing* and the number you are on. Inventing a total would be a lie
+  that goes stale the week the next volume ships.
+- **No progress bar.** A bar needs a fraction. Absence is already the signal
+  for a standalone book, and it means the same thing here: nothing to measure
+  against.
+
+**How the list grows.** An ongoing series is created with one entry. Finishing
+its last entry appends the next one, so the series always has something next.
+A consequence worth stating: **an ongoing series never reaches Done.** That is
+correct — an unfinished series is not something you have finished — and it
+falls out of the derived shelves (D3) rather than needing a rule of its own.
+
+**Rejected:** asking for a guessed total and correcting it later. It puts a
+number the user does not have in front of them at the one moment they are least
+able to supply it, and every ongoing series would drift wrong over time.
+
+**A5 — One tap finishes the current unit of a series and starts the next.**
+D2 gave read-mode entries three states so you could be half-way through a book.
+That is right for a *book*, and wrong for a *volume*: finishing volume 7 of a
+manga and starting volume 8 is one act, not two, and requiring two taps made the
+common case cost double.
+
+- **Series children** (episodes, issues, volumes) go straight to `done` on one
+  tap, and the next child is immediately marked `in_progress` — so the row reads
+  "Reading Volume 8" the moment volume 7 is finished.
+- **Standalone books keep both steps.** A book has no next unit to move to, so
+  "started" and "finished" remain genuinely different states, exactly as D2 said.
+
+`in_progress` therefore still exists and still means the same thing. What
+changed is who sets it: the app moves it forward for you inside a series,
+instead of asking you to.
+
+**Deliberately not added: a confirmation before starting the next unit.** The
+request that prompted this asked for one, but a dialog on every completion
+reinstates the second interaction this amendment exists to remove. The choice a
+dialog would offer — next unit to Currently or to Backlog — only becomes real
+once a catalogue can say whether a next unit exists (D5). Revisit it then.
+
+**A6 — Leaving Currently pauses a track; it no longer resets one.** D4 defined
+Backlog as "no child done and none in progress," so the original swipe-to-backlog
+action reset every child to `unstarted` — the only representation Backlog had
+for "out of Currently." That was a real cost: a show you paused after three
+episodes lost those three episodes, and the only way back in was rewatching.
+
+A track leaving Currently is now paused, not reset: a `paused` flag on the
+series (or on the entry, for a standalone track) pulls it into Backlog while
+every child's status and timestamps sit untouched (`shelfForSeries` /
+`shelfForEntry` check it ahead of `in_progress`, but a fully finished track
+still resolves to Done regardless of the flag — there is nothing left to
+resume). The backlog row shows "Paused · Episode 4" instead of "Not started",
+and its Start control becomes **Resume**, which only clears the flag — it never
+advances an entry, or resuming would silently mark something watched that was
+only ever left off there.
+
+**The D4 reset is not gone, only narrowed.** A track that is *already fully
+finished* has nothing to preserve, so sending it back to the backlog still
+resets every child to `unstarted` — this is how you restart a finished show or
+reread a finished book. `returnTrackToBacklog` branches on exactly that: pause
+if anything is left to finish, reset if nothing is.
+
+**Confirmation follows the same line.** Pausing is now reversible — Resume
+undoes it — so the swipe action fires immediately, no dialog. The reset case is
+still destructive (it erases watch history) and still confirms, with the
+original D4 wording.
+
+**Also changed: swipe actions execute on a full drag, not just a tap.** Both
+swipe actions used to require a drag-then-tap: reveal the button, then press
+it. A drag past a second, larger threshold now fires the revealed action
+directly on release — a shorter drag still just latches the row open for a
+tap. This applies to delete too, which still confirms; the gesture only
+replaces the extra tap, not the safety dialog.
+
+**A7 — A5 only ever meant the *second* tap onward; the implementation also
+caught the first.** The code behind A5 treated any non-done series child the
+same way: one tap, straight to done. For watch mode that is correct — D2 gives
+episodes no reading state at all. For read mode it was not: tapping Start on a
+volume you had never opened marked it done immediately, reporting a volume
+read that was never opened, and skipping straight to "Reading Volume 2".
+
+A5's own rationale — "finishing volume 7 and starting volume 8 is one act" —
+is about the transition *out of* a volume you are already reading, not about
+the very first tap on one. The fix removes trackRepo's override entirely:
+every entry, series child or not, now goes through the same `advance()`
+domain function D2 always specified — unstarted → in_progress → done for read
+mode, unstarted → done for watch mode. The auto-start-the-next-child behavior
+A5 added stays, but now triggers only once an entry actually *reaches* done,
+which a first tap on an unread volume never did.
+
+**Cost:** reading a series from scratch takes one more tap overall — starting
+volume 1 is now a real tap of its own, where before it was folded into
+"finishing" a volume that was never started. Every volume after the first
+still costs one tap, exactly as A5 intended.
+
+**Also added: Start from the Add screen.** Adding a track used to always land
+it in the backlog, and starting it took a second trip — find it on the
+Backlog tab, tap Start. The Add screen now offers both: **Start**, which adds
+the track and immediately runs the same first advance a Backlog row's Start
+button would, and **Add to backlog**, unchanged. Start is the primary
+(filled) control — adding something is usually the first step toward
+beginning it, not filing it away.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:
