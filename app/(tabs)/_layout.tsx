@@ -24,14 +24,14 @@ export default function TabsLayout() {
         tabBarLabel: ({ focused, color, children }) => (
           <Text
             style={[
-              { ...font.control, fontSize: 11, color, marginTop: 0 },
+              { ...font.control, fontSize: 16, color, marginTop: 0 },
               focused && underline,
             ]}
           >
             {children}
           </Text>
         ),
-        tabBarItemStyle: { paddingVertical: 4 },
+        tabBarItemStyle: { paddingVertical: 6 },
 
         /**
          * The default tab button is a PlatformPressable with
