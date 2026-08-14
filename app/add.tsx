@@ -103,6 +103,9 @@ export default function AddTrackScreen() {
         value={title}
         onChangeText={setTitle}
         autoFocus
+        cursorColor={palette.ink}
+        selectionColor={palette.ink}
+        underlineColorAndroid="transparent"
       />
 
       {needsCount && (
@@ -114,6 +117,9 @@ export default function AddTrackScreen() {
           value={count}
           onChangeText={setCount}
           keyboardType="number-pad"
+          cursorColor={palette.ink}
+          selectionColor={palette.ink}
+          underlineColorAndroid="transparent"
         />
       )}
 

@@ -93,7 +93,7 @@ export const monoFace = Platform.select({ ios: 'Menlo', android: 'monospace', de
  * boxes rather than closing up curves the way it did on the old face.
  */
 export const font = {
-  screenTitle: { fontFamily: monoFace, fontSize: 27, fontWeight: '700', letterSpacing: 0 },
+  screenTitle: { fontFamily: monoFace, fontSize: 32, fontWeight: '700', letterSpacing: 0 },
   rowTitle: { fontFamily: monoFace, fontSize: 17, fontWeight: '600', letterSpacing: 0 },
   body: { fontFamily: monoFace, fontSize: 16, fontWeight: '400', letterSpacing: 0 },
   option: { fontFamily: monoFace, fontSize: 17, fontWeight: '600', letterSpacing: 0 },
