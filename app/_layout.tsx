@@ -17,7 +17,7 @@ export default function RootLayout() {
         screenOptions={{
           headerShown: false,
           headerStyle: { backgroundColor: c.bg },
-          headerTintColor: c.accent,
+          headerTintColor: c.ink,
           headerTitleStyle: { color: c.ink, ...font.rowTitle },
           headerShadowVisible: false,
           contentStyle: { backgroundColor: c.bg },
