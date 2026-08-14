@@ -13,10 +13,6 @@
     --rule: #C6CAB6;
     --rule-soft: #D2D5C4;
     --rule-strong: #111208;
-    --accent: #1830CC;
-    --accent-soft: #CBD1E8;
-    --danger: #B3271E;
-    --pause: #A0530A;
 
     --sp-1: 4px;
     --sp-2: 8px;
@@ -25,8 +21,9 @@
     --sp-5: 40px;
     --sp-6: 64px;
 
-    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    /* No proportional face left in the system — see Type. Still the
+       platform's own font, just its monospace register. */
+    --face: ui-monospace, "SF Mono", "Roboto Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
     --measure: 68ch;
   }
@@ -41,10 +38,6 @@
       --rule: #2A2E34;
       --rule-soft: #1C1F24;
       --rule-strong: #F3F4F6;
-      --accent: #7C97FF;
-      --accent-soft: #1B2450;
-      --danger: #FF6B5C;
-      --pause: #FFA43D;
     }
   }
 
@@ -57,10 +50,6 @@
     --rule: #2A2E34;
     --rule-soft: #1C1F24;
     --rule-strong: #F3F4F6;
-    --accent: #7C97FF;
-    --accent-soft: #1B2450;
-    --danger: #FF6B5C;
-    --pause: #FFA43D;
   }
 
   * { box-sizing: border-box; }
@@ -69,7 +58,7 @@
     margin: 0;
     background: var(--ground);
     color: var(--ink);
-    font-family: var(--sans);
+    font-family: var(--face);
     font-size: 16px;
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
@@ -98,9 +87,9 @@
   }
   h1 {
     margin: 0;
-    font-size: clamp(34px, 6vw, 46px);
-    line-height: 1.02;
-    letter-spacing: -0.025em;
+    font-size: clamp(30px, 5.4vw, 40px);
+    line-height: 1.08;
+    letter-spacing: 0;
     font-weight: 700;
     text-wrap: balance;
   }
@@ -124,17 +113,25 @@
   }
   h3 {
     margin: 0 0 var(--sp-2);
-    font-size: 21px;
-    line-height: 1.25;
-    letter-spacing: -0.015em;
-    font-weight: 680;
+    font-size: 19px;
+    line-height: 1.3;
+    letter-spacing: 0;
+    font-weight: 700;
     text-wrap: balance;
   }
   p { margin: 0 0 var(--sp-3); max-width: var(--measure); text-wrap: pretty; }
   p:last-child { margin-bottom: 0; }
   .lede { font-size: 17px; }
-  strong { font-weight: 620; }
-  em { font-style: normal; color: var(--accent); }
+  strong { font-weight: 700; }
+  /* Underline replaces colour as the one mark reserved for something that
+     needs to stand out from running text — see Position. */
+  em {
+    font-style: normal;
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+  }
 
   /* ---------- principles ---------- */
   .principles {
@@ -171,9 +168,9 @@
     border-radius: 3px;
     border: 1px solid var(--rule);
   }
-  .swatch-name { font-size: 14px; font-weight: 560; }
+  .swatch-name { font-size: 14px; font-weight: 600; }
   .swatch-meta {
-    font-family: var(--mono);
+    font-family: var(--face);
     font-size: 12px;
     color: var(--muted);
     font-variant-numeric: tabular-nums;
@@ -202,10 +199,10 @@
     border-bottom: 1px solid var(--rule-soft);
     vertical-align: top;
   }
-  td.num, td.code { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td.num, td.code { font-family: var(--face); font-variant-numeric: tabular-nums; white-space: nowrap; }
   td.note { color: var(--muted); }
 
-  .type-row { font-weight: 500; }
+  .type-row { font-weight: 400; }
 
   /* ============================================================
      APP MOCKUPS — self-contained tokens so both app themes show
@@ -225,12 +222,7 @@
     --a-faint: #767A67;
     --a-rule: #C6CAB6;
     --a-rule-strong: #111208;
-    --a-accent: #1830CC;
-    --a-accent-soft: #CBD1E8;
     --a-chip: #D2D5C4;
-    --a-danger: #B3271E;
-    --a-pause: #A0530A;
-    --a-on-accent: #FFFFFF;
 
     width: 100%;
     max-width: 390px;
@@ -240,6 +232,7 @@
     border-radius: 6px;
     overflow: hidden;
     font-size: 15px;
+    font-family: var(--face);
   }
   .screen.is-dark {
     --a-bg: #08090B;
@@ -248,12 +241,7 @@
     --a-faint: #8B8F97;
     --a-rule: #2A2E34;
     --a-rule-strong: #F3F4F6;
-    --a-accent: #7C97FF;
-    --a-accent-soft: #1B2450;
     --a-chip: #191C21;
-    --a-danger: #FF6B5C;
-    --a-pause: #FFA43D;
-    --a-on-accent: #08090B;
   }
 
   .screen-label {
@@ -276,14 +264,17 @@
     padding: 28px 20px 14px;
   }
   .s-title {
-    font-size: 27px;
-    font-weight: 740;
-    letter-spacing: -0.022em;
+    font-size: 25px;
+    font-weight: 700;
+    letter-spacing: 0;
   }
   .s-action {
     font-size: 16px;
     font-weight: 600;
-    color: var(--a-accent);
+    color: var(--a-ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
   }
 
   /* the row — the core component */
@@ -297,9 +288,9 @@
   }
   .row-text { flex: 1; min-width: 0; }
   .row-title {
-    font-size: 17px;
-    font-weight: 620;
-    letter-spacing: -0.01em;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -310,21 +301,26 @@
     gap: 7px;
     margin-top: 3px;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--a-muted);
     white-space: nowrap;
     overflow: hidden;
   }
+  /* Underline does the job colour used to: the one fixed mark that means
+     "what kind of thing is this", shared by every medium alike. */
   .kind {
     flex-shrink: 0;
-    font-size: 10.5px;
-    font-weight: 750;
-    letter-spacing: 0.09em;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--a-accent);
+    color: var(--a-ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
   }
   .dot { color: var(--a-faint); }
-  .count { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .count { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--a-ink); }
 
   .advance {
     flex-shrink: 0;
@@ -332,17 +328,17 @@
     border: 1.5px solid var(--a-rule-strong);
     border-radius: 3px;
     font-size: 13px;
-    font-weight: 650;
+    font-weight: 700;
     color: var(--a-ink);
     background: transparent;
   }
+  /* No accent to fill with — pressed inverts instead, ink for ground and
+     ground for ink, the way an e-ink pixel flips rather than tints. */
   .advance.is-pressed {
-    background: var(--a-accent);
-    border-color: var(--a-accent);
-    color: var(--a-on-accent);
+    background: var(--a-ink);
+    border-color: var(--a-ink);
+    color: var(--a-bg);
   }
-  .advance.is-danger { border-color: var(--a-danger); color: var(--a-danger); }
-  .advance.is-pause { border-color: var(--a-pause); color: var(--a-pause); }
 
   /* progress sits in the text column, directly under the count it depicts —
      tall enough to read as a measure, quiet enough not to become a chart.
@@ -355,7 +351,7 @@
   }
   .progress-fill {
     height: 100%;
-    background: var(--a-accent);
+    background: var(--a-ink);
   }
 
   .filters {
@@ -383,7 +379,7 @@
   .s-empty {
     padding: 18px 20px 26px;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--a-muted);
     border-top: 1px solid var(--a-rule);
   }
@@ -393,7 +389,7 @@
     padding: 15px 20px;
     border-top: 1px solid var(--a-rule);
     font-size: 17px;
-    font-weight: 560;
+    font-weight: 600;
   }
   .field {
     margin: 0 20px 10px;
@@ -401,7 +397,7 @@
     border: 1.5px solid var(--a-rule-strong);
     border-radius: 3px;
     font-size: 16px;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--a-faint);
   }
   .field.is-filled { color: var(--a-ink); font-weight: 600; }
@@ -413,7 +409,7 @@
     color: var(--a-bg);
     text-align: center;
     font-size: 16px;
-    font-weight: 650;
+    font-weight: 700;
   }
   .cta.is-secondary {
     margin-top: 0;
@@ -425,7 +421,7 @@
   .s-note {
     padding: 10px 20px 24px;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--a-muted);
   }
   .s-note.is-warn { color: var(--a-ink); font-weight: 600; }
@@ -439,14 +435,24 @@
     flex: 1;
     text-align: center;
     font-size: 11px;
-    font-weight: 650;
-    letter-spacing: 0.03em;
+    font-weight: 600;
+    letter-spacing: 0.02em;
     color: var(--a-faint);
   }
-  .tab.is-on { color: var(--a-accent); }
+  .tab.is-on {
+    color: var(--a-ink);
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 4px;
+  }
 
   /* swipe actions — frozen mid-drag, to show what the two revealed controls
-     look like. Pause needs no confirmation (A6); delete always does. */
+     look like. Pause needs no confirmation (A6); delete always does. Colour
+     used to carry that difference; weight does now. Pause stays the same
+     weight as the row it sits behind — reversible, unremarkable. Delete
+     inverts to a solid ink block, the heaviest mark on the screen, because
+     it is the one action here that cannot be undone. */
   .swipe-demo { position: relative; overflow: hidden; }
   .swipe-actions {
     position: absolute;
@@ -460,10 +466,19 @@
     padding: 0 20px;
     font-size: 13px;
     font-weight: 700;
-    color: #FFFFFF;
   }
-  .swipe-action.is-pause { background: var(--a-pause); }
-  .swipe-action.is-delete { background: var(--a-danger); justify-content: flex-end; }
+  .swipe-action.is-pause {
+    background: var(--a-chip);
+    color: var(--a-ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+  }
+  .swipe-action.is-delete {
+    background: var(--a-ink);
+    color: var(--a-bg);
+    justify-content: flex-end;
+  }
   .swipe-surface {
     position: relative;
     background: var(--a-bg);
@@ -507,13 +522,16 @@
   .nots li:last-child { border-bottom: 0; padding-bottom: 0; }
   .no {
     font-size: 11px;
-    font-weight: 640;
+    font-weight: 700;
     letter-spacing: 0.09em;
     text-transform: uppercase;
-    color: var(--accent);
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
   }
   .nots p { font-size: 15px; margin: 0; }
-  .nots b { font-weight: 600; }
+  .nots b { font-weight: 700; }
 
   footer {
     margin-top: var(--sp-6);
@@ -559,10 +577,16 @@
       read from across a room, and colour, where it exists at all, is reserved for the one
       thing that needs to interrupt you. None of that contradicts the principles below — it is
       what "text is the artwork" looks like taken further: <strong>ornament comes from making
-      the necessary elements assertive, not from adding new ones.</strong> Colour stays for now,
-      deepened rather than removed; whether it survives the next pass is still open. Light mode's
-      ground took the reference literally, too — the grey-green of the panel itself, not a
-      software white standing in for paper.
+      the necessary elements assertive, not from adding new ones.</strong> Light mode's ground
+      took the reference literally, too — the grey-green of the panel itself, not a software
+      white standing in for paper.
+    </p>
+    <p>
+      Colour did not survive the pass after this one. On a tinted ground built to look like a
+      physical material, a software blue or orange sitting on top of it read as exactly that —
+      software, dropped onto something that was supposed to be a surface. <strong>Underline</strong>
+      replaces it as the one mark reserved for what needs to stand out, and where two states
+      still need to differ in how serious they are, weight now carries that instead of hue.
     </p>
   </section>
 
@@ -584,12 +608,12 @@
         </p>
       </li>
       <li>
-        <h3>One hue, shared by every medium</h3>
+        <h3>One mark, shared by every medium</h3>
         <p>
-          Cobalt marks the kind label and the progress bar — what a thing is, and how far in you
-          are. Every medium uses the same blue, so the colour identifies a <em>class</em> of
-          information rather than sorting rows into five competing groups. Both appearances sit
-          in the text column, so a row reads as one object.
+          An underline marks the kind label; ink alone fills the progress bar — what a thing is,
+          and how far in you are. Every medium gets the same treatment, so the mark identifies
+          a <em>class</em> of information rather than sorting rows into five competing groups.
+          Both appearances sit in the text column, so a row reads as one object.
         </p>
       </li>
       <li>
@@ -651,21 +675,6 @@
         <div class="swatch-name">Rule, strong</div>
         <div class="swatch-meta">Controls only — see below</div>
       </div>
-      <div class="swatch">
-        <div class="chip" style="background:#1830CC"></div>
-        <div class="swatch-name">Accent</div>
-        <div class="swatch-meta">#1830CC · #7C97FF</div>
-      </div>
-      <div class="swatch">
-        <div class="chip" style="background:#A0530A"></div>
-        <div class="swatch-name">Pause</div>
-        <div class="swatch-meta">#A0530A · #FFA43D</div>
-      </div>
-      <div class="swatch">
-        <div class="chip" style="background:#B3271E"></div>
-        <div class="swatch-name">Danger</div>
-        <div class="swatch-meta">#B3271E · #FF6B5C</div>
-      </div>
     </div>
     <p style="margin-top:var(--sp-4)">
       Second value is the dark-theme counterpart. Muted and faint moved off the neutral blue-grey
@@ -676,19 +685,40 @@
       1.5px. A list is quiet; a control is not, and the two should not share a border weight.
     </p>
     <p>
-      Pause and danger are also new to this document — they existed in the app before they
-      existed here. Both deepen the same way the accent did: less pastel, more ink, so a
-      swipe action reads as decisive rather than tinted.
+      There is no seventh swatch. Accent, pause and danger are gone — every one of them read
+      strange sitting on a tinted ground that was never designed to hold a hue, cobalt or
+      burnt orange both landing as a mismatched software colour dropped onto a physical
+      material. This is now a two-value palette: ink, and everything between ink and ground.
+    </p>
+    <p>
+      What colour used to signal, <strong>underline</strong> signals now — the kind label, a
+      header's action, the active tab, a "no" in the list below. One mark, doing the job one
+      hue used to, and it costs nothing when the ground itself has no fixed colour to be
+      "on" — which a real e-ink panel, lit by whatever is in the room, effectively does not.
+      The two states that still need to differ in how much they matter — delete versus pause,
+      on a swipe — now differ in <strong>actual</strong> weight: pause stays as light as the row
+      behind it, delete inverts to a solid block of ink. See the row and swipe-action examples
+      below.
     </p>
   </section>
 
   <section>
     <h2>Type</h2>
     <p>
-      One family: <strong>the platform system face</strong> — SF Pro on iOS, Roboto on Android.
-      This is a decision, not a default. It is the face the OS renders most sharply at 13pt, it
-      ships with Dynamic Type support we get for free, and a media tracker has no reason to
-      introduce a voice of its own on top of the titles it is listing.
+      Still one family, still the platform's own — but its <strong>monospace register</strong>
+      now: SF Mono on iOS, Roboto Mono on Android, falling back to whatever fixed-width face the
+      OS ships. Every character sits in an equal box, the way it does on the devices this pass
+      is chasing — a thermostat's readout, a terminal, a label typed rather than set. It is
+      sharper at small sizes for the same reason monospace code is: no two glyphs share a curve
+      built to look good next to different neighbours, so there is less for a low-refresh panel
+      to smear.
+    </p>
+    <p>
+      The weight scale collapsed to match — a system monospace face rarely ships the six-step
+      gradient a variable proportional face does. Three stops now do all the work: regular,
+      medium and bold. Negative tracking is gone too; a proportional display face tightens to
+      close up its own curves, but a monospace face is already an even grid, and tightening it
+      just crowds the boxes.
     </p>
     <div class="table-scroll">
       <table>
@@ -697,23 +727,23 @@
         </thead>
         <tbody>
           <tr>
-            <td class="type-row" style="font-size:22px;letter-spacing:-0.022em;font-weight:740">Screen title</td>
-            <td class="num">27</td><td class="num">740</td><td class="num">−0.022em</td>
+            <td class="type-row" style="font-size:22px;font-weight:700">Screen title</td>
+            <td class="num">25</td><td class="num">700</td><td class="num">0</td>
             <td class="note">Currently, Backlog, Done</td>
           </tr>
           <tr>
-            <td class="type-row" style="font-size:17px;font-weight:620">Row title</td>
-            <td class="num">17</td><td class="num">620</td><td class="num">−0.01em</td>
+            <td class="type-row" style="font-size:16px;font-weight:600">Row title</td>
+            <td class="num">16</td><td class="num">600</td><td class="num">0</td>
             <td class="note">The track's name. Truncates to one line.</td>
           </tr>
           <tr>
-            <td class="type-row" style="font-size:16px;font-weight:560">Body / input</td>
-            <td class="num">16</td><td class="num">560</td><td class="num">0</td>
+            <td class="type-row" style="font-size:16px;font-weight:400">Body / input</td>
+            <td class="num">16</td><td class="num">400</td><td class="num">0</td>
             <td class="note">Form fields, category options</td>
           </tr>
           <tr>
-            <td class="type-row" style="font-size:13px;font-weight:500;color:var(--muted)">Meta</td>
-            <td class="num">13</td><td class="num">500</td><td class="num">0</td>
+            <td class="type-row" style="font-size:13px;font-weight:400;color:var(--muted)">Meta</td>
+            <td class="num">13</td><td class="num">400</td><td class="num">0</td>
             <td class="note">Next episode, counts, empty states</td>
           </tr>
           <tr>
@@ -722,18 +752,17 @@
             <td class="note">"4 of 34" — bolder than the meta it sits beside</td>
           </tr>
           <tr>
-            <td class="type-row" style="font-size:10.5px;font-weight:750;letter-spacing:0.09em;text-transform:uppercase;color:var(--accent)">Kind label</td>
-            <td class="num">10.5</td><td class="num">750</td><td class="num">0.09em</td>
-            <td class="note">MANGA, BOOK, SHOW, COMIC, MOVIE</td>
+            <td class="type-row" style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink);text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:3px">Kind label</td>
+            <td class="num">11</td><td class="num">700</td><td class="num">0.08em</td>
+            <td class="note">MANGA, BOOK, SHOW, COMIC, MOVIE — underlined, see Palette</td>
           </tr>
         </tbody>
       </table>
     </div>
     <p style="margin-top:var(--sp-4)">
-      Every role moved up one or two weight steps this pass — nothing above 400 remains.
-      Counts use <strong>tabular figures</strong> and now their own row in this table: in a
-      list of series at 4 of 34, 12 of 24, 9 of 9, proportional digits make the column
-      visibly ragged, and a count is a number worth reading at a glance, not a footnote.
+      Counts use <strong>tabular figures</strong> and keep their own row in this table: in a
+      list of series at 4 of 34, 12 of 24, 9 of 9, ragged digits would be the one thing a
+      monospace face can't excuse, since every other character on the row already lines up.
     </p>
   </section>
 
@@ -830,10 +859,10 @@
 
     <ul class="anno">
       <li><b>The title owns its line</b> Full width to truncate into, and no second element competing with the one thing you are scanning for.</li>
-      <li><b>Kind label leads the meta line</b> Set in accent, in a fixed first position, so the eye learns one place and one colour for "what is this".</li>
+      <li><b>Kind label leads the meta line</b> Underlined, in a fixed first position, so the eye learns one place and one mark for "what is this".</li>
       <li><b>The count sits directly above its bar</b> Number and measure occupy the same block, so "4 of 34" and the width that depicts it are read together.</li>
       <li><b>Standalone books have no bar</b> Nothing to be part-way through numerically, so no progress is drawn — absence is the signal.</li>
-      <li><b>One control, one word</b> "Done" works for an episode and a volume alike. It fills with accent only while held.</li>
+      <li><b>One control, one word</b> "Done" works for an episode and a volume alike. Pressed, it inverts to solid ink rather than filling with a colour that no longer exists.</li>
       <li><b>The control is the only bordered rectangle in the row</b> Everything else is separated by space or a hairline. A full-weight ink border reads as "you can press this" precisely because nothing else on the row uses one.</li>
     </ul>
   </section>
@@ -1042,7 +1071,7 @@
       <table>
         <thead><tr><th>Moment</th><th>Duration</th><th>Behaviour</th></tr></thead>
         <tbody>
-          <tr><td>Advance press</td><td class="num">120ms</td><td class="note">Control fills with accent while held, releases on lift</td></tr>
+          <tr><td>Advance press</td><td class="num">120ms</td><td class="note">Control inverts to solid ink while held, releases on lift</td></tr>
           <tr><td>Row leaves Currently</td><td class="num">180ms</td><td class="note">Height collapses and fades; the list closes the gap</td></tr>
           <tr><td>Filter change</td><td class="num">0ms</td><td class="note">Instant. A filter that animates feels slower than one that does not.</td></tr>
         </tbody>
@@ -1059,7 +1088,7 @@
       </li>
       <li>
         <div class="no">No</div>
-        <p><b>A different colour per medium.</b> Kind labels are coloured, but all five share one accent. Five hues would consume the whole palette to restate a word already on screen, and would make a mixed list look sorted into groups that mean nothing.</p>
+        <p><b>Colour, anywhere.</b> The kind label used to carry a shared accent; it and every other coloured mark are underlined or bolded now instead. Five hues per medium would have consumed the whole palette to restate a word already on screen — one shared mark does the same job without needing a palette at all.</p>
       </li>
       <li>
         <div class="no">No</div>
