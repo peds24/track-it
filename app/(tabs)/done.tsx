@@ -15,12 +15,12 @@ import { font, layout, useTheme, type Palette } from '@/ui/theme';
 import { SwipeableTrackRow } from '@/ui/SwipeableTrackRow';
 import { useTracks } from '@/ui/useTracks';
 
-export default function BacklogScreen() {
+export default function DoneScreen() {
   const db = useDatabase();
   const palette = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [category, setCategory] = useState<Category | null>(null);
-  const { tracks, reload } = useTracks('backlog', category ?? undefined);
+  const { tracks, reload } = useTracks('done', category ?? undefined);
 
   /** A failed read has to reach the user; an unhandled rejection would not. */
   const reloadSafely = useCallback(async () => {
@@ -94,7 +94,7 @@ export default function BacklogScreen() {
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Backlog</Text>
+        <Text style={styles.title}>Done</Text>
       </View>
 
       <FilterBar category={category} onCategoryChange={setCategory} />
@@ -109,7 +109,12 @@ export default function BacklogScreen() {
             onDelete={handleDelete}
             onReturnToBacklog={handleReturnToBacklog}
           />}
-        ListEmptyComponent={<Text style={styles.empty}>Nothing here yet.</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>Nothing finished yet.</Text>}
+        ListFooterComponent={
+          tracks.length > 0 ? (
+            <Text style={styles.note}>Nothing here can be advanced, so no control is drawn.</Text>
+          ) : null
+        }
       />
     </SafeAreaView>
   );
@@ -124,6 +129,13 @@ function createStyles(c: Palette) {
       paddingHorizontal: layout.inset,
     },
     title: { ...font.screenTitle, color: c.ink },
+    note: {
+      ...font.meta,
+      color: c.muted,
+      paddingTop: 10,
+      paddingBottom: 24,
+      paddingHorizontal: layout.inset,
+    },
     empty: {
       fontSize: 14,
       color: c.muted,

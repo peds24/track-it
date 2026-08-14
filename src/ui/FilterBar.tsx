@@ -14,13 +14,9 @@ const CATEGORIES: readonly { value: Category; label: string }[] = [
 export function FilterBar({
   category,
   onCategoryChange,
-  showDone,
-  onShowDoneChange,
 }: {
   category: Category | null;
   onCategoryChange: (next: Category | null) => void;
-  showDone: boolean;
-  onShowDoneChange: (next: boolean) => void;
 }) {
   const palette = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
@@ -46,14 +42,6 @@ export function FilterBar({
           </Pressable>
         );
       })}
-
-      {/* Done is reachable without being a destination (D11). */}
-      <Pressable
-        style={[styles.chip, showDone && styles.chipActive]}
-        onPress={() => onShowDoneChange(!showDone)}
-      >
-        <Text style={[styles.chipText, showDone && styles.chipTextActive]}>Done</Text>
-      </Pressable>
     </ScrollView>
   );
 }

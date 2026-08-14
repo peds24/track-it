@@ -519,6 +519,33 @@ button would, and **Add to backlog**, unchanged. Start is the primary
 (filled) control — adding something is usually the first step toward
 beginning it, not filing it away.
 
+**A8 — Done is its own tab, reversing D11.** D11 kept completed tracks off the
+tab bar on purpose: D8 ranked reviewing what you finished last among the four
+experience priorities, and a filter chip reaches it "without being a
+destination." That reasoning assumed Done was rare enough, and marginal
+enough, to live as one option inside a horizontally scrolling row of five
+category chips.
+
+It undersold two things once the screen existed instead of just being
+specified. First, the Done chip did not mean what the chips beside it meant —
+the category chips narrow *within* a shelf, while the Done chip *switched*
+the shelf itself, but `FilterBar` drew both with the identical affordance, so
+nothing on screen distinguished "narrow what I'm looking at" from "look at
+something else entirely." Second, state that lives in a chip which can
+scroll out of view is state that can be left on by accident: turn on Done,
+filter by Movies, flip to Currently and back, and the Backlog tab now reads
+as unexpectedly empty with no visible reason why.
+
+A dedicated tab fixes both for the reason a tab generally beats a hidden
+mode: which shelf you are looking at is now always on screen in the tab bar,
+never scrolled away, and `FilterBar` goes back to doing one job — category,
+and nothing else. Concretely: `app/(tabs)/done.tsx` is a new screen
+permanently scoped to `useTracks('done', category)`, registered as a third
+`Tabs.Screen` in `app/(tabs)/_layout.tsx` after Backlog; `backlog.tsx` drops
+`showDone` and reverts to `useTracks('backlog', category)` only; and
+`FilterBar` loses its `showDone`/`onShowDoneChange` props and the Done chip
+entirely, along with the test that exercised it.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:
