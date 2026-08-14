@@ -114,9 +114,10 @@ describe('returnTrackToBacklog', () => {
     const db = await freshDb();
     await addTrack(db, { title: 'Chainsaw Man', category: 'manga', count: 1 }, NOW);
     const [backlogged] = await listTracks(db, 'backlog');
-    // A5: a series child goes straight to done in one tap, unlike a standalone
-    // read-mode entry, which still takes two.
+    // A7: the first tap starts reading (D2); the second finishes it.
     await advanceEntry(db, backlogged!.nextEntryId!, NOW);
+    const [reading] = await listTracks(db, 'currently');
+    await advanceEntry(db, reading!.nextEntryId!, NOW);
     const [done] = await listTracks(db, 'done');
     expect(done!.title).toBe('Chainsaw Man');
 

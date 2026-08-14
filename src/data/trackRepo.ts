@@ -143,6 +143,27 @@ export async function createStandaloneTrack(
 }
 
 /**
+ * The entry a freshly added track would advance first: its own row for a
+ * standalone track, or ordinal 1 for a series. Lets a caller (the Add screen)
+ * start a track it just created without a second trip through listTracks to
+ * rediscover what nextEntry() would already say.
+ */
+export async function firstEntryOf(
+  db: SqlDriver,
+  track: { kind: 'series' | 'entry'; id: string },
+): Promise<string> {
+  if (track.kind === 'entry') return track.id;
+
+  const rows = await db.all<EntryRow>(
+    'SELECT * FROM entry WHERE series_id = ? ORDER BY ordinal ASC LIMIT 1',
+    [track.id],
+  );
+  const first = rows[0];
+  if (!first) throw new Error(`Series ${track.id} has no entries`);
+  return first.id;
+}
+
+/**
  * The later of an entry's two timestamps, or null if it has never been touched.
  * Read mode sets startedAt on the first tap and finishedAt on the second, so
  * neither column alone is enough. ISO-8601 sorts lexicographically in
@@ -261,13 +282,13 @@ export async function advanceEntry(db: SqlDriver, entryId: string, now: string):
   if (!row) throw new Error(`Entry ${entryId} not found`);
 
   const entry = toEntry(row);
-  // A5: a series child goes straight to done. Finishing volume 7 and starting
-  // volume 8 is one act, so the app moves in_progress forward rather than
-  // charging a second tap for it. A standalone book keeps both steps (D2).
-  const updated =
-    entry.seriesId !== null && entry.status !== 'done'
-      ? { ...entry, status: 'done' as const, startedAt: entry.startedAt ?? now, finishedAt: now }
-      : advance(entry, now);
+  // A7: advance() already gives every entry, series child or not, the one
+  // status transition its mode allows (D2) — unstarted -> done for watch mode,
+  // unstarted -> in_progress -> done for read mode. A5's "one act" auto-start
+  // is layered on below, only once an entry actually reaches done; it must not
+  // also swallow the first tap on an untouched volume, or starting volume 1
+  // would immediately report it read.
+  const updated = advance(entry, now);
 
   await db.run('UPDATE entry SET status = ?, started_at = ?, finished_at = ? WHERE id = ?', [
     updated.status,

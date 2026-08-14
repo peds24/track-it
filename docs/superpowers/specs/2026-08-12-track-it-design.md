@@ -490,6 +490,35 @@ directly on release — a shorter drag still just latches the row open for a
 tap. This applies to delete too, which still confirms; the gesture only
 replaces the extra tap, not the safety dialog.
 
+**A7 — A5 only ever meant the *second* tap onward; the implementation also
+caught the first.** The code behind A5 treated any non-done series child the
+same way: one tap, straight to done. For watch mode that is correct — D2 gives
+episodes no reading state at all. For read mode it was not: tapping Start on a
+volume you had never opened marked it done immediately, reporting a volume
+read that was never opened, and skipping straight to "Reading Volume 2".
+
+A5's own rationale — "finishing volume 7 and starting volume 8 is one act" —
+is about the transition *out of* a volume you are already reading, not about
+the very first tap on one. The fix removes trackRepo's override entirely:
+every entry, series child or not, now goes through the same `advance()`
+domain function D2 always specified — unstarted → in_progress → done for read
+mode, unstarted → done for watch mode. The auto-start-the-next-child behavior
+A5 added stays, but now triggers only once an entry actually *reaches* done,
+which a first tap on an unread volume never did.
+
+**Cost:** reading a series from scratch takes one more tap overall — starting
+volume 1 is now a real tap of its own, where before it was folded into
+"finishing" a volume that was never started. Every volume after the first
+still costs one tap, exactly as A5 intended.
+
+**Also added: Start from the Add screen.** Adding a track used to always land
+it in the backlog, and starting it took a second trip — find it on the
+Backlog tab, tap Start. The Add screen now offers both: **Start**, which adds
+the track and immediately runs the same first advance a Backlog row's Start
+button would, and **Add to backlog**, unchanged. Start is the primary
+(filled) control — adding something is usually the first step toward
+beginning it, not filing it away.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:
