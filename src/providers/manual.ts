@@ -33,18 +33,22 @@ export class ManualProvider implements MetadataProvider {
 
   async hydrate(result: SearchResult): Promise<SeriesDraft> {
     // A4: an ongoing series has no count to validate — it starts at entry 1 and
-    // grows as each one is finished.
-    if (!result.ongoing && result.count < 1) {
-      throw new Error('A track must have at least 1 unit');
-    }
-    // Validated here rather than on the Add screen so every caller is covered.
-    // A fractional count silently truncates, and a mistyped huge one issues that
-    // many INSERTs in a single transaction — unrecoverable with no delete UI.
-    if (!Number.isInteger(result.count)) {
-      throw new Error('A unit count must be a whole number');
-    }
-    if (result.count > MAX_UNITS) {
-      throw new Error(`A track cannot have more than ${MAX_UNITS} units`);
+    // grows as each one is finished. The Add screen never collects a count for
+    // one, so result.count is not even a number here.
+    if (!result.ongoing) {
+      if (result.count < 1) {
+        throw new Error('A track must have at least 1 unit');
+      }
+      // Validated here rather than on the Add screen so every caller is covered.
+      // A fractional count silently truncates, and a mistyped huge one issues
+      // that many INSERTs in a single transaction — unrecoverable with no
+      // delete UI.
+      if (!Number.isInteger(result.count)) {
+        throw new Error('A unit count must be a whole number');
+      }
+      if (result.count > MAX_UNITS) {
+        throw new Error(`A track cannot have more than ${MAX_UNITS} units`);
+      }
     }
 
     const unitLabel = unitLabelFor(result.category);

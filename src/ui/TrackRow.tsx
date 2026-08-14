@@ -37,9 +37,14 @@ export function positionLabel(track: TrackSummary): string {
   }
   if (track.shelf === 'backlog') return 'Not started';
   if (track.nextEntryTitle && track.nextEntryTitle !== track.title) {
-    // An entry already in progress is one you are part-way through, not one you
-    // are about to begin. Only read mode ever reaches in_progress (D2), which is
-    // why the mockups show "Reading Volume 5" but "Next Issue 13".
+    // Watch mode has no in_progress state (D2) — an episode goes straight from
+    // unstarted to done, so there is no separate "started" tap to distinguish.
+    // But the row only reaches Currently once an earlier episode is done, so
+    // this unstarted one is the one currently up, not one still to come.
+    if (!read) return `Watching ${track.nextEntryTitle}`;
+    // Read mode does distinguish: an entry already in progress is one you are
+    // part-way through, one still unstarted is one you have not opened yet —
+    // "Reading Volume 5" vs "Next Issue 13".
     const verb = track.nextEntryStatus === 'in_progress' ? 'Reading' : 'Next';
     return `${verb} ${track.nextEntryTitle}`;
   }

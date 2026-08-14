@@ -139,9 +139,23 @@ test('a series whose next entry is in progress reads "Reading", not "Next"', asy
   expect(screen.getByText('Reading Volume 1')).toBeTruthy();
 });
 
-test('a series whose next entry is unstarted reads "Next"', async () => {
+test('a watch-mode series whose next entry is unstarted reads "Watching"', async () => {
   await render(<TrackRow track={show} onAdvance={() => {}} />);
-  expect(screen.getByText('Next Episode 4')).toBeTruthy();
+  expect(screen.getByText('Watching Episode 4')).toBeTruthy();
+});
+
+test('a read-mode series whose next entry is unstarted reads "Next"', async () => {
+  const manga: TrackSummary = {
+    ...show,
+    title: 'Berserk',
+    category: 'manga',
+    progress: { done: 0, total: 34 },
+    nextEntryStatus: 'unstarted',
+    nextEntryId: 'v1',
+    nextEntryTitle: 'Volume 1',
+  };
+  await render(<TrackRow track={manga} onAdvance={() => {}} />);
+  expect(screen.getByText('Next Volume 1')).toBeTruthy();
 });
 
 /**
