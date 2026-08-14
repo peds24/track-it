@@ -5,16 +5,16 @@
      PAGE TOKENS — light is the base; dark redefines tokens only.
      ============================================================ */
   :root {
-    --ground: #FFFFFF;
-    --raised: #FFFFFF;
-    --ink: #0A0B0D;
-    --muted: #3C3F45;
-    --faint: #6B6F76;
-    --rule: #DDE0E4;
-    --rule-soft: #EDEFF2;
-    --rule-strong: #0A0B0D;
+    --ground: #DCDFD0;
+    --raised: #DCDFD0;
+    --ink: #111208;
+    --muted: #4B4F3F;
+    --faint: #767A67;
+    --rule: #C6CAB6;
+    --rule-soft: #D2D5C4;
+    --rule-strong: #111208;
     --accent: #1830CC;
-    --accent-soft: #E7EAFB;
+    --accent-soft: #CBD1E8;
     --danger: #B3271E;
     --pause: #A0530A;
 
@@ -219,15 +219,15 @@
   }
 
   .screen {
-    --a-bg: #FFFFFF;
-    --a-ink: #0A0B0D;
-    --a-muted: #3C3F45;
-    --a-faint: #6B6F76;
-    --a-rule: #DDE0E4;
-    --a-rule-strong: #0A0B0D;
+    --a-bg: #DCDFD0;
+    --a-ink: #111208;
+    --a-muted: #4B4F3F;
+    --a-faint: #767A67;
+    --a-rule: #C6CAB6;
+    --a-rule-strong: #111208;
     --a-accent: #1830CC;
-    --a-accent-soft: #E7EAFB;
-    --a-chip: #F0F1F3;
+    --a-accent-soft: #CBD1E8;
+    --a-chip: #D2D5C4;
     --a-danger: #B3271E;
     --a-pause: #A0530A;
     --a-on-accent: #FFFFFF;
@@ -560,7 +560,9 @@
       thing that needs to interrupt you. None of that contradicts the principles below — it is
       what "text is the artwork" looks like taken further: <strong>ornament comes from making
       the necessary elements assertive, not from adding new ones.</strong> Colour stays for now,
-      deepened rather than removed; whether it survives the next pass is still open.
+      deepened rather than removed; whether it survives the next pass is still open. Light mode's
+      ground took the reference literally, too — the grey-green of the panel itself, not a
+      software white standing in for paper.
     </p>
   </section>
 
@@ -611,38 +613,41 @@
   <section>
     <h2>Palette</h2>
     <p>
-      Every neutral got darker or lighter this pass — ink to near-black, muted to a shade
-      that no longer needs squinting, rules split into two weights. Nothing changed hue.
-      The list should look like it is printed, not projected.
+      Light mode now takes its ground from an actual e-ink panel rather than from paper-white
+      software convention — a grey with a cast of green in it, the colour of the film itself
+      rather than of ink on top of it. Dark mode does not chase the same authenticity: e-ink is
+      a reflective, light-only technology, so there is no real panel to match, and a green-tinted
+      dark mode would read as an odd choice rather than a considered one. It stays a plain,
+      properly dark theme.
     </p>
     <div class="swatches">
       <div class="swatch">
-        <div class="chip" style="background:#FFFFFF;border-color:#0A0B0D"></div>
+        <div class="chip" style="background:#DCDFD0;border-color:#111208"></div>
         <div class="swatch-name">Ground</div>
-        <div class="swatch-meta">#FFFFFF · #08090B</div>
+        <div class="swatch-meta">#DCDFD0 · #08090B</div>
       </div>
       <div class="swatch">
-        <div class="chip" style="background:#0A0B0D"></div>
+        <div class="chip" style="background:#111208"></div>
         <div class="swatch-name">Ink</div>
-        <div class="swatch-meta">#0A0B0D · #F3F4F6</div>
+        <div class="swatch-meta">#111208 · #F3F4F6</div>
       </div>
       <div class="swatch">
-        <div class="chip" style="background:#3C3F45"></div>
+        <div class="chip" style="background:#4B4F3F"></div>
         <div class="swatch-name">Muted</div>
-        <div class="swatch-meta">#3C3F45 · #C6C9CF</div>
+        <div class="swatch-meta">#4B4F3F · #C6C9CF</div>
       </div>
       <div class="swatch">
-        <div class="chip" style="background:#6B6F76"></div>
+        <div class="chip" style="background:#767A67"></div>
         <div class="swatch-name">Faint</div>
-        <div class="swatch-meta">#6B6F76 · #8B8F97</div>
+        <div class="swatch-meta">#767A67 · #8B8F97</div>
       </div>
       <div class="swatch">
-        <div class="chip" style="background:#DDE0E4"></div>
+        <div class="chip" style="background:#C6CAB6"></div>
         <div class="swatch-name">Rule</div>
-        <div class="swatch-meta">#DDE0E4 · #2A2E34</div>
+        <div class="swatch-meta">#C6CAB6 · #2A2E34</div>
       </div>
       <div class="swatch">
-        <div class="chip" style="background:#0A0B0D"></div>
+        <div class="chip" style="background:#111208"></div>
         <div class="swatch-name">Rule, strong</div>
         <div class="swatch-meta">Controls only — see below</div>
       </div>
@@ -663,12 +668,12 @@
       </div>
     </div>
     <p style="margin-top:var(--sp-4)">
-      Second value is the dark-theme counterpart. Ink stopped short of true black on white —
-      #0A0B0D reads as ink, not as a rendering bug — but it is as close as body text gets
-      before it starts to look like a design choice rather than a print. <strong>Rule, strong</strong>
-      is new: hairlines still separate rows at 1px, but every bordered control — a button, a chip,
-      a field — now draws its border from ink itself, at 1.5px. A list is quiet; a control is
-      not, and the two should not share a border weight.
+      Second value is the dark-theme counterpart. Muted and faint moved off the neutral blue-grey
+      family and picked up the same green cast as the ground, at a fraction of its saturation —
+      grey ink on tinted paper, not a cooler grey sitting on top of a warmer one.
+      <strong>Rule, strong</strong> is new: hairlines still separate rows at 1px, but every
+      bordered control — a button, a chip, a field — now draws its border from ink itself, at
+      1.5px. A list is quiet; a control is not, and the two should not share a border weight.
     </p>
     <p>
       Pause and danger are also new to this document — they existed in the app before they
