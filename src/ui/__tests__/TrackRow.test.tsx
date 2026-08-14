@@ -184,3 +184,30 @@ test('a finite series still shows its count', async () => {
   expect(screen.getByText('3 of 9')).toBeTruthy();
   expect(screen.queryByText('Ongoing')).toBeNull();
 });
+
+/**
+ * "Done" on an untouched backlog row claims you finished something you never
+ * began. The control starts the track instead, and says so.
+ */
+test('a backlog row offers Start, not Done', async () => {
+  const backlogged: TrackSummary = {
+    ...show,
+    title: 'Piranesi',
+    category: 'book',
+    shelf: 'backlog',
+    progress: null,
+    nextEntryStatus: 'unstarted',
+    nextEntryId: 'b1',
+    nextEntryTitle: 'Piranesi',
+  };
+  await render(<TrackRow track={backlogged} onAdvance={() => {}} />);
+  expect(screen.getByText('Start')).toBeTruthy();
+  expect(screen.queryByText('Done')).toBeNull();
+  expect(screen.getByLabelText('Start Piranesi')).toBeTruthy();
+});
+
+test('a track already under way keeps Done', async () => {
+  await render(<TrackRow track={show} onAdvance={() => {}} />);
+  expect(screen.getByText('Done')).toBeTruthy();
+  expect(screen.queryByText('Start')).toBeNull();
+});

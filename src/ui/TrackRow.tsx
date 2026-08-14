@@ -62,6 +62,11 @@ export function TrackRow({
   const styles = useMemo(() => createStyles(palette), [palette]);
   const { nextEntryId, nextEntryTitle, progress } = track;
 
+  // Nothing has been touched yet, so the control begins the track rather than
+  // completing part of it. "Done" on an untouched backlog row claims you have
+  // finished something you have not started.
+  const starting = track.shelf === 'backlog';
+
   // Only a series has something to be part-way through numerically; a standalone
   // book or movie draws no bar, and the absence is the signal.
   //
@@ -113,12 +118,18 @@ export function TrackRow({
       {nextEntryId && nextEntryTitle && (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Mark ${nextEntryTitle} ${verbFor(track.category)}`}
+          accessibilityLabel={
+            starting
+              ? `Start ${track.title}`
+              : `Mark ${nextEntryTitle} ${verbFor(track.category)}`
+          }
           onPress={() => onAdvance(nextEntryId)}
           style={({ pressed }) => [styles.advance, pressed && styles.advancePressed]}
         >
           {({ pressed }) => (
-            <Text style={[styles.advanceText, pressed && styles.advanceTextPressed]}>Done</Text>
+            <Text style={[styles.advanceText, pressed && styles.advanceTextPressed]}>
+              {starting ? 'Start' : 'Done'}
+            </Text>
           )}
         </Pressable>
       )}

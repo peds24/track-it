@@ -2,10 +2,14 @@ import { Link, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { advanceEntry } from '@/data/trackRepo';
+import {
+  advanceEntry,
+  deleteTrack,
+  returnTrackToBacklog,
+  type TrackSummary, } from '@/data/trackRepo';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { font, layout, useTheme, type Palette } from '@/ui/theme';
-import { TrackRow } from '@/ui/TrackRow';
+import { SwipeableTrackRow } from '@/ui/SwipeableTrackRow';
 import { useTracks } from '@/ui/useTracks';
 
 export default function CurrentlyScreen() {
@@ -48,6 +52,30 @@ export default function CurrentlyScreen() {
     })();
   }
 
+  function handleDelete(track: TrackSummary): void {
+    void (async () => {
+      try {
+        await deleteTrack(db, track);
+      } catch (e: unknown) {
+        Alert.alert('Could not delete', e instanceof Error ? e.message : String(e));
+      } finally {
+        await reload();
+      }
+    })();
+  }
+
+  function handleReturnToBacklog(track: TrackSummary): void {
+    void (async () => {
+      try {
+        await returnTrackToBacklog(db, track);
+      } catch (e: unknown) {
+        Alert.alert('Could not move track', e instanceof Error ? e.message : String(e));
+      } finally {
+        await reload();
+      }
+    })();
+  }
+
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
@@ -60,7 +88,12 @@ export default function CurrentlyScreen() {
       <FlatList
         data={tracks}
         keyExtractor={(t) => `${t.kind}:${t.id}`}
-        renderItem={({ item }) => <TrackRow track={item} onAdvance={handleAdvance} />}
+        renderItem={({ item }) => <SwipeableTrackRow
+            track={item}
+            onAdvance={handleAdvance}
+            onDelete={handleDelete}
+            onReturnToBacklog={handleReturnToBacklog}
+          />}
         ListEmptyComponent={
           <Text style={styles.empty}>
             Nothing on the go. Add something, or start something from your backlog.

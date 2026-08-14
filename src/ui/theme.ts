@@ -17,6 +17,17 @@ export type Palette = {
   readonly accent: string;
   readonly accentSoft: string;
   readonly onAccent: string;
+  /**
+   * The surface behind a revealed swipe action. Achromatic, so the only colour
+   * in a resting list is still the accent.
+   */
+  readonly chip: string;
+  /**
+   * Semantic, not decorative — the one colour outside the accent, reserved for
+   * an action that destroys data. The design language is otherwise achromatic;
+   * a delete that looks like every other control is worse than a second hue.
+   */
+  readonly danger: string;
 };
 
 export const palettes: { readonly light: Palette; readonly dark: Palette } = {
@@ -30,6 +41,8 @@ export const palettes: { readonly light: Palette; readonly dark: Palette } = {
     accentSoft: '#EDF0FE',
     /** Text on a filled accent control — white in both schemes, by spec. */
     onAccent: '#FFFFFF',
+    chip: '#F2F3F6',
+    danger: '#C4342B',
   },
   dark: {
     bg: '#0B0D10',
@@ -40,6 +53,8 @@ export const palettes: { readonly light: Palette; readonly dark: Palette } = {
     accent: '#8AA0FF',
     accentSoft: '#182040',
     onAccent: '#FFFFFF',
+    chip: '#191D23',
+    danger: '#E5584D',
   },
 };
 
@@ -49,7 +64,7 @@ export function useTheme(): Palette {
 
 export const space = { xs: 4, sm: 8, md: 16, lg: 24, xl: 40 } as const;
 
-export const radius = { sm: 7, md: 8, chip: 9, bar: 1.5 } as const;
+export const radius = { sm: 7, md: 8, chip: 9, bar: 1.5, control: 8 } as const;
 
 /**
  * Screen metrics taken from the mockups, which are the rendered spec. The inset
