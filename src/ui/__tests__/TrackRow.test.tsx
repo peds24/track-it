@@ -12,13 +12,14 @@ const show: TrackSummary = {
   progress: { done: 3, total: 9 },
   nextEntryId: 'e4',
   ongoing: false,
+  paused: false,
   nextEntryStatus: 'unstarted',
   nextEntryTitle: 'Episode 4',
   lastAdvancedAt: '2026-08-12T11:00:00.000Z',
 };
 
 test('a series row shows its title, next unit and progress', async () => {
-  await render(<TrackRow track={show} onAdvance={() => {}} />);
+  await render(<TrackRow track={show} onAdvance={() => {}} onResume={() => {}} />);
   expect(screen.getByText('Severance')).toBeTruthy();
   expect(screen.getByText(/Episode 4/)).toBeTruthy();
   expect(screen.getByText(/3 of 9/)).toBeTruthy();
@@ -26,7 +27,7 @@ test('a series row shows its title, next unit and progress', async () => {
 
 test('tapping advance reports the next entry id', async () => {
   const onAdvance = jest.fn();
-  await render(<TrackRow track={show} onAdvance={onAdvance} />);
+  await render(<TrackRow track={show} onAdvance={onAdvance} onResume={() => {}} />);
   await fireEvent.press(screen.getByLabelText('Mark Episode 4 watched'));
   expect(onAdvance).toHaveBeenCalledWith('e4');
 });
@@ -42,13 +43,13 @@ test('a read-mode track uses read wording', async () => {
     nextEntryId: 'b1',
     nextEntryTitle: 'Dune',
   };
-  await render(<TrackRow track={book} onAdvance={() => {}} />);
+  await render(<TrackRow track={book} onAdvance={() => {}} onResume={() => {}} />);
   expect(screen.getByLabelText('Mark Dune read')).toBeTruthy();
 });
 
 /** The medium is a word, not a colour — every row names its kind (design language). */
 test('a row names its medium in the meta line', async () => {
-  await render(<TrackRow track={show} onAdvance={() => {}} />);
+  await render(<TrackRow track={show} onAdvance={() => {}} onResume={() => {}} />);
   expect(screen.getByText('SHOW')).toBeTruthy();
 });
 
@@ -57,7 +58,7 @@ test('a row names its medium in the meta line', async () => {
  * book has nothing to be part-way through numerically — absence is the signal.
  */
 test('a series draws a progress bar', async () => {
-  await render(<TrackRow track={show} onAdvance={() => {}} />);
+  await render(<TrackRow track={show} onAdvance={() => {}} onResume={() => {}} />);
   expect(screen.getByTestId('progress-track')).toBeTruthy();
 });
 
@@ -72,7 +73,7 @@ test('a standalone track draws no progress bar', async () => {
     nextEntryId: 'b1',
     nextEntryTitle: 'Piranesi',
   };
-  await render(<TrackRow track={book} onAdvance={() => {}} />);
+  await render(<TrackRow track={book} onAdvance={() => {}} onResume={() => {}} />);
   expect(screen.getByText('Piranesi')).toBeTruthy();
   expect(screen.queryByTestId('progress-track')).toBeNull();
 });
@@ -93,7 +94,7 @@ test('a finished series keeps its count but draws no progress bar', async () => 
     nextEntryId: null,
     nextEntryTitle: null,
   };
-  await render(<TrackRow track={finished} onAdvance={() => {}} />);
+  await render(<TrackRow track={finished} onAdvance={() => {}} onResume={() => {}} />);
   expect(screen.getByText('11 of 11')).toBeTruthy();
   expect(screen.queryByTestId('progress-track')).toBeNull();
 });
@@ -115,7 +116,7 @@ test('a track with nothing left to advance renders no advance button', async () 
     nextEntryId: null,
     nextEntryTitle: null,
   };
-  await render(<TrackRow track={finished} onAdvance={() => {}} />);
+  await render(<TrackRow track={finished} onAdvance={() => {}} onResume={() => {}} />);
   expect(screen.getByText('Dune')).toBeTruthy();
   expect(screen.queryByLabelText(/^Mark /)).toBeNull();
 });
@@ -135,12 +136,12 @@ test('a series whose next entry is in progress reads "Reading", not "Next"', asy
     nextEntryId: 'v1',
     nextEntryTitle: 'Volume 1',
   };
-  await render(<TrackRow track={manga} onAdvance={() => {}} />);
+  await render(<TrackRow track={manga} onAdvance={() => {}} onResume={() => {}} />);
   expect(screen.getByText('Reading Volume 1')).toBeTruthy();
 });
 
 test('a watch-mode series whose next entry is unstarted reads "Watching"', async () => {
-  await render(<TrackRow track={show} onAdvance={() => {}} />);
+  await render(<TrackRow track={show} onAdvance={() => {}} onResume={() => {}} />);
   expect(screen.getByText('Watching Episode 4')).toBeTruthy();
 });
 
@@ -154,7 +155,7 @@ test('a read-mode series whose next entry is unstarted reads "Next"', async () =
     nextEntryId: 'v1',
     nextEntryTitle: 'Volume 1',
   };
-  await render(<TrackRow track={manga} onAdvance={() => {}} />);
+  await render(<TrackRow track={manga} onAdvance={() => {}} onResume={() => {}} />);
   expect(screen.getByText('Next Volume 1')).toBeTruthy();
 });
 
@@ -173,14 +174,14 @@ test('an ongoing series shows Ongoing and draws no progress bar', async () => {
     nextEntryId: 'v8',
     nextEntryTitle: 'Volume 8',
   };
-  await render(<TrackRow track={ongoing} onAdvance={() => {}} />);
+  await render(<TrackRow track={ongoing} onAdvance={() => {}} onResume={() => {}} />);
   expect(screen.getByText('Ongoing')).toBeTruthy();
   expect(screen.getByText('Next Volume 8')).toBeTruthy();
   expect(screen.queryByTestId('progress-track')).toBeNull();
 });
 
 test('a finite series still shows its count', async () => {
-  await render(<TrackRow track={show} onAdvance={() => {}} />);
+  await render(<TrackRow track={show} onAdvance={() => {}} onResume={() => {}} />);
   expect(screen.getByText('3 of 9')).toBeTruthy();
   expect(screen.queryByText('Ongoing')).toBeNull();
 });
@@ -200,14 +201,64 @@ test('a backlog row offers Start, not Done', async () => {
     nextEntryId: 'b1',
     nextEntryTitle: 'Piranesi',
   };
-  await render(<TrackRow track={backlogged} onAdvance={() => {}} />);
+  await render(<TrackRow track={backlogged} onAdvance={() => {}} onResume={() => {}} />);
   expect(screen.getByText('Start')).toBeTruthy();
   expect(screen.queryByText('Done')).toBeNull();
   expect(screen.getByLabelText('Start Piranesi')).toBeTruthy();
 });
 
 test('a track already under way keeps Done', async () => {
-  await render(<TrackRow track={show} onAdvance={() => {}} />);
+  await render(<TrackRow track={show} onAdvance={() => {}} onResume={() => {}} />);
   expect(screen.getByText('Done')).toBeTruthy();
   expect(screen.queryByText('Start')).toBeNull();
+});
+
+/**
+ * A6: a paused track has progress, so "Not started" would misreport it and
+ * "Start" would claim the count begins at zero. Resume is the only control
+ * that both names the state correctly and cannot accidentally advance it.
+ */
+test('a paused track offers Resume, not Start, and reports where it was left', async () => {
+  const paused: TrackSummary = {
+    ...show,
+    shelf: 'backlog',
+    paused: true,
+  };
+  await render(<TrackRow track={paused} onAdvance={() => {}} onResume={() => {}} />);
+  expect(screen.getByText('Resume')).toBeTruthy();
+  expect(screen.queryByText('Start')).toBeNull();
+  expect(screen.getByText('Paused · Episode 4')).toBeTruthy();
+  expect(screen.getByLabelText('Resume Severance')).toBeTruthy();
+});
+
+test('tapping Resume reports the track, not an entry id, and never calls onAdvance', async () => {
+  const onAdvance = jest.fn();
+  const onResume = jest.fn();
+  const paused: TrackSummary = {
+    ...show,
+    shelf: 'backlog',
+    paused: true,
+  };
+  await render(<TrackRow track={paused} onAdvance={onAdvance} onResume={onResume} />);
+  await fireEvent.press(screen.getByLabelText('Resume Severance'));
+  expect(onResume).toHaveBeenCalledWith(paused);
+  expect(onAdvance).not.toHaveBeenCalled();
+});
+
+test('a paused standalone track reports Paused without repeating its own title', async () => {
+  const paused: TrackSummary = {
+    ...show,
+    kind: 'entry',
+    id: 'b1',
+    title: 'Dune',
+    category: 'book',
+    shelf: 'backlog',
+    paused: true,
+    progress: null,
+    nextEntryId: 'b1',
+    nextEntryTitle: 'Dune',
+  };
+  await render(<TrackRow track={paused} onAdvance={() => {}} onResume={() => {}} />);
+  expect(screen.getByText('Paused')).toBeTruthy();
+  expect(screen.queryByText('Paused · Dune')).toBeNull();
 });

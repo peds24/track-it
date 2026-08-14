@@ -28,6 +28,12 @@ export type Palette = {
    * a delete that looks like every other control is worse than a second hue.
    */
   readonly danger: string;
+  /**
+   * A6: the swipe action that pauses a track — distinct from danger because
+   * pausing is reversible (Resume undoes it) where delete is not. A colour
+   * that reads as "caution" rather than "destroyed" earns its own hue.
+   */
+  readonly pause: string;
 };
 
 export const palettes: { readonly light: Palette; readonly dark: Palette } = {
@@ -43,6 +49,7 @@ export const palettes: { readonly light: Palette; readonly dark: Palette } = {
     onAccent: '#FFFFFF',
     chip: '#F2F3F6',
     danger: '#C4342B',
+    pause: '#C2660B',
   },
   dark: {
     bg: '#0B0D10',
@@ -55,6 +62,7 @@ export const palettes: { readonly light: Palette; readonly dark: Palette } = {
     onAccent: '#FFFFFF',
     chip: '#191D23',
     danger: '#E5584D',
+    pause: '#E8873A',
   },
 };
 

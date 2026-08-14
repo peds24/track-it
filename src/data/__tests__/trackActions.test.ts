@@ -3,6 +3,7 @@ import {
   advanceEntry,
   deleteTrack,
   listTracks,
+  resumeTrack,
   returnTrackToBacklog,
   type TrackSummary,
 } from '@/data/trackRepo';
@@ -71,40 +72,64 @@ describe('deleteTrack', () => {
 });
 
 describe('returnTrackToBacklog', () => {
-  test('a started series goes back to the backlog with its progress cleared', async () => {
+  test('A6: a part-way series is paused, not reset — its progress survives', async () => {
     const db = await freshDb();
-    await addTrack(db, { title: 'Berserk', category: 'manga', count: 4 }, NOW);
-    const started = await startTrack(db, 'Berserk');
-    expect(started.shelf).toBe('currently');
+    await addTrack(db, { title: 'Severance', category: 'show', count: 4 }, NOW);
+    const [backlogged] = await listTracks(db, 'backlog');
+    await advanceEntry(db, backlogged!.nextEntryId!, NOW); // watches episode 1
+    const [current] = await listTracks(db, 'currently');
+    expect(current!.progress).toEqual({ done: 1, total: 4 });
 
-    await returnTrackToBacklog(db, { kind: 'series', id: started.id });
+    await returnTrackToBacklog(db, { kind: 'series', id: current!.id });
 
     expect(await listTracks(db, 'currently')).toHaveLength(0);
-    const [backlogged] = await listTracks(db, 'backlog');
-    expect(backlogged!.title).toBe('Berserk');
-    // Backlog is *defined* as no child done and none in progress, so the
-    // progress cannot survive the move — there is nowhere to keep it.
-    expect(backlogged!.progress).toEqual({ done: 0, total: 4 });
+    const [paused] = await listTracks(db, 'backlog');
+    expect(paused!.title).toBe('Severance');
+    expect(paused!.paused).toBe(true);
+    // The whole point of A6: what was already watched is not lost by leaving
+    // Currently, unlike the pre-A6 reset this replaces.
+    expect(paused!.progress).toEqual({ done: 1, total: 4 });
   });
 
-  test('timestamps are cleared, not just the status', async () => {
+  test('A6: timestamps survive the pause, unlike the old reset', async () => {
     const db = await freshDb();
-    await addTrack(db, { title: 'Berserk', category: 'manga', count: 2 }, NOW);
-    const started = await startTrack(db, 'Berserk');
-
-    await returnTrackToBacklog(db, { kind: 'series', id: started.id });
-
-    const rows = await db.all<{ started_at: string | null; finished_at: string | null }>(
-      'SELECT started_at, finished_at FROM entry',
-    );
-    expect(rows.every((r) => r.started_at === null && r.finished_at === null)).toBe(true);
-    // lastAdvancedAt derives from those timestamps, so a stale one would keep
-    // sorting the track as if it had been touched recently.
+    await addTrack(db, { title: 'Severance', category: 'show', count: 2 }, NOW);
     const [backlogged] = await listTracks(db, 'backlog');
-    expect(backlogged!.lastAdvancedAt).toBeNull();
+    await advanceEntry(db, backlogged!.nextEntryId!, NOW);
+    const [current] = await listTracks(db, 'currently');
+
+    await returnTrackToBacklog(db, { kind: 'series', id: current!.id });
+
+    const rows = await db.all<{
+      status: string;
+      started_at: string | null;
+      finished_at: string | null;
+    }>('SELECT status, started_at, finished_at FROM entry WHERE ordinal = 1');
+    expect(rows[0]!.status).toBe('done');
+    expect(rows[0]!.started_at).not.toBeNull();
+    expect(rows[0]!.finished_at).not.toBeNull();
   });
 
-  test('a finished series can be sent back to the backlog', async () => {
+  test('A6: a fully finished series is reset, not paused — nothing is left to resume', async () => {
+    const db = await freshDb();
+    await addTrack(db, { title: 'Chainsaw Man', category: 'manga', count: 1 }, NOW);
+    const [backlogged] = await listTracks(db, 'backlog');
+    // A5: a series child goes straight to done in one tap, unlike a standalone
+    // read-mode entry, which still takes two.
+    await advanceEntry(db, backlogged!.nextEntryId!, NOW);
+    const [done] = await listTracks(db, 'done');
+    expect(done!.title).toBe('Chainsaw Man');
+
+    await returnTrackToBacklog(db, { kind: 'series', id: done!.id });
+
+    expect(await listTracks(db, 'done')).toHaveLength(0);
+    const [reset] = await listTracks(db, 'backlog');
+    expect(reset!.title).toBe('Chainsaw Man');
+    expect(reset!.paused).toBe(false);
+    expect(reset!.progress).toEqual({ done: 0, total: 1 });
+  });
+
+  test('a finished standalone track can still be sent back to the backlog and reset', async () => {
     const db = await freshDb();
     await addTrack(db, { title: 'Arrival', category: 'movie', count: 1 }, NOW);
     const [movie] = await listTracks(db, 'backlog');
@@ -114,7 +139,25 @@ describe('returnTrackToBacklog', () => {
     await returnTrackToBacklog(db, { kind: 'entry', id: movie!.id });
 
     expect(await listTracks(db, 'done')).toHaveLength(0);
-    expect(await listTracks(db, 'backlog')).toHaveLength(1);
+    const [reset] = await listTracks(db, 'backlog');
+    expect(reset!.paused).toBe(false);
+  });
+
+  test('a standalone track still reading is paused, keeping its status', async () => {
+    const db = await freshDb();
+    await addTrack(db, { title: 'Dune', category: 'book', count: 1 }, NOW);
+    const [backlogged] = await listTracks(db, 'backlog');
+    await advanceEntry(db, backlogged!.nextEntryId!, NOW); // starts reading
+    const [reading] = await listTracks(db, 'currently');
+
+    await returnTrackToBacklog(db, { kind: 'entry', id: reading!.id });
+
+    const [paused] = await listTracks(db, 'backlog');
+    expect(paused!.paused).toBe(true);
+    const [row] = await db.all<{ status: string }>('SELECT status FROM entry WHERE id = ?', [
+      reading!.id,
+    ]);
+    expect(row!.status).toBe('in_progress');
   });
 
   test('returning one track does not disturb another', async () => {
@@ -129,5 +172,37 @@ describe('returnTrackToBacklog', () => {
 
     const current = await listTracks(db, 'currently');
     expect(current.map((t) => t.title)).toEqual(['Dune']);
+  });
+});
+
+describe('resumeTrack', () => {
+  test('A6: resuming a paused series restores Currently without touching progress', async () => {
+    const db = await freshDb();
+    await addTrack(db, { title: 'Severance', category: 'show', count: 4 }, NOW);
+    const [backlogged] = await listTracks(db, 'backlog');
+    await advanceEntry(db, backlogged!.nextEntryId!, NOW);
+    const [current] = await listTracks(db, 'currently');
+    await returnTrackToBacklog(db, { kind: 'series', id: current!.id });
+    expect(await listTracks(db, 'currently')).toHaveLength(0);
+
+    await resumeTrack(db, { kind: 'series', id: current!.id });
+
+    const resumed = await listTracks(db, 'currently');
+    expect(resumed.map((t) => t.title)).toEqual(['Severance']);
+    expect(resumed[0]!.progress).toEqual({ done: 1, total: 4 });
+    expect(resumed[0]!.paused).toBe(false);
+  });
+
+  test('A6: resuming a paused standalone entry restores Currently', async () => {
+    const db = await freshDb();
+    await addTrack(db, { title: 'Dune', category: 'book', count: 1 }, NOW);
+    const [backlogged] = await listTracks(db, 'backlog');
+    await advanceEntry(db, backlogged!.nextEntryId!, NOW);
+    const [reading] = await listTracks(db, 'currently');
+    await returnTrackToBacklog(db, { kind: 'entry', id: reading!.id });
+
+    await resumeTrack(db, { kind: 'entry', id: reading!.id });
+
+    expect((await listTracks(db, 'currently')).map((t) => t.title)).toEqual(['Dune']);
   });
 });

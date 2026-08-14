@@ -456,6 +456,40 @@ reinstates the second interaction this amendment exists to remove. The choice a
 dialog would offer — next unit to Currently or to Backlog — only becomes real
 once a catalogue can say whether a next unit exists (D5). Revisit it then.
 
+**A6 — Leaving Currently pauses a track; it no longer resets one.** D4 defined
+Backlog as "no child done and none in progress," so the original swipe-to-backlog
+action reset every child to `unstarted` — the only representation Backlog had
+for "out of Currently." That was a real cost: a show you paused after three
+episodes lost those three episodes, and the only way back in was rewatching.
+
+A track leaving Currently is now paused, not reset: a `paused` flag on the
+series (or on the entry, for a standalone track) pulls it into Backlog while
+every child's status and timestamps sit untouched (`shelfForSeries` /
+`shelfForEntry` check it ahead of `in_progress`, but a fully finished track
+still resolves to Done regardless of the flag — there is nothing left to
+resume). The backlog row shows "Paused · Episode 4" instead of "Not started",
+and its Start control becomes **Resume**, which only clears the flag — it never
+advances an entry, or resuming would silently mark something watched that was
+only ever left off there.
+
+**The D4 reset is not gone, only narrowed.** A track that is *already fully
+finished* has nothing to preserve, so sending it back to the backlog still
+resets every child to `unstarted` — this is how you restart a finished show or
+reread a finished book. `returnTrackToBacklog` branches on exactly that: pause
+if anything is left to finish, reset if nothing is.
+
+**Confirmation follows the same line.** Pausing is now reversible — Resume
+undoes it — so the swipe action fires immediately, no dialog. The reset case is
+still destructive (it erases watch history) and still confirms, with the
+original D4 wording.
+
+**Also changed: swipe actions execute on a full drag, not just a tap.** Both
+swipe actions used to require a drag-then-tap: reveal the button, then press
+it. A drag past a second, larger threshold now fires the revealed action
+directly on release — a shorter drag still just latches the row open for a
+tap. This applies to delete too, which still confirms; the gesture only
+replaces the extra tap, not the safety dialog.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:

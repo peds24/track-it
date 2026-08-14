@@ -21,6 +21,8 @@ export type TrackSummary = {
    */
   /** A4: still being published — no total, no bar, never reaches Done. */
   ongoing: boolean;
+  /** A6: in Backlog with progress intact — the row offers Resume, not Start. */
+  paused: boolean;
   nextEntryStatus: Status | null;
   nextEntryId: string | null;
   nextEntryTitle: string | null;
@@ -34,6 +36,7 @@ type SeriesRow = {
   media_type: Series['mediaType'];
   unit_label: Series['unitLabel'];
   ongoing: number;
+  paused: number;
   created_at: string;
   external_source: string | null;
   external_id: string | null;
@@ -49,6 +52,7 @@ type EntryRow = {
   started_at: string | null;
   finished_at: string | null;
   created_at: string;
+  paused: number;
 };
 
 export function toEntry(row: EntryRow): Entry {
@@ -62,6 +66,7 @@ export function toEntry(row: EntryRow): Entry {
     startedAt: row.started_at,
     finishedAt: row.finished_at,
     createdAt: row.created_at,
+    paused: row.paused === 1,
   };
 }
 
@@ -201,12 +206,13 @@ export async function listTracks(
       id: row.id,
       title: row.title,
       category: row.media_type,
-      shelf: shelfForSeries(children),
+      shelf: shelfForSeries(children, row.paused === 1),
       createdAt: row.created_at,
       // An ongoing series has no denominator, so it reports no progress at all
       // rather than a total that is really "however many I have added so far".
       progress: row.ongoing === 1 ? null : progressFor(children),
       ongoing: row.ongoing === 1,
+      paused: row.paused === 1,
       nextEntryStatus: next?.status ?? null,
       nextEntryId: next?.id ?? null,
       nextEntryTitle: next?.title ?? null,
@@ -230,6 +236,7 @@ export async function listTracks(
       createdAt: entry.createdAt,
       progress: null,
       ongoing: false,
+      paused: entry.paused,
       // Non-null means advanceable. A finished standalone track yields null,
       // matching what nextEntry() already does for a fully-done series —
       // otherwise the Done filter would render a working advance button on a
@@ -353,19 +360,52 @@ export async function deleteTrack(
 /**
  * Send a track back to the Backlog shelf.
  *
- * Backlog is not a stored flag — it is *defined* as "no child done and none in
- * progress" (D3, D4). So returning a track there necessarily clears its
- * progress; there is no representation of "out of Currently but still part-way
- * through". Callers must confirm with the user before calling this, because the
- * progress is not recoverable.
+ * A6: a track that still has something left to finish is paused, not reset —
+ * the flag pulls it into Backlog while every child's status and timestamps sit
+ * untouched, so Resume puts it back exactly as it was. A track that is already
+ * fully finished has nothing left to preserve, so this still does the original
+ * D4 reset: every child back to unstarted, ready to be watched or read again.
  */
 export async function returnTrackToBacklog(
   db: SqlDriver,
   track: { kind: 'series' | 'entry'; id: string },
 ): Promise<void> {
-  const where = track.kind === 'series' ? 'series_id = ?' : 'id = ?';
-  await db.run(
-    `UPDATE entry SET status = 'unstarted', started_at = NULL, finished_at = NULL WHERE ${where}`,
-    [track.id],
-  );
+  if (track.kind === 'series') {
+    const children = await db.all<EntryRow>('SELECT * FROM entry WHERE series_id = ?', [track.id]);
+    const finished = children.length > 0 && children.every((c) => c.status === 'done');
+    if (finished) {
+      await db.run(
+        `UPDATE entry SET status = 'unstarted', started_at = NULL, finished_at = NULL WHERE series_id = ?`,
+        [track.id],
+      );
+      await db.run('UPDATE series SET paused = 0 WHERE id = ?', [track.id]);
+    } else {
+      await db.run('UPDATE series SET paused = 1 WHERE id = ?', [track.id]);
+    }
+    return;
+  }
+
+  const rows = await db.all<EntryRow>('SELECT * FROM entry WHERE id = ?', [track.id]);
+  const entry = rows[0];
+  if (!entry) return;
+  if (entry.status === 'done') {
+    await db.run(
+      `UPDATE entry SET status = 'unstarted', started_at = NULL, finished_at = NULL, paused = 0 WHERE id = ?`,
+      [track.id],
+    );
+  } else {
+    await db.run('UPDATE entry SET paused = 1 WHERE id = ?', [track.id]);
+  }
+}
+
+/**
+ * A6: undo a pause. The child statuses were never touched, so this only clears
+ * the flag — the track reappears in Currently wherever its progress left it.
+ */
+export async function resumeTrack(
+  db: SqlDriver,
+  track: { kind: 'series' | 'entry'; id: string },
+): Promise<void> {
+  const table = track.kind === 'series' ? 'series' : 'entry';
+  await db.run(`UPDATE ${table} SET paused = 0 WHERE id = ?`, [track.id]);
 }

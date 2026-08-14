@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   advanceEntry,
   deleteTrack,
+  resumeTrack,
   returnTrackToBacklog,
   type TrackSummary, } from '@/data/trackRepo';
 import { useDatabase } from '@/ui/DatabaseProvider';
@@ -76,6 +77,18 @@ export default function CurrentlyScreen() {
     })();
   }
 
+  function handleResume(track: TrackSummary): void {
+    void (async () => {
+      try {
+        await resumeTrack(db, track);
+      } catch (e: unknown) {
+        Alert.alert('Could not resume track', e instanceof Error ? e.message : String(e));
+      } finally {
+        await reload();
+      }
+    })();
+  }
+
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
@@ -91,6 +104,7 @@ export default function CurrentlyScreen() {
         renderItem={({ item }) => <SwipeableTrackRow
             track={item}
             onAdvance={handleAdvance}
+            onResume={handleResume}
             onDelete={handleDelete}
             onReturnToBacklog={handleReturnToBacklog}
           />}

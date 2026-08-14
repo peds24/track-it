@@ -35,7 +35,15 @@ export function positionLabel(track: TrackSummary): string {
     if (track.kind === 'series') return 'Finished';
     return read ? 'Read' : 'Watched';
   }
-  if (track.shelf === 'backlog') return 'Not started';
+  if (track.shelf === 'backlog') {
+    // A6: paused keeps the row pointed at wherever it was left, rather than
+    // reporting "Not started" for something that plainly was.
+    if (track.paused && track.nextEntryTitle && track.nextEntryTitle !== track.title) {
+      return `Paused · ${track.nextEntryTitle}`;
+    }
+    if (track.paused) return 'Paused';
+    return 'Not started';
+  }
   if (track.nextEntryTitle && track.nextEntryTitle !== track.title) {
     // Watch mode has no in_progress state (D2) — an episode goes straight from
     // unstarted to done, so there is no separate "started" tap to distinguish.
@@ -54,18 +62,24 @@ export function positionLabel(track: TrackSummary): string {
 export function TrackRow({
   track,
   onAdvance,
+  onResume,
 }: {
   track: TrackSummary;
   onAdvance: (entryId: string) => void;
+  onResume: (track: TrackSummary) => void;
 }) {
   const palette = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const { nextEntryId, nextEntryTitle, progress } = track;
 
+  // A6: a paused row is one that already has progress — Resume must only clear
+  // the flag, never advance an entry, or it would silently mark something done
+  // that was only ever "left off here".
+  const resuming = track.shelf === 'backlog' && track.paused;
   // Nothing has been touched yet, so the control begins the track rather than
   // completing part of it. "Done" on an untouched backlog row claims you have
   // finished something you have not started.
-  const starting = track.shelf === 'backlog';
+  const starting = track.shelf === 'backlog' && !track.paused;
 
   // Only a series has something to be part-way through numerically; a standalone
   // book or movie draws no bar, and the absence is the signal.
@@ -119,16 +133,18 @@ export function TrackRow({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={
-            starting
-              ? `Start ${track.title}`
-              : `Mark ${nextEntryTitle} ${verbFor(track.category)}`
+            resuming
+              ? `Resume ${track.title}`
+              : starting
+                ? `Start ${track.title}`
+                : `Mark ${nextEntryTitle} ${verbFor(track.category)}`
           }
-          onPress={() => onAdvance(nextEntryId)}
+          onPress={() => (resuming ? onResume(track) : onAdvance(nextEntryId))}
           style={({ pressed }) => [styles.advance, pressed && styles.advancePressed]}
         >
           {({ pressed }) => (
             <Text style={[styles.advanceText, pressed && styles.advanceTextPressed]}>
-              {starting ? 'Start' : 'Done'}
+              {resuming ? 'Resume' : starting ? 'Start' : 'Done'}
             </Text>
           )}
         </Pressable>
