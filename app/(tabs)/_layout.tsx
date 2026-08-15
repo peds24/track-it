@@ -21,15 +21,6 @@ export default function TabsLayout() {
         tabBarIconStyle: { display: 'none' },
         // No accent left to mark the active tab, so the label underlines
         // instead — the same mark the kind label uses.
-        //
-        // "Currently tracking" is wider than a third of the screen at this
-        // size in a monospace face, so it wraps to two lines rather than
-        // shrinking — "Currently" and "tracking" each fit a tab's width on
-        // their own, and centering keeps the wrap looking deliberate instead
-        // of ragged. Font size stays 16 across every tab: that size was
-        // raised from 11 specifically because the bar read too small, and a
-        // two-word label is not a reason to undo that for every tab, or even
-        // for just this one.
         tabBarLabel: ({ focused, color, children }) => (
           <Text
             style={[
@@ -74,7 +65,7 @@ export default function TabsLayout() {
         ),
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Currently tracking' }} />
+      <Tabs.Screen name="index" options={{ title: 'Currently' }} />
       <Tabs.Screen name="backlog" options={{ title: 'Backlog' }} />
       <Tabs.Screen name="done" options={{ title: 'Done' }} />
       {/* No Settings tab: export/import is deferred past v1, and it was the only
