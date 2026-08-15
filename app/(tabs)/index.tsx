@@ -92,7 +92,7 @@ export default function CurrentlyScreen() {
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Currently</Text>
+        <Text style={styles.title}>Track It</Text>
         <Link href="/add" style={styles.add} accessibilityLabel="Add a track">
           Add
         </Link>
