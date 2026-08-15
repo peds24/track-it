@@ -207,6 +207,31 @@ test('a backlog row offers Start, not Done', async () => {
   expect(screen.getByLabelText('Start Piranesi')).toBeTruthy();
 });
 
+/**
+ * A10: a movie still completes in one tap (D2) — "Start" implies a middle
+ * state it never has, so its own backlog control says what tapping it
+ * actually does. Category-aware, not mode-aware: a standalone book is still
+ * genuinely two-tap and keeps "Start".
+ */
+test('a backlog movie offers Watched, not Start', async () => {
+  const backloggedMovie: TrackSummary = {
+    ...show,
+    kind: 'entry',
+    id: 'm1',
+    title: 'Sicario',
+    category: 'movie',
+    shelf: 'backlog',
+    progress: null,
+    nextEntryStatus: 'unstarted',
+    nextEntryId: 'm1',
+    nextEntryTitle: 'Sicario',
+  };
+  await render(<TrackRow track={backloggedMovie} onAdvance={() => {}} onResume={() => {}} />);
+  expect(screen.getByText('Watched')).toBeTruthy();
+  expect(screen.queryByText('Start')).toBeNull();
+  expect(screen.getByLabelText('Watched Sicario')).toBeTruthy();
+});
+
 test('a track already under way keeps Done', async () => {
   await render(<TrackRow track={show} onAdvance={() => {}} onResume={() => {}} />);
   expect(screen.getByText('Done')).toBeTruthy();

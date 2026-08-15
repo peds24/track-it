@@ -207,10 +207,11 @@ function createStyles(c: Palette) {
       right: 0,
       bottom: 0,
       left: 0,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
     },
     action: {
+      position: 'absolute',
+      top: 0,
+      bottom: 0,
       width: ACTION_WIDTH,
       justifyContent: 'center',
       paddingHorizontal: layout.inset,
@@ -221,8 +222,14 @@ function createStyles(c: Palette) {
     // that job now. Pause stays as light as the row behind it; delete
     // inverts to a solid block of ink, the heaviest mark on the screen,
     // because it is the one action here that cannot be undone.
-    pauseAction: { backgroundColor: c.chip, marginLeft: space.sm },
-    deleteAction: { backgroundColor: c.ink, marginRight: space.sm, alignItems: 'flex-end' },
+    //
+    // Positioned absolutely on each side, not with flexbox space-between —
+    // Delete renders alone whenever a track is already in the backlog
+    // (`canReturn` is false), and space-between collapses a lone child to
+    // the start of the row rather than the end, leaving the swipe revealing
+    // empty space instead of the button.
+    pauseAction: { left: 0, backgroundColor: c.chip, marginLeft: space.sm },
+    deleteAction: { right: 0, backgroundColor: c.ink, marginRight: space.sm, alignItems: 'flex-end' },
     actionText: { ...font.control, color: c.ink },
     pauseText: { ...underline },
     deleteText: { color: c.bg },

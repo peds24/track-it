@@ -519,6 +519,156 @@ button would, and **Add to backlog**, unchanged. Start is the primary
 (filled) control — adding something is usually the first step toward
 beginning it, not filing it away.
 
+**A8 — Done is its own tab, reversing D11.** D11 kept completed tracks off the
+tab bar on purpose: D8 ranked reviewing what you finished last among the four
+experience priorities, and a filter chip reaches it "without being a
+destination." That reasoning assumed Done was rare enough, and marginal
+enough, to live as one option inside a horizontally scrolling row of five
+category chips.
+
+It undersold two things once the screen existed instead of just being
+specified. First, the Done chip did not mean what the chips beside it meant —
+the category chips narrow *within* a shelf, while the Done chip *switched*
+the shelf itself, but `FilterBar` drew both with the identical affordance, so
+nothing on screen distinguished "narrow what I'm looking at" from "look at
+something else entirely." Second, state that lives in a chip which can
+scroll out of view is state that can be left on by accident: turn on Done,
+filter by Movies, flip to Currently and back, and the Backlog tab now reads
+as unexpectedly empty with no visible reason why.
+
+A dedicated tab fixes both for the reason a tab generally beats a hidden
+mode: which shelf you are looking at is now always on screen in the tab bar,
+never scrolled away, and `FilterBar` goes back to doing one job — category,
+and nothing else. Concretely: `app/(tabs)/done.tsx` is a new screen
+permanently scoped to `useTracks('done', category)`, registered as a third
+`Tabs.Screen` in `app/(tabs)/_layout.tsx` after Backlog; `backlog.tsx` drops
+`showDone` and reverts to `useTracks('backlog', category)` only; and
+`FilterBar` loses its `showDone`/`onShowDoneChange` props and the Done chip
+entirely, along with the test that exercised it.
+
+**A9 — D5's catalogue providers, built: Google Books, TMDB, Metron, plus
+barcode scanning.** D5's candidate table is now committed rather than
+speculative. Registration is exactly D10's per-category rule: Google Books
+answers `book` and `manga` (both ISBN-barcode media), Metron answers `comic`
+alone, TMDB answers `show` and `movie`. Because `MetadataProvider.search()`
+carries no category parameter of its own, `GoogleBooksProvider` and
+`TmdbProvider` each take their category at construction and the registry
+holds two differently-configured instances rather than the interface
+growing a parameter — D5's stated goal, "add a catalogue-backed provider
+without touching the model or the tracking flow," held with zero changes to
+`src/providers/types.ts`.
+
+**Manual entry still needs no network call, anywhere, including through a
+real provider.** `ManualProvider.hydrate`'s count-validation and
+entry-numbering logic moved into an exported `generateEntries()` in
+`manual.ts`; every real provider's `hydrate()` calls it directly for a
+result that has no live catalogue match. "No match" is signalled the same
+way `addTrack.ts` already synthesised a `SearchResult` for `ManualProvider`
+before this work — `result.id === provider.id`, the provider's own id used
+as a sentinel — so a hand-typed title with search offline, unconfigured, or
+just never tapped costs nothing extra and behaves identically to v1.
+
+**Where a real provider does better than a guess:** TMDB sums
+`episode_count` across a matched show's seasons (excluding season 0,
+specials) for a real total, replacing the user's guess unless the series is
+marked ongoing — that flag means "no known total" and a snapshot of aired
+seasons must not silently overrule it. Metron reads a matched issue's
+series `issue_count` for a real issue total. Google Books never overrides
+the given count at all: a single-volume hit cannot tell a manga series has
+34 volumes, so `count` stays exactly what the Add screen collected, same as
+`ManualProvider` — the only thing a Google Books match changes is where the
+*title* came from.
+
+**Metron's query parameters, confirmed against the current API README**
+(`github.com/Metron-Project/metron`, `api/README.md`) rather than assumed:
+`upc` (exact match), `upc_starts_with` (prefix match, documented by Metron
+themselves for mobile scanners that only read the 12-digit UPC-A), and
+`series_name` for a plain title search on issues. All three matched what
+the brief that started this work assumed — no drift to correct.
+
+**The barcode-scanning gap this confirms:** `expo-camera`'s barcode
+scanner (types: aztec, ean13, ean8, qr, pdf417, upc_e, datamatrix, code39,
+code93, itf14, codabar, code128, upc_a) has no EAN-5 support, matching D5's
+own note that a UPC-A alone identifies a comic's series, not its issue. The
+scan flow is therefore: scan the UPC-A (`upc_a` type, comic only; `ean13`/
+`ean8` for book/manga ISBNs), then a small skippable numeric prompt for the
+5-digit EAN-5 supplemental. Given both, concatenate for Metron's exact
+`upc` filter — one confident match. Skipped, fall back to
+`upc_starts_with` and show every candidate issue as a pickable list through
+the same result UI a text search uses — scanning fills the search box
+faster, it is not a second feature.
+
+**Schema:** `entry` gained `external_source`/`external_id` columns
+(`series` already had them, unused until now — D5 left the room
+deliberately). Threaded through `createStandaloneTrack`, `toEntry`, and
+`backup.ts`'s export/import (still unsurfaced per A3, but its round-trip
+must not silently drop a column that now exists).
+
+**TMDB attribution** is a hard requirement of their terms, not a nicety: a
+"?" next to the Done tab's title (the natural home, since TMDB only
+supplies show/movie data and Done is where a finished one is reviewed)
+opens a plain modal with their required sentence verbatim — "This product
+uses the TMDB API but is not endorsed or certified by TMDB." — plus a short
+courtesy credit each for Google Books and Metron.
+
+**Judgment calls worth naming:**
+- No cover art is fetched or stored, ever, even though Google Books and
+  TMDB both return thumbnail/poster URLs in their responses — pulled off
+  the wire and discarded. "Text is the artwork" (design-language.html) is a
+  stated principle, not an oversight to fix once real data exists.
+- Metron's Basic-auth header uses a small hand-rolled base64 encoder rather
+  than a global `btoa` (not reliably present across Hermes/RN version
+  combinations) or a new dependency, for one line of real work.
+- Search-as-you-type is client-debounced (300ms) and swallows every
+  failure into "no suggestions" rather than surfacing an error — search is
+  progressive enhancement per D5/D10, never a blocking requirement, and an
+  `Alert` on every offline keystroke would make it feel like one.
+
+**Deferred / out of scope for this pass:** merging a hand-typed series
+against a later catalogue match (the v2 requirement D5 already flagged);
+hiding the count field when a real TMDB/Metron match makes it moot (left
+visible and simply overridden, to avoid a second behavioural mode); any
+UI test for `add.tsx`'s scanning branch, matching this codebase's existing
+convention of no direct RNTL coverage for screen-level components.
+
+**A10 — An episode gets `in_progress` back; a standalone movie keeps D2's
+binary rule.** D2's "no in-between state" reasoning was framed around
+*mode* — watched things are binary, read things are not — but the real
+reasoning was narrower than that: a single sitting has no meaningful
+middle. A5/A7 already established that a *series child's* tracking
+granularity comes from its position in the series, not from its mode —
+that is why a manga volume has `in_progress` despite being read-mode-shaped
+the same way a book is. An episode was left out of that logic by accident
+of framing, not by a reason that still holds: a show is exactly as
+episodic as a manga is volumed, so watch mode's original binary rule
+should only have ever applied to the media with no series to belong to.
+
+- **A series child (an episode)** now takes the same `unstarted ->
+  in_progress -> done` ladder a volume or issue already has. The first tap
+  starts it ("Watching Episode 1"); the second finishes it and, per A5,
+  immediately starts the next episode in the same tap.
+- **A standalone watch-mode entry (a movie)** is unchanged: D2's binary
+  rule holds for exactly the case it was actually about — no series to
+  belong to, no next unit to reveal, and "have I watched this" really is
+  binary.
+
+**Mechanically:** `advance()` (`domain/advance.ts`) now takes the
+straight-to-`done` path only when `mode === 'watch'` *and*
+`entry.seriesId === null`; every other case (including a watch-mode series
+child) goes through the same ladder read mode always used.
+`isStatusValid` (`domain/mode.ts`) gained an `isSeriesChild` parameter for
+the same reason — `in_progress` is invalid for watch mode only when there
+is no series, not for watch mode outright. `startNextInSeries`
+(`data/trackRepo.ts`) drops its `modeFor(...) !== 'read'` early return,
+which was the one thing actually stopping an episode from auto-advancing;
+the `seriesId === null` guard next to it was already the correct, and now
+only, condition.
+
+**Rejected:** a confirmation or distinct wording for an episode's first
+tap. A5 already rejected a confirmation dialog for the equivalent volume
+case, for the same reason it would reject one here — the request this
+serves is fewer taps, not more dialogs.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:
@@ -558,6 +708,49 @@ The schema accommodates it via the nullable `external_*` columns.
 
 ## Out of scope for v1
 
-Named explicitly so planning does not absorb them: catalogue API integrations
-(D5), cover art, sync and accounts (D6), ratings and reviews, social features,
-reading statistics, and the activity log rejected in D8.
+Named explicitly so planning does not absorb them: cover art, sync and
+accounts (D6), ratings and reviews, social features, and the activity log
+rejected in D8. Catalogue API integrations (D5) shipped as A9 and reading
+statistics moved to "Next up" below — both were on this list originally,
+neither still belongs here.
+
+## Next up
+
+Two features are agreed as the next work, past what shipped through A10.
+Documented here so their shape is settled before either gets built, rather
+than decided ad hoc mid-implementation.
+
+### Re-surface export/import
+
+The feature already exists — `src/data/backup.ts`, fully tested, all-or-
+nothing restore — and was deferred past v1 for lack of a screen to hold it,
+not for lack of working logic (A3). Re-enabling it means adding that screen,
+not rebuilding anything. It is also the app's only backup path (D6's "local-
+only storage, with export as the safety net") — right now a lost or wiped
+phone loses the library outright, and the app never says so. It matters more
+than it did at v1, too: a provider-sourced track (A9) now carries
+`external_source`/`external_id` worth preserving across a device change,
+where a v1 hand-typed track had nothing but a title to lose.
+
+### A stats page
+
+Not started. Agreed shape:
+
+- How many tracks were added per month, broken down by category.
+- How long a track sits in Backlog before it's started — added to first
+  advance.
+- Average time to finish a track, per category.
+- How many tracks were completed per month and per year.
+- Exportable.
+
+Every number above is derivable from columns that already exist
+(`created_at`, `started_at`, `finished_at`, `status`) — no schema change
+anticipated. Two things need a real decision once work starts, not before:
+where the page lives (its own tab competes with the restraint D8/D12 argue
+for; behind some other entry point avoids that but is less discoverable),
+and whether time spent `paused` (A6) counts toward "time to finish" or gets
+subtracted out — pausing didn't exist when "time to finish" was first
+proposed, and the honest answer probably depends on which question the page
+is actually trying to answer. "Exportable" likely reuses whichever format
+export/import (above) settles on, since both are fundamentally "get my data
+out" — worth building whichever one comes first with that reuse in mind.

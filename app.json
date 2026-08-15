@@ -26,7 +26,13 @@
     "plugins": [
       "expo-sqlite",
       "expo-router",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Used to scan a barcode when adding a book, manga or comic."
+        }
+      ]
     ],
     "owner": "peds24",
     "extra": {

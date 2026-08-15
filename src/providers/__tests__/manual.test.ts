@@ -1,5 +1,4 @@
 import { ManualProvider, MAX_UNITS, unitLabelFor } from '@/providers/manual';
-import { providerFor } from '@/providers/registry';
 
 test('manual search returns nothing — there is no catalogue in v1', async () => {
   await expect(new ManualProvider().search('berserk')).resolves.toEqual([]);
@@ -36,12 +35,6 @@ test('hydrate rejects a count below 1', async () => {
   await expect(
     new ManualProvider().hydrate({ id: 'manual', title: 'X', category: 'show', count: 0 }),
   ).rejects.toThrow(/at least 1/);
-});
-
-test('every category resolves to ManualProvider in v1', () => {
-  for (const category of ['show', 'movie', 'book', 'comic', 'manga'] as const) {
-    expect(providerFor(category)).toBeInstanceOf(ManualProvider);
-  }
 });
 
 test('unitLabelFor maps each category, with null for standalone ones', () => {

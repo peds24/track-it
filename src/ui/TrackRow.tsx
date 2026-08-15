@@ -45,10 +45,12 @@ export function positionLabel(track: TrackSummary): string {
     return 'Not started';
   }
   if (track.nextEntryTitle && track.nextEntryTitle !== track.title) {
-    // Watch mode has no in_progress state (D2) — an episode goes straight from
-    // unstarted to done, so there is no separate "started" tap to distinguish.
-    // But the row only reaches Currently once an earlier episode is done, so
-    // this unstarted one is the one currently up, not one still to come.
+    // A10: an episode does have an in_progress state now, same as a volume,
+    // but "Watching" stays unconditional here rather than splitting into a
+    // Reading/Next-style pair — a series only reaches Currently once its next
+    // episode is either being watched or was just auto-started by finishing
+    // the one before it (A5), so an unstarted-but-current episode is not a
+    // state this app's flows actually produce.
     if (!read) return `Watching ${track.nextEntryTitle}`;
     // Read mode does distinguish: an entry already in progress is one you are
     // part-way through, one still unstarted is one you have not opened yet —
@@ -80,6 +82,12 @@ export function TrackRow({
   // completing part of it. "Done" on an untouched backlog row claims you have
   // finished something you have not started.
   const starting = track.shelf === 'backlog' && !track.paused;
+  // A10: a movie completes in one tap (D2's binary rule, unlike a series
+  // episode) — "Start" implies a middle state a movie never has, so its own
+  // backlog control says what tapping it actually does. Category-aware, not
+  // mode-aware: a standalone book is also read-mode-binary-adjacent in
+  // wording terms but genuinely is two-tap, so it keeps "Start".
+  const startLabel = track.category === 'movie' ? 'Watched' : 'Start';
 
   // Only a series has something to be part-way through numerically; a standalone
   // book or movie draws no bar, and the absence is the signal.
@@ -136,7 +144,7 @@ export function TrackRow({
             resuming
               ? `Resume ${track.title}`
               : starting
-                ? `Start ${track.title}`
+                ? `${startLabel} ${track.title}`
                 : `Mark ${nextEntryTitle} ${verbFor(track.category)}`
           }
           onPress={() => (resuming ? onResume(track) : onAdvance(nextEntryId))}
@@ -144,7 +152,7 @@ export function TrackRow({
         >
           {({ pressed }) => (
             <Text style={[styles.advanceText, pressed && styles.advanceTextPressed]}>
-              {resuming ? 'Resume' : starting ? 'Start' : 'Done'}
+              {resuming ? 'Resume' : starting ? startLabel : 'Done'}
             </Text>
           )}
         </Pressable>

@@ -24,7 +24,7 @@ export default function TabsLayout() {
         tabBarLabel: ({ focused, color, children }) => (
           <Text
             style={[
-              { ...font.control, fontSize: 16, color, marginTop: 0 },
+              { ...font.control, fontSize: 16, color, marginTop: 0, textAlign: 'center' },
               focused && underline,
             ]}
           >
@@ -65,8 +65,9 @@ export default function TabsLayout() {
         ),
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Currently' }} />
+      <Tabs.Screen name="index" options={{ title: 'Track It' }} />
       <Tabs.Screen name="backlog" options={{ title: 'Backlog' }} />
+      <Tabs.Screen name="done" options={{ title: 'Done' }} />
       {/* No Settings tab: export/import is deferred past v1, and it was the only
           thing Settings held. An empty tab is worse than one fewer tab. */}
     </Tabs>

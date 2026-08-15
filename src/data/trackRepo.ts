@@ -1,6 +1,5 @@
 import type { SqlDriver } from '@/db/driver';
 import { advance } from '@/domain/advance';
-import { modeFor } from '@/domain/mode';
 import { nextEntry, progressFor, shelfForEntry, shelfForSeries } from '@/domain/shelf';
 import type { Category, Entry, Series, Shelf, Status } from '@/domain/types';
 import { assertEntryInvariants, assertIsoTimestamp, isStandaloneMediaType } from '@/domain/validate';
@@ -53,6 +52,8 @@ type EntryRow = {
   finished_at: string | null;
   created_at: string;
   paused: number;
+  external_source: string | null;
+  external_id: string | null;
 };
 
 export function toEntry(row: EntryRow): Entry {
@@ -67,6 +68,8 @@ export function toEntry(row: EntryRow): Entry {
     finishedAt: row.finished_at,
     createdAt: row.created_at,
     paused: row.paused === 1,
+    externalSource: row.external_source ?? null,
+    externalId: row.external_id ?? null,
   };
 }
 
@@ -78,13 +81,43 @@ export async function createSeriesTrack(
   db: SqlDriver,
   draft: SeriesDraft,
   now: string,
+  /**
+   * A10: a comic/manga title can embed its own volume/issue number ("Saga
+   * #12"), parsed off before this is called (see `parseSeriesTitle`). When
+   * it names an entry that actually exists in this draft — within the count
+   * for a finite series, or just ≥ 1 for an ongoing one — that entry starts
+   * `in_progress` instead of every entry starting `unstarted`, set inside
+   * this same transaction so the series is never briefly in a state where
+   * some entries exist and the start hasn't been applied. An out-of-range
+   * ordinal (e.g. "#99" on a 12-issue series) is silently ignored — not an
+   * error, not clamped — exactly as if no ordinal had been parsed.
+   */
+  startAtOrdinal?: number,
 ): Promise<string> {
   const seriesId = newId();
+
+  const validStartOrdinal =
+    startAtOrdinal !== undefined &&
+    startAtOrdinal >= 1 &&
+    (draft.ongoing === true || startAtOrdinal <= draft.entries.length)
+      ? startAtOrdinal
+      : null;
+
+  // An ongoing series (A4) always generates exactly one bootstrap entry,
+  // numbered 1 — there is no bulk run to index a parsed ordinal into. Rather
+  // than create "Volume 1" and silently ignore a title that said "Volume 8",
+  // renumber that lone entry to the parsed ordinal; appendNextOngoingEntry
+  // already continues from the highest existing ordinal, so growth from 8
+  // onward costs it nothing.
+  const entries =
+    draft.ongoing === true && validStartOrdinal !== null
+      ? [{ ordinal: validStartOrdinal, title: `${UNIT_TITLE[draft.unitLabel]} ${validStartOrdinal}` }]
+      : draft.entries;
 
   // Enforce the invariants before opening the transaction: a rejected draft
   // should never have touched the database at all.
   assertIsoTimestamp(now, 'series createdAt');
-  for (const entry of draft.entries) {
+  for (const entry of entries) {
     assertEntryInvariants({
       label: `Entry "${entry.title}"`,
       mediaType: draft.unitLabel,
@@ -110,11 +143,21 @@ export async function createSeriesTrack(
       ],
     );
 
-    for (const entry of draft.entries) {
+    for (const entry of entries) {
+      const startsHere = validStartOrdinal !== null && entry.ordinal === validStartOrdinal;
       await db.run(
-        `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at)
-         VALUES (?, ?, ?, ?, ?, 'unstarted', ?)`,
-        [newId(), seriesId, entry.title, entry.ordinal, draft.unitLabel, now],
+        `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, started_at, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          newId(),
+          seriesId,
+          entry.title,
+          entry.ordinal,
+          draft.unitLabel,
+          startsHere ? 'in_progress' : 'unstarted',
+          startsHere ? now : null,
+          now,
+        ],
       );
     }
   });
@@ -124,7 +167,14 @@ export async function createSeriesTrack(
 
 export async function createStandaloneTrack(
   db: SqlDriver,
-  input: { title: string; category: 'book' | 'movie' },
+  input: {
+    title: string;
+    category: 'book' | 'movie';
+    /** A9: set when the title came from a confirmed catalogue match rather
+     * than being typed by hand — a search hit or a barcode scan. */
+    externalSource?: string;
+    externalId?: string;
+  },
   now: string,
 ): Promise<string> {
   const id = newId();
@@ -135,32 +185,43 @@ export async function createStandaloneTrack(
     createdAt: now,
   });
   await db.run(
-    `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at)
-     VALUES (?, NULL, ?, NULL, ?, 'unstarted', ?)`,
-    [id, input.title, input.category, now],
+    `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)
+     VALUES (?, NULL, ?, NULL, ?, 'unstarted', ?, ?, ?)`,
+    [id, input.title, input.category, now, input.externalSource ?? null, input.externalId ?? null],
   );
   return id;
 }
 
 /**
  * The entry a freshly added track would advance first: its own row for a
- * standalone track, or ordinal 1 for a series. Lets a caller (the Add screen)
- * start a track it just created without a second trip through listTracks to
- * rediscover what nextEntry() would already say.
+ * standalone track, or (usually) ordinal 1 for a series. Lets a caller (the
+ * Add screen) start a track it just created without a second trip through
+ * listTracks to rediscover what nextEntry() would already say.
+ *
+ * A10: a comic/manga title's embedded volume/issue number can already have
+ * started an entry other than ordinal 1 at creation (`createSeriesTrack`'s
+ * `startAtOrdinal`) — the status comes back alongside the id so a caller can
+ * tell "already started by A10" from "needs its first tap" and not advance
+ * an in_progress entry straight to done.
  */
 export async function firstEntryOf(
   db: SqlDriver,
   track: { kind: 'series' | 'entry'; id: string },
-): Promise<string> {
-  if (track.kind === 'entry') return track.id;
+): Promise<{ id: string; status: Status }> {
+  if (track.kind === 'entry') {
+    const rows = await db.all<EntryRow>('SELECT * FROM entry WHERE id = ?', [track.id]);
+    const entry = rows[0];
+    if (!entry) throw new Error(`Entry ${track.id} not found`);
+    return { id: entry.id, status: entry.status };
+  }
 
   const rows = await db.all<EntryRow>(
-    'SELECT * FROM entry WHERE series_id = ? ORDER BY ordinal ASC LIMIT 1',
+    'SELECT * FROM entry WHERE series_id = ? ORDER BY ordinal ASC',
     [track.id],
   );
-  const first = rows[0];
-  if (!first) throw new Error(`Series ${track.id} has no entries`);
-  return first.id;
+  if (rows.length === 0) throw new Error(`Series ${track.id} has no entries`);
+  const target = rows.find((r) => r.status === 'in_progress') ?? rows[0]!;
+  return { id: target.id, status: target.status };
 }
 
 /**
@@ -282,12 +343,13 @@ export async function advanceEntry(db: SqlDriver, entryId: string, now: string):
   if (!row) throw new Error(`Entry ${entryId} not found`);
 
   const entry = toEntry(row);
-  // A7: advance() already gives every entry, series child or not, the one
-  // status transition its mode allows (D2) — unstarted -> done for watch mode,
-  // unstarted -> in_progress -> done for read mode. A5's "one act" auto-start
-  // is layered on below, only once an entry actually reaches done; it must not
-  // also swallow the first tap on an untouched volume, or starting volume 1
-  // would immediately report it read.
+  // A7/A10: advance() already gives every entry the one status transition its
+  // mode and kind allow — unstarted -> in_progress -> done for read mode and
+  // for a watch-mode series child (an episode), unstarted -> done in one call
+  // only for a standalone watch-mode entry (a movie, D2). A5's "one act"
+  // auto-start is layered on below, only once an entry actually reaches done;
+  // it must not also swallow the first tap on an untouched volume or episode,
+  // or starting it would immediately report it finished.
   const updated = advance(entry, now);
 
   await db.run('UPDATE entry SET status = ?, started_at = ?, finished_at = ? WHERE id = ?', [
@@ -335,13 +397,13 @@ async function appendNextOngoingEntry(db: SqlDriver, finished: Entry, now: strin
 }
 
 /**
- * A5: mark the following unit as in progress, so the row reads "Reading Volume
- * 8" the moment volume 7 is finished. Watch mode has no in_progress state (D2),
- * so an episode is left unstarted and reads "Next Episode 4".
+ * A5/A10: mark the following unit as in progress, so the row reads "Reading
+ * Volume 8" (or "Watching Episode 4") the moment the previous unit is
+ * finished. Standalone tracks (seriesId null) are the only ones this skips —
+ * a movie has no next unit to mark, whatever its mode.
  */
 async function startNextInSeries(db: SqlDriver, finished: Entry, now: string): Promise<void> {
   if (finished.seriesId === null) return;
-  if (modeFor(finished.mediaType) !== 'read') return;
 
   const rows = await db.all<EntryRow>('SELECT * FROM entry WHERE series_id = ?', [
     finished.seriesId,

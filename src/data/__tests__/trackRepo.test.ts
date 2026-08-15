@@ -91,6 +91,8 @@ test('toEntry maps every column to its own domain field', () => {
     finished_at: '2026-02-02T00:00:00.000Z',
     created_at: '2026-03-03T00:00:00.000Z',
     paused: 1,
+    external_source: 'tmdb',
+    external_id: 'ext-id',
   });
 
   const expected: Entry = {
@@ -104,6 +106,8 @@ test('toEntry maps every column to its own domain field', () => {
     finishedAt: '2026-02-02T00:00:00.000Z',
     createdAt: '2026-03-03T00:00:00.000Z',
     paused: true,
+    externalSource: 'tmdb',
+    externalId: 'ext-id',
   };
 
   expect(entry).toEqual(expected);
@@ -250,7 +254,10 @@ test('a fully completed series also reports nothing left to advance', async () =
 
   const rows = await db.all<{ id: string }>('SELECT id FROM entry ORDER BY ordinal');
   for (const row of rows) {
-    await advanceEntry(db, row.id); // watch mode: straight to done
+    // A10: an episode is a series child, so it now takes the same two-step
+    // ladder a volume always has — unstarted -> in_progress -> done.
+    await advanceEntry(db, row.id);
+    await advanceEntry(db, row.id);
   }
 
   const done = await listTracks(db, 'done');

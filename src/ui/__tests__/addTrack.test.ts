@@ -71,3 +71,53 @@ test('adding a comic generates issue-labelled entries', async () => {
   expect(track!.progress).toEqual({ done: 0, total: 4 });
   expect(track!.nextEntryTitle).toBe('Issue 1');
 });
+
+// A9: a confirmed search/scan result records where a standalone track came
+// from — no fake series wrapper, straight through createStandaloneTrack.
+test('a book added from a confirmed search result records its external source and id', async () => {
+  const db = await freshDb();
+  await addTrack(
+    db,
+    {
+      title: 'Dune',
+      category: 'book',
+      count: 1,
+      match: { id: 'abc123', title: 'Dune', category: 'book', count: 1 },
+    },
+    NOW,
+  );
+
+  const rows = await db.all<{ external_source: string | null; external_id: string | null }>(
+    'SELECT external_source, external_id FROM entry',
+  );
+  expect(rows).toEqual([{ external_source: 'google-books', external_id: 'abc123' }]);
+});
+
+test('a book with no picked search result records no external source', async () => {
+  const db = await freshDb();
+  await addTrack(db, { title: 'Dune', category: 'book', count: 1 }, NOW);
+
+  const rows = await db.all<{ external_source: string | null; external_id: string | null }>(
+    'SELECT external_source, external_id FROM entry',
+  );
+  expect(rows).toEqual([{ external_source: null, external_id: null }]);
+});
+
+test('a series track hydrated from a confirmed match records the series-level external source and id', async () => {
+  const db = await freshDb();
+  await addTrack(
+    db,
+    {
+      title: 'Berserk',
+      category: 'manga',
+      count: 3,
+      match: { id: 'gb-berserk', title: 'Berserk', category: 'manga', count: 1 },
+    },
+    NOW,
+  );
+
+  const rows = await db.all<{ external_source: string | null; external_id: string | null }>(
+    'SELECT external_source, external_id FROM series',
+  );
+  expect(rows).toEqual([{ external_source: 'google-books', external_id: 'gb-berserk' }]);
+});

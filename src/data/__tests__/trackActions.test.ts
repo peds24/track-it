@@ -72,13 +72,17 @@ describe('deleteTrack', () => {
 });
 
 describe('returnTrackToBacklog', () => {
+  // A10: an episode is a series child, so a single tap now starts it (like a
+  // manga volume) rather than finishing it — "progress survives" is now
+  // about the in_progress state and its startedAt, not a done count.
   test('A6: a part-way series is paused, not reset — its progress survives', async () => {
     const db = await freshDb();
     await addTrack(db, { title: 'Severance', category: 'show', count: 4 }, NOW);
     const [backlogged] = await listTracks(db, 'backlog');
-    await advanceEntry(db, backlogged!.nextEntryId!, NOW); // watches episode 1
+    await advanceEntry(db, backlogged!.nextEntryId!, NOW); // starts episode 1
     const [current] = await listTracks(db, 'currently');
-    expect(current!.progress).toEqual({ done: 1, total: 4 });
+    expect(current!.progress).toEqual({ done: 0, total: 4 });
+    expect(current!.nextEntryStatus).toBe('in_progress');
 
     await returnTrackToBacklog(db, { kind: 'series', id: current!.id });
 
@@ -86,9 +90,10 @@ describe('returnTrackToBacklog', () => {
     const [paused] = await listTracks(db, 'backlog');
     expect(paused!.title).toBe('Severance');
     expect(paused!.paused).toBe(true);
-    // The whole point of A6: what was already watched is not lost by leaving
-    // Currently, unlike the pre-A6 reset this replaces.
-    expect(paused!.progress).toEqual({ done: 1, total: 4 });
+    // The whole point of A6: what was already in progress is not lost by
+    // leaving Currently, unlike the pre-A6 reset this replaces.
+    expect(paused!.progress).toEqual({ done: 0, total: 4 });
+    expect(paused!.nextEntryStatus).toBe('in_progress');
   });
 
   test('A6: timestamps survive the pause, unlike the old reset', async () => {
@@ -105,9 +110,9 @@ describe('returnTrackToBacklog', () => {
       started_at: string | null;
       finished_at: string | null;
     }>('SELECT status, started_at, finished_at FROM entry WHERE ordinal = 1');
-    expect(rows[0]!.status).toBe('done');
+    expect(rows[0]!.status).toBe('in_progress');
     expect(rows[0]!.started_at).not.toBeNull();
-    expect(rows[0]!.finished_at).not.toBeNull();
+    expect(rows[0]!.finished_at).toBeNull();
   });
 
   test('A6: a fully finished series is reset, not paused — nothing is left to resume', async () => {
@@ -190,7 +195,8 @@ describe('resumeTrack', () => {
 
     const resumed = await listTracks(db, 'currently');
     expect(resumed.map((t) => t.title)).toEqual(['Severance']);
-    expect(resumed[0]!.progress).toEqual({ done: 1, total: 4 });
+    // A10: a single tap on an episode starts it, same as a volume.
+    expect(resumed[0]!.progress).toEqual({ done: 0, total: 4 });
     expect(resumed[0]!.paused).toBe(false);
   });
 

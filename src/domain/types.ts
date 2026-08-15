@@ -45,4 +45,12 @@ export type Entry = {
    * pauses at the series row instead. A series child's own flag is unused.
    */
   paused: boolean;
+  /**
+   * A9: where a standalone book/movie's title came from, if it came from a
+   * catalogue match rather than being typed by hand. A series child's own
+   * columns are unused — its series row records this instead (mirrors `paused`
+   * above).
+   */
+  externalSource: string | null;
+  externalId: string | null;
 };
