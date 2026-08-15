@@ -12,7 +12,9 @@ async function freshDb() {
   return db;
 }
 
-test('advancing the first episode moves a show from backlog to currently', async () => {
+// A10: an episode is a series child, so — like a manga volume — the first
+// tap starts it rather than finishing it.
+test('advancing the first episode moves a show from backlog to currently, and starts it', async () => {
   const db = await freshDb();
   await createSeriesTrack(
     db,
@@ -33,8 +35,36 @@ test('advancing the first episode moves a show from backlog to currently', async
 
   expect(await listTracks(db, 'backlog')).toHaveLength(0);
   const [current] = await listTracks(db, 'currently');
+  expect(current!.progress).toEqual({ done: 0, total: 2 });
+  expect(current!.nextEntryTitle).toBe('Episode 1');
+  expect(current!.nextEntryStatus).toBe('in_progress');
+});
+
+test('finishing the in-progress episode marks it done and starts the next one', async () => {
+  const db = await freshDb();
+  await createSeriesTrack(
+    db,
+    {
+      title: 'Severance',
+      mediaType: 'show',
+      unitLabel: 'episode',
+      entries: [
+        { ordinal: 1, title: 'Episode 1' },
+        { ordinal: 2, title: 'Episode 2' },
+      ],
+    },
+    NOW,
+  );
+
+  const [backlogged] = await listTracks(db, 'backlog');
+  await advanceEntry(db, backlogged!.nextEntryId!, NOW); // starts episode 1
+  const [watching] = await listTracks(db, 'currently');
+  await advanceEntry(db, watching!.nextEntryId!, NOW); // finishes episode 1
+
+  const [current] = await listTracks(db, 'currently');
   expect(current!.progress).toEqual({ done: 1, total: 2 });
   expect(current!.nextEntryTitle).toBe('Episode 2');
+  expect(current!.nextEntryStatus).toBe('in_progress');
 });
 
 test('advancing a book once makes it currently, not done', async () => {

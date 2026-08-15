@@ -25,6 +25,15 @@ export async function addTrack(
      * "no real match", the same sentinel `ManualProvider` always ignored.
      */
     match?: SearchResult;
+    /**
+     * A10: the entry to start `in_progress` at creation, parsed from a
+     * trailing volume/issue number in the title before this was called (e.g.
+     * "Saga #12" -> 12). Ignored for a standalone category and for an
+     * out-of-range ordinal — `createSeriesTrack` is the one place that
+     * decides whether it actually applies, since only it knows the draft's
+     * final entry count.
+     */
+    startAtOrdinal?: number;
   },
   now: string,
 ): Promise<CreatedTrack> {
@@ -57,11 +66,15 @@ export async function addTrack(
   // picked: a catalogue hit only ever confirms a title, never a count (see
   // GoogleBooksProvider) — a provider that *can* fetch a real total (TMDB,
   // Metron) decides for itself whether to trust this or override it.
+  // `title` (already trimmed, and already stripped of a comic/manga volume/
+  // issue number by the caller — A10) always wins over `input.match.title`:
+  // the two agree in practice, since picking a result sets the title field to
+  // exactly that result's title, but only `title` reflects the A10 strip.
   const result: SearchResult = input.match
-    ? { ...input.match, count: input.count, ongoing: input.ongoing === true }
+    ? { ...input.match, title, count: input.count, ongoing: input.ongoing === true }
     : { id: provider.id, title, category: input.category, count: input.count, ongoing: input.ongoing === true };
   const draft = await provider.hydrate(result);
 
-  const id = await createSeriesTrack(db, draft, now);
+  const id = await createSeriesTrack(db, draft, now, input.startAtOrdinal);
   return { kind: 'series', id };
 }

@@ -631,6 +631,44 @@ visible and simply overridden, to avoid a second behavioural mode); any
 UI test for `add.tsx`'s scanning branch, matching this codebase's existing
 convention of no direct RNTL coverage for screen-level components.
 
+**A10 — An episode gets `in_progress` back; a standalone movie keeps D2's
+binary rule.** D2's "no in-between state" reasoning was framed around
+*mode* — watched things are binary, read things are not — but the real
+reasoning was narrower than that: a single sitting has no meaningful
+middle. A5/A7 already established that a *series child's* tracking
+granularity comes from its position in the series, not from its mode —
+that is why a manga volume has `in_progress` despite being read-mode-shaped
+the same way a book is. An episode was left out of that logic by accident
+of framing, not by a reason that still holds: a show is exactly as
+episodic as a manga is volumed, so watch mode's original binary rule
+should only have ever applied to the media with no series to belong to.
+
+- **A series child (an episode)** now takes the same `unstarted ->
+  in_progress -> done` ladder a volume or issue already has. The first tap
+  starts it ("Watching Episode 1"); the second finishes it and, per A5,
+  immediately starts the next episode in the same tap.
+- **A standalone watch-mode entry (a movie)** is unchanged: D2's binary
+  rule holds for exactly the case it was actually about — no series to
+  belong to, no next unit to reveal, and "have I watched this" really is
+  binary.
+
+**Mechanically:** `advance()` (`domain/advance.ts`) now takes the
+straight-to-`done` path only when `mode === 'watch'` *and*
+`entry.seriesId === null`; every other case (including a watch-mode series
+child) goes through the same ladder read mode always used.
+`isStatusValid` (`domain/mode.ts`) gained an `isSeriesChild` parameter for
+the same reason — `in_progress` is invalid for watch mode only when there
+is no series, not for watch mode outright. `startNextInSeries`
+(`data/trackRepo.ts`) drops its `modeFor(...) !== 'read'` early return,
+which was the one thing actually stopping an episode from auto-advancing;
+the `seriesId === null` guard next to it was already the correct, and now
+only, condition.
+
+**Rejected:** a confirmation or distinct wording for an episode's first
+tap. A5 already rejected a confirmation dialog for the equivalent volume
+case, for the same reason it would reject one here — the request this
+serves is fewer taps, not more dialogs.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:

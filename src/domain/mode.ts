@@ -13,8 +13,19 @@ export function modeFor(mediaType: EntryMediaType): Mode {
   return MODE_BY_MEDIA_TYPE[mediaType];
 }
 
-/** You do not sit half-way inside an episode, so watch mode has no in_progress. */
-export function isStatusValid(mediaType: EntryMediaType, status: Status): boolean {
-  if (modeFor(mediaType) === 'watch') return status !== 'in_progress';
+/**
+ * A5/A7 already made a series child's tracking granularity a function of its
+ * position in the series rather than its mode — that's why a manga volume
+ * has an in_progress state. A10 makes an episode consistent with that: a
+ * standalone watch-mode entry (a movie) has no in_progress state, since it
+ * has no next unit for a middle state to mean anything about, but a
+ * watch-mode series child (an episode) does.
+ */
+export function isStatusValid(
+  mediaType: EntryMediaType,
+  status: Status,
+  isSeriesChild: boolean,
+): boolean {
+  if (modeFor(mediaType) === 'watch' && !isSeriesChild) return status !== 'in_progress';
   return true;
 }

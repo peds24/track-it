@@ -1,9 +1,10 @@
 import { CameraView, useCameraPermissions, type BarcodeType } from 'expo-camera';
-import { useRouter } from 'expo-router';
+import { useNavigation, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { addTrack } from '@/data/addTrack';
 import { advanceEntry, firstEntryOf } from '@/data/trackRepo';
+import { parseSeriesTitle } from '@/domain/seriesTitle';
 import type { Category } from '@/domain/types';
 import { MetronProvider } from '@/providers/metron';
 import { unitLabelFor } from '@/providers/manual';
@@ -35,6 +36,7 @@ const CATEGORIES: readonly { value: Category; label: string }[] = [
 export default function AddTrackScreen() {
   const db = useDatabase();
   const router = useRouter();
+  const navigation = useNavigation();
   const palette = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [category, setCategory] = useState<Category | null>(null);
@@ -61,6 +63,12 @@ export default function AddTrackScreen() {
   const [ean5, setEan5] = useState('');
   const [permission, requestPermission] = useCameraPermissions();
   const scanHandled = useRef(false);
+  // router.back() after a successful save is itself a `beforeRemove` trigger —
+  // without this, the guard below would catch its own exit and reset the form
+  // back to the category picker instead of actually leaving. Set right before
+  // that call; a ref rather than state so the very next event sees it, with no
+  // render/effect round trip to race against.
+  const allowLeave = useRef(false);
 
   const isSeries = category !== null && unitLabelFor(category) !== null;
   const needsCount = isSeries && !ongoing;
@@ -98,6 +106,31 @@ export default function AddTrackScreen() {
       clearTimeout(handle);
     };
   }, [title, category, picked]);
+
+  // Picking a category never navigates — it just re-renders this component
+  // past the `category === null` branch — so leaving the modal for real and
+  // backing out of an in-progress category pick both arrive as the same
+  // navigation action (header back, hardware back, swipe-back gesture). This
+  // is the one place that distinguishes them: while a category is chosen,
+  // back resets to the category picker instead of leaving, clearing every bit
+  // of state the abandoned attempt left behind so picking a different
+  // category next starts clean.
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (category === null || allowLeave.current) return;
+      e.preventDefault();
+      setCategory(null);
+      setTitle('');
+      setCount('');
+      setOngoing(false);
+      setPicked(null);
+      setResults([]);
+      setScanning(false);
+      setPendingUpc(null);
+      setEan5('');
+    });
+    return unsubscribe;
+  }, [navigation, category]);
 
   function pick(result: SearchResult): void {
     setTitle(result.title);
@@ -175,21 +208,40 @@ export default function AddTrackScreen() {
     setSaving(true);
     try {
       const now = new Date().toISOString();
+      // A10: a comic/manga title may embed its own volume/issue number
+      // ("Absolute Batman #1", "Berserk Volume 5") — strip it so the series
+      // title doesn't carry the number twice, and start tracking at that
+      // entry instead of always at 1. Applies to whatever the final title
+      // string is, regardless of whether it was typed, picked from a search
+      // result, or filled in by a barcode scan — all three converge on
+      // `title` by this point.
+      const { title: finalTitle, ordinal } =
+        category === 'comic' || category === 'manga'
+          ? parseSeriesTitle(title)
+          : { title: title.trim(), ordinal: null };
+
       const created = await addTrack(
         db,
         {
-          title,
+          title: finalTitle,
           category,
           count: parsedCount,
           ongoing: isSeries && ongoing,
           match: picked ?? undefined,
+          startAtOrdinal: ordinal ?? undefined,
         },
         now,
       );
       if (startNow) {
-        const entryId = await firstEntryOf(db, created);
-        await advanceEntry(db, entryId, now);
+        const first = await firstEntryOf(db, created);
+        // A10 may have already started the parsed entry at creation — Start's
+        // job is then already done, and advancing further would finish it
+        // instead of merely starting it.
+        if (first.status !== 'in_progress') {
+          await advanceEntry(db, first.id, now);
+        }
       }
+      allowLeave.current = true;
       router.back();
     } catch (error) {
       Alert.alert('Could not add track', error instanceof Error ? error.message : String(error));
@@ -318,7 +370,10 @@ export default function AddTrackScreen() {
         onPress={() => handleSave(true)}
         accessibilityRole="button"
       >
-        <Text style={styles.saveText}>Start</Text>
+        {/* A10: a movie still completes in one tap (D2) — "Start" implies a
+            middle state it never has, so the primary button says what it
+            actually does for a movie specifically. */}
+        <Text style={styles.saveText}>{category === 'movie' ? 'Watched' : 'Start'}</Text>
       </Pressable>
       <Pressable
         style={styles.saveSecondary}

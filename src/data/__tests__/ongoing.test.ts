@@ -83,8 +83,10 @@ test('an ongoing show appends episodes, not volumes', async () => {
   const db = await freshDb();
   await addTrack(db, { title: 'Severance', category: 'show', count: 0, ongoing: true }, NOW);
 
-  // Watch mode completes an episode in one tap.
-  await advanceTimes(db, 1);
+  // A10: an episode is a series child, so — like a volume — it takes two
+  // taps to reach done: start episode 1, then finish it (which appends and
+  // starts episode 2, per A5).
+  await advanceTimes(db, 2);
 
   const rows = await db.all<{ title: string }>('SELECT title FROM entry ORDER BY ordinal');
   expect(rows.map((r) => r.title)).toEqual(['Episode 1', 'Episode 2']);

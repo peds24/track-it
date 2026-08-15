@@ -142,9 +142,32 @@ test('a failure part-way through applying a backup rolls the library back', asyn
   expect(after).toHaveLength(2);
 });
 
-test('an episode marked in_progress is rejected: watch mode has no in_progress', async () => {
+/**
+ * A10: a standalone watch-mode entry (a movie, seriesId null) still has no
+ * in_progress state — it has no next unit for a middle state to mean
+ * anything about, and D2's original binary rule holds for it unchanged.
+ */
+test('a standalone movie marked in_progress is rejected: it has no in_progress state', async () => {
   const db = await freshDb();
   await addTrack(db, { title: 'Dune', category: 'book', count: 1 }, NOW);
+
+  const json = payload({
+    entries: [
+      entryFixture({ seriesId: null, title: 'Arrival', ordinal: null, mediaType: 'movie', status: 'in_progress' }),
+    ],
+  });
+
+  await expect(importLibrary(db, json)).rejects.toThrow(/not valid for a movie/);
+  expect((await listTracks(db, 'backlog')).map((t) => t.title)).toEqual(['Dune']);
+});
+
+/**
+ * A10: a watch-mode series child (an episode) is consistent with a
+ * read-mode series child (A5/A7) — its granularity comes from its position
+ * in the series, not from its mode, so it does have an in_progress state.
+ */
+test('an episode marked in_progress imports fine — a series child does have in_progress', async () => {
+  const db = await freshDb();
 
   const json = payload({
     series: [seriesFixture({ id: 's1', title: 'Twin Peaks', mediaType: 'show', unitLabel: 'episode' })],
@@ -153,8 +176,11 @@ test('an episode marked in_progress is rejected: watch mode has no in_progress',
     ],
   });
 
-  await expect(importLibrary(db, json)).rejects.toThrow(/not valid for a episode/);
-  expect((await listTracks(db, 'backlog')).map((t) => t.title)).toEqual(['Dune']);
+  await importLibrary(db, json);
+
+  const [track] = await listTracks(db, 'currently');
+  expect(track!.title).toBe('Twin Peaks');
+  expect(track!.nextEntryStatus).toBe('in_progress');
 });
 
 test('a standalone entry survives an export/import round trip', async () => {

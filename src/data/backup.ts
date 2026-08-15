@@ -120,14 +120,17 @@ function parseEntry(value: unknown, unitLabelBySeriesId: ReadonlyMap<string, Ser
   if (!STATUSES.includes(status as Status)) {
     throw new Error(`Unknown status: ${status}`);
   }
-  // Mode is derived from media type, so some statuses are impossible (D2).
-  if (!isStatusValid(mediaType as EntryMediaType, status as Status)) {
-    throw new Error(`Status ${status} is not valid for a ${mediaType}`);
-  }
 
   const seriesId = requireNullableString(value.seriesId, 'entry.seriesId');
   if (seriesId !== null && !unitLabelBySeriesId.has(seriesId)) {
     throw new Error(`Entry ${id} refers to a missing series`);
+  }
+
+  // Mode is derived from media type, so some statuses are impossible (D2) —
+  // except a watch-mode series child (an episode), which does have an
+  // in_progress state (A10).
+  if (!isStatusValid(mediaType as EntryMediaType, status as Status, seriesId !== null)) {
+    throw new Error(`Status ${status} is not valid for a ${mediaType}`);
   }
 
   const ordinal = value.ordinal ?? null;
