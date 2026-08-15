@@ -65,7 +65,7 @@ export default function TabsLayout() {
         ),
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Currently' }} />
+      <Tabs.Screen name="index" options={{ title: 'Track It' }} />
       <Tabs.Screen name="backlog" options={{ title: 'Backlog' }} />
       <Tabs.Screen name="done" options={{ title: 'Done' }} />
       {/* No Settings tab: export/import is deferred past v1, and it was the only
