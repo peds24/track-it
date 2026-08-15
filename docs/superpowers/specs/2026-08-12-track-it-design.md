@@ -708,6 +708,49 @@ The schema accommodates it via the nullable `external_*` columns.
 
 ## Out of scope for v1
 
-Named explicitly so planning does not absorb them: catalogue API integrations
-(D5), cover art, sync and accounts (D6), ratings and reviews, social features,
-reading statistics, and the activity log rejected in D8.
+Named explicitly so planning does not absorb them: cover art, sync and
+accounts (D6), ratings and reviews, social features, and the activity log
+rejected in D8. Catalogue API integrations (D5) shipped as A9 and reading
+statistics moved to "Next up" below — both were on this list originally,
+neither still belongs here.
+
+## Next up
+
+Two features are agreed as the next work, past what shipped through A10.
+Documented here so their shape is settled before either gets built, rather
+than decided ad hoc mid-implementation.
+
+### Re-surface export/import
+
+The feature already exists — `src/data/backup.ts`, fully tested, all-or-
+nothing restore — and was deferred past v1 for lack of a screen to hold it,
+not for lack of working logic (A3). Re-enabling it means adding that screen,
+not rebuilding anything. It is also the app's only backup path (D6's "local-
+only storage, with export as the safety net") — right now a lost or wiped
+phone loses the library outright, and the app never says so. It matters more
+than it did at v1, too: a provider-sourced track (A9) now carries
+`external_source`/`external_id` worth preserving across a device change,
+where a v1 hand-typed track had nothing but a title to lose.
+
+### A stats page
+
+Not started. Agreed shape:
+
+- How many tracks were added per month, broken down by category.
+- How long a track sits in Backlog before it's started — added to first
+  advance.
+- Average time to finish a track, per category.
+- How many tracks were completed per month and per year.
+- Exportable.
+
+Every number above is derivable from columns that already exist
+(`created_at`, `started_at`, `finished_at`, `status`) — no schema change
+anticipated. Two things need a real decision once work starts, not before:
+where the page lives (its own tab competes with the restraint D8/D12 argue
+for; behind some other entry point avoids that but is less discoverable),
+and whether time spent `paused` (A6) counts toward "time to finish" or gets
+subtracted out — pausing didn't exist when "time to finish" was first
+proposed, and the honest answer probably depends on which question the page
+is actually trying to answer. "Exportable" likely reuses whichever format
+export/import (above) settles on, since both are fundamentally "get my data
+out" — worth building whichever one comes first with that reuse in mind.
