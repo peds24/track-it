@@ -745,12 +745,33 @@ Not started. Agreed shape:
 
 Every number above is derivable from columns that already exist
 (`created_at`, `started_at`, `finished_at`, `status`) — no schema change
-anticipated. Two things need a real decision once work starts, not before:
-where the page lives (its own tab competes with the restraint D8/D12 argue
-for; behind some other entry point avoids that but is less discoverable),
-and whether time spent `paused` (A6) counts toward "time to finish" or gets
+anticipated. "Exportable" likely reuses whichever format export/import
+(above) settles on, since both are fundamentally "get my data out" — worth
+building whichever one comes first with that reuse in mind.
+
+**Layout: hairline rows, not bordered tiles.** Two full mockups were built
+to compare before any of this gets implemented. One grouped the charts and
+the headline number into bordered, radius-3 tiles — closer to an
+instrument-panel read, and closer to what real e-ink dashboard hardware
+tends to do. The other dropped every container border and relied on nothing
+but a hairline on top of each section, the same rule `TrackRow.tsx` already
+states outright: "rows are separated by a hairline, not a card." Rows won.
+It keeps the stats page visually consistent with every other screen in the
+app instead of introducing a second container language just for this one
+page — the only bordered elements left are the two things on the screen
+that are actually controls, not containers, the paused-time toggle and the
+export button, and both already draw their border from `ruleStrong` the
+same way the advance button does on every other screen. The four "quick
+stat" figures under the headline number (this month, average time to
+start, current backlog size, finish rate) render as their own
+hairline-divided rows — label left, value right — rather than packed into
+one inline line; the monthly charts and the finish-rate gauge are
+unaffected by the choice either way.
+
+Two things still need a real decision once work starts, not before: where
+the page lives (its own tab competes with the restraint D8/D12 argue for;
+behind some other entry point avoids that but is less discoverable), and
+whether time spent `paused` (A6) counts toward "time to finish" or gets
 subtracted out — pausing didn't exist when "time to finish" was first
 proposed, and the honest answer probably depends on which question the page
-is actually trying to answer. "Exportable" likely reuses whichever format
-export/import (above) settles on, since both are fundamentally "get my data
-out" — worth building whichever one comes first with that reuse in mind.
+is actually trying to answer.
