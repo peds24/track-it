@@ -139,3 +139,39 @@ test('a series track hydrated from a confirmed match records the series-level ex
   );
   expect(rows).toEqual([{ external_source: 'anilist', external_id: '1' }]);
 });
+
+// A11: the Add screen's confirm step already hydrated and showed this exact
+// draft to the user — addTrack must use it as-is, not fetch again.
+test('a pre-hydrated draft passed in is used directly, without a second hydrate call', async () => {
+  const db = await freshDb();
+  const fetchMock = jest.fn();
+  global.fetch = fetchMock as unknown as typeof fetch;
+
+  await addTrack(
+    db,
+    {
+      title: 'House',
+      category: 'show',
+      count: 999, // must be ignored — the draft is authoritative
+      match: { id: '1408', title: 'House', category: 'show', count: 1 },
+      draft: {
+        title: 'House',
+        mediaType: 'show',
+        unitLabel: 'episode',
+        entries: [{ ordinal: 1, title: 'Episode 1' }, { ordinal: 2, title: 'Episode 2' }],
+        externalSource: 'tmdb',
+        externalId: '1408',
+      },
+    },
+    NOW,
+  );
+
+  expect(fetchMock).not.toHaveBeenCalled();
+  const [track] = await listTracks(db, 'backlog');
+  expect(track!.progress).toEqual({ done: 0, total: 2 });
+
+  const rows = await db.all<{ external_source: string | null; external_id: string | null }>(
+    'SELECT external_source, external_id FROM series',
+  );
+  expect(rows).toEqual([{ external_source: 'tmdb', external_id: '1408' }]);
+});
