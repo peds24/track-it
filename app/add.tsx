@@ -9,7 +9,7 @@ import type { Category } from '@/domain/types';
 import { MetronProvider } from '@/providers/metron';
 import { unitLabelFor } from '@/providers/manual';
 import { providerFor } from '@/providers/registry';
-import type { SearchResult } from '@/providers/types';
+import type { SearchResult, SeriesDraft } from '@/providers/types';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { font, layout, radius, underline, useTheme, type Palette } from '@/ui/theme';
 
@@ -55,6 +55,13 @@ export default function AddTrackScreen() {
   // is cleared the moment the user types past what they picked.
   const [results, setResults] = useState<SearchResult[]>([]);
   const [picked, setPicked] = useState<SearchResult | null>(null);
+  // A11: a real series match is confirmed before it's saved, not silently
+  // applied. `confirmedDraft` is the fetched summary shown in place of the
+  // manual count/ongoing fields; `editingCount` reopens those same fields
+  // as an override for the rare wrong-edition match.
+  const [confirmedDraft, setConfirmedDraft] = useState<SeriesDraft | null>(null);
+  const [hydrating, setHydrating] = useState(false);
+  const [editingCount, setEditingCount] = useState(false);
   const [scanning, setScanning] = useState(false);
   // A comic scan resolves to a UPC-A only — expo-camera cannot read the
   // 5-digit EAN-5 supplemental that actually pins the issue number, so this
@@ -71,7 +78,10 @@ export default function AddTrackScreen() {
   const allowLeave = useRef(false);
 
   const isSeries = category !== null && unitLabelFor(category) !== null;
-  const needsCount = isSeries && !ongoing;
+  // A11: manual fields render only when there's no confirmed match to trust
+  // instead — a hand-typed title, or an explicit override of a wrong one.
+  const showManualFields = isSeries && (!picked || editingCount);
+  const needsCount = showManualFields && !ongoing;
   const unit = category ? unitLabelFor(category) : null;
   const barcodeTypes = category ? BARCODE_TYPES[category] : undefined;
 
@@ -107,6 +117,32 @@ export default function AddTrackScreen() {
     };
   }, [title, category, picked]);
 
+  // A11: the confirm step's data source — runs once per pick, not once per
+  // keystroke like search does. Cancelled the same way search cancels a
+  // stale request if the user picks something else, or types past the pick,
+  // before this resolves.
+  useEffect(() => {
+    if (!category || !picked || !isSeries) {
+      setConfirmedDraft(null);
+      setHydrating(false);
+      return;
+    }
+    let cancelled = false;
+    setHydrating(true);
+    setConfirmedDraft(null);
+    void (async () => {
+      try {
+        const draft = await providerFor(category).hydrate(picked);
+        if (!cancelled) setConfirmedDraft(draft);
+      } finally {
+        if (!cancelled) setHydrating(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [category, picked, isSeries]);
+
   // Picking a category never navigates — it just re-renders this component
   // past the `category === null` branch — so leaving the modal for real and
   // backing out of an in-progress category pick both arrive as the same
@@ -128,6 +164,9 @@ export default function AddTrackScreen() {
       setScanning(false);
       setPendingUpc(null);
       setEan5('');
+      setConfirmedDraft(null);
+      setHydrating(false);
+      setEditingCount(false);
     });
     return unsubscribe;
   }, [navigation, category]);
@@ -135,6 +174,7 @@ export default function AddTrackScreen() {
   function pick(result: SearchResult): void {
     setTitle(result.title);
     setPicked(result);
+    setEditingCount(false);
     setResults([]);
   }
 
@@ -305,6 +345,7 @@ export default function AddTrackScreen() {
         onChangeText={(t) => {
           setTitle(t);
           setPicked(null);
+          setEditingCount(false);
         }}
         autoFocus
         cursorColor={palette.ink}
@@ -334,7 +375,28 @@ export default function AddTrackScreen() {
         </Pressable>
       )}
 
-      {needsCount && (
+      {isSeries && picked && hydrating && <Text style={styles.hint}>Checking…</Text>}
+
+      {isSeries && picked && confirmedDraft && !editingCount && (
+        <Pressable
+          onPress={() => {
+            setEditingCount(true);
+            setCount(String(confirmedDraft.entries.length));
+            setOngoing(confirmedDraft.ongoing === true);
+          }}
+          style={styles.summary}
+          accessibilityRole="button"
+          accessibilityLabel={`Edit ${unit} count`}
+        >
+          <Text style={styles.summaryText}>
+            {confirmedDraft.ongoing
+              ? 'Ongoing'
+              : `${confirmedDraft.entries.length} ${unit}s · Completed`}
+          </Text>
+        </Pressable>
+      )}
+
+      {showManualFields && needsCount && (
         <TextInput
           style={styles.input}
           placeholder={`How many ${unit}s?`}
@@ -351,7 +413,7 @@ export default function AddTrackScreen() {
 
       {/* A4: a series still being published has no count to give. Reusing the
           filter-chip shape rather than a switch keeps the screen to one idiom. */}
-      {isSeries && (
+      {showManualFields && (
         <Pressable
           accessibilityRole="checkbox"
           accessibilityState={{ checked: ongoing }}
@@ -473,6 +535,17 @@ function createStyles(c: Palette) {
     toggleOn: { backgroundColor: c.ink, borderColor: c.ink },
     toggleText: { ...font.control, color: c.muted },
     toggleTextOn: { color: c.bg },
+    hint: { ...font.meta, color: c.muted, marginHorizontal: layout.inset, marginBottom: 10 },
+    summary: {
+      marginHorizontal: layout.inset,
+      marginBottom: 10,
+      paddingVertical: 13,
+      paddingHorizontal: 14,
+      borderWidth: 1.5,
+      borderColor: c.ruleStrong,
+      borderRadius: radius.md,
+    },
+    summaryText: { ...font.body, color: c.ink },
     // The one filled control on the screen, so it carries ink rather than
     // accent. Start is primary: adding something is usually the first step
     // toward starting it, not toward filing it away.
