@@ -7,7 +7,7 @@ import { advanceEntry, firstEntryOf } from '@/data/trackRepo';
 import { parseSeriesTitle } from '@/domain/seriesTitle';
 import type { Category } from '@/domain/types';
 import { MetronProvider } from '@/providers/metron';
-import { unitLabelFor } from '@/providers/manual';
+import { generateEntries, unitLabelFor } from '@/providers/manual';
 import { providerFor } from '@/providers/registry';
 import type { SearchResult, SeriesDraft } from '@/providers/types';
 import { useDatabase } from '@/ui/DatabaseProvider';
@@ -260,6 +260,28 @@ export default function AddTrackScreen() {
           ? parseSeriesTitle(title)
           : { title: title.trim(), ordinal: null };
 
+      // A11: an un-edited confirmed match is passed straight through as a
+      // ready draft — no second hydrate, no manual count to validate. An
+      // edited override rebuilds the draft locally the same way a
+      // hand-typed title always has, keeping the confirmed match's own
+      // external id/source rather than discarding where it came from.
+      const draft: SeriesDraft | undefined =
+        isSeries && confirmedDraft
+          ? editingCount
+            ? {
+                ...generateEntries({
+                  id: picked!.id,
+                  title: finalTitle,
+                  category,
+                  count: parsedCount,
+                  ongoing,
+                }),
+                externalSource: confirmedDraft.externalSource,
+                externalId: confirmedDraft.externalId,
+              }
+            : confirmedDraft
+          : undefined;
+
       const created = await addTrack(
         db,
         {
@@ -269,6 +291,7 @@ export default function AddTrackScreen() {
           ongoing: isSeries && ongoing,
           match: picked ?? undefined,
           startAtOrdinal: ordinal ?? undefined,
+          draft,
         },
         now,
       );
