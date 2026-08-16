@@ -60,3 +60,27 @@ test('deleting a series deletes its entries', async () => {
   const rows = await db.all(`SELECT id FROM entry`);
   expect(rows).toHaveLength(0);
 });
+
+test('the series table has a seasons_json column, nullable for a pre-existing row (A11)', async () => {
+  const db = createMemoryDriver();
+  await migrate(db);
+  await db.run(
+    `INSERT INTO series (id, title, media_type, unit_label, created_at)
+     VALUES ('s1', 'Berserk', 'manga', 'volume', '2026-08-12')`,
+  );
+  const rows = await db.all<{ seasons_json: string | null }>(
+    'SELECT seasons_json FROM series WHERE id = ?',
+    ['s1'],
+  );
+  expect(rows[0]!.seasons_json).toBeNull();
+
+  await db.run('UPDATE series SET seasons_json = ? WHERE id = ?', [
+    JSON.stringify([{ number: 1, episodeCount: 22 }]),
+    's1',
+  ]);
+  const updated = await db.all<{ seasons_json: string | null }>(
+    'SELECT seasons_json FROM series WHERE id = ?',
+    ['s1'],
+  );
+  expect(JSON.parse(updated[0]!.seasons_json!)).toEqual([{ number: 1, episodeCount: 22 }]);
+});
