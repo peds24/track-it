@@ -669,6 +669,115 @@ tap. A5 already rejected a confirmation dialog for the equivalent volume
 case, for the same reason it would reject one here — the request this
 serves is fewer taps, not more dialogs.
 
+**A11 — Completed-series autofill: real ongoing/completed signals, a confirm
+step, a manga provider, and season-segmented progress for shows.** Four
+changes agreed together as one pass, because they all answer the same
+complaint: the user should never have to know or type a number the
+catalogue already knows, for a completed show, comic, or manga. This is
+the item A9 explicitly deferred — "hiding the count field when a real
+TMDB/Metron match makes it moot" — now designed properly instead of left
+visible-and-overridden.
+
+*1. Providers gain a real ongoing/completed signal, not just a count.*
+Today `hydrate()` can already replace a guessed count with a real one
+(A9), but whether the series is ongoing still has to arrive from the user
+*before* search even runs — search never tells the Add screen the answer,
+even though the catalogues know it. Confirmed live against all three:
+TMDB's `/tv/{id}` returns `status` ("Ended", "Canceled", "Returning
+Series", …) and `in_production`; Metron's `/series/{id}/` returns
+`year_end` (`null` means still running, a real year means it ended);
+AniList's `status` is `FINISHED`/`RELEASING`/etc. Each provider's
+`hydrate()` now sets `ongoing` itself from that field, instead of trusting
+whatever the Add screen collected before a match existed.
+
+*2. A new provider: AniList, manga only.* Google Books (A9) can never
+answer "how many volumes" — a single-book hit carries no series total,
+confirmed in `googleBooks.ts` and by design, not a bug to fix. AniList's
+GraphQL endpoint (`graphql.anilist.co`, keyless, no rate-limit key to
+manage) returns `volumes`, `chapters`, and `status` for a real match —
+live-queried "Monster" during this design and got `volumes: 18, chapters:
+162, status: FINISHED`. `src/providers/anilist.ts` takes over the `manga`
+registration; Google Books keeps `book` only, unchanged (a book has no
+count to fetch regardless, D2).
+
+**Caveat that belongs in the code as a comment, not just here:** AniList
+tracks the *work*, not the printing. "Monster" resolves to the original
+18-volume/162-chapter release, not a 9-volume omnibus reprint like *The
+Perfect Edition* — there is no API that disambiguates which physical
+edition a user owns. This is exactly why the confirm step below exists,
+not an accident it needs to paper over.
+
+*3. A confirm step, because #1 and #2 can be confidently wrong.*
+Today `addTrack.ts` calls `hydrate()` and writes to the database in the
+same function call — no intermediate screen exists at all. A confirm step
+now sits between picking a result and saving: it shows the fetched
+summary ("Monster — 18 volumes, completed") as text, not a form. The
+manual count/ongoing fields (`add.tsx`, currently always rendered once a
+category needs a count) are removed entirely once a real result is
+picked — no second behavioural mode, no field sitting there just to be
+overridden. Tapping the summary line turns only that line into an
+editable number in place, for the Perfect Edition case; this is an
+override path for the rare wrong-edition match, not a default step
+everyone taps through. A hand-typed title with no match keeps today's
+manual fields exactly as they are — nothing about the no-match path
+changes.
+
+*4. Season-segmented progress bar, shows only.* TMDB's `/tv/{id}`
+response already carries `seasons[].episode_count`; `sumEpisodeCount`
+(A9) currently sums it into one flat number and discards the breakdown.
+`SeriesDraft` (and `Series`, `src/domain/types.ts`) gains one additive,
+optional field: `seasons: { number: number; episodeCount: number }[]`,
+populated only by TMDB, `undefined` for every other category and for
+every row that predates this change. `Entry` is untouched — progress
+stays exactly what D3 says it is, counted from `done` children, never
+stored. The seasons array is display metadata for the bar, nothing else;
+no `advance()` or status logic reads it.
+
+`TrackRow.tsx`'s bar renders as hairline-divided segments (one per
+season, width proportional to that season's episode count) whenever
+`series.seasons` is present, and exactly as it does today otherwise —
+comics and manga keep the plain bar unconditionally, since neither
+Metron nor AniList surfaces a grouping equivalent to a TV season. The
+meta line's next-unit label becomes season-scoped to match: `S3 Ep 15 of
+24` replaces the whole-series `Next Episode 61` when seasons exist — 15
+because it is the *next* episode within season 3 (60 done overall minus
+46 from seasons 1–2), the same "next unit" convention the plain label
+already uses, just rescoped from the series to the season. `S`/`Ep` is a
+deliberate, scoped abbreviation — the one place in the app that
+abbreviates a label, agreed explicitly because the segmented bar sitting
+directly below makes "season" unambiguous from context. The trailing
+whole-series count ("60 of 176") is unchanged. The bar carries no season
+numbers or captions of its own — segmentation is a visual grouping only,
+the meta line is the only place a season number appears as text.
+
+**Rejected:**
+- Modeling seasons as a real `Season` table grouping `Entry` rows — D1's
+  flat model already rejected per-medium containers once; adding a
+  relational grouping back in for display purposes would resurrect
+  exactly the "three near-duplicate models" D1 argued against, for
+  metadata that only ever needs to be read as an array off `Series`.
+- Applying a fetched count/status silently with no confirm step — an
+  edition mismatch (Perfect Edition) is invisible without a human glance
+  at the number before it's saved.
+- Extending Google Books to guess a manga volume count from a single
+  book's data — not a design trade-off, the data plainly is not there.
+- Treating Metron "story arcs" the same way as TV seasons — no endpoint
+  surfaced a clean arc-to-issue-count grouping equivalent to TMDB's
+  season breakdown during this design's research, so comics keep the
+  single bar rather than guess at a structure that isn't confirmed.
+
+**Mechanically:** `src/providers/tmdb.ts` (`hydrate` reads `status`/
+`in_production`, keeps the per-season array instead of only its sum),
+`src/providers/metron.ts` (`hydrate` reads `year_end`), new
+`src/providers/anilist.ts`, `src/providers/types.ts` (`SeriesDraft` gains
+optional `seasons`, registry swaps `manga` from `GoogleBooksProvider` to
+`AnilistProvider`), `src/domain/types.ts` (`Series` gains optional
+`seasons`), one additive schema migration for the new column, `app/
+add.tsx` (confirm step, conditional manual fields), `src/data/
+addTrack.ts` (hydrate and save no longer happen in the same
+uninterruptible call), `src/ui/TrackRow.tsx` (segmented bar, season-
+scoped meta label).
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:
