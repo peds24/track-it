@@ -108,7 +108,7 @@ test('hydrate for a real match fetches the issue then its series for a real issu
   setCreds();
   const fetchMock = mockFetchSequence(
     { body: { id: 50, series: { id: 15, name: 'Saga' } } },
-    { body: { issue_count: 66 } },
+    { body: { issue_count: 66, year_end: 2024 } },
   );
 
   const draft = await new MetronProvider().hydrate({
@@ -123,6 +123,7 @@ test('hydrate for a real match fetches the issue then its series for a real issu
   expect(draft.entries[0]).toEqual({ ordinal: 1, title: 'Issue 1' });
   expect(draft.externalSource).toBe('metron');
   expect(draft.externalId).toBe('50');
+  expect(draft.ongoing).toBe(false);
 
   expect(fetchMock.mock.calls[0]![0]).toContain('/issue/50/');
   expect(fetchMock.mock.calls[1]![0]).toContain('/series/15/');
@@ -132,7 +133,7 @@ test('hydrate falls back to the given count when the series has no issue_count',
   setCreds();
   mockFetchSequence(
     { body: { id: 50, series: { id: 15, name: 'Saga' } } },
-    { body: {} },
+    { body: { year_end: 2020 } },
   );
 
   const draft = await new MetronProvider().hydrate({
@@ -143,6 +144,42 @@ test('hydrate falls back to the given count when the series has no issue_count',
   });
 
   expect(draft.entries).toHaveLength(3);
+});
+
+test('hydrate reads a null year_end as still-running — ongoing overrides issue_count', async () => {
+  setCreds();
+  mockFetchSequence(
+    { body: { id: 50, series: { id: 15, name: 'Saga' } } },
+    { body: { issue_count: 66, year_end: null } },
+  );
+
+  const draft = await new MetronProvider().hydrate({
+    id: '50',
+    title: 'Saga (2012) #1',
+    category: 'comic',
+    count: 1,
+  });
+
+  expect(draft.ongoing).toBe(true);
+  expect(draft.entries).toHaveLength(1);
+});
+
+test('hydrate reads a real year_end as completed', async () => {
+  setCreds();
+  mockFetchSequence(
+    { body: { id: 50, series: { id: 15, name: 'Saga' } } },
+    { body: { issue_count: 66, year_end: 2024 } },
+  );
+
+  const draft = await new MetronProvider().hydrate({
+    id: '50',
+    title: 'Saga (2012) #1',
+    category: 'comic',
+    count: 1,
+  });
+
+  expect(draft.ongoing).toBe(false);
+  expect(draft.entries).toHaveLength(66);
 });
 
 test('hydrate for an unmatched (hand-typed) title never calls the network', async () => {
