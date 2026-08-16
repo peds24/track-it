@@ -437,6 +437,41 @@ test('creating a track with a non-ISO timestamp is rejected', async () => {
   expect(await db.all('SELECT id FROM series')).toHaveLength(0);
 });
 
+test('createSeriesTrack persists a draft\'s seasons, and listTracks reads them back', async () => {
+  const db = await freshDb();
+  await createSeriesTrack(
+    db,
+    {
+      title: 'House',
+      mediaType: 'show',
+      unitLabel: 'episode',
+      entries: [{ ordinal: 1, title: 'Episode 1' }, { ordinal: 2, title: 'Episode 2' }],
+      seasons: [{ number: 1, episodeCount: 2 }],
+    },
+    NOW,
+  );
+
+  const [track] = await listTracks(db, 'backlog');
+  expect(track!.seasons).toEqual([{ number: 1, episodeCount: 2 }]);
+});
+
+test('a series created without season data reports seasons as null', async () => {
+  const db = await freshDb();
+  await createSeriesTrack(
+    db,
+    {
+      title: 'Berserk',
+      mediaType: 'manga',
+      unitLabel: 'volume',
+      entries: [{ ordinal: 1, title: 'Volume 1' }],
+    },
+    NOW,
+  );
+
+  const [track] = await listTracks(db, 'backlog');
+  expect(track!.seasons).toBeNull();
+});
+
 test('listTracks skips a parentless row whose media type is a unit label', async () => {
   const db = await freshDb();
   await createStandaloneTrack(db, { title: 'Dune', category: 'book' }, NOW);

@@ -1,7 +1,7 @@
 import type { SqlDriver } from '@/db/driver';
 import { advance } from '@/domain/advance';
 import { nextEntry, progressFor, shelfForEntry, shelfForSeries } from '@/domain/shelf';
-import type { Category, Entry, Series, Shelf, Status } from '@/domain/types';
+import type { Category, Entry, SeasonBoundary, Series, Shelf, Status } from '@/domain/types';
 import { assertEntryInvariants, assertIsoTimestamp, isStandaloneMediaType } from '@/domain/validate';
 import type { SeriesDraft } from '@/providers/types';
 
@@ -22,6 +22,9 @@ export type TrackSummary = {
   ongoing: boolean;
   /** A6: in Backlog with progress intact — the row offers Resume, not Start. */
   paused: boolean;
+  /** A11: TMDB only. `null` for every other category and for a show added
+   * before this existed. */
+  seasons: readonly SeasonBoundary[] | null;
   nextEntryStatus: Status | null;
   nextEntryId: string | null;
   nextEntryTitle: string | null;
@@ -39,6 +42,7 @@ type SeriesRow = {
   created_at: string;
   external_source: string | null;
   external_id: string | null;
+  seasons_json: string | null;
 };
 
 type EntryRow = {
@@ -129,8 +133,8 @@ export async function createSeriesTrack(
 
   await db.transaction(async () => {
     await db.run(
-      `INSERT INTO series (id, title, media_type, unit_label, created_at, ongoing, external_source, external_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO series (id, title, media_type, unit_label, created_at, ongoing, external_source, external_id, seasons_json)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         seriesId,
         draft.title,
@@ -140,6 +144,7 @@ export async function createSeriesTrack(
         draft.ongoing === true ? 1 : 0,
         draft.externalSource ?? null,
         draft.externalId ?? null,
+        draft.seasons ? JSON.stringify(draft.seasons) : null,
       ],
     );
 
@@ -295,6 +300,7 @@ export async function listTracks(
       progress: row.ongoing === 1 ? null : progressFor(children),
       ongoing: row.ongoing === 1,
       paused: row.paused === 1,
+      seasons: row.seasons_json ? (JSON.parse(row.seasons_json) as SeasonBoundary[]) : null,
       nextEntryStatus: next?.status ?? null,
       nextEntryId: next?.id ?? null,
       nextEntryTitle: next?.title ?? null,
@@ -319,6 +325,7 @@ export async function listTracks(
       progress: null,
       ongoing: false,
       paused: entry.paused,
+      seasons: null,
       // Non-null means advanceable. A finished standalone track yields null,
       // matching what nextEntry() already does for a fully-done series —
       // otherwise the Done filter would render a working advance button on a
