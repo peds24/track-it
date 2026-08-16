@@ -19,6 +19,19 @@ const show: TrackSummary = {
   lastAdvancedAt: '2026-08-12T11:00:00.000Z',
 };
 
+const HOUSE_SEASONS = [
+  { number: 1, episodeCount: 22 },
+  { number: 2, episodeCount: 24 },
+  { number: 3, episodeCount: 24 },
+];
+
+const houseWithSeasons: TrackSummary = {
+  ...show,
+  title: 'House',
+  progress: { done: 37, total: 70 },
+  seasons: HOUSE_SEASONS,
+};
+
 test('a series row shows its title, next unit and progress', async () => {
   await render(<TrackRow track={show} onAdvance={() => {}} onResume={() => {}} />);
   expect(screen.getByText('Severance')).toBeTruthy();
@@ -287,4 +300,36 @@ test('a paused standalone track reports Paused without repeating its own title',
   await render(<TrackRow track={paused} onAdvance={() => {}} onResume={() => {}} />);
   expect(screen.getByText('Paused')).toBeTruthy();
   expect(screen.queryByText('Paused · Dune')).toBeNull();
+});
+
+test('a show with season data shows the season-scoped label instead of "Next Episode"/"Watching"', async () => {
+  // 37 done: season 1 (22) full, season 2 has 15 done — episode 16 of
+  // season 2 is next.
+  await render(<TrackRow track={houseWithSeasons} onAdvance={() => {}} onResume={() => {}} />);
+  expect(screen.getByText('S2 Ep 16 of 24')).toBeTruthy();
+  expect(screen.queryByText(/Watching/)).toBeNull();
+  expect(screen.queryByText(/^Next /)).toBeNull();
+});
+
+test('a show with season data draws one segment per season', async () => {
+  await render(<TrackRow track={houseWithSeasons} onAdvance={() => {}} onResume={() => {}} />);
+  expect(screen.getAllByTestId('progress-segment')).toHaveLength(3);
+});
+
+test('a show with no season data keeps the flat bar and the default "Watching" label', async () => {
+  await render(<TrackRow track={show} onAdvance={() => {}} onResume={() => {}} />);
+  expect(screen.getByText('Watching Episode 4')).toBeTruthy();
+  expect(screen.queryAllByTestId('progress-segment')).toHaveLength(0);
+  expect(screen.getByTestId('progress-track')).toBeTruthy();
+});
+
+test('a show on Backlog with season data still uses the flat bar, not segments', async () => {
+  const backlogged: TrackSummary = {
+    ...houseWithSeasons,
+    shelf: 'backlog',
+    paused: true,
+  };
+  await render(<TrackRow track={backlogged} onAdvance={() => {}} onResume={() => {}} />);
+  expect(screen.queryAllByTestId('progress-segment')).toHaveLength(0);
+  expect(screen.queryByText(/^S\d/)).toBeNull();
 });

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { TrackSummary } from '@/data/trackRepo';
+import { currentSeason, seasonSegments } from '@/domain/seasons';
 import type { Category } from '@/domain/types';
 import { font, layout, radius, underline, useTheme, type Palette } from '@/ui/theme';
 
@@ -61,6 +62,22 @@ export function positionLabel(track: TrackSummary): string {
   return read ? 'Reading' : 'Watching';
 }
 
+/**
+ * A11: replaces the whole-series `positionLabel` when a show has season
+ * data and is actively being watched — "S3 Ep 15 of 24" instead of
+ * "Watching Episode 61". Scoped to the Currently shelf specifically: a
+ * not-yet-started or paused show keeps its existing "Not started"/"Paused"
+ * wording, which a season fraction would misrepresent.
+ */
+export function seasonPositionLabel(track: TrackSummary): string | null {
+  if (track.shelf !== 'currently' || !track.seasons || track.seasons.length === 0 || !track.progress) {
+    return null;
+  }
+  const current = currentSeason(track.seasons, track.progress.done);
+  if (!current) return null;
+  return `S${current.number} Ep ${current.nextEpisode} of ${current.episodeCount}`;
+}
+
 export function TrackRow({
   track,
   onAdvance,
@@ -101,6 +118,13 @@ export function TrackRow({
       ? Math.min(1, Math.max(0, progress.done / progress.total))
       : null;
 
+  // A11: segmented only while actively watching, mirroring seasonPositionLabel's
+  // own scoping — a paused or not-yet-started show keeps the flat bar.
+  const segments =
+    track.shelf === 'currently' && track.seasons && track.seasons.length > 0 && track.progress
+      ? seasonSegments(track.seasons, track.progress.done)
+      : null;
+
   return (
     <View style={styles.row}>
       <View style={styles.text}>
@@ -112,7 +136,7 @@ export function TrackRow({
           <Text style={styles.kind}>{KIND_LABEL[track.category]}</Text>
           <Text style={styles.dot}>·</Text>
           <Text style={styles.position} numberOfLines={1}>
-            {positionLabel(track)}
+            {seasonPositionLabel(track) ?? positionLabel(track)}
           </Text>
           {/* A4: an ongoing series has no denominator, so the word replaces the
               count rather than a total the app would have to invent. */}
@@ -131,8 +155,24 @@ export function TrackRow({
         </View>
 
         {fraction !== null && (
-          <View style={styles.progressTrack} testID="progress-track">
-            <View style={[styles.progressFill, { width: `${fraction * 100}%` }]} />
+          <View
+            style={[styles.progressTrack, segments && styles.progressTrackSegmented]}
+            testID="progress-track"
+          >
+            {segments ? (
+              segments.map((seg) => (
+                <View key={seg.number} style={[styles.segment, { flex: seg.episodeCount || 1 }]} testID="progress-segment">
+                  <View
+                    style={[
+                      styles.progressFill,
+                      { width: seg.episodeCount > 0 ? `${(seg.done / seg.episodeCount) * 100}%` : '0%' },
+                    ]}
+                  />
+                </View>
+              ))
+            ) : (
+              <View style={[styles.progressFill, { width: `${fraction * 100}%` }]} />
+            )}
           </View>
         )}
       </View>
@@ -194,6 +234,11 @@ function createStyles(c: Palette) {
       overflow: 'hidden',
     },
     progressFill: { height: '100%', borderRadius: radius.bar, backgroundColor: c.ink },
+    // A11: hairline gaps between season segments read as dividers — the
+    // container's own rule-coloured background (used for the flat bar) is
+    // switched off here so the gap shows the row's background instead.
+    progressTrackSegmented: { backgroundColor: 'transparent', flexDirection: 'row', gap: 1.5 },
+    segment: { height: '100%', backgroundColor: c.rule, overflow: 'hidden' },
     advance: {
       flexShrink: 0,
       paddingVertical: 6,
