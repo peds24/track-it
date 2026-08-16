@@ -1,22 +1,33 @@
-import type { Category } from '@/domain/types';
+import type { Category, SeasonBoundary } from '@/domain/types';
 import { generateEntries } from '@/providers/manual';
 import type { MetadataProvider, SearchResult, SeriesDraft } from '@/providers/types';
 
 type TmdbSearchHit = { id: number; title?: string; name?: string };
 type TmdbSearchResponse = { results?: TmdbSearchHit[] };
 type TmdbSeason = { season_number: number; episode_count?: number };
-type TmdbShowDetail = { seasons?: TmdbSeason[] };
+type TmdbShowDetail = { seasons?: TmdbSeason[]; status?: string };
 
 /**
  * Season 0 is specials, not part of the main run — excluded from the sum.
  * Exported standalone so the summation itself is testable without mocking a
- * fetch. The schema has no seasons concept (D1): the result is still a flat
- * count for "Episode 1".."Episode N", not a per-season structure.
+ * fetch. The schema has no seasons concept for `Entry` (D1): this is still a
+ * flat count for "Episode 1".."Episode N", not a per-season structure.
  */
 export function sumEpisodeCount(seasons: readonly TmdbSeason[]): number {
   return seasons
     .filter((s) => s.season_number !== 0)
     .reduce((sum, s) => sum + (s.episode_count ?? 0), 0);
+}
+
+/**
+ * A11: the per-season breakdown `sumEpisodeCount` discards. Display
+ * metadata for the segmented progress bar — `Series`/`SeriesDraft.seasons`,
+ * never a new source of truth for progress.
+ */
+export function seasonBreakdown(seasons: readonly TmdbSeason[]): SeasonBoundary[] {
+  return seasons
+    .filter((s) => s.season_number !== 0)
+    .map((s) => ({ number: s.season_number, episodeCount: s.episode_count ?? 0 }));
 }
 
 /**
@@ -61,28 +72,34 @@ export class TmdbProvider implements MetadataProvider {
 
   /**
    * Movie is standalone (D1) — `addTrack` never calls this for one; the guard
-   * below only matches `ManualProvider`'s for a caller that does anyway. Show
-   * can do better than a guessed count (A9): a real match's `/tv/{id}` total
-   * episode count replaces it, unless the series is marked ongoing (A4) —
-   * that flag means "no known total", which a snapshot of aired seasons must
-   * not silently override.
+   * below only matches `ManualProvider`'s for a caller that does anyway.
+   *
+   * A11: a matched show's `ongoing` is no longer trusted from the caller —
+   * it comes straight from TMDB's own `status` field. The manual "ongoing"
+   * toggle only still matters for an unmatched, hand-typed title (the early
+   * return below), which never reaches this branch.
    */
   async hydrate(result: SearchResult): Promise<SeriesDraft> {
     const matched = result.id !== this.id;
 
-    if (this.category !== 'show' || result.ongoing || !matched) {
+    if (this.category !== 'show' || !matched) {
       const draft = generateEntries(result);
       return matched ? { ...draft, externalSource: this.id, externalId: result.id } : draft;
     }
 
-    const total = await this.fetchEpisodeTotal(result.id);
-    const draft = generateEntries(total === null ? result : { ...result, count: total });
-    return { ...draft, externalSource: this.id, externalId: result.id };
+    const detail = await this.fetchShowDetail(result.id);
+    const draft = generateEntries(
+      detail === null ? result : { ...result, count: detail.total ?? result.count, ongoing: detail.ongoing },
+    );
+    const withSeasons = detail && detail.seasons.length > 0 ? { ...draft, seasons: detail.seasons } : draft;
+    return { ...withSeasons, externalSource: this.id, externalId: result.id };
   }
 
   /** Never throws — a failed or unconfigured lookup just falls back to the
-   * count the Add screen already collected, the same as no match at all. */
-  private async fetchEpisodeTotal(showId: string): Promise<number | null> {
+   * count/ongoing the Add screen already collected, the same as no match at all. */
+  private async fetchShowDetail(
+    showId: string,
+  ): Promise<{ total: number | null; ongoing: boolean; seasons: SeasonBoundary[] } | null> {
     const key = process.env.EXPO_PUBLIC_TMDB_API_KEY;
     if (!key) return null;
     try {
@@ -91,8 +108,13 @@ export class TmdbProvider implements MetadataProvider {
       );
       if (!response.ok) return null;
       const body = (await response.json()) as TmdbShowDetail;
-      const total = sumEpisodeCount(body.seasons ?? []);
-      return total > 0 ? total : null;
+      const seasons = body.seasons ?? [];
+      const total = sumEpisodeCount(seasons);
+      // "Ended"/"Canceled" both mean no more episodes are coming; anything
+      // else ("Returning Series", "In Production", "Planned") means there is
+      // a next one still to air.
+      const ongoing = body.status !== 'Ended' && body.status !== 'Canceled';
+      return { total: total > 0 ? total : null, ongoing, seasons: seasonBreakdown(seasons) };
     } catch {
       return null;
     }

@@ -72,10 +72,11 @@ test('search on a blank query never calls the network', async () => {
   expect(fetchMock).not.toHaveBeenCalled();
 });
 
-test('hydrate for a real show match fetches seasons and replaces the guessed count', async () => {
+test('hydrate for a real, ended show fetches the season breakdown and a real episode total', async () => {
   process.env.EXPO_PUBLIC_TMDB_API_KEY = 'test-key';
   const fetchMock = mockFetchSequence({
     body: {
+      status: 'Ended',
       seasons: [
         { season_number: 0, episode_count: 1 },
         { season_number: 1, episode_count: 9 },
@@ -92,27 +93,49 @@ test('hydrate for a real show match fetches seasons and replaces the guessed cou
 
   expect(draft.entries).toHaveLength(9);
   expect(draft.entries[0]).toEqual({ ordinal: 1, title: 'Episode 1' });
+  expect(draft.ongoing).toBe(false);
+  expect(draft.seasons).toEqual([{ number: 1, episodeCount: 9 }]);
   expect(draft.externalSource).toBe('tmdb');
   expect(draft.externalId).toBe('111');
   const url = fetchMock.mock.calls[0]![0] as string;
   expect(url).toContain('/tv/111');
 });
 
-test('hydrate for an ongoing show does not override the ongoing behaviour with a season fetch', async () => {
-  const fetchMock = jest.fn();
-  global.fetch = fetchMock as unknown as typeof fetch;
+test('hydrate for a real, still-running show sets ongoing from TMDB status, not a guess', async () => {
+  process.env.EXPO_PUBLIC_TMDB_API_KEY = 'test-key';
+  mockFetchSequence({
+    body: {
+      status: 'Returning Series',
+      seasons: [{ season_number: 1, episode_count: 9 }],
+    },
+  });
 
   const draft = await new TmdbProvider('show').hydrate({
     id: '111',
     title: 'Severance',
     category: 'show',
-    count: Number.NaN,
-    ongoing: true,
+    count: 2,
   });
 
   expect(draft.ongoing).toBe(true);
   expect(draft.entries).toEqual([{ ordinal: 1, title: 'Episode 1' }]);
-  expect(fetchMock).not.toHaveBeenCalled();
+});
+
+test('"Canceled" counts as ended, the same as "Ended"', async () => {
+  process.env.EXPO_PUBLIC_TMDB_API_KEY = 'test-key';
+  mockFetchSequence({
+    body: { status: 'Canceled', seasons: [{ season_number: 1, episode_count: 4 }] },
+  });
+
+  const draft = await new TmdbProvider('show').hydrate({
+    id: '111',
+    title: 'Firefly',
+    category: 'show',
+    count: 1,
+  });
+
+  expect(draft.ongoing).toBe(false);
+  expect(draft.entries).toHaveLength(4);
 });
 
 test('hydrate for an unmatched (hand-typed) title never calls the network', async () => {
@@ -143,6 +166,7 @@ test('hydrate falls back to the guessed count when the season fetch fails', asyn
   });
 
   expect(draft.entries).toHaveLength(3);
+  expect(draft.seasons).toBeUndefined();
   // Still a real match, so still worth recording where it came from — only
   // the count fell back, not the whole hydrate.
   expect(draft.externalSource).toBe('tmdb');
