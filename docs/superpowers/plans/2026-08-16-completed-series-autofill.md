@@ -210,7 +210,7 @@ git commit -m "feat: add SeasonBoundary type and pure season-segment math"
 
 **Interfaces:**
 - Consumes: `SeasonBoundary` from `@/domain/types` (Task 1).
-- Produces: `seasonBreakdown(seasons: readonly TmdbSeason[]): SeasonBoundary[]` (new, exported for the same testability reason `sumEpisodeCount` already is). `SeriesDraft.seasons` now populated for a matched show (needs `SeriesDraft.seasons?: readonly SeasonBoundary[]` from `@/providers/types`, added in Task 4 below — this task can be implemented and tested independently since TypeScript allows assigning to an as-yet-wider type; Task 4 adds the field to the type declaration itself, so do that one first if strict extra-property checks complain — see Step 3 note).
+- Produces: `seasonBreakdown(seasons: readonly TmdbSeason[]): SeasonBoundary[]` (new, exported for the same testability reason `sumEpisodeCount` already is). `SeriesDraft.seasons` now populated for a matched show (needs `SeriesDraft.seasons?: readonly SeasonBoundary[]` added to `@/providers/types` — this task's own Step 5 adds that field inline, so no other task needs to run first).
 
 - [ ] **Step 1: Write the failing/updated tests**
 
@@ -436,7 +436,7 @@ Expected: PASS, all tests.
 - [ ] **Step 5: Typecheck**
 
 Run: `npm run typecheck`
-Expected: this will show an error until Task 4 adds `seasons` to `SeriesDraft` — if Task 4 has not run yet, do it now (it is a five-line type-only change with no test of its own; fold it in here rather than leaving the tree red). In `src/providers/types.ts`, add to the top import and to `SeriesDraft`:
+Expected: this will show an error until `SeriesDraft` has a `seasons` field — add it now (a five-line type-only change with no test of its own). In `src/providers/types.ts`, add to the top import and to `SeriesDraft`:
 
 ```ts
 import type { Category, SeasonBoundary, SeriesMediaType, UnitLabel } from '@/domain/types';
