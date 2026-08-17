@@ -778,6 +778,40 @@ addTrack.ts` (hydrate and save no longer happen in the same
 uninterruptible call), `src/ui/TrackRow.tsx` (segmented bar, season-
 scoped meta label).
 
+**A12 — Starting mid-series backfills what came before as done, reversing
+part of A10.** A10's ordinal-start ("Saga #12" → start at issue 12) only
+ever marked the *named* entry `in_progress`; issues 1–11 stayed
+`unstarted`. That was tested and deliberate at the time, but surfaced as
+two compounding bugs once A11's manga barcode scan started feeding it real
+data: scanning volume 29 of a 34-volume series reported progress as "0 of
+34" with an empty bar, and finishing volume 29 sent `nextEntry()` back to
+the lowest *unstarted* ordinal — volume 1 — instead of continuing to 30,
+because entries 1–28 were still sitting `unstarted`.
+
+Confirmed with the user this is a real reversal, not a silent fix:
+starting a series partway through now means everything before that point
+already happened. `createSeriesTrack` (`src/data/trackRepo.ts`) backfills
+every entry with `ordinal < validStartOrdinal` as `done` (`started_at` and
+`finished_at` both set to the creation timestamp), not `unstarted`; the
+named entry itself is still the one that starts `in_progress`. This
+applies to every category the ordinal-start mechanism serves — show,
+comic, manga — not only the manga-scan path that surfaced it, since it is
+the same shared code path A10 always was.
+
+**Rejected:** keeping A10's original 0-progress behavior and patching only
+the `nextEntry()` symptom (e.g. having it skip past already-`unstarted`
+entries below the started one). Rejected because the progress display
+would still misreport reality — "0 of 34" is simply false once you are
+demonstrably partway through — and a symptom-only fix would leave a second
+inconsistency (`nextEntry()`'s notion of "next" disagreeing with the
+displayed count) rather than removing the actual defect.
+
+**Mechanically:** `src/data/trackRepo.ts`'s `createSeriesTrack` entry-insert
+loop, plus its `INSERT` column list gaining `finished_at` (previously never
+set at creation, since no entry could start `done`). `src/data/__tests__/
+seriesTitleOrdinal.test.ts` updated to assert the backfilled progress and
+added a new test proving `nextEntry()` continues forward, not back to 1.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:
