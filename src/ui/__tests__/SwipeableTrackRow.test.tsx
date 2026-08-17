@@ -14,6 +14,7 @@ const show: TrackSummary = {
   nextEntryId: 'e2',
   ongoing: false,
   paused: false,
+  seasons: null,
   nextEntryStatus: 'unstarted',
   nextEntryTitle: 'Episode 2',
   lastAdvancedAt: '2026-08-12T11:00:00.000Z',

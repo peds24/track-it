@@ -3,7 +3,7 @@ import type { SqlDriver } from '@/db/driver';
 import type { Category } from '@/domain/types';
 import { unitLabelFor } from '@/providers/manual';
 import { providerFor } from '@/providers/registry';
-import type { SearchResult } from '@/providers/types';
+import type { SearchResult, SeriesDraft } from '@/providers/types';
 
 /** Identifies the track just created, so a caller can act on it immediately
  * (e.g. starting it) without a second query to find what was just inserted. */
@@ -34,6 +34,12 @@ export async function addTrack(
      * final entry count.
      */
     startAtOrdinal?: number;
+    /**
+     * A11: a draft the caller already hydrated and had the user confirm (or
+     * override) — used exactly as given, with no second `hydrate()` call.
+     * Only meaningful for a series category; ignored for a standalone one.
+     */
+    draft?: SeriesDraft;
   },
   now: string,
 ): Promise<CreatedTrack> {
@@ -73,7 +79,7 @@ export async function addTrack(
   const result: SearchResult = input.match
     ? { ...input.match, title, count: input.count, ongoing: input.ongoing === true }
     : { id: provider.id, title, category: input.category, count: input.count, ongoing: input.ongoing === true };
-  const draft = await provider.hydrate(result);
+  const draft = input.draft ?? (await provider.hydrate(result));
 
   const id = await createSeriesTrack(db, draft, now, input.startAtOrdinal);
   return { kind: 'series', id };

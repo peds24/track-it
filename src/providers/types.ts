@@ -1,4 +1,4 @@
-import type { Category, SeriesMediaType, UnitLabel } from '@/domain/types';
+import type { Category, SeasonBoundary, SeriesMediaType, UnitLabel } from '@/domain/types';
 
 export type EntryDraft = { ordinal: number; title: string };
 
@@ -21,6 +21,8 @@ export type SeriesDraft = {
   ongoing?: boolean;
   externalSource?: string;
   externalId?: string;
+  /** A11: TMDB only. */
+  seasons?: readonly SeasonBoundary[];
 };
 
 export interface MetadataProvider {

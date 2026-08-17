@@ -46,7 +46,7 @@ type MetronSeriesRef = { id: number; name: string };
 type MetronIssueListItem = { id: number; issue: string; series: MetronSeriesRef };
 type MetronIssueListResponse = { results?: MetronIssueListItem[] };
 type MetronIssueDetail = { id: number; series: MetronSeriesRef };
-type MetronSeriesDetail = { issue_count?: number };
+type MetronSeriesDetail = { issue_count?: number; year_end?: number | null };
 
 function toResults(body: MetronIssueListResponse): SearchResult[] {
   return (body.results ?? []).map((item) => ({
@@ -123,9 +123,11 @@ export class MetronProvider implements MetadataProvider {
 
   /**
    * A matched issue names its series; the series endpoint gives a real issue
-   * count (`issue_count`). Entries are still generated the `ManualProvider`
-   * way — numbered "Issue 1".."Issue N" — just against that real total
-   * instead of a guess, the same trade TMDB makes for a show.
+   * count (`issue_count`) and, per A11, a real ongoing signal — `year_end`
+   * null means the series is still running, a real year means it ended.
+   * Entries are still generated the `ManualProvider` way — numbered
+   * "Issue 1".."Issue N" — just against that real total instead of a guess,
+   * the same trade TMDB makes for a show.
    */
   async hydrate(result: SearchResult): Promise<SeriesDraft> {
     if (result.id === this.id) return generateEntries(result); // no real match — typed title.
@@ -135,11 +137,13 @@ export class MetronProvider implements MetadataProvider {
       `/series/${encodeURIComponent(String(issue.series.id))}/`,
     );
     const total = series.issue_count ?? 0;
+    const ongoing = series.year_end === null || series.year_end === undefined;
 
     const draft = generateEntries({
       ...result,
       title: issue.series.name,
       count: total > 0 ? total : result.count,
+      ongoing,
     });
     return { ...draft, externalSource: this.id, externalId: result.id };
   }

@@ -3,6 +3,19 @@ import { listTracks } from '@/data/trackRepo';
 import { migrate } from '@/db/schema';
 import { createMemoryDriver } from '../../../test/memoryDriver';
 
+function mockFetchSequence(...responses: { body: unknown; ok?: boolean }[]): jest.Mock {
+  const fn = jest.fn();
+  for (const { body, ok = true } of responses) {
+    fn.mockResolvedValueOnce({ ok, status: ok ? 200 : 500, json: async () => body });
+  }
+  global.fetch = fn as unknown as typeof fetch;
+  return fn;
+}
+
+afterEach(() => {
+  jest.restoreAllMocks();
+});
+
 const NOW = '2026-08-12T10:00:00.000Z';
 
 async function freshDb() {
@@ -104,6 +117,11 @@ test('a book with no picked search result records no external source', async () 
 });
 
 test('a series track hydrated from a confirmed match records the series-level external source and id', async () => {
+  // A11: manga now uses AniList instead of Google Books
+  mockFetchSequence({
+    body: { data: { Media: { volumes: 41, chapters: 362, status: 'RELEASING' } } },
+  });
+
   const db = await freshDb();
   await addTrack(
     db,
@@ -111,7 +129,7 @@ test('a series track hydrated from a confirmed match records the series-level ex
       title: 'Berserk',
       category: 'manga',
       count: 3,
-      match: { id: 'gb-berserk', title: 'Berserk', category: 'manga', count: 1 },
+      match: { id: '1', title: 'Berserk', category: 'manga', count: 1 },
     },
     NOW,
   );
@@ -119,5 +137,41 @@ test('a series track hydrated from a confirmed match records the series-level ex
   const rows = await db.all<{ external_source: string | null; external_id: string | null }>(
     'SELECT external_source, external_id FROM series',
   );
-  expect(rows).toEqual([{ external_source: 'google-books', external_id: 'gb-berserk' }]);
+  expect(rows).toEqual([{ external_source: 'anilist', external_id: '1' }]);
+});
+
+// A11: the Add screen's confirm step already hydrated and showed this exact
+// draft to the user — addTrack must use it as-is, not fetch again.
+test('a pre-hydrated draft passed in is used directly, without a second hydrate call', async () => {
+  const db = await freshDb();
+  const fetchMock = jest.fn();
+  global.fetch = fetchMock as unknown as typeof fetch;
+
+  await addTrack(
+    db,
+    {
+      title: 'House',
+      category: 'show',
+      count: 999, // must be ignored — the draft is authoritative
+      match: { id: '1408', title: 'House', category: 'show', count: 1 },
+      draft: {
+        title: 'House',
+        mediaType: 'show',
+        unitLabel: 'episode',
+        entries: [{ ordinal: 1, title: 'Episode 1' }, { ordinal: 2, title: 'Episode 2' }],
+        externalSource: 'tmdb',
+        externalId: '1408',
+      },
+    },
+    NOW,
+  );
+
+  expect(fetchMock).not.toHaveBeenCalled();
+  const [track] = await listTracks(db, 'backlog');
+  expect(track!.progress).toEqual({ done: 0, total: 2 });
+
+  const rows = await db.all<{ external_source: string | null; external_id: string | null }>(
+    'SELECT external_source, external_id FROM series',
+  );
+  expect(rows).toEqual([{ external_source: 'tmdb', external_id: '1408' }]);
 });

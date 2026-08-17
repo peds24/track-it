@@ -28,7 +28,18 @@ export type Series = {
   paused: boolean;
   externalSource: string | null;
   externalId: string | null;
+  /** A11: TMDB only. */
+  seasons?: readonly SeasonBoundary[];
 };
+
+/**
+ * A11: one TV season's episode count. Display metadata for the
+ * season-segmented progress bar, populated only by TMDB — undefined for
+ * every other category and for a series added before this existed. `Entry`
+ * stays exactly as it is; this is never a new source of truth for progress
+ * (D3 still holds).
+ */
+export type SeasonBoundary = { number: number; episodeCount: number };
 
 export type Entry = {
   id: string;

@@ -13,7 +13,7 @@
  */
 import type { SqlDriver } from '@/db/driver';
 import { isStatusValid } from '@/domain/mode';
-import type { Entry, EntryMediaType, Series, Status } from '@/domain/types';
+import type { Entry, EntryMediaType, SeasonBoundary, Series, Status } from '@/domain/types';
 import { assertEntryInvariants, assertIsoTimestamp } from '@/domain/validate';
 
 const VERSION = 1;
@@ -41,6 +41,11 @@ export async function exportLibrary(db: SqlDriver): Promise<string> {
       paused: r.paused === 1,
       externalSource: (r.external_source as string | null) ?? null,
       externalId: (r.external_id as string | null) ?? null,
+      // A11: TMDB only. Absent for every other category and for a show
+      // added before this existed — JSON.stringify drops the key rather
+      // than exporting an explicit null (matches how every other optional
+      // field here already round-trips).
+      seasons: r.seasons_json ? (JSON.parse(r.seasons_json as string) as SeasonBoundary[]) : undefined,
     })),
     entries: entryRows.map((r) => ({
       id: String(r.id),
@@ -76,6 +81,21 @@ function requireNullableString(value: unknown, field: string): string | null {
   return value;
 }
 
+/** A11: TMDB only, and optional — absent in a backup predating this feature,
+ * and for every non-show category. */
+function requireOptionalSeasons(value: unknown, field: string): readonly SeasonBoundary[] | undefined {
+  if (value === null || value === undefined) return undefined;
+  if (!Array.isArray(value)) throw new Error(`Backup field ${field} must be a list`);
+  return value.map((entry, i) => {
+    if (!isRecord(entry)) throw new Error(`Backup field ${field}[${i}] is not an object`);
+    if (typeof entry.number !== 'number') throw new Error(`Backup field ${field}[${i}].number must be a number`);
+    if (typeof entry.episodeCount !== 'number') {
+      throw new Error(`Backup field ${field}[${i}].episodeCount must be a number`);
+    }
+    return { number: entry.number, episodeCount: entry.episodeCount };
+  });
+}
+
 function parseSeries(value: unknown): Series {
   if (!isRecord(value)) throw new Error('A series in the backup is not an object');
 
@@ -104,6 +124,7 @@ function parseSeries(value: unknown): Series {
     paused: value.paused === true,
     externalSource: requireNullableString(value.externalSource, 'series.externalSource'),
     externalId: requireNullableString(value.externalId, 'series.externalId'),
+    seasons: requireOptionalSeasons(value.seasons, 'series.seasons'),
   };
 }
 
@@ -204,8 +225,8 @@ export async function importLibrary(db: SqlDriver, json: string): Promise<void> 
 
     for (const s of backup.series) {
       await db.run(
-        `INSERT INTO series (id, title, media_type, unit_label, created_at, ongoing, paused, external_source, external_id)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO series (id, title, media_type, unit_label, created_at, ongoing, paused, external_source, external_id, seasons_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           s.id,
           s.title,
@@ -216,6 +237,7 @@ export async function importLibrary(db: SqlDriver, json: string): Promise<void> 
           s.paused ? 1 : 0,
           s.externalSource,
           s.externalId,
+          s.seasons ? JSON.stringify(s.seasons) : null,
         ],
       );
     }

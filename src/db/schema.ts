@@ -54,6 +54,14 @@ const MIGRATIONS: readonly string[] = [
   ALTER TABLE entry ADD COLUMN external_source TEXT;
   ALTER TABLE entry ADD COLUMN external_id TEXT;
   `,
+  // A11: TMDB's per-season episode_count breakdown, stored only for a show
+  // matched through TMDB — display metadata for the segmented progress bar,
+  // never a new source of truth for progress (D3 still holds; `entry` stays
+  // untouched). NULL for every other category and every row that predates
+  // this migration.
+  `
+  ALTER TABLE series ADD COLUMN seasons_json TEXT;
+  `,
 ];
 
 /**

@@ -1,3 +1,4 @@
+import { AnilistProvider } from '@/providers/anilist';
 import { GoogleBooksProvider } from '@/providers/googleBooks';
 import { MetronProvider } from '@/providers/metron';
 import { providerFor } from '@/providers/registry';
@@ -5,9 +6,14 @@ import { TmdbProvider } from '@/providers/tmdb';
 
 // A9 fulfils D5: one real provider per category, resolved per category (D10),
 // never a global search.
-test('book and manga resolve to Google Books', () => {
+test('book resolves to Google Books', () => {
   expect(providerFor('book')).toBeInstanceOf(GoogleBooksProvider);
-  expect(providerFor('manga')).toBeInstanceOf(GoogleBooksProvider);
+});
+
+// A11: manga needs a real volume total, which a single Google Books hit can
+// never supply — AniList replaces it for this one category.
+test('manga resolves to AniList', () => {
+  expect(providerFor('manga')).toBeInstanceOf(AnilistProvider);
 });
 
 test('comic resolves to Metron', () => {
