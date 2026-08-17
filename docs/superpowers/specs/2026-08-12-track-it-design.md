@@ -812,6 +812,36 @@ set at creation, since no entry could start `done`). `src/data/__tests__/
 seriesTitleOrdinal.test.ts` updated to assert the backfilled progress and
 added a new test proving `nextEntry()` continues forward, not back to 1.
 
+**A13 — Season treatment follows real progress, not just the Currently
+shelf; reverses part of A11.** A11 scoped the segmented bar and `S{n} Ep
+{m} of {total}` label to `shelf === 'currently'` specifically, on the
+reasoning that a paused or not-yet-started show should keep its existing
+"Paused"/"Not started" wording. In practice that hid real information: a
+paused show still has genuine progress worth showing correctly, and a bare
+"Paused" said less than the row already knew.
+
+Season treatment is now keyed on *whether real progress exists*, not on
+which shelf the row sits in: `currently`, or `backlog` while `paused`. A
+show that has never been started (`backlog`, not paused) still gets
+neither — there is no season position to report for a show nobody has
+opened yet, so "Not started" and the flat bar are correct there. A paused
+show's label becomes `Paused · S{n} Ep {m} of {total}` — the existing
+"Paused" prefix, unchanged, with the season-scoped position appended
+instead of dropped.
+
+**Rejected:** keeping A11's Currently-only scoping and instead improving
+`positionLabel`'s own `Paused · {nextEntryTitle}` string for a show
+specifically. Rejected because the underlying problem is the segmented
+*bar* disappearing on pause, not just the label — a text-only fix would
+still show an empty flat bar for a show that is meaningfully partway
+through.
+
+**Mechanically:** `src/ui/TrackRow.tsx` gains a `hasSeasonProgress(track)`
+helper factoring out the eligibility check that `seasonPositionLabel` and
+the component's `segments` computation both used to duplicate — worth
+extracting now that the condition grew a second clause, where A11's
+original two-branch version was judged fine left inline.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:

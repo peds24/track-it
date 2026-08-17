@@ -63,19 +63,30 @@ export function positionLabel(track: TrackSummary): string {
 }
 
 /**
- * A11: replaces the whole-series `positionLabel` when a show has season
- * data and is actively being watched — "S3 Ep 15 of 24" instead of
- * "Watching Episode 61". Scoped to the Currently shelf specifically: a
- * not-yet-started or paused show keeps its existing "Not started"/"Paused"
- * wording, which a season fraction would misrepresent.
+ * A11/A13: a show gets season treatment (this label, and the segmented bar
+ * below) whenever it has real progress worth showing correctly — actively
+ * being watched, or paused with something already underway. A13 widened
+ * this from "Currently only": a paused show still has genuine progress,
+ * and "Paused" alone hid exactly what a segmented bar exists to convey. A
+ * show that has never been started (backlog, not paused) is excluded on
+ * purpose — there is no season position to report yet.
+ */
+function hasSeasonProgress(track: TrackSummary): boolean {
+  const eligible = track.shelf === 'currently' || (track.shelf === 'backlog' && track.paused);
+  return eligible && !!track.seasons && track.seasons.length > 0 && !!track.progress;
+}
+
+/**
+ * Replaces the whole-series `positionLabel` when `hasSeasonProgress` — "S3
+ * Ep 15 of 24" instead of "Watching Episode 61", or "Paused · S3 Ep 15 of
+ * 24" instead of a bare "Paused" once a show has season data.
  */
 export function seasonPositionLabel(track: TrackSummary): string | null {
-  if (track.shelf !== 'currently' || !track.seasons || track.seasons.length === 0 || !track.progress) {
-    return null;
-  }
-  const current = currentSeason(track.seasons, track.progress.done);
+  if (!hasSeasonProgress(track) || !track.progress) return null;
+  const current = currentSeason(track.seasons!, track.progress.done);
   if (!current) return null;
-  return `S${current.number} Ep ${current.nextEpisode} of ${current.episodeCount}`;
+  const seasonText = `S${current.number} Ep ${current.nextEpisode} of ${current.episodeCount}`;
+  return track.paused ? `Paused · ${seasonText}` : seasonText;
 }
 
 export function TrackRow({
@@ -118,12 +129,10 @@ export function TrackRow({
       ? Math.min(1, Math.max(0, progress.done / progress.total))
       : null;
 
-  // A11: segmented only while actively watching, mirroring seasonPositionLabel's
-  // own scoping — a paused or not-yet-started show keeps the flat bar.
-  const segments =
-    track.shelf === 'currently' && track.seasons && track.seasons.length > 0 && track.progress
-      ? seasonSegments(track.seasons, track.progress.done)
-      : null;
+  // A11/A13: same eligibility as seasonPositionLabel, via the shared helper —
+  // a not-yet-started show keeps the flat bar, everything else with season
+  // data gets the segmented one.
+  const segments = hasSeasonProgress(track) ? seasonSegments(track.seasons!, track.progress!.done) : null;
 
   return (
     <View style={styles.row}>

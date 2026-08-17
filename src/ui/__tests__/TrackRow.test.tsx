@@ -323,13 +323,33 @@ test('a show with no season data keeps the flat bar and the default "Watching" l
   expect(screen.getByTestId('progress-track')).toBeTruthy();
 });
 
-test('a show on Backlog with season data still uses the flat bar, not segments', async () => {
-  const backlogged: TrackSummary = {
+/**
+ * A13: reverses the original A11 scoping. A paused show still has real
+ * progress worth showing correctly — "Paused" alone (or the flat bar) hid
+ * exactly the information a segmented bar exists to convey. Season
+ * treatment now follows "is there real progress to show," not "is this
+ * actively being watched right now."
+ */
+test('a paused show with season data keeps its segmented bar and shows "Paused · S# Ep# of #"', async () => {
+  const paused: TrackSummary = {
     ...houseWithSeasons,
     shelf: 'backlog',
     paused: true,
   };
-  await render(<TrackRow track={backlogged} onAdvance={() => {}} onResume={() => {}} />);
+  await render(<TrackRow track={paused} onAdvance={() => {}} onResume={() => {}} />);
+  expect(screen.getAllByTestId('progress-segment')).toHaveLength(3);
+  expect(screen.getByText('Paused · S2 Ep 16 of 24')).toBeTruthy();
+});
+
+test('a not-yet-started backlog show (unpaused) keeps the flat bar and "Not started"', async () => {
+  const notStarted: TrackSummary = {
+    ...houseWithSeasons,
+    shelf: 'backlog',
+    paused: false,
+    progress: { done: 0, total: 176 },
+  };
+  await render(<TrackRow track={notStarted} onAdvance={() => {}} onResume={() => {}} />);
+  expect(screen.getByText('Not started')).toBeTruthy();
   expect(screen.queryAllByTestId('progress-segment')).toHaveLength(0);
   expect(screen.queryByText(/^S\d/)).toBeNull();
 });
