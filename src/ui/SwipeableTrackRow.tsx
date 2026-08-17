@@ -39,12 +39,14 @@ export function SwipeableTrackRow({
   track,
   onAdvance,
   onResume,
+  onRename,
   onDelete,
   onReturnToBacklog,
 }: {
   track: TrackSummary;
   onAdvance: (entryId: string) => void;
   onResume: (track: TrackSummary) => void;
+  onRename: (track: TrackSummary, title: string) => void;
   onDelete: (track: TrackSummary) => void;
   onReturnToBacklog: (track: TrackSummary) => void;
 }) {
@@ -192,7 +194,7 @@ export function SwipeableTrackRow({
         style={[styles.surface, { transform: [{ translateX }] }]}
         {...pan.panHandlers}
       >
-        <TrackRow track={track} onAdvance={onAdvance} onResume={onResume} />
+        <TrackRow track={track} onAdvance={onAdvance} onResume={onResume} onRename={onRename} />
       </Animated.View>
     </View>
   );

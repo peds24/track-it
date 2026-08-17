@@ -458,6 +458,26 @@ export async function deleteTrack(
 }
 
 /**
+ * A15: rename a track in place. `externalSource`/`externalId` (and, for a
+ * show, `seasons_json`) live in separate columns untouched by this — a
+ * catalogue match records where the data came from, not what the row is
+ * called, so renaming a track never needs to re-fetch or re-confirm
+ * anything. A blank title is rejected the same way `addTrack` already
+ * rejects one at creation, since there is no delete UI to recover from a
+ * row with no name.
+ */
+export async function renameTrack(
+  db: SqlDriver,
+  track: { kind: 'series' | 'entry'; id: string },
+  title: string,
+): Promise<void> {
+  const trimmed = title.trim();
+  if (trimmed.length === 0) throw new Error('A track needs a title');
+  const table = track.kind === 'series' ? 'series' : 'entry';
+  await db.run(`UPDATE ${table} SET title = ? WHERE id = ?`, [trimmed, track.id]);
+}
+
+/**
  * Send a track back to the Backlog shelf.
  *
  * A6: a track that still has something left to finish is paused, not reset —

@@ -899,6 +899,39 @@ time, matching the category picker's own pattern: from the search screen,
 back returns to "Single issue or Collection?" before it returns to "What
 are you adding?".
 
+**A15 — Titles are editable in place, tap-and-hold, with no schema
+change.** v1 had no edit path for a title at all — a typo or an
+unwanted catalogue-supplied name (Google Books/AniList/TMDB/Metron)
+was permanent once created. The fix under consideration was a separate
+"display title" field, kept independent of the matched/canonical one, on
+the theory that renaming could otherwise sever the catalogue link. It
+does not: `externalSource`/`externalId` (and, for a show, `seasons_json`)
+already live in columns entirely separate from `title` — nothing about
+updating `title` touches them. A duplicate field would have been a second
+source of truth for a problem that didn't exist.
+
+Long-pressing a row's title (Currently, Backlog, or Done — the control is
+in `TrackRow` itself, not any one screen) turns it into an editable field
+in place, pre-filled with the current title. Submitting (return key or
+tapping away) commits a non-blank, changed title via a new `renameTrack`;
+a blank submission is silently discarded, keeping the old title, since
+there is still no delete UI to recover a row with no name from. No
+confirmation dialog — matches the reversible-action convention Pause
+already set (D4/A6): a rename is trivially undone by renaming again.
+
+**Rejected:** a separate display-title field. Rejected once the actual
+mechanics were checked — the concern it would have solved does not exist,
+so the added storage, the sync-in-two-places risk, and the "which one
+does the row actually show" question it would introduce were pure cost.
+
+**Mechanically:** `src/data/trackRepo.ts` gains `renameTrack(db, track,
+title)` — validates non-blank the same way `addTrack` does at creation,
+then a plain `UPDATE ... SET title` against `series` or `entry` depending
+on `track.kind`. `src/ui/TrackRow.tsx` gains local edit-mode state and an
+`onRename` prop; `SwipeableTrackRow.tsx` and all three list screens
+(`app/(tabs)/index.tsx`, `backlog.tsx`, `done.tsx`) thread it through
+identically, mirroring how `onDelete`/`onReturnToBacklog` already do.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:

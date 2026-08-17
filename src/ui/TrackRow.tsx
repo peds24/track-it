@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState, useMemo } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { TrackSummary } from '@/data/trackRepo';
 import { currentSeason, seasonSegments } from '@/domain/seasons';
 import type { Category } from '@/domain/types';
@@ -93,14 +93,31 @@ export function TrackRow({
   track,
   onAdvance,
   onResume,
+  onRename,
 }: {
   track: TrackSummary;
   onAdvance: (entryId: string) => void;
   onResume: (track: TrackSummary) => void;
+  onRename: (track: TrackSummary, title: string) => void;
 }) {
   const palette = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const { nextEntryId, nextEntryTitle, progress } = track;
+
+  // A15: renaming is a lightweight in-place edit, not a confirm-and-refetch
+  // flow — externalSource/externalId (and a show's seasons) live in
+  // separate columns a rename never touches, so there's nothing to
+  // re-fetch or re-confirm. `titleDraft` is only ever seeded from
+  // `track.title` at the moment editing starts, not synced continuously,
+  // so it can't fight the user's own typing.
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState(track.title);
+
+  function commitRename(): void {
+    setEditingTitle(false);
+    const trimmed = titleDraft.trim();
+    if (trimmed.length > 0 && trimmed !== track.title) onRename(track, trimmed);
+  }
 
   // A6: a paused row is one that already has progress — Resume must only clear
   // the flag, never advance an entry, or it would silently mark something done
@@ -137,9 +154,31 @@ export function TrackRow({
   return (
     <View style={styles.row}>
       <View style={styles.text}>
-        <Text style={styles.title} numberOfLines={1}>
-          {track.title}
-        </Text>
+        {editingTitle ? (
+          <TextInput
+            style={styles.titleInput}
+            value={titleDraft}
+            onChangeText={setTitleDraft}
+            onSubmitEditing={commitRename}
+            onBlur={commitRename}
+            autoFocus
+            selectTextOnFocus
+            cursorColor={palette.ink}
+            selectionColor={palette.ink}
+            underlineColorAndroid="transparent"
+          />
+        ) : (
+          <Text
+            style={styles.title}
+            numberOfLines={1}
+            onLongPress={() => {
+              setTitleDraft(track.title);
+              setEditingTitle(true);
+            }}
+          >
+            {track.title}
+          </Text>
+        )}
 
         <View style={styles.meta}>
           <Text style={styles.kind}>{KIND_LABEL[track.category]}</Text>
@@ -225,6 +264,17 @@ function createStyles(c: Palette) {
     },
     text: { flex: 1, minWidth: 0 },
     title: { ...font.rowTitle, color: c.ink },
+    // A15: the one moment a row's text becomes a control, so it picks up
+    // the bordered look every other control already has (design-language,
+    // "Controls are bordered; lists are not") — a bottom border rather
+    // than a full box, so it still reads as the same title in place.
+    titleInput: {
+      ...font.rowTitle,
+      color: c.ink,
+      padding: 0,
+      borderBottomWidth: 1.5,
+      borderBottomColor: c.ruleStrong,
+    },
     meta: {
       flexDirection: 'row',
       alignItems: 'center',
