@@ -1,6 +1,6 @@
 import { exportLibrary, importLibrary } from '@/data/backup';
 import { addTrack } from '@/data/addTrack';
-import { listTracks } from '@/data/trackRepo';
+import { createSeriesTrack, listTracks } from '@/data/trackRepo';
 import type { SqlDriver } from '@/db/driver';
 import { migrate } from '@/db/schema';
 import { createMemoryDriver } from '../../../test/memoryDriver';
@@ -25,6 +25,40 @@ test('a library survives an export/import round trip', async () => {
   expect(tracks).toHaveLength(1);
   expect(tracks[0]!.title).toBe('Berserk');
   expect(tracks[0]!.progress).toEqual({ done: 0, total: 2 });
+});
+
+test("a show's season breakdown survives an export/import round trip", async () => {
+  const source = await freshDb();
+  await createSeriesTrack(
+    source,
+    {
+      title: 'House',
+      mediaType: 'show',
+      unitLabel: 'episode',
+      entries: [{ ordinal: 1, title: 'Episode 1' }, { ordinal: 2, title: 'Episode 2' }],
+      seasons: [{ number: 1, episodeCount: 2 }],
+    },
+    NOW,
+  );
+  const json = await exportLibrary(source);
+
+  const target = await freshDb();
+  await importLibrary(target, json);
+
+  const [track] = await listTracks(target, 'backlog');
+  expect(track!.seasons).toEqual([{ number: 1, episodeCount: 2 }]);
+});
+
+test('a series with no season data round-trips to seasons: null, same as today', async () => {
+  const source = await freshDb();
+  await addTrack(source, { title: 'Berserk', category: 'manga', count: 2 }, NOW);
+  const json = await exportLibrary(source);
+
+  const target = await freshDb();
+  await importLibrary(target, json);
+
+  const [track] = await listTracks(target, 'backlog');
+  expect(track!.seasons).toBeNull();
 });
 
 test('import replaces the existing library rather than merging', async () => {
