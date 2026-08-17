@@ -6,6 +6,11 @@ const MODE_BY_MEDIA_TYPE: Record<EntryMediaType, Mode> = {
   book: 'read',
   issue: 'read',
   volume: 'read',
+  // A16: a standalone comic collection reads the same two-tap way a book
+  // does — unstarted -> in_progress -> done — not the binary watch-mode
+  // rule (that only ever applied to a standalone entry with no next unit
+  // to reveal a middle state about, which a comic never was).
+  comic: 'read',
 };
 
 /** Mode is a total function of media type, so it is derived, never stored. */

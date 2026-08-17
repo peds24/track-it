@@ -119,16 +119,17 @@ export default function AddTrackScreen() {
   // render/effect round trip to race against.
   const allowLeave = useRef(false);
 
-  const isSeries = category !== null && unitLabelFor(category) !== null;
-  // A14: Google Books can never return a real per-result count (D5/A9) —
-  // for a comic collection specifically, the A11 confirm step has nothing
-  // trustworthy to confirm. Every other category/mode combination keeps
-  // A11's behaviour unchanged.
-  const autoConfirms = !(category === 'comic' && comicMode === 'collection');
+  // A16: a comic collection is excluded here even though `comic`'s own
+  // category has a series unit label — it tracks as one standalone item,
+  // like a book, so it takes the exact same no-count, no-confirm-step path
+  // book/movie already do. This is what let A14's `autoConfirms` workaround
+  // (Google Books can never return a real count to confirm) go away
+  // entirely: there is no confirm step to skip once this is false.
+  const isCollectionComic = category === 'comic' && comicMode === 'collection';
+  const isSeries = category !== null && unitLabelFor(category) !== null && !isCollectionComic;
   // A11: manual fields render only when there's no confirmed match to trust
-  // instead — a hand-typed title, an explicit override of a wrong one, or
-  // (A14) a category/mode this confirm step can't support at all.
-  const showManualFields = isSeries && (!picked || editingCount || hydrateFailed || !autoConfirms);
+  // instead — a hand-typed title, or an explicit override of a wrong one.
+  const showManualFields = isSeries && (!picked || editingCount || hydrateFailed);
   const needsCount = showManualFields && !ongoing;
   const unit = category ? unitLabelFor(category) : null;
   const barcodeTypes =
@@ -179,7 +180,7 @@ export default function AddTrackScreen() {
   // stale request if the user picks something else, or types past the pick,
   // before this resolves.
   useEffect(() => {
-    if (!category || !picked || !isSeries || !autoConfirms) {
+    if (!category || !picked || !isSeries) {
       setConfirmedDraft(null);
       setHydrating(false);
       setHydrateFailed(false);
@@ -206,7 +207,7 @@ export default function AddTrackScreen() {
     return () => {
       cancelled = true;
     };
-  }, [category, picked, isSeries, autoConfirms, comicMode]);
+  }, [category, picked, isSeries, comicMode]);
 
   // Picking a category never navigates — it just re-renders this component
   // past the `category === null` branch — so leaving the modal for real and
@@ -359,9 +360,11 @@ export default function AddTrackScreen() {
       // entry instead of always at 1. Applies to whatever the final title
       // string is, regardless of whether it was typed, picked from a search
       // result, or filled in by a barcode scan — all three converge on
-      // `title` by this point.
+      // `title` by this point. A16: a comic collection has no series to
+      // start partway through — its title (e.g. "Saga, Volume 1") keeps
+      // its number, the same as a book's title always has.
       const { title: finalTitle, ordinal } =
-        category === 'comic' || category === 'manga'
+        (category === 'comic' && !isCollectionComic) || category === 'manga'
           ? parseSeriesTitle(title)
           : { title: title.trim(), ordinal: null };
 
@@ -370,8 +373,8 @@ export default function AddTrackScreen() {
       // edited override rebuilds the draft locally the same way a
       // hand-typed title always has, keeping the confirmed match's own
       // external id/source rather than discarding where it came from.
-      const draft: SeriesDraft | undefined = isSeries
-        ? confirmedDraft
+      const draft: SeriesDraft | undefined =
+        isSeries && confirmedDraft
           ? editingCount
             ? {
                 ...generateEntries({
@@ -385,21 +388,7 @@ export default function AddTrackScreen() {
                 externalId: confirmedDraft.externalId,
               }
             : confirmedDraft
-          : // A14: a comic collection's confirm step never runs (Google
-            // Books can't give a real count to confirm, so autoConfirms is
-            // false and confirmedDraft stays null) — hydrate it here
-            // instead, at save time, so addTrack's own registry-based
-            // fallback — which would resolve `comic` to Metron, the wrong
-            // provider for a Google Books pick — never runs against it.
-            !autoConfirms && picked
-            ? await googleBooksComic.hydrate({
-                ...picked,
-                title: finalTitle,
-                count: parsedCount,
-                ongoing: isSeries && ongoing,
-              })
-            : undefined
-        : undefined;
+          : undefined;
 
       const created = await addTrack(
         db,
@@ -411,6 +400,12 @@ export default function AddTrackScreen() {
           match: picked ?? undefined,
           startAtOrdinal: ordinal ?? undefined,
           draft,
+          // A16: a comic collection tracks as a standalone item — the
+          // registry's `comic` entry stays Metron (the single-issue
+          // default), so a Google Books match needs its real source
+          // recorded explicitly rather than picking up Metron's id.
+          standalone: isCollectionComic || undefined,
+          externalSource: isCollectionComic ? googleBooksComic.id : undefined,
         },
         now,
       );
@@ -467,8 +462,9 @@ export default function AddTrackScreen() {
           <Text style={styles.optionText}>Collection</Text>
         </Pressable>
         <Text style={styles.note}>
-          A single issue is matched exactly by barcode or issue number. A collection — a trade
-          paperback, hardcover, or omnibus — is matched by title, the same way a book is.
+          A single issue is tracked issue by issue, matched exactly by barcode or issue number. A
+          collection — a trade paperback, hardcover, or omnibus — tracks as one item, the same way
+          a book does.
         </Text>
       </View>
     );

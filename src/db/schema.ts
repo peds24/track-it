@@ -62,6 +62,41 @@ const MIGRATIONS: readonly string[] = [
   `
   ALTER TABLE series ADD COLUMN seasons_json TEXT;
   `,
+  // A16: a comic collection (TPB/hardcover/omnibus) tracks as a standalone
+  // entry, like a book, not an issue series — `entry.media_type`'s CHECK
+  // constraint has to accept `'comic'`. SQLite has no `ALTER TABLE ...
+  // ALTER COLUMN` for constraints, so this recreates the table under the
+  // standard SQLite pattern: build the new shape, copy every row over
+  // unchanged, drop the old table, rename the new one in, then rebuild the
+  // indexes a dropped table takes with it. Every existing row's data
+  // (including comics already tracked as an issue series under the old
+  // constraint) is preserved exactly — this migration only widens what a
+  // *new* row may be, it never rewrites an existing one.
+  `
+  CREATE TABLE entry_new (
+    id              TEXT PRIMARY KEY NOT NULL,
+    series_id       TEXT REFERENCES series(id) ON DELETE CASCADE,
+    title           TEXT NOT NULL,
+    ordinal         INTEGER,
+    media_type      TEXT NOT NULL CHECK (media_type IN ('episode','issue','volume','book','movie','comic')),
+    status          TEXT NOT NULL CHECK (status IN ('unstarted','in_progress','done')),
+    started_at      TEXT,
+    finished_at     TEXT,
+    created_at      TEXT NOT NULL,
+    paused          INTEGER NOT NULL DEFAULT 0,
+    external_source TEXT,
+    external_id     TEXT
+  );
+
+  INSERT INTO entry_new (id, series_id, title, ordinal, media_type, status, started_at, finished_at, created_at, paused, external_source, external_id)
+    SELECT id, series_id, title, ordinal, media_type, status, started_at, finished_at, created_at, paused, external_source, external_id FROM entry;
+
+  DROP TABLE entry;
+  ALTER TABLE entry_new RENAME TO entry;
+
+  CREATE INDEX IF NOT EXISTS idx_entry_series ON entry(series_id);
+  CREATE INDEX IF NOT EXISTS idx_entry_status ON entry(status);
+  `,
 ];
 
 /**

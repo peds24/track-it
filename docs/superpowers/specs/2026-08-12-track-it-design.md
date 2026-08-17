@@ -932,6 +932,71 @@ on `track.kind`. `src/ui/TrackRow.tsx` gains local edit-mode state and an
 (`app/(tabs)/index.tsx`, `backlog.tsx`, `done.tsx`) thread it through
 identically, mirroring how `onDelete`/`onReturnToBacklog` already do.
 
+**A16 — A comic collection tracks as a standalone item, like a book;
+reverses part of A14.** A14 rejected a sixth `Category` value on the
+reasoning that "a collected edition is tracked exactly like a single
+issue — same `unitLabel: 'issue'`, same entry shape." Direct feedback
+after using it corrected that: a shelf of trade paperbacks is a shelf of
+*books*, not an issue count nobody is tracking issue-by-issue — "no more
+vols ahead, treat as books." A14's routing (which catalogue answers) was
+right and stays; its data shape (an issue series) was wrong for this case
+and changes.
+
+A comic collection now takes the exact same standalone path `book`/`movie`
+already do (D1) — one entry, no count, no ongoing toggle, the two-tap
+read ladder (D2) — while keeping `category: 'comic'` so the row still
+reads "COMIC", not "BOOK". This is additive to `EntryMediaType`
+(`'comic'` joins `'book'`/`'movie'` as a standalone type) rather than a
+new `Category`, which is what actually delivers on A14's own reasoning:
+`comic`'s *category* is unchanged, matched via Metron or Google Books
+exactly as A14 set up: only which *shape of entry* a collection produces
+changes.
+
+**A real consequence, not a workaround:** `entry.media_type`'s CHECK
+constraint had to widen to accept `'comic'`. SQLite has no `ALTER TABLE
+... ALTER COLUMN` for constraints, so the migration recreates the table —
+build the new shape, copy every row across unchanged, drop the old table,
+rename the new one in, rebuild the indexes a dropped table takes with it.
+Tested explicitly (`schema.test.ts`): a pre-migration row round-trips with
+every column intact, the widened constraint still rejects a genuinely
+unknown media type, and the indexes/cascade-delete survive the
+recreation.
+
+**A second consequence, caught before it shipped:** `addTrack`'s
+standalone branch derived `externalSource` from `providerFor(category).id`
+— correct for `book`/`movie`, where the registry's default provider is
+always the one that actually produced the match, but wrong for a
+collection comic, where the registry's `comic` entry deliberately stays
+Metron (A9/A14's single-issue default) while the real match came from
+Google Books. `addTrack` gains two narrow overrides — `standalone?:
+boolean` (routes past the series branch regardless of category) and
+`externalSource?: string` (overrides the registry-derived id) — both
+`undefined` and inert for every existing caller. The same audit simplified
+the standalone branch's match detection: comparing `match.id` against the
+registry provider's own id was vestigial (only the series branch's
+internal sentinel construction ever produces that shape; a caller never
+hands the standalone branch one), so it now just checks whether `match`
+is present at all.
+
+**Rejected:** a `comic-collection` pseudo-category, or a mode flag carried
+on `Series`/`Entry`. Both would resurrect exactly the "three
+near-duplicate models" D1 already argued against — `comic`'s *category*
+correctly stays one thing; only the entry shape a given pick produces
+depends on which sub-flow the Add screen is in, which is a screen-level
+routing decision, not a fact about the track itself.
+
+**Mechanically:** `src/domain/types.ts` (`EntryMediaType` gains `comic`),
+`src/domain/validate.ts` (`StandaloneMediaType`/`STANDALONE_MEDIA_TYPES`
+gain `comic`), `src/domain/mode.ts` (`comic` mapped to `read`),
+`src/db/schema.ts` (table-recreation migration), `src/data/trackRepo.ts`
+(`createStandaloneTrack`'s category type widens), `src/data/addTrack.ts`
+(`standalone`/`externalSource` overrides, simplified match detection).
+`app/add.tsx`: `isSeries` excludes a collection-mode comic outright, which
+is what let A14's `autoConfirms` workaround disappear entirely — there is
+no confirm step left to skip once a collection comic is simply not a
+series. `parseSeriesTitle` is skipped for the same reason a book's title
+always skips it: there is no series left to start partway through.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:

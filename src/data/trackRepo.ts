@@ -184,7 +184,9 @@ export async function createStandaloneTrack(
   db: SqlDriver,
   input: {
     title: string;
-    category: 'book' | 'movie';
+    /** A16: `comic` joins `book`/`movie` — a collected edition tracks as
+     * one item, not an issue series. */
+    category: 'book' | 'movie' | 'comic';
     /** A9: set when the title came from a confirmed catalogue match rather
      * than being typed by hand — a search hit or a barcode scan. */
     externalSource?: string;

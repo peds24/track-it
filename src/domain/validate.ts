@@ -7,16 +7,18 @@ import type { EntryMediaType, UnitLabel } from '@/domain/types';
  * through. This module stays pure — no db/, data/, ui/ or React imports.
  */
 
-/** The media types an entry may carry when it has no parent series (D1). */
-export type StandaloneMediaType = 'book' | 'movie';
+/** The media types an entry may carry when it has no parent series (D1;
+ * A16 adds `comic` for a collected edition tracked as one item). */
+export type StandaloneMediaType = 'book' | 'movie' | 'comic';
 
-const STANDALONE_MEDIA_TYPES: readonly string[] = ['book', 'movie'];
+const STANDALONE_MEDIA_TYPES: readonly string[] = ['book', 'movie', 'comic'];
 
 /**
- * A parentless entry is a book or a movie. Written as a type guard so read paths
- * can narrow to a `Category` by checking rather than asserting: an unchecked
- * `as Category` on stored data turns a corrupt row into a value outside the
- * union, which then matches no filter chip and cannot be removed.
+ * A parentless entry is a book, a movie, or (A16) a comic collection.
+ * Written as a type guard so read paths can narrow to a `Category` by
+ * checking rather than asserting: an unchecked `as Category` on stored
+ * data turns a corrupt row into a value outside the union, which then
+ * matches no filter chip and cannot be removed.
  */
 export function isStandaloneMediaType(mediaType: string): mediaType is StandaloneMediaType {
   return STANDALONE_MEDIA_TYPES.includes(mediaType);
