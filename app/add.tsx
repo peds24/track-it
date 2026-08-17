@@ -14,13 +14,26 @@ import type { SearchResult, SeriesDraft } from '@/providers/types';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { font, layout, radius, underline, useTheme, type Palette } from '@/ui/theme';
 
-/** book/manga are ISBN barcodes (EAN-13); comic is UPC-A. Show/movie have no
- * retail barcode at all — TMDB is search-by-title only (D5/A9). */
+/** book/manga are ISBN barcodes (EAN-13). A single-issue comic is UPC-A
+ * (A9); a comic collection (A14) is ISBN-barcoded like a book — Metron
+ * only catalogues single issues, so collections are Google Books' job.
+ * Show/movie have no retail barcode at all — TMDB is search-by-title
+ * only (D5/A9). */
+const ISBN_BARCODE_TYPES: BarcodeType[] = ['ean13', 'ean8'];
 const BARCODE_TYPES: Partial<Record<Category, BarcodeType[]>> = {
-  book: ['ean13', 'ean8'],
-  manga: ['ean13', 'ean8'],
-  comic: ['upc_a'],
+  book: ISBN_BARCODE_TYPES,
+  manga: ISBN_BARCODE_TYPES,
 };
+const COMIC_SINGLE_ISSUE_BARCODE: BarcodeType[] = ['upc_a'];
+
+/**
+ * A14: comic collections (TPB, hardcover, omnibus) are matched by title
+ * like a book, not by single-issue UPC — Metron doesn't catalogue them at
+ * all. Never registered globally (the registry's `comic` entry stays
+ * Metron, for the single-issue default, A9) — instantiated directly here
+ * for the one path that needs it.
+ */
+const googleBooksComic = new GoogleBooksProvider('comic');
 
 /** Debounce for search-as-you-type — long enough that a typing burst issues
  * one request, short enough that a result still feels immediate. */
@@ -34,6 +47,16 @@ const CATEGORIES: readonly { value: Category; label: string }[] = [
   { value: 'manga', label: 'Manga' },
 ];
 
+type ComicMode = 'single' | 'collection';
+
+/** The registry (D10) is a strict one-provider-per-category map, which
+ * can't express "comic, but the collection sub-path" — this resolves the
+ * one exception directly rather than growing the registry's interface for
+ * a single category's internal split. */
+function providerForAdd(category: Category, comicMode: ComicMode | null) {
+  return category === 'comic' && comicMode === 'collection' ? googleBooksComic : providerFor(category);
+}
+
 export default function AddTrackScreen() {
   const db = useDatabase();
   const router = useRouter();
@@ -41,6 +64,11 @@ export default function AddTrackScreen() {
   const palette = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [category, setCategory] = useState<Category | null>(null);
+  // A14: comic's own extra step — which catalogue answers depends on
+  // whether this is a single issue (Metron, A9) or a collection (Google
+  // Books, since Metron doesn't catalogue TPBs/hardcovers/omnibuses).
+  // Irrelevant, and left null, for every other category.
+  const [comicMode, setComicMode] = useState<ComicMode | null>(null);
   const [title, setTitle] = useState('');
   // Empty, not '1' — a pre-filled value hides the "How many volumes?" prompt
   // and has to be cleared before it can be typed over.
@@ -92,12 +120,27 @@ export default function AddTrackScreen() {
   const allowLeave = useRef(false);
 
   const isSeries = category !== null && unitLabelFor(category) !== null;
+  // A14: Google Books can never return a real per-result count (D5/A9) —
+  // for a comic collection specifically, the A11 confirm step has nothing
+  // trustworthy to confirm. Every other category/mode combination keeps
+  // A11's behaviour unchanged.
+  const autoConfirms = !(category === 'comic' && comicMode === 'collection');
   // A11: manual fields render only when there's no confirmed match to trust
-  // instead — a hand-typed title, or an explicit override of a wrong one.
-  const showManualFields = isSeries && (!picked || editingCount || hydrateFailed);
+  // instead — a hand-typed title, an explicit override of a wrong one, or
+  // (A14) a category/mode this confirm step can't support at all.
+  const showManualFields = isSeries && (!picked || editingCount || hydrateFailed || !autoConfirms);
   const needsCount = showManualFields && !ongoing;
   const unit = category ? unitLabelFor(category) : null;
-  const barcodeTypes = category ? BARCODE_TYPES[category] : undefined;
+  const barcodeTypes =
+    category === 'comic'
+      ? comicMode === 'single'
+        ? COMIC_SINGLE_ISSUE_BARCODE
+        : comicMode === 'collection'
+          ? ISBN_BARCODE_TYPES
+          : undefined
+      : category
+        ? BARCODE_TYPES[category]
+        : undefined;
 
   // A search hit only ever confirms a title (D5) — once one is picked there
   // is nothing left to search for until the user types past it again.
@@ -115,7 +158,7 @@ export default function AddTrackScreen() {
     const handle = setTimeout(() => {
       void (async () => {
         try {
-          const hits = await providerFor(category).search(query);
+          const hits = await providerForAdd(category, comicMode).search(query);
           if (!cancelled) setResults(hits);
         } catch {
           // Search is progressive enhancement, never a blocking requirement
@@ -129,14 +172,14 @@ export default function AddTrackScreen() {
       cancelled = true;
       clearTimeout(handle);
     };
-  }, [title, category, picked]);
+  }, [title, category, picked, comicMode]);
 
   // A11: the confirm step's data source — runs once per pick, not once per
   // keystroke like search does. Cancelled the same way search cancels a
   // stale request if the user picks something else, or types past the pick,
   // before this resolves.
   useEffect(() => {
-    if (!category || !picked || !isSeries) {
+    if (!category || !picked || !isSeries || !autoConfirms) {
       setConfirmedDraft(null);
       setHydrating(false);
       setHydrateFailed(false);
@@ -148,7 +191,7 @@ export default function AddTrackScreen() {
     setHydrateFailed(false);
     void (async () => {
       try {
-        const draft = await providerFor(category).hydrate(picked);
+        const draft = await providerForAdd(category, comicMode).hydrate(picked);
         if (!cancelled) setConfirmedDraft(draft);
       } catch {
         // Search — and the confirm step it feeds — is progressive
@@ -163,7 +206,7 @@ export default function AddTrackScreen() {
     return () => {
       cancelled = true;
     };
-  }, [category, picked, isSeries]);
+  }, [category, picked, isSeries, autoConfirms, comicMode]);
 
   // Picking a category never navigates — it just re-renders this component
   // past the `category === null` branch — so leaving the modal for real and
@@ -172,12 +215,18 @@ export default function AddTrackScreen() {
   // is the one place that distinguishes them: while a category is chosen,
   // back resets to the category picker instead of leaving, clearing every bit
   // of state the abandoned attempt left behind so picking a different
-  // category next starts clean.
+  // category next starts clean. A14: comic's own extra step unwinds one
+  // level at a time the same way — back from the search screen returns to
+  // "Single issue or Collection?" first, not straight past it.
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
       if (category === null || allowLeave.current) return;
       e.preventDefault();
-      setCategory(null);
+      if (category === 'comic' && comicMode !== null) {
+        setComicMode(null);
+      } else {
+        setCategory(null);
+      }
       setTitle('');
       setCount('');
       setOngoing(false);
@@ -193,7 +242,7 @@ export default function AddTrackScreen() {
       setEditingCount(false);
     });
     return unsubscribe;
-  }, [navigation, category]);
+  }, [navigation, category, comicMode]);
 
   function pick(result: SearchResult): void {
     // A10's own "#N" pattern reads this back out at save time — reusing it
@@ -226,9 +275,12 @@ export default function AddTrackScreen() {
     scanHandled.current = true;
     setScanning(false);
 
-    // A UPC-A alone identifies a comic's series, not its issue (A9) — the
-    // 5-digit supplemental prompt decides the query, so defer the lookup.
-    if (category === 'comic') {
+    // A UPC-A alone identifies a single-issue comic's series, not its issue
+    // (A9) — the 5-digit supplemental prompt decides the query, so defer
+    // the lookup. A comic collection (A14) never reaches this: it scans an
+    // ISBN, not a UPC-A, and Google Books resolves that in one hop, same
+    // as a book.
+    if (category === 'comic' && comicMode === 'single') {
       setEan5('');
       setPendingUpc(data);
       return;
@@ -258,7 +310,7 @@ export default function AddTrackScreen() {
             setResults([]);
           }
         } else {
-          setResults(await providerFor(category).search(data));
+          setResults(await providerForAdd(category, comicMode).search(data));
         }
         setPicked(null);
       } catch {
@@ -318,8 +370,8 @@ export default function AddTrackScreen() {
       // edited override rebuilds the draft locally the same way a
       // hand-typed title always has, keeping the confirmed match's own
       // external id/source rather than discarding where it came from.
-      const draft: SeriesDraft | undefined =
-        isSeries && confirmedDraft
+      const draft: SeriesDraft | undefined = isSeries
+        ? confirmedDraft
           ? editingCount
             ? {
                 ...generateEntries({
@@ -333,7 +385,21 @@ export default function AddTrackScreen() {
                 externalId: confirmedDraft.externalId,
               }
             : confirmedDraft
-          : undefined;
+          : // A14: a comic collection's confirm step never runs (Google
+            // Books can't give a real count to confirm, so autoConfirms is
+            // false and confirmedDraft stays null) — hydrate it here
+            // instead, at save time, so addTrack's own registry-based
+            // fallback — which would resolve `comic` to Metron, the wrong
+            // provider for a Google Books pick — never runs against it.
+            !autoConfirms && picked
+            ? await googleBooksComic.hydrate({
+                ...picked,
+                title: finalTitle,
+                count: parsedCount,
+                ongoing: isSeries && ongoing,
+              })
+            : undefined
+        : undefined;
 
       const created = await addTrack(
         db,
@@ -380,6 +446,29 @@ export default function AddTrackScreen() {
         ))}
         <Text style={styles.note}>
           The category is always chosen first. It decides which catalogue answers later.
+        </Text>
+      </View>
+    );
+  }
+
+  // A14: comic's own extra step — which catalogue answers later depends on
+  // whether this is a single issue (Metron, precise down to the printing)
+  // or a collection (Google Books, which Metron doesn't catalogue at all).
+  if (category === 'comic' && comicMode === null) {
+    return (
+      <View style={styles.screen}>
+        <View style={styles.header}>
+          <Text style={styles.prompt}>Comic</Text>
+        </View>
+        <Pressable style={styles.option} onPress={() => setComicMode('single')}>
+          <Text style={styles.optionText}>Single issue</Text>
+        </Pressable>
+        <Pressable style={styles.option} onPress={() => setComicMode('collection')}>
+          <Text style={styles.optionText}>Collection</Text>
+        </Pressable>
+        <Text style={styles.note}>
+          A single issue is matched exactly by barcode or issue number. A collection — a trade
+          paperback, hardcover, or omnibus — is matched by title, the same way a book is.
         </Text>
       </View>
     );

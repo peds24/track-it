@@ -77,6 +77,18 @@ test('maps results to SearchResult, tagged with the category this instance was b
   expect(results[0]).not.toHaveProperty('imageLinks');
 });
 
+// A14: comic collections (TPB, hardcover, omnibus) route through Google
+// Books too — Metron only catalogues single issues.
+test('a comic-tagged instance searches and tags results comic, same as book/manga', async () => {
+  process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
+  mockFetchOnce({
+    items: [{ id: 'saga-tpb-1', volumeInfo: { title: 'Saga, Volume 1' } }],
+  });
+
+  const results = await new GoogleBooksProvider('comic').search('Saga');
+  expect(results).toEqual([{ id: 'saga-tpb-1', title: 'Saga, Volume 1', category: 'comic', count: 1 }]);
+});
+
 test('an item with no title is skipped rather than producing a blank result', async () => {
   process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
   mockFetchOnce({ items: [{ id: 'no-title', volumeInfo: {} }] });

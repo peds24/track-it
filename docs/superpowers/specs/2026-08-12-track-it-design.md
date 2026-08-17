@@ -842,6 +842,63 @@ the component's `segments` computation both used to duplicate — worth
 extracting now that the condition grew a second clause, where A11's
 original two-branch version was judged fine left inline.
 
+**A14 — Comics split into Single Issue (Metron) and Collection (Google
+Books).** D5's original candidate table already split comics this way
+in principle — "issues are not reliably in ISBN databases, and trades are
+not reliably in issue databases" — but D5/A9 only ever built the Single
+Issue half; Metron was comic's only provider, so a trade paperback,
+hardcover, or omnibus edition had no accurate catalogue at all. The Add
+screen gains one more step for `comic` specifically, right after the
+category itself: **Single issue** or **Collection**, before the title
+field. Single issue is A9 unchanged — Metron, typed search, and the
+UPC-A/EAN-5 scan flow, byte-for-byte. Collection routes to a
+comic-tagged `GoogleBooksProvider` instance instead — search, hydrate,
+and ISBN barcode scanning all work exactly as they already do for `book`,
+because Google Books' behavior was never category-specific to begin with.
+
+The registry (D10) stays a strict one-provider-per-category map;
+`comic`'s entry stays Metron. The Add screen resolves the collection
+exception itself (`providerForAdd(category, comicMode)`), rather than
+widening the registry's interface for one category's internal split.
+
+**Google Books can never return a real count (D5/A9), which A11's confirm
+step assumes every series provider can.** For Collection specifically,
+`autoConfirms` is false: the confirm-hydrate effect never runs, and the
+screen falls back to exactly A9's pre-A11 behavior — picking a result
+only ever confirms a title, the manual count/ongoing fields stay the
+answer. This is the same trade Google Books has always made for
+`book`/`manga`; A14 just extends it to comics that need it.
+
+**A consequence worth naming explicitly:** `addTrack`'s own fallback
+(`providerFor(input.category).hydrate(result)`) would resolve `comic` to
+Metron regardless of which mode picked the match — wrong provider,
+wrong ID format, a real network call to Metron with a Google Books ID
+that cannot succeed. The Add screen avoids this by hydrating a
+Collection match itself at save time (via the comic-tagged
+`GoogleBooksProvider`, not the registry) and passing the result as an
+explicit `draft` — `addTrack`'s own resolution only ever fires for the
+hand-typed, no-match case, where every provider's sentinel check
+(`result.id === this.id`) makes the "wrong" provider harmless, since none
+of them touch the network for an unmatched title.
+
+**Rejected:** a sixth `Category` value (e.g. `'comic-collection'`) to
+carry the distinction all the way through the domain layer. Rejected on
+D1's own reasoning restated: a collected edition is tracked exactly like
+a single issue — same `unitLabel: 'issue'`, same entry shape, same shelf
+rules — the only difference is which catalogue resolves the search, which
+is an Add-screen concern, not a new kind of trackable media.
+
+**Mechanically:** `src/providers/googleBooks.ts` (`GoogleBooksProvider`'s
+category type widens to include `comic`; never registered globally,
+`registry.ts` is unchanged). `app/add.tsx` gains `comicMode` state, a
+`providerForAdd()` resolver, a new screen between the category picker and
+the title screen, mode-aware `barcodeTypes`, and the `autoConfirms` guard
+threaded through the confirm-hydrate effect, `showManualFields`, and the
+save-time draft construction. Back navigation unwinds one level at a
+time, matching the category picker's own pattern: from the search screen,
+back returns to "Single issue or Collection?" before it returns to "What
+are you adding?".
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:

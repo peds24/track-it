@@ -19,16 +19,19 @@ type GoogleBooksVolume = {
 type GoogleBooksResponse = { items?: GoogleBooksVolume[] };
 
 /**
- * Google Books, spanning `book` and `manga` (D5) — both are ISBN-barcode
- * media. One instance answers for exactly one category, fixed at
- * construction: `MetadataProvider.search()` carries no category parameter of
- * its own, and the registry (D10) needs two differently-tagged instances
- * rather than a change to that interface.
+ * Google Books, spanning `book`, `manga`, and (A14) `comic` collections —
+ * all three are ISBN-barcode media. One instance answers for exactly one
+ * category, fixed at construction: `MetadataProvider.search()` carries no
+ * category parameter of its own, and the registry (D10) needs
+ * differently-tagged instances rather than a change to that interface.
+ * `comic` is never registered globally (Metron stays the registry's
+ * default for single issues, A9) — the Add screen instantiates a
+ * comic-tagged instance directly for the collection path only.
  */
 export class GoogleBooksProvider implements MetadataProvider {
   readonly id = 'google-books';
 
-  constructor(private readonly category: Extract<Category, 'book' | 'manga'>) {}
+  constructor(private readonly category: Extract<Category, 'book' | 'manga' | 'comic'>) {}
 
   async search(query: string): Promise<SearchResult[]> {
     const trimmed = query.trim();
