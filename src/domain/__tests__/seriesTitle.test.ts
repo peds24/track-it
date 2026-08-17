@@ -1,4 +1,4 @@
-import { parseSeriesTitle } from '@/domain/seriesTitle';
+import { parseSeriesTitle, stripBareTrailingNumber } from '@/domain/seriesTitle';
 
 test('strips a trailing #N', () => {
   expect(parseSeriesTitle('Absolute Batman #1')).toEqual({
@@ -55,4 +55,39 @@ test('trims incidental whitespace even with no match', () => {
 test('does not strip when doing so would empty the title', () => {
   expect(parseSeriesTitle('#5')).toEqual({ title: '#5', ordinal: null });
   expect(parseSeriesTitle('Volume 5')).toEqual({ title: 'Volume 5', ordinal: null });
+});
+
+/**
+ * A11: Google Books' manga volume titles append the number bare, with no
+ * "Vol"/"#" marker — "Attack on Titan 30", confirmed against a real
+ * device scan. parseSeriesTitle deliberately does not match a bare
+ * trailing number for a typed title (too likely to collide with a real
+ * title), so this is a separate, narrowly-scoped function for the one
+ * place a bare number is trustworthy: a provider's own title convention.
+ */
+describe('stripBareTrailingNumber', () => {
+  test('strips a bare trailing number', () => {
+    expect(stripBareTrailingNumber('Attack on Titan 30')).toEqual({
+      title: 'Attack on Titan',
+      ordinal: 30,
+    });
+  });
+
+  test('no trailing number leaves the title untouched', () => {
+    expect(stripBareTrailingNumber('Attack on Titan')).toEqual({
+      title: 'Attack on Titan',
+      ordinal: null,
+    });
+  });
+
+  test('does not strip when doing so would empty the title', () => {
+    expect(stripBareTrailingNumber('30')).toEqual({ title: '30', ordinal: null });
+  });
+
+  test('trims incidental whitespace even with no match', () => {
+    expect(stripBareTrailingNumber('  Attack on Titan  ')).toEqual({
+      title: 'Attack on Titan',
+      ordinal: null,
+    });
+  });
 });

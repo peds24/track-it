@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { addTrack } from '@/data/addTrack';
 import { advanceEntry, firstEntryOf } from '@/data/trackRepo';
-import { parseSeriesTitle } from '@/domain/seriesTitle';
+import { parseSeriesTitle, stripBareTrailingNumber } from '@/domain/seriesTitle';
 import type { Category } from '@/domain/types';
 import { GoogleBooksProvider } from '@/providers/googleBooks';
 import { MetronProvider } from '@/providers/metron';
@@ -75,6 +75,13 @@ export default function AddTrackScreen() {
   // holds the scanned code while a small, skippable prompt asks for it.
   const [pendingUpc, setPendingUpc] = useState<string | null>(null);
   const [ean5, setEan5] = useState('');
+  // A11: a manga barcode resolves through Google Books first, whose title
+  // carries the scanned volume's number bare ("Attack on Titan 30") — held
+  // here between the scan resolving and the user picking a result, then
+  // folded into `title` as a "#N" suffix `pick()` already knows how to
+  // hand off to `parseSeriesTitle` at save time (A10), the same mechanism
+  // a typed "Saga #12" already uses to start partway through a series.
+  const [scannedOrdinal, setScannedOrdinal] = useState<number | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const scanHandled = useRef(false);
   // router.back() after a successful save is itself a `beforeRemove` trigger —
@@ -179,6 +186,7 @@ export default function AddTrackScreen() {
       setScanning(false);
       setPendingUpc(null);
       setEan5('');
+      setScannedOrdinal(null);
       setConfirmedDraft(null);
       setHydrating(false);
       setHydrateFailed(false);
@@ -188,8 +196,12 @@ export default function AddTrackScreen() {
   }, [navigation, category]);
 
   function pick(result: SearchResult): void {
-    setTitle(result.title);
+    // A10's own "#N" pattern reads this back out at save time — reusing it
+    // here means startAtOrdinal needs no separate plumbing through
+    // addTrack/createSeriesTrack for the scan case.
+    setTitle(scannedOrdinal !== null ? `${result.title} #${scannedOrdinal}` : result.title);
     setPicked(result);
+    setScannedOrdinal(null);
     setEditingCount(false);
     setHydrateFailed(false);
     setResults([]);
@@ -228,15 +240,29 @@ export default function AddTrackScreen() {
           // AniList (which A11 swapped in for manga) has no ISBN index at
           // all — only Google Books' title/ISBN search can still resolve a
           // scanned barcode. Two hops: ISBN -> title (Google Books), then
-          // title -> real matches (AniList), same as typed search does.
+          // title -> real matches (AniList) — but Google Books' own title
+          // for a manga volume carries the number bare ("Attack on Titan
+          // 30"), which AniList's title search will not match at all, so
+          // it has to come off before the second hop. The stripped number
+          // is remembered (`scannedOrdinal`) so `pick()` can hand it back
+          // to A10's ordinal parsing once the user confirms which result
+          // is the right series.
           const isbnHits = await new GoogleBooksProvider('manga').search(data);
-          const resolvedTitle = isbnHits[0]?.title;
-          setResults(resolvedTitle ? await providerFor('manga').search(resolvedTitle) : []);
+          const rawTitle = isbnHits[0]?.title;
+          if (rawTitle) {
+            const { title: cleanTitle, ordinal } = stripBareTrailingNumber(rawTitle);
+            setScannedOrdinal(ordinal);
+            setResults(await providerFor('manga').search(cleanTitle));
+          } else {
+            setScannedOrdinal(null);
+            setResults([]);
+          }
         } else {
           setResults(await providerFor(category).search(data));
         }
         setPicked(null);
       } catch {
+        setScannedOrdinal(null);
         setResults([]);
       }
     })();
@@ -395,6 +421,7 @@ export default function AddTrackScreen() {
         onChangeText={(t) => {
           setTitle(t);
           setPicked(null);
+          setScannedOrdinal(null);
           setEditingCount(false);
           setHydrateFailed(false);
         }}
