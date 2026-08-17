@@ -149,18 +149,28 @@ export async function createSeriesTrack(
     );
 
     for (const entry of entries) {
+      // A11 fix: starting at ordinal N means N-1 units already happened —
+      // scanning volume 29 of a 34-volume series is "I've read up through
+      // 28," not "I own volume 29 and nothing else." Backfilling 1..N-1 as
+      // done (not left unstarted) is what makes both progress ("28 of 34")
+      // and nextEntry() (which resumes at the lowest unstarted ordinal)
+      // correct — leaving them unstarted made finishing the started entry
+      // fall back to ordinal 1 instead of continuing to N+1.
+      const isBeforeStart = validStartOrdinal !== null && entry.ordinal < validStartOrdinal;
       const startsHere = validStartOrdinal !== null && entry.ordinal === validStartOrdinal;
+      const status = isBeforeStart ? 'done' : startsHere ? 'in_progress' : 'unstarted';
       await db.run(
-        `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, started_at, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, started_at, finished_at, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           newId(),
           seriesId,
           entry.title,
           entry.ordinal,
           draft.unitLabel,
-          startsHere ? 'in_progress' : 'unstarted',
-          startsHere ? now : null,
+          status,
+          status !== 'unstarted' ? now : null,
+          status === 'done' ? now : null,
           now,
         ],
       );

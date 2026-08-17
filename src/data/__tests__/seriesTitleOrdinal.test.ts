@@ -1,5 +1,5 @@
 import { addTrack } from '@/data/addTrack';
-import { firstEntryOf, listTracks } from '@/data/trackRepo';
+import { advanceEntry, firstEntryOf, listTracks } from '@/data/trackRepo';
 import type { SqlDriver } from '@/db/driver';
 import { migrate } from '@/db/schema';
 import { parseSeriesTitle } from '@/domain/seriesTitle';
@@ -18,7 +18,7 @@ async function freshDb(): Promise<SqlDriver> {
  * seriesTitle.test.ts) — these tests cover what addTrack/createSeriesTrack do
  * with that ordinal once it reaches them.
  */
-test('a parsed ordinal within range starts that entry in_progress and lands the series in Currently', async () => {
+test('a parsed ordinal within range starts that entry in_progress, backfills what came before as done, and lands the series in Currently', async () => {
   const db = await freshDb();
   const { title, ordinal } = parseSeriesTitle('Saga #3');
   await addTrack(
@@ -30,9 +30,32 @@ test('a parsed ordinal within range starts that entry in_progress and lands the 
   expect(await listTracks(db, 'backlog')).toHaveLength(0);
   const [track] = await listTracks(db, 'currently');
   expect(track!.title).toBe('Saga');
-  expect(track!.progress).toEqual({ done: 0, total: 5 });
+  // A11: starting at issue 3 of 5 means issues 1-2 already happened.
+  expect(track!.progress).toEqual({ done: 2, total: 5 });
   expect(track!.nextEntryTitle).toBe('Issue 3');
   expect(track!.nextEntryStatus).toBe('in_progress');
+});
+
+/**
+ * A11: the bug this backfill fixes — before it, issues 1-2 stayed
+ * `unstarted`, so finishing issue 3 made `nextEntry()` fall back to the
+ * lowest unstarted ordinal (1) instead of continuing to 4.
+ */
+test('finishing the started entry continues to the next ordinal, not back to 1', async () => {
+  const db = await freshDb();
+  const { title, ordinal } = parseSeriesTitle('Saga #3');
+  const created = await addTrack(
+    db,
+    { title, category: 'comic', count: 5, startAtOrdinal: ordinal ?? undefined },
+    NOW,
+  );
+
+  const first = await firstEntryOf(db, created);
+  await advanceEntry(db, first.id, NOW);
+
+  const [track] = await listTracks(db, 'currently');
+  expect(track!.progress).toEqual({ done: 3, total: 5 });
+  expect(track!.nextEntryTitle).toBe('Issue 4');
 });
 
 test('an out-of-range ordinal is ignored, falling back to a normal all-unstarted series', async () => {
