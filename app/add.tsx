@@ -6,6 +6,7 @@ import { addTrack } from '@/data/addTrack';
 import { advanceEntry, firstEntryOf } from '@/data/trackRepo';
 import { parseSeriesTitle } from '@/domain/seriesTitle';
 import type { Category } from '@/domain/types';
+import { GoogleBooksProvider } from '@/providers/googleBooks';
 import { MetronProvider } from '@/providers/metron';
 import { generateEntries, unitLabelFor } from '@/providers/manual';
 import { providerFor } from '@/providers/registry';
@@ -61,6 +62,12 @@ export default function AddTrackScreen() {
   // as an override for the rare wrong-edition match.
   const [confirmedDraft, setConfirmedDraft] = useState<SeriesDraft | null>(null);
   const [hydrating, setHydrating] = useState(false);
+  // A rejected hydrate() (AniList/Metron do not catch a network failure
+  // internally, unlike TMDB's graceful degrade) must still land somewhere
+  // visible — this folds into showManualFields below so it degrades to
+  // exactly the same UI as a hand-typed title with no match, rather than
+  // stranding the screen with no field and no error.
+  const [hydrateFailed, setHydrateFailed] = useState(false);
   const [editingCount, setEditingCount] = useState(false);
   const [scanning, setScanning] = useState(false);
   // A comic scan resolves to a UPC-A only — expo-camera cannot read the
@@ -80,7 +87,7 @@ export default function AddTrackScreen() {
   const isSeries = category !== null && unitLabelFor(category) !== null;
   // A11: manual fields render only when there's no confirmed match to trust
   // instead — a hand-typed title, or an explicit override of a wrong one.
-  const showManualFields = isSeries && (!picked || editingCount);
+  const showManualFields = isSeries && (!picked || editingCount || hydrateFailed);
   const needsCount = showManualFields && !ongoing;
   const unit = category ? unitLabelFor(category) : null;
   const barcodeTypes = category ? BARCODE_TYPES[category] : undefined;
@@ -125,15 +132,23 @@ export default function AddTrackScreen() {
     if (!category || !picked || !isSeries) {
       setConfirmedDraft(null);
       setHydrating(false);
+      setHydrateFailed(false);
       return;
     }
     let cancelled = false;
     setHydrating(true);
     setConfirmedDraft(null);
+    setHydrateFailed(false);
     void (async () => {
       try {
         const draft = await providerFor(category).hydrate(picked);
         if (!cancelled) setConfirmedDraft(draft);
+      } catch {
+        // Search — and the confirm step it feeds — is progressive
+        // enhancement, never a blocking requirement: a failed lookup just
+        // means no confirmed match, and the manual title/count fields still
+        // work exactly as they do for a hand-typed title.
+        if (!cancelled) setHydrateFailed(true);
       } finally {
         if (!cancelled) setHydrating(false);
       }
@@ -166,6 +181,7 @@ export default function AddTrackScreen() {
       setEan5('');
       setConfirmedDraft(null);
       setHydrating(false);
+      setHydrateFailed(false);
       setEditingCount(false);
     });
     return unsubscribe;
@@ -175,6 +191,7 @@ export default function AddTrackScreen() {
     setTitle(result.title);
     setPicked(result);
     setEditingCount(false);
+    setHydrateFailed(false);
     setResults([]);
   }
 
@@ -207,7 +224,17 @@ export default function AddTrackScreen() {
 
     void (async () => {
       try {
-        setResults(await providerFor(category).search(data));
+        if (category === 'manga') {
+          // AniList (which A11 swapped in for manga) has no ISBN index at
+          // all — only Google Books' title/ISBN search can still resolve a
+          // scanned barcode. Two hops: ISBN -> title (Google Books), then
+          // title -> real matches (AniList), same as typed search does.
+          const isbnHits = await new GoogleBooksProvider('manga').search(data);
+          const resolvedTitle = isbnHits[0]?.title;
+          setResults(resolvedTitle ? await providerFor('manga').search(resolvedTitle) : []);
+        } else {
+          setResults(await providerFor(category).search(data));
+        }
         setPicked(null);
       } catch {
         setResults([]);
@@ -369,6 +396,7 @@ export default function AddTrackScreen() {
           setTitle(t);
           setPicked(null);
           setEditingCount(false);
+          setHydrateFailed(false);
         }}
         autoFocus
         cursorColor={palette.ink}
