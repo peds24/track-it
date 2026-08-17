@@ -1,11 +1,23 @@
 import type { Category, SeasonBoundary } from '@/domain/types';
 import { generateEntries } from '@/providers/manual';
-import type { MetadataProvider, SearchResult, SeriesDraft } from '@/providers/types';
+import type { MatchPreview, MetadataProvider, SearchResult, SeriesDraft } from '@/providers/types';
 
 type TmdbSearchHit = { id: number; title?: string; name?: string };
 type TmdbSearchResponse = { results?: TmdbSearchHit[] };
 type TmdbSeason = { season_number: number; episode_count?: number };
-type TmdbShowDetail = { seasons?: TmdbSeason[]; status?: string };
+type TmdbShowDetail = {
+  seasons?: TmdbSeason[];
+  status?: string;
+  overview?: string;
+  first_air_date?: string;
+  last_air_date?: string;
+};
+type TmdbMovieDetail = { overview?: string; release_date?: string };
+
+/** "2026-08-16" -> "2026". `undefined`/too-short is not a year worth showing. */
+function yearOf(date: string | undefined): string | null {
+  return date && date.length >= 4 ? date.slice(0, 4) : null;
+}
 
 /**
  * Season 0 is specials, not part of the main run — excluded from the sum.
@@ -92,14 +104,47 @@ export class TmdbProvider implements MetadataProvider {
       detail === null ? result : { ...result, count: detail.total ?? result.count, ongoing: detail.ongoing },
     );
     const withSeasons = detail && detail.seasons.length > 0 ? { ...draft, seasons: detail.seasons } : draft;
-    return { ...withSeasons, externalSource: this.id, externalId: result.id };
+    // A17: the confirm screen's meta line/blurb ride along on the exact
+    // same fetch — never a second round trip for data already in hand.
+    const withPreview = detail
+      ? { ...withSeasons, metaLine: detail.metaLine, blurb: detail.blurb }
+      : withSeasons;
+    return { ...withPreview, externalSource: this.id, externalId: result.id };
+  }
+
+  /**
+   * A17: movie has no series draft to carry `metaLine`/`blurb` on — this is
+   * its whole confirm-screen answer, a single new fetch standing in for
+   * what `hydrate` never needed to do for a standalone category (D1).
+   * Never throws, matching this file's own established pattern for a
+   * failed/unconfigured lookup: fall back to just the picked title.
+   */
+  async preview(result: SearchResult): Promise<MatchPreview> {
+    const fallback: MatchPreview = { title: result.title, metaLine: [], blurb: null };
+    const key = process.env.EXPO_PUBLIC_TMDB_API_KEY;
+    if (!key) return fallback;
+    try {
+      const response = await fetch(
+        `https://api.themoviedb.org/3/movie/${encodeURIComponent(result.id)}?api_key=${encodeURIComponent(key)}`,
+      );
+      if (!response.ok) return fallback;
+      const body = (await response.json()) as TmdbMovieDetail;
+      const year = yearOf(body.release_date);
+      return { title: result.title, metaLine: year ? [year] : [], blurb: body.overview ?? null };
+    } catch {
+      return fallback;
+    }
   }
 
   /** Never throws — a failed or unconfigured lookup just falls back to the
    * count/ongoing the Add screen already collected, the same as no match at all. */
-  private async fetchShowDetail(
-    showId: string,
-  ): Promise<{ total: number | null; ongoing: boolean; seasons: SeasonBoundary[] } | null> {
+  private async fetchShowDetail(showId: string): Promise<{
+    total: number | null;
+    ongoing: boolean;
+    seasons: SeasonBoundary[];
+    metaLine: string[];
+    blurb: string | null;
+  } | null> {
     const key = process.env.EXPO_PUBLIC_TMDB_API_KEY;
     if (!key) return null;
     try {
@@ -109,12 +154,34 @@ export class TmdbProvider implements MetadataProvider {
       if (!response.ok) return null;
       const body = (await response.json()) as TmdbShowDetail;
       const seasons = body.seasons ?? [];
+      const breakdown = seasonBreakdown(seasons);
       const total = sumEpisodeCount(seasons);
       // "Ended"/"Canceled" both mean no more episodes are coming; anything
       // else ("Returning Series", "In Production", "Planned") means there is
       // a next one still to air.
       const ongoing = body.status !== 'Ended' && body.status !== 'Canceled';
-      return { total: total > 0 ? total : null, ongoing, seasons: seasonBreakdown(seasons) };
+      const startYear = yearOf(body.first_air_date);
+      const endYear = yearOf(body.last_air_date);
+      const yearRange = startYear
+        ? ongoing
+          ? `${startYear}–present`
+          : endYear && endYear !== startYear
+            ? `${startYear}–${endYear}`
+            : startYear
+        : null;
+      const metaLine = [
+        yearRange,
+        breakdown.length > 0 ? `${breakdown.length} season${breakdown.length === 1 ? '' : 's'}` : null,
+        total > 0 ? `${total} episode${total === 1 ? '' : 's'}` : null,
+        ongoing ? 'Ongoing' : (body.status ?? null),
+      ].filter((s): s is string => s !== null);
+      return {
+        total: total > 0 ? total : null,
+        ongoing,
+        seasons: breakdown,
+        metaLine,
+        blurb: body.overview ?? null,
+      };
     } catch {
       return null;
     }

@@ -46,7 +46,13 @@ type MetronSeriesRef = { id: number; name: string };
 type MetronIssueListItem = { id: number; issue: string; series: MetronSeriesRef };
 type MetronIssueListResponse = { results?: MetronIssueListItem[] };
 type MetronIssueDetail = { id: number; series: MetronSeriesRef };
-type MetronSeriesDetail = { issue_count?: number; year_end?: number | null };
+type MetronSeriesDetail = {
+  issue_count?: number;
+  year_begin?: number;
+  year_end?: number | null;
+  publisher?: { name?: string };
+  desc?: string;
+};
 
 function toResults(body: MetronIssueListResponse): SearchResult[] {
   return (body.results ?? []).map((item) => ({
@@ -145,6 +151,29 @@ export class MetronProvider implements MetadataProvider {
       count: total > 0 ? total : result.count,
       ongoing,
     });
-    return { ...draft, externalSource: this.id, externalId: result.id };
+
+    // A17: the confirm screen's meta line/blurb — no second fetch, the same
+    // series lookup already made for `issue_count`/`year_end`.
+    const yearRange = series.year_begin
+      ? ongoing
+        ? `${series.year_begin}–present`
+        : series.year_end && series.year_end !== series.year_begin
+          ? `${series.year_begin}–${series.year_end}`
+          : String(series.year_begin)
+      : null;
+    const metaLine = [
+      series.publisher?.name ?? null,
+      yearRange,
+      total > 0 ? `${total} issue${total === 1 ? '' : 's'}` : null,
+      ongoing ? 'Ongoing' : 'Completed',
+    ].filter((s): s is string => s !== null);
+
+    return {
+      ...draft,
+      externalSource: this.id,
+      externalId: result.id,
+      metaLine,
+      blurb: series.desc ?? null,
+    };
   }
 }

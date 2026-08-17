@@ -106,3 +106,73 @@ test('hydrate for an unmatched (hand-typed) title never calls the network', asyn
   expect(draft.externalSource).toBeUndefined();
   expect(fetchMock).not.toHaveBeenCalled();
 });
+
+// A17: the confirm screen's meta line/blurb — same Media lookup hydrate
+// already makes, no second fetch.
+describe('hydrate metaLine/blurb (A17)', () => {
+  test('a finished manga gets a closed year range, a volume count, and "Completed"', async () => {
+    mockFetchSequence({
+      body: {
+        data: {
+          Media: {
+            volumes: 18,
+            chapters: 162,
+            status: 'FINISHED',
+            description: 'Dr. Tenma sets out on a journey.<br><br>Years later...',
+            startDate: { year: 1994 },
+            endDate: { year: 2001 },
+          },
+        },
+      },
+    });
+
+    const draft = await new AnilistProvider().hydrate({
+      id: '30001',
+      title: 'Monster',
+      category: 'manga',
+      count: 1,
+    });
+
+    expect(draft.metaLine).toEqual(['1994–2001', '18 volumes', 'Completed']);
+    // The <br><br> pair collapses to real newlines, not literal markup.
+    expect(draft.blurb).toBe('Dr. Tenma sets out on a journey.\n\nYears later...');
+  });
+
+  test('an ongoing manga gets an open year range and "Ongoing"', async () => {
+    mockFetchSequence({
+      body: {
+        data: {
+          Media: { volumes: 12, status: 'RELEASING', startDate: { year: 2018 } },
+        },
+      },
+    });
+
+    const draft = await new AnilistProvider().hydrate({
+      id: '2',
+      title: 'One Piece',
+      category: 'manga',
+      count: 1,
+    });
+
+    // Ongoing still shows the current volume count, matching how a still-
+    // running show's episode count is shown too (A17) -- "Ongoing" says
+    // it isn't final, not that there's nothing to show yet.
+    expect(draft.metaLine).toEqual(['2018–present', '12 volumes', 'Ongoing']);
+    expect(draft.blurb).toBeNull();
+  });
+
+  test('falls back to a chapter-labelled count when there is no volume count', async () => {
+    mockFetchSequence({
+      body: { data: { Media: { chapters: 42, status: 'FINISHED' } } },
+    });
+
+    const draft = await new AnilistProvider().hydrate({
+      id: '1',
+      title: 'One-shot-ish',
+      category: 'manga',
+      count: 1,
+    });
+
+    expect(draft.metaLine).toEqual(['42 chapters', 'Completed']);
+  });
+});

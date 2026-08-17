@@ -139,3 +139,93 @@ test('hydrate records no external id for a hand-typed title with no real match',
   expect(draft.externalSource).toBeUndefined();
   expect(draft.externalId).toBeUndefined();
 });
+
+// A17: the confirm screen's data for standalone book/comic-collection
+// matches — a fetch by volume id, never made during search() or hydrate().
+describe('preview (A17, book/comic collection)', () => {
+  test('fetches the volume detail and returns author/year/pages and the description as blurb', async () => {
+    process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
+    const fetchMock = mockFetchOnce({
+      volumeInfo: {
+        authors: ['Susanna Clarke'],
+        publishedDate: '2020-09-15',
+        pageCount: 245,
+        description: 'A man lives in a House with countless rooms and endless corridors.',
+      },
+    });
+
+    const preview = await new GoogleBooksProvider('book').preview({
+      id: 'piranesi-id',
+      title: 'Piranesi',
+      category: 'book',
+      count: 1,
+    });
+
+    const url = fetchMock.mock.calls[0]![0] as string;
+    expect(url).toContain('/volumes/piranesi-id');
+    expect(preview).toEqual({
+      title: 'Piranesi',
+      metaLine: ['Susanna Clarke', '2020', '245 pages'],
+      blurb: 'A man lives in a House with countless rooms and endless corridors.',
+    });
+  });
+
+  test('missing authors/pageCount/description are simply omitted, not blank entries', async () => {
+    process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
+    mockFetchOnce({ volumeInfo: { publishedDate: '2018' } });
+
+    const preview = await new GoogleBooksProvider('comic').preview({
+      id: 'saga-tpb-1',
+      title: 'Saga, Volume 1',
+      category: 'comic',
+      count: 1,
+    });
+
+    expect(preview).toEqual({ title: 'Saga, Volume 1', metaLine: ['2018'], blurb: null });
+  });
+
+  test('falls back to just the title when the fetch fails, never throws', async () => {
+    process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
+    mockFetchOnce({}, false);
+
+    const preview = await new GoogleBooksProvider('book').preview({
+      id: 'piranesi-id',
+      title: 'Piranesi',
+      category: 'book',
+      count: 1,
+    });
+
+    expect(preview).toEqual({ title: 'Piranesi', metaLine: [], blurb: null });
+  });
+
+  test('falls back to just the title when no API key is configured', async () => {
+    delete process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY;
+    const fetchMock = jest.fn();
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const preview = await new GoogleBooksProvider('book').preview({
+      id: 'piranesi-id',
+      title: 'Piranesi',
+      category: 'book',
+      count: 1,
+    });
+
+    expect(preview).toEqual({ title: 'Piranesi', metaLine: [], blurb: null });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  test('a hand-typed title with no real match never calls the network', async () => {
+    const fetchMock = jest.fn();
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const preview = await new GoogleBooksProvider('book').preview({
+      id: 'google-books', // the sentinel addTrack.ts uses for an unmatched title
+      title: 'Some Book',
+      category: 'book',
+      count: 1,
+    });
+
+    expect(preview).toEqual({ title: 'Some Book', metaLine: [], blurb: null });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});

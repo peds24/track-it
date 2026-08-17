@@ -197,3 +197,76 @@ test('hydrate for an unmatched (hand-typed) title never calls the network', asyn
   expect(draft.externalSource).toBeUndefined();
   expect(fetchMock).not.toHaveBeenCalled();
 });
+
+// A17: the confirm screen's meta line/blurb — the same series lookup
+// hydrate already makes for issue_count/year_end, no second fetch.
+describe('hydrate metaLine/blurb (A17)', () => {
+  test('a completed series gets a closed year range and "Completed"', async () => {
+    setCreds();
+    mockFetchSequence(
+      { body: { id: 50, series: { id: 15, name: 'Saga' } } },
+      {
+        body: {
+          issue_count: 66,
+          year_begin: 2012,
+          year_end: 2024,
+          publisher: { name: 'Image Comics' },
+          desc: 'Romeo and Juliet meets Star Wars meets Game of Thrones.',
+        },
+      },
+    );
+
+    const draft = await new MetronProvider().hydrate({
+      id: '50',
+      title: 'Saga (2012) #1',
+      category: 'comic',
+      count: 1,
+    });
+
+    expect(draft.metaLine).toEqual(['Image Comics', '2012–2024', '66 issues', 'Completed']);
+    expect(draft.blurb).toBe('Romeo and Juliet meets Star Wars meets Game of Thrones.');
+  });
+
+  test('an ongoing series gets an open year range and "Ongoing"', async () => {
+    setCreds();
+    mockFetchSequence(
+      { body: { id: 50, series: { id: 15, name: 'Saga' } } },
+      {
+        body: {
+          issue_count: 72,
+          year_begin: 2012,
+          year_end: null,
+          publisher: { name: 'Image Comics' },
+        },
+      },
+    );
+
+    const draft = await new MetronProvider().hydrate({
+      id: '50',
+      title: 'Saga (2012) #1',
+      category: 'comic',
+      count: 1,
+    });
+
+    expect(draft.metaLine).toEqual(['Image Comics', '2012–present', '72 issues', 'Ongoing']);
+    expect(draft.blurb).toBeNull();
+  });
+
+  test('missing publisher/desc are simply omitted, not blank entries', async () => {
+    setCreds();
+    mockFetchSequence(
+      { body: { id: 50, series: { id: 15, name: 'Saga' } } },
+      { body: { issue_count: 66, year_end: 2024 } },
+    );
+
+    const draft = await new MetronProvider().hydrate({
+      id: '50',
+      title: 'Saga (2012) #1',
+      category: 'comic',
+      count: 1,
+    });
+
+    expect(draft.metaLine).toEqual(['66 issues', 'Completed']);
+    expect(draft.blurb).toBeNull();
+  });
+});

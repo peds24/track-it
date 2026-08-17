@@ -997,6 +997,101 @@ no confirm step left to skip once a collection comic is simply not a
 series. `parseSeriesTitle` is skipped for the same reason a book's title
 always skips it: there is no series left to start partway through.
 
+**A17 — A real confirm screen replaces A11's tap-to-edit summary line, and
+extends to every category, not just series.** A11 part 3 shipped a single
+line of text ("18 volumes · Completed") that turned into an editable count
+field on tap — an override path for a wrong-edition match. Live use showed
+the bigger gap: a standalone match (book, movie, a comic collection) had
+no confirm step at all — `addTrack.ts` wrote it straight to the database
+off the search pick, the one case A9 explicitly deferred rather than
+designed. Building a real confirm screen for every category, per an
+approved mockup, made the count-override path moot at the same time: a
+wrong match is now rejected outright ("Nope, search again") rather than
+kept and manually corrected, since the screen already shows enough
+(title, meta line, blurb) to tell a wrong match apart before saving, not
+just a wrong count.
+
+*The screen.* Once a real search result is picked (`picked !== null`),
+`add.tsx` renders a dedicated full-screen view — title, a meta line
+(year range, count/status, publisher — whatever the provider has, joined
+with " · "), a 4-line-clamped blurb, and three actions: a medium-specific
+primary ("Start watching" for a show, "Watched" for a movie — D2's own
+wording, unchanged — "Start reading" for everything else), "Add to
+backlog", and "Nope, search again" (clears the pick, which re-triggers
+search on the still-present title text — genuinely searching again, not
+just dismissing). A hand-typed title with no match, or a match whose
+`hydrate()` failed, never reaches this screen — both fall through to
+today's manual title/count fields exactly as before; only a resolved
+match is confirmed here; nothing about the no-match path changes.
+
+*Where series data now comes from.* `SeriesDraft` gains two optional
+fields, `metaLine?: readonly string[]` and `blurb?: string | null`,
+populated by the same fetch each provider's `hydrate()` already makes for
+its count/ongoing signal (A11) — never a second round trip. TMDB reads
+`overview`/`first_air_date`/`last_air_date` off the `/tv/{id}` response it
+already has; Metron reads `desc`/`year_begin`/`publisher.name` off the
+`/series/{id}/` response; AniList reads `description`/`startDate`/
+`endDate` off the same `Media` query, stripping the `<br>` tags
+`description(asHtml: false)` still leaves in live output — confirmed
+against the real endpoint, not assumed from the parameter name.
+
+*Where standalone data comes from: a new optional provider method.*
+Neither `hydrate()` nor any existing fetch has a place to carry preview
+data for a standalone category — `generateEntries` only ever builds a
+count-of-1 draft with no season/meta concept. `MetadataProvider` gains an
+optional `preview(result): Promise<MatchPreview>`
+(`{ title, metaLine, blurb }`), implemented only by a provider that
+answers a standalone category: `TmdbProvider` (movie only — fetches
+`/movie/{id}` for `overview`/`release_date`) and `GoogleBooksProvider`
+(book and, via the same class, a comic collection — fetches
+`/volumes/{id}`, the one lookup `search()` never makes, for `authors`/
+`publishedDate`/`pageCount`/`description`). Optional because a
+series-only provider (Metron, AniList) has nothing to add here that
+`hydrate` doesn't already carry — implementing it there would just be a
+second fetch for data already in hand. Both implementations never throw:
+a failed or unconfigured lookup falls back to `{ title: result.title,
+metaLine: [], blurb: null }`, the same "progressive enhancement, not a
+blocking requirement" precedent A9's search already set — a confirm
+screen with no meta line is still a confirm screen, not a dead end.
+
+*What A11's override path becomes.* `editingCount` (the state that turned
+the summary line into an editable field) is gone entirely, along with the
+manual `generateEntries` rebuild it triggered at save time — a confirmed
+draft (series) or a picked result plus its preview (standalone) is now
+always passed straight through unedited once the confirm screen's own
+button is tapped. The Perfect-Edition case A11 named — a real match whose
+count is for the wrong printing — is now handled by rejecting the match
+outright rather than hand-correcting its count in place; the confirm
+screen shows enough context (title, meta line, blurb) to catch that
+before saving, which a bare number never could.
+
+**Rejected:**
+- Keeping A11's inline tap-to-edit count alongside the new screen — two
+  ways to correct a wrong match (reject-and-research vs. edit-in-place)
+  for the one problem "Nope, search again" already solves, and the
+  edit-in-place path only ever handled count, never a wrong title/edition
+  entirely.
+- A second network fetch for series metaLine/blurb, decoupled from
+  `hydrate()` — every provider's existing detail fetch already returns
+  the fields needed; a second call would be a real cost for data already
+  in hand.
+- Making `preview` a required method on every provider — AniList and
+  Metron are series-only in this app (D5); requiring a method they'd
+  never be called through, and would have to either duplicate `hydrate`'s
+  fetch or stub out, for no caller that reaches it.
+
+**Mechanically:** `src/providers/types.ts` (`SeriesDraft` gains
+`metaLine`/`blurb`, new `MatchPreview` type, `MetadataProvider` gains
+optional `preview`), `src/providers/tmdb.ts` (`hydrate`'s show path and
+new `preview` for movie), `src/providers/metron.ts` (`hydrate`'s
+`metaLine`/`blurb`), `src/providers/anilist.ts` (`hydrate`'s
+`metaLine`/`blurb`, `stripHtml`), `src/providers/googleBooks.ts` (new
+`preview`, fetches by volume id), `app/add.tsx` (confirm-screen render
+branch, `previewData`/`previewing` state and its fetch effect alongside
+the existing `confirmedDraft`/`hydrating`, `editingCount` and its UI
+removed, `handleSave`'s draft-building simplified to the one un-edited
+path).
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:

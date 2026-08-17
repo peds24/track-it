@@ -8,9 +8,9 @@ import { parseSeriesTitle, stripBareTrailingNumber } from '@/domain/seriesTitle'
 import type { Category } from '@/domain/types';
 import { GoogleBooksProvider } from '@/providers/googleBooks';
 import { MetronProvider } from '@/providers/metron';
-import { generateEntries, unitLabelFor } from '@/providers/manual';
+import { unitLabelFor } from '@/providers/manual';
 import { providerFor } from '@/providers/registry';
-import type { SearchResult, SeriesDraft } from '@/providers/types';
+import type { MatchPreview, SearchResult, SeriesDraft } from '@/providers/types';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { font, layout, radius, underline, useTheme, type Palette } from '@/ui/theme';
 
@@ -57,6 +57,16 @@ function providerForAdd(category: Category, comicMode: ComicMode | null) {
   return category === 'comic' && comicMode === 'collection' ? googleBooksComic : providerFor(category);
 }
 
+/** A11's confirm screen: what the primary button says once a real match is
+ * matched, per medium (D2's own "Watched"-not-"Start" case for a movie
+ * carries over unchanged; A17 gives reading media a name of their own
+ * rather than the generic "Start"). */
+function primaryLabel(category: Category): string {
+  if (category === 'movie') return 'Watched';
+  if (category === 'show') return 'Start watching';
+  return 'Start reading';
+}
+
 export default function AddTrackScreen() {
   const db = useDatabase();
   const router = useRouter();
@@ -85,9 +95,8 @@ export default function AddTrackScreen() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [picked, setPicked] = useState<SearchResult | null>(null);
   // A11: a real series match is confirmed before it's saved, not silently
-  // applied. `confirmedDraft` is the fetched summary shown in place of the
-  // manual count/ongoing fields; `editingCount` reopens those same fields
-  // as an override for the rare wrong-edition match.
+  // applied. `confirmedDraft` is the fetched summary the confirm screen
+  // (A17) reads its title/metaLine/blurb off of.
   const [confirmedDraft, setConfirmedDraft] = useState<SeriesDraft | null>(null);
   const [hydrating, setHydrating] = useState(false);
   // A rejected hydrate() (AniList/Metron do not catch a network failure
@@ -96,7 +105,14 @@ export default function AddTrackScreen() {
   // exactly the same UI as a hand-typed title with no match, rather than
   // stranding the screen with no field and no error.
   const [hydrateFailed, setHydrateFailed] = useState(false);
-  const [editingCount, setEditingCount] = useState(false);
+  // A17: the confirm screen's data for a standalone match (book, movie, a
+  // comic collection) — the same role `confirmedDraft` plays for a series,
+  // just from `preview()` instead of `hydrate()` since there's no series
+  // draft to carry it. Never fails to resolve (every standalone provider's
+  // `preview` falls back rather than throwing), so there is no
+  // `previewFailed` counterpart to `hydrateFailed`.
+  const [previewData, setPreviewData] = useState<MatchPreview | null>(null);
+  const [previewing, setPreviewing] = useState(false);
   const [scanning, setScanning] = useState(false);
   // A comic scan resolves to a UPC-A only — expo-camera cannot read the
   // 5-digit EAN-5 supplemental that actually pins the issue number, so this
@@ -128,10 +144,20 @@ export default function AddTrackScreen() {
   const isCollectionComic = category === 'comic' && comicMode === 'collection';
   const isSeries = category !== null && unitLabelFor(category) !== null && !isCollectionComic;
   // A11: manual fields render only when there's no confirmed match to trust
-  // instead — a hand-typed title, or an explicit override of a wrong one.
-  const showManualFields = isSeries && (!picked || editingCount || hydrateFailed);
+  // instead — a hand-typed title, or a match whose hydrate() failed.
+  const showManualFields = isSeries && (!picked || hydrateFailed);
   const needsCount = showManualFields && !ongoing;
   const unit = category ? unitLabelFor(category) : null;
+  // A17: the confirm screen's data, however it was fetched — `hydrate()`'s
+  // own metaLine/blurb for a series match, `preview()`'s for a standalone
+  // one. `null` means either there's no picked match, or its lookup hasn't
+  // resolved yet (see `hydrating`/`previewing`) or failed outright.
+  const matchSummary: MatchPreview | null = isSeries
+    ? confirmedDraft
+      ? { title: confirmedDraft.title, metaLine: confirmedDraft.metaLine ?? [], blurb: confirmedDraft.blurb ?? null }
+      : null
+    : previewData;
+  const checkingMatch = picked !== null && matchSummary === null && (isSeries ? hydrating : previewing);
   const barcodeTypes =
     category === 'comic'
       ? comicMode === 'single'
@@ -209,6 +235,36 @@ export default function AddTrackScreen() {
     };
   }, [category, picked, isSeries, comicMode]);
 
+  // A17: the confirm screen's data source for a standalone match (book,
+  // movie, a comic collection) — `preview()`'s counterpart to the hydrate
+  // effect above. Every standalone provider's `preview` falls back rather
+  // than throwing, so this needs no failure state of its own.
+  useEffect(() => {
+    if (!category || !picked || isSeries) {
+      setPreviewData(null);
+      setPreviewing(false);
+      return;
+    }
+    let cancelled = false;
+    setPreviewing(true);
+    setPreviewData(null);
+    void (async () => {
+      const provider = providerForAdd(category, comicMode);
+      const preview = (await provider.preview?.(picked)) ?? {
+        title: picked.title,
+        metaLine: [],
+        blurb: null,
+      };
+      if (!cancelled) {
+        setPreviewData(preview);
+        setPreviewing(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [category, picked, isSeries, comicMode]);
+
   // Picking a category never navigates — it just re-renders this component
   // past the `category === null` branch — so leaving the modal for real and
   // backing out of an in-progress category pick both arrive as the same
@@ -240,7 +296,8 @@ export default function AddTrackScreen() {
       setConfirmedDraft(null);
       setHydrating(false);
       setHydrateFailed(false);
-      setEditingCount(false);
+      setPreviewData(null);
+      setPreviewing(false);
     });
     return unsubscribe;
   }, [navigation, category, comicMode]);
@@ -252,7 +309,6 @@ export default function AddTrackScreen() {
     setTitle(scannedOrdinal !== null ? `${result.title} #${scannedOrdinal}` : result.title);
     setPicked(result);
     setScannedOrdinal(null);
-    setEditingCount(false);
     setHydrateFailed(false);
     setResults([]);
   }
@@ -368,27 +424,11 @@ export default function AddTrackScreen() {
           ? parseSeriesTitle(title)
           : { title: title.trim(), ordinal: null };
 
-      // A11: an un-edited confirmed match is passed straight through as a
-      // ready draft — no second hydrate, no manual count to validate. An
-      // edited override rebuilds the draft locally the same way a
-      // hand-typed title always has, keeping the confirmed match's own
-      // external id/source rather than discarding where it came from.
-      const draft: SeriesDraft | undefined =
-        isSeries && confirmedDraft
-          ? editingCount
-            ? {
-                ...generateEntries({
-                  id: picked!.id,
-                  title: finalTitle,
-                  category,
-                  count: parsedCount,
-                  ongoing,
-                }),
-                externalSource: confirmedDraft.externalSource,
-                externalId: confirmedDraft.externalId,
-              }
-            : confirmedDraft
-          : undefined;
+      // A11: a confirmed match is passed straight through as a ready draft —
+      // no second hydrate, no manual count to validate. Only reached once
+      // the confirm screen's own primary/secondary button was tapped (A17),
+      // so there is no override case left to rebuild locally here.
+      const draft: SeriesDraft | undefined = isSeries && confirmedDraft ? confirmedDraft : undefined;
 
       const created = await addTrack(
         db,
@@ -491,6 +531,54 @@ export default function AddTrackScreen() {
     );
   }
 
+  // A17: a real match — series or standalone — is confirmed here before
+  // it's saved, rather than applied straight off the search result. A
+  // failed match (hydrateFailed) never reaches this screen; it falls
+  // through to the manual title/count fields below instead, same as a
+  // hand-typed title with no match at all.
+  if (picked && (matchSummary || checkingMatch)) {
+    return (
+      <View style={styles.screen}>
+        <View style={styles.header}>
+          <Text style={styles.confirmTitle}>{matchSummary ? matchSummary.title : 'Checking…'}</Text>
+        </View>
+        {matchSummary && matchSummary.metaLine.length > 0 && (
+          <Text style={styles.metaLine}>{matchSummary.metaLine.join(' · ')}</Text>
+        )}
+        {matchSummary?.blurb && (
+          <Text style={styles.blurb} numberOfLines={4}>
+            {matchSummary.blurb}
+          </Text>
+        )}
+        {matchSummary && (
+          <>
+            <Pressable
+              style={styles.save}
+              onPress={() => void handleSave(true)}
+              accessibilityRole="button"
+            >
+              <Text style={styles.saveText}>{primaryLabel(category)}</Text>
+            </Pressable>
+            <Pressable
+              style={styles.saveSecondary}
+              onPress={() => void handleSave(false)}
+              accessibilityRole="button"
+            >
+              <Text style={styles.saveSecondaryText}>Add to backlog</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setPicked(null)}
+              accessibilityRole="button"
+              style={styles.reject}
+            >
+              <Text style={[styles.rejectText, underline]}>Nope, search again</Text>
+            </Pressable>
+          </>
+        )}
+      </View>
+    );
+  }
+
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
@@ -507,7 +595,6 @@ export default function AddTrackScreen() {
           setTitle(t);
           setPicked(null);
           setScannedOrdinal(null);
-          setEditingCount(false);
           setHydrateFailed(false);
         }}
         autoFocus
@@ -535,27 +622,6 @@ export default function AddTrackScreen() {
           accessibilityRole="button"
         >
           <Text style={styles.scanButtonText}>Scan barcode</Text>
-        </Pressable>
-      )}
-
-      {isSeries && picked && hydrating && <Text style={styles.hint}>Checking…</Text>}
-
-      {isSeries && picked && confirmedDraft && !editingCount && (
-        <Pressable
-          onPress={() => {
-            setEditingCount(true);
-            setCount(String(confirmedDraft.entries.length));
-            setOngoing(confirmedDraft.ongoing === true);
-          }}
-          style={styles.summary}
-          accessibilityRole="button"
-          accessibilityLabel={`Edit ${unit} count`}
-        >
-          <Text style={styles.summaryText}>
-            {confirmedDraft.ongoing
-              ? 'Ongoing'
-              : `${confirmedDraft.entries.length} ${unit}s · Completed`}
-          </Text>
         </Pressable>
       )}
 
@@ -698,17 +764,25 @@ function createStyles(c: Palette) {
     toggleOn: { backgroundColor: c.ink, borderColor: c.ink },
     toggleText: { ...font.control, color: c.muted },
     toggleTextOn: { color: c.bg },
-    hint: { ...font.meta, color: c.muted, marginHorizontal: layout.inset, marginBottom: 10 },
-    summary: {
+    // A17: the confirm screen's own title — smaller than `prompt`'s category
+    // label (screenTitle is sized for a short static word, not a real,
+    // sometimes-long title) but still the biggest thing on the screen.
+    confirmTitle: { ...font.rowTitle, fontSize: 26, color: c.ink },
+    metaLine: {
+      ...font.meta,
+      color: c.muted,
       marginHorizontal: layout.inset,
-      marginBottom: 10,
-      paddingVertical: 13,
-      paddingHorizontal: 14,
-      borderWidth: 1.5,
-      borderColor: c.ruleStrong,
-      borderRadius: radius.md,
+      marginBottom: 14,
     },
-    summaryText: { ...font.body, color: c.ink },
+    blurb: {
+      ...font.body,
+      color: c.ink,
+      marginHorizontal: layout.inset,
+      marginBottom: 24,
+      lineHeight: 22,
+    },
+    reject: { alignSelf: 'center', paddingVertical: 6 },
+    rejectText: { ...font.control, color: c.muted },
     // The one filled control on the screen, so it carries ink rather than
     // accent. Start is primary: adding something is usually the first step
     // toward starting it, not toward filing it away.
