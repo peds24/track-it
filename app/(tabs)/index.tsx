@@ -1,5 +1,5 @@
 import { Link, useFocusEffect } from 'expo-router';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -7,9 +7,11 @@ import {
   deleteTrack,
   resumeTrack,
   returnTrackToBacklog,
+  setTrackPosition,
   type TrackSummary, } from '@/data/trackRepo';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { font, layout, underline, useTheme, type Palette } from '@/ui/theme';
+import { ProgressEditor } from '@/ui/ProgressEditor';
 import { SwipeableTrackRow } from '@/ui/SwipeableTrackRow';
 import { useTracks } from '@/ui/useTracks';
 
@@ -18,6 +20,8 @@ export default function CurrentlyScreen() {
   const palette = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const { tracks, reload } = useTracks('currently');
+  /** A12: the track whose position is being edited, or null when closed. */
+  const [editing, setEditing] = useState<TrackSummary | null>(null);
 
   /** A failed read has to reach the user; an unhandled rejection would not. */
   const reloadSafely = useCallback(async () => {
@@ -77,6 +81,23 @@ export default function CurrentlyScreen() {
     })();
   }
 
+  /**
+   * A12: the editor is dismissed before the write, not after it. The write is
+   * fire-and-forget like handleAdvance, and leaving the dialog up until the
+   * reload lands would make a one-tap save look like it had hung.
+   */
+  function handleSetPosition(track: TrackSummary, ordinal: number): void {
+    setEditing(null);
+    void (async () => {
+      try {
+        await setTrackPosition(db, track.id, ordinal, new Date().toISOString());
+      } catch (e: unknown) {
+        Alert.alert('Could not update', e instanceof Error ? e.message : String(e));
+      }
+      await reloadSafely();
+    })();
+  }
+
   function handleResume(track: TrackSummary): void {
     void (async () => {
       try {
@@ -107,12 +128,19 @@ export default function CurrentlyScreen() {
             onResume={handleResume}
             onDelete={handleDelete}
             onReturnToBacklog={handleReturnToBacklog}
+            onEditProgress={setEditing}
           />}
         ListEmptyComponent={
           <Text style={styles.empty}>
             Nothing on the go. Add something, or start something from your backlog.
           </Text>
         }
+      />
+
+      <ProgressEditor
+        track={editing}
+        onCancel={() => setEditing(null)}
+        onSubmit={handleSetPosition}
       />
     </SafeAreaView>
   );

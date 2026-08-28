@@ -42,3 +42,49 @@ export function currentSeason(
   }
   return null;
 }
+
+/**
+ * A12: the flat series ordinal a season-and-episode pair names — the inverse
+ * of what `currentSeason` reports. The progress editor takes "S3 Ep 15" and
+ * has to say which of the 176 flat `Entry` rows that is, because entries stay
+ * flat (D3) and seasons remain display metadata (A11).
+ *
+ * `null` for anything the show does not actually have, rather than a clamped
+ * neighbour: the editor disables its Save on `null`, and a silently corrected
+ * number would move a track somewhere the user did not type.
+ */
+export function ordinalFor(
+  seasons: readonly SeasonBoundary[],
+  seasonNumber: number,
+  episodeNumber: number,
+): number | null {
+  let cursor = 0;
+  for (const season of seasons) {
+    if (season.number === seasonNumber) {
+      if (episodeNumber < 1 || episodeNumber > season.episodeCount) return null;
+      return cursor + episodeNumber;
+    }
+    cursor += season.episodeCount;
+  }
+  return null;
+}
+
+/**
+ * A12: the season and within-season episode a flat ordinal falls on. Seeds the
+ * editor's two fields from where the track already is, and `null` past either
+ * end for the same reason `ordinalFor` returns it.
+ */
+export function positionIn(
+  seasons: readonly SeasonBoundary[],
+  ordinal: number,
+): { season: number; episode: number } | null {
+  if (ordinal < 1) return null;
+  let cursor = 0;
+  for (const season of seasons) {
+    if (ordinal <= cursor + season.episodeCount) {
+      return { season: season.number, episode: ordinal - cursor };
+    }
+    cursor += season.episodeCount;
+  }
+  return null;
+}

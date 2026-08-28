@@ -1,4 +1,4 @@
-import { currentSeason, seasonSegments } from '@/domain/seasons';
+import { currentSeason, ordinalFor, positionIn, seasonSegments } from '@/domain/seasons';
 import type { SeasonBoundary } from '@/domain/types';
 
 // House's real 8-season breakdown, specials excluded — 176 episodes total.
@@ -55,5 +55,54 @@ describe('currentSeason', () => {
 
   test('an empty seasons list returns null', () => {
     expect(currentSeason([], 10)).toBeNull();
+  });
+});
+
+describe('ordinalFor', () => {
+  test('converts a season and within-season episode to a flat series ordinal', () => {
+    // Seasons 1-2 are 46 episodes; S3 E15 is the 61st episode overall.
+    expect(ordinalFor(HOUSE, 3, 15)).toBe(61);
+  });
+
+  test('season 1 episode 1 is ordinal 1', () => {
+    expect(ordinalFor(HOUSE, 1, 1)).toBe(1);
+  });
+
+  test('the last episode of the last season is the series total', () => {
+    expect(ordinalFor(HOUSE, 8, 22)).toBe(176);
+  });
+
+  test('an episode past that season length is out of range', () => {
+    expect(ordinalFor(HOUSE, 4, 17)).toBeNull();
+  });
+
+  test('an episode below 1 is out of range', () => {
+    expect(ordinalFor(HOUSE, 4, 0)).toBeNull();
+  });
+
+  test('a season the show does not have is out of range', () => {
+    expect(ordinalFor(HOUSE, 9, 1)).toBeNull();
+  });
+});
+
+describe('positionIn', () => {
+  test('converts a flat series ordinal back to a season and within-season episode', () => {
+    expect(positionIn(HOUSE, 61)).toEqual({ season: 3, episode: 15 });
+  });
+
+  test('round-trips every ordinal in the series', () => {
+    for (let ordinal = 1; ordinal <= 176; ordinal++) {
+      const at = positionIn(HOUSE, ordinal);
+      expect(at).not.toBeNull();
+      expect(ordinalFor(HOUSE, at!.season, at!.episode)).toBe(ordinal);
+    }
+  });
+
+  test('an ordinal past the series total has no position', () => {
+    expect(positionIn(HOUSE, 177)).toBeNull();
+  });
+
+  test('an ordinal below 1 has no position', () => {
+    expect(positionIn(HOUSE, 0)).toBeNull();
   });
 });

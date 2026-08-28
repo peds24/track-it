@@ -1,5 +1,5 @@
 import type { SqlDriver } from '@/db/driver';
-import { advance } from '@/domain/advance';
+import { advance, setPosition } from '@/domain/advance';
 import { nextEntry, progressFor, shelfForEntry, shelfForSeries } from '@/domain/shelf';
 import type { Category, Entry, SeasonBoundary, Series, Shelf, Status } from '@/domain/types';
 import { assertEntryInvariants, assertIsoTimestamp, isStandaloneMediaType } from '@/domain/validate';
@@ -498,4 +498,45 @@ export async function resumeTrack(
 ): Promise<void> {
   const table = track.kind === 'series' ? 'series' : 'entry';
   await db.run(`UPDATE ${table} SET paused = 0 WHERE id = ?`, [track.id]);
+}
+
+/**
+ * A12: put a series at a position directly, instead of tapping Done up to it.
+ * The transition rules live in domain/setPosition; this only persists them
+ * (D8's split, same as advanceEntry).
+ *
+ * Unlike advanceEntry there is no A5 auto-start or A4 append to layer on:
+ * setPosition already leaves the target in progress, and a position inside a
+ * series that exists never runs off its end — the editor is offered on finite
+ * series only, so there is no ongoing series here to grow.
+ *
+ * Clearing `paused` is part of the move, not a separate one: naming where you
+ * are in a track is resuming it, and leaving the flag set would strand the
+ * track in Backlog reporting progress it made after it was paused.
+ */
+export async function setTrackPosition(
+  db: SqlDriver,
+  seriesId: string,
+  targetOrdinal: number,
+  now: string,
+): Promise<void> {
+  const seriesRows = await db.all<SeriesRow>('SELECT * FROM series WHERE id = ?', [seriesId]);
+  if (!seriesRows[0]) throw new Error(`Series ${seriesId} not found`);
+
+  const rows = await db.all<EntryRow>('SELECT * FROM entry WHERE series_id = ?', [seriesId]);
+  // Throws before the transaction opens, so a rejected position leaves the
+  // series exactly as it was.
+  const changed = setPosition(rows.map(toEntry), targetOrdinal, now);
+
+  await db.transaction(async () => {
+    for (const entry of changed) {
+      await db.run('UPDATE entry SET status = ?, started_at = ?, finished_at = ? WHERE id = ?', [
+        entry.status,
+        entry.startedAt,
+        entry.finishedAt,
+        entry.id,
+      ]);
+    }
+    await db.run('UPDATE series SET paused = 0 WHERE id = ?', [seriesId]);
+  });
 }
