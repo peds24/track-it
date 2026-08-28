@@ -333,3 +333,57 @@ test('a show on Backlog with season data still uses the flat bar, not segments',
   expect(screen.queryAllByTestId('progress-segment')).toHaveLength(0);
   expect(screen.queryByText(/^S\d/)).toBeNull();
 });
+
+// A12: long-pressing the advance control opens the progress editor, but only
+// where a position is a thing the track actually has.
+test('long-pressing Done on a finite series asks to edit its position', async () => {
+  const onEditProgress = jest.fn();
+  await render(
+    <TrackRow track={show} onAdvance={() => {}} onResume={() => {}} onEditProgress={onEditProgress} />,
+  );
+  await fireEvent(screen.getByLabelText('Mark Episode 4 watched'), 'longPress');
+  expect(onEditProgress).toHaveBeenCalledWith(show);
+});
+
+test('long-pressing an ongoing series does nothing — it has no total to sit inside', async () => {
+  const onEditProgress = jest.fn();
+  const ongoing: TrackSummary = { ...show, title: 'One Piece', category: 'manga', ongoing: true, progress: null };
+  await render(
+    <TrackRow track={ongoing} onAdvance={() => {}} onResume={() => {}} onEditProgress={onEditProgress} />,
+  );
+  await fireEvent(screen.getByLabelText('Mark Episode 4 read'), 'longPress');
+  expect(onEditProgress).not.toHaveBeenCalled();
+});
+
+test('long-pressing a standalone movie does nothing — there is no position in a movie', async () => {
+  const onEditProgress = jest.fn();
+  const movie: TrackSummary = {
+    ...show,
+    kind: 'entry',
+    title: 'Arrival',
+    category: 'movie',
+    progress: null,
+    nextEntryId: 'm1',
+    nextEntryTitle: 'Arrival',
+  };
+  await render(
+    <TrackRow track={movie} onAdvance={() => {}} onResume={() => {}} onEditProgress={onEditProgress} />,
+  );
+  await fireEvent(screen.getByLabelText('Mark Arrival watched'), 'longPress');
+  expect(onEditProgress).not.toHaveBeenCalled();
+});
+
+test('long-pressing a backlog row does nothing — the editor is a Currently gesture', async () => {
+  const onEditProgress = jest.fn();
+  const backlogged: TrackSummary = { ...show, shelf: 'backlog' };
+  await render(
+    <TrackRow track={backlogged} onAdvance={() => {}} onResume={() => {}} onEditProgress={onEditProgress} />,
+  );
+  await fireEvent(screen.getByLabelText('Start Severance'), 'longPress');
+  expect(onEditProgress).not.toHaveBeenCalled();
+});
+
+test('an editable row tells a screen reader the gesture exists', async () => {
+  await render(<TrackRow track={show} onAdvance={() => {}} onResume={() => {}} onEditProgress={() => {}} />);
+  expect(screen.getByLabelText('Mark Episode 4 watched').props.accessibilityHint).toMatch(/hold/i);
+});

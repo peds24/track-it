@@ -79,3 +79,21 @@ test('delete always confirms, regardless of shelf', async () => {
   expect(alertSpy).toHaveBeenCalled();
   expect(onDelete).not.toHaveBeenCalled();
 });
+
+// A12: the row's own gesture, forwarded rather than handled here — the editor
+// is rendered once by the screen, not once per row.
+test('holding the advance control forwards the track to the progress editor', async () => {
+  const onEditProgress = jest.fn();
+  await render(
+    <SwipeableTrackRow
+      track={show}
+      {...noop}
+      onReturnToBacklog={() => {}}
+      onEditProgress={onEditProgress}
+    />,
+  );
+
+  await fireEvent(screen.getByLabelText('Mark Episode 2 watched'), 'longPress');
+
+  expect(onEditProgress).toHaveBeenCalledWith(show);
+});

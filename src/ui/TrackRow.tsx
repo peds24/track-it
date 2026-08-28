@@ -78,14 +78,34 @@ export function seasonPositionLabel(track: TrackSummary): string | null {
   return `S${current.number} Ep ${current.nextEpisode} of ${current.episodeCount}`;
 }
 
+/**
+ * A12: whether holding the advance control should open the progress editor.
+ * A position is only a thing a finite series has — a movie or a standalone
+ * book has no units to be part-way through, and an ongoing series (A4) has no
+ * total for a position to sit inside. Scoped to Currently for the same reason
+ * `seasonPositionLabel` is: the gesture is attached to the Done button, and a
+ * backlog row's control is Start or Resume, which mean something else.
+ */
+export function canEditPosition(track: TrackSummary): boolean {
+  return (
+    track.kind === 'series' &&
+    track.shelf === 'currently' &&
+    !track.ongoing &&
+    track.progress !== null &&
+    track.progress.total > 0
+  );
+}
+
 export function TrackRow({
   track,
   onAdvance,
   onResume,
+  onEditProgress,
 }: {
   track: TrackSummary;
   onAdvance: (entryId: string) => void;
   onResume: (track: TrackSummary) => void;
+  onEditProgress?: (track: TrackSummary) => void;
 }) {
   const palette = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
@@ -105,6 +125,8 @@ export function TrackRow({
   // mode-aware: a standalone book is also read-mode-binary-adjacent in
   // wording terms but genuinely is two-tap, so it keeps "Start".
   const startLabel = track.category === 'movie' ? 'Watched' : 'Start';
+
+  const editable = onEditProgress !== undefined && canEditPosition(track);
 
   // Only a series has something to be part-way through numerically; a standalone
   // book or movie draws no bar, and the absence is the signal.
@@ -187,7 +209,9 @@ export function TrackRow({
                 ? `${startLabel} ${track.title}`
                 : `Mark ${nextEntryTitle} ${verbFor(track.category)}`
           }
+          accessibilityHint={editable ? 'Hold to set which unit you are on' : undefined}
           onPress={() => (resuming ? onResume(track) : onAdvance(nextEntryId))}
+          onLongPress={editable ? () => onEditProgress?.(track) : undefined}
           style={({ pressed }) => [styles.advance, pressed && styles.advancePressed]}
         >
           {({ pressed }) => (

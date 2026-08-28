@@ -41,12 +41,15 @@ export function SwipeableTrackRow({
   onResume,
   onDelete,
   onReturnToBacklog,
+  onEditProgress,
 }: {
   track: TrackSummary;
   onAdvance: (entryId: string) => void;
   onResume: (track: TrackSummary) => void;
   onDelete: (track: TrackSummary) => void;
   onReturnToBacklog: (track: TrackSummary) => void;
+  /** A12: forwarded straight through — the editor belongs to the screen. */
+  onEditProgress?: (track: TrackSummary) => void;
 }) {
   const c = useTheme();
   const styles = useMemo(() => createStyles(c), [c]);
@@ -192,7 +195,12 @@ export function SwipeableTrackRow({
         style={[styles.surface, { transform: [{ translateX }] }]}
         {...pan.panHandlers}
       >
-        <TrackRow track={track} onAdvance={onAdvance} onResume={onResume} />
+        <TrackRow
+          track={track}
+          onAdvance={onAdvance}
+          onResume={onResume}
+          onEditProgress={onEditProgress}
+        />
       </Animated.View>
     </View>
   );
