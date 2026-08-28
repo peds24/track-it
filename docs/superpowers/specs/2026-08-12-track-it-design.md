@@ -805,6 +805,60 @@ There is no offline case to handle, because there is no network.
 The bias is deliberate: most logic lives in `domain/`, where it is cheapest to
 test, and the UI layer stays thin enough to need little testing.
 
+**A12 — A position can be set directly, not only tapped up to.** Every way to
+move a track forward went through D8's one-tap advance, one unit per tap.
+That is right for the ordinary case and wrong for the common recovery case:
+coming back to a show you watched twenty episodes of elsewhere means twenty
+taps, each writing a `finished_at` that claims you finished that episode just
+now. Holding the row's advance control opens an editor that takes the number
+directly.
+
+*The number is the unit you are on, not the count you have finished.* A
+target of 5 leaves four done and the fifth `in_progress` — the same shape
+`advance` produces via A5's auto-start, reached in one move. This is
+deliberately *not* the "3 of 9" count the meta line shows next to it, which
+is one lower. The row's own words are what the field is echoing ("Watching
+Episode 5", "S3 Ep 15 of 24"), and those name the unit in hand; a field that
+took the finished-count would read as off-by-one against the label directly
+above it.
+
+*A consequence worth stating: the editor cannot finish a track.* The largest
+position a series has is its last unit, and being on the last unit is not
+having finished it. Tapping Done there still is. The editor positions; it
+does not complete.
+
+*The total is not editable.* It is the number of `Entry` rows the series has,
+so changing it would mean creating or deleting units — a different operation
+from saying where you are, and one the Add screen and delete already cover.
+
+*Nothing is clamped.* A number the series does not have leaves Save inert
+rather than being corrected to the nearest one that exists. A silently
+adjusted number would move a track somewhere the user did not type, and there
+is no undo for that.
+
+*Scope: finite series on Currently only.* A movie or a standalone book has no
+units to be part-way through. An ongoing series (A4) has no total for a
+position to sit inside — supporting it would mean generating entries up to
+the target, which is a separate decision, not a free extension of this one.
+And the gesture hangs off the Done button, so a backlog row — whose control
+is Start or Resume, meaning something else — does not offer it.
+
+*Seasons get two fields.* A show with TMDB season data (A11) asks for season
+and episode rather than an episode number in the high hundreds, converting to
+the flat ordinal through new pure helpers `ordinalFor`/`positionIn` in
+`domain/seasons.ts` — the inverse of what `currentSeason` already reports.
+Seasons remain display metadata: entries stay flat (D3), and a show whose
+season data does not line up with its entry count falls back to the single
+flat field rather than offering two fields that cannot address every unit.
+
+*Where it lives.* `domain/advance.ts` gains `setPosition`, pure, returning
+only the entries that changed; `data/trackRepo.ts` gains `setTrackPosition`,
+which persists them and clears `paused` — naming where you are in a track is
+resuming it (A6). Timestamps survive wherever the status does not change, so
+re-positioning backwards does not rewrite when you first finished episode 1;
+units that move back out of done lose theirs, because they no longer describe
+anything that happened.
+
 ---
 
 ## Open questions
