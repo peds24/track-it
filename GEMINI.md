@@ -74,3 +74,16 @@ npm start             # expo start
 - **Test-Driven Development (TDD)**: Write the failing test first (RED), verify the failure, write minimal passing code (GREEN), and refactor.
 - **Systematic Debugging**: Find root cause before attempting fixes. Trace data flow backward from symptoms.
 - **Devlog**: When implementing significant architecture or design trade-offs, document the rationale in `DEVLOG.md`.
+
+---
+
+## 5. Working Alongside Claude Code
+
+This repository is actively developed by both Google Antigravity and Claude Code, often on parallel branches. Follow this protocol so the two don't collide or silently diverge:
+
+- **Branch ownership is visible by name.** Antigravity's branches follow `<type>-<subject>` (`feat/...`, `fix/...`, `chore/...`). Claude Code's own branches are `worktree-<slug>`, under `.claude/worktrees/<slug>`. Run `git branch -a` before starting — the naming alone tells you which agent is driving a branch, no need to ask.
+- **Split by feature area, not by whichever agent is free.** The costliest merge in this repo's history came from both agents rewriting the same UI surface — a Material 3 redesign on one side, a features branch on the other — independently, for weeks, before anyone merged them. Prefer handing ownership of a layer (the shared design system in `src/ui/theme.ts`, one screen family, one provider) to a single agent for the duration of a change, rather than having both touch it at once.
+- **Read before you write.** Before any nontrivial change, read `docs/HANDOFF.md` (session-to-session state) and `docs/superpowers/specs/2026-08-12-track-it-design.md` (the numbered decision record, D1–D12 plus amendments A1 onward). Both exist so an agent picking up mid-project doesn't have to reverse-engineer intent from a diff.
+- **Write before you hand off.** After a change substantial enough to matter to whoever works here next — a new screen, a reversed decision, a new architectural rule — update `docs/HANDOFF.md`. If it reverses or fulfills a numbered decision, add the next `A<n>` amendment to the design spec instead of letting the record go stale.
+- **Sync early against a moving target, not at merge time.** If a branch touches shared UI/theme files and lives more than a day or two, periodically check `git log --oneline main..<branch>` and diff against current `main`. Don't let two independent rewrites of the same screen accumulate for weeks before the conflict surfaces.
+- **Co-author trailers stay distinct per agent**, so `git log` shows who actually did what: Antigravity uses `Co-authored-by: Google Antigravity <242056456+google-antigravity@users.noreply.github.com>` (§1); Claude Code uses `Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>` (`CLAUDE.md` §1). Never drop or merge the two when a commit had input from both agents.
