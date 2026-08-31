@@ -5,7 +5,7 @@ import { openExpoDatabase } from '@/db/expoDriver';
 import { migrate } from '@/db/schema';
 import { space, useTheme } from '@/ui/theme';
 
-const DatabaseContext = createContext<SqlDriver | null>(null);
+export const DatabaseContext = createContext<SqlDriver | null>(null);
 
 export function useDatabase(): SqlDriver {
   const db = useContext(DatabaseContext);

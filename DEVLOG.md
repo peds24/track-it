@@ -31,6 +31,8 @@
 - **Removed Emojis**: Removed all emoji glyphs from the category picker, barcode scan button, and ongoing series toggle in `app/add.tsx`, replacing them with clean vector icons and semantic typography.
 - **Navigation Action**: Replaced `<Link asChild>` with direct `Pressable` + `useRouter().push('/add')` with a filled primary pill style (`elevation.level1`).
 - **Row Advance Action**: Switched row advance (`Done`/`Start`/`Resume`) to an outlined pill button (`borderWidth: 1.5`, `borderColor: c.primary`) to visually separate it from the filled `+ Add` primary action.
-- **Swipe Action Geometry**: Reduced swipe action rectangle to a compact, vertically centered pill (`width: 68`, `borderRadius: radius.full`, inset 10dp) preventing edge cutoff when swiping.
+- **Category Grouping on Currently**: Grouped tracks on the Currently screen by their categories following the Add page order (Shows -> Movies -> Books -> Comics -> Manga). Each group features a subtitle header with vector icon badges and count chips. Advancing an item (`Done`) dynamically bubbles that item to the top within its category group while retaining stable category section placement.
+- **Track Row Category Badges**: Integrated category vector icons directly into the `TrackRow` kind badge chips.
+
 
 

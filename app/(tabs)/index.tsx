@@ -1,6 +1,7 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, SectionList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   advanceEntry,
@@ -10,11 +11,24 @@ import {
   setTrackPosition,
   type TrackSummary,
 } from '@/data/trackRepo';
+import type { Category } from '@/domain/types';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { elevation, font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
 import { ProgressEditor } from '@/ui/ProgressEditor';
 import { SwipeableTrackRow } from '@/ui/SwipeableTrackRow';
 import { useTracks } from '@/ui/useTracks';
+
+const CATEGORY_SECTIONS: readonly {
+  category: Category;
+  title: string;
+  iconName: keyof typeof Ionicons.glyphMap;
+}[] = [
+  { category: 'show', title: 'Shows', iconName: 'tv-outline' },
+  { category: 'movie', title: 'Movies', iconName: 'film-outline' },
+  { category: 'book', title: 'Books', iconName: 'book-outline' },
+  { category: 'comic', title: 'Comics', iconName: 'sparkles-outline' },
+  { category: 'manga', title: 'Manga', iconName: 'library-outline' },
+];
 
 export default function CurrentlyScreen() {
   const db = useDatabase();
@@ -23,6 +37,18 @@ export default function CurrentlyScreen() {
   const styles = useMemo(() => createStyles(palette), [palette]);
   const { tracks, reload } = useTracks('currently');
   const [editing, setEditing] = useState<TrackSummary | null>(null);
+
+  const sections = useMemo(() => {
+    return CATEGORY_SECTIONS.map((sec) => {
+      // tracks is already ordered by most recently advanced from trackRepo.
+      // Filtering maintains recency ordering within each category group.
+      const data = tracks.filter((t) => t.category === sec.category);
+      return {
+        ...sec,
+        data,
+      };
+    }).filter((s) => s.data.length > 0);
+  }, [tracks]);
 
   const reloadSafely = useCallback(async () => {
     try {
@@ -111,9 +137,19 @@ export default function CurrentlyScreen() {
         </Pressable>
       </View>
 
-      <FlatList
-        data={tracks}
+      <SectionList
+        sections={sections}
         keyExtractor={(t) => `${t.kind}:${t.id}`}
+        stickySectionHeadersEnabled={false}
+        renderSectionHeader={({ section }) => (
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionIconBadge}>
+              <Ionicons name={section.iconName} size={13} color={palette.primary} />
+            </View>
+            <Text style={styles.sectionTitle}>{section.title}</Text>
+            <Text style={styles.sectionCount}>{section.data.length}</Text>
+          </View>
+        )}
         renderItem={({ item }) => (
           <SwipeableTrackRow
             track={item}
@@ -178,6 +214,37 @@ function createStyles(c: Palette) {
       fontWeight: '700',
       color: c.onPrimary,
     },
+    sectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingTop: 18,
+      paddingBottom: 8,
+      paddingHorizontal: layout.inset,
+      backgroundColor: c.surface,
+      gap: 8,
+    },
+    sectionIconBadge: {
+      width: 24,
+      height: 24,
+      borderRadius: radius.xs,
+      backgroundColor: c.surfaceContainerHigh,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    sectionTitle: {
+      ...font.titleSmall,
+      color: c.onSurface,
+      fontWeight: '700',
+    },
+    sectionCount: {
+      ...font.labelSmall,
+      color: c.onSurfaceVariant,
+      backgroundColor: c.surfaceContainerHigh,
+      paddingHorizontal: 6,
+      paddingVertical: 1,
+      borderRadius: radius.full,
+      fontVariant: ['tabular-nums'],
+    },
     emptyContainer: {
       margin: layout.inset,
       padding: space.lg,
@@ -200,4 +267,5 @@ function createStyles(c: Palette) {
     },
   });
 }
+
 

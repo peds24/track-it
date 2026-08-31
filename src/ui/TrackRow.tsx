@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { TrackSummary } from '@/data/trackRepo';
 import { currentSeason, seasonSegments } from '@/domain/seasons';
@@ -18,6 +19,14 @@ const KIND_LABEL: Record<Category, string> = {
   book: 'BOOK',
   comic: 'COMIC',
   manga: 'MANGA',
+};
+
+const CATEGORY_ICONS: Record<Category, keyof typeof Ionicons.glyphMap> = {
+  show: 'tv-outline',
+  movie: 'film-outline',
+  book: 'book-outline',
+  comic: 'sparkles-outline',
+  manga: 'library-outline',
 };
 
 /**
@@ -109,6 +118,12 @@ export function TrackRow({
 
         <View style={styles.meta}>
           <View style={styles.kindBadge}>
+            <Ionicons
+              name={CATEGORY_ICONS[track.category]}
+              size={11}
+              color={palette.primary}
+              style={styles.kindIcon}
+            />
             <Text style={styles.kind}>{KIND_LABEL[track.category]}</Text>
           </View>
           <Text style={styles.dot}>·</Text>
@@ -204,10 +219,15 @@ function createStyles(c: Palette) {
       marginTop: 4,
     },
     kindBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
       backgroundColor: c.surfaceContainerHigh,
       paddingHorizontal: 6,
-      paddingVertical: 1,
+      paddingVertical: 2,
       borderRadius: radius.xs,
+    },
+    kindIcon: {
+      marginRight: 3,
     },
     kind: {
       ...font.labelSmall,
