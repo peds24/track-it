@@ -1,19 +1,18 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { TrackSummary } from '@/data/trackRepo';
-import { font, radius, useTheme, type Palette } from '@/ui/theme';
+import { font, useTheme, type Palette } from '@/ui/theme';
 import { TrackRow } from '@/ui/TrackRow';
 
-const ACTION_WIDTH = 84;
-/** How far you must drag before the row latches open rather than snapping back. */
-const LATCH = 52;
+/** Threshold for quick swipe activation. */
+const LATCH = 45;
 /** Below this the gesture is treated as a list scroll, not a swipe. */
 const SLOP = 10;
 /** Deep swipe threshold on right swipe that transitions from Backlog/Pause to Delete. */
 const DELETE_THRESHOLD = 140;
 /** Maximum swipe distances. */
-const MAX_SWIPE_RIGHT = 200;
-const FULL_SWIPE = ACTION_WIDTH * 1.8;
+const MAX_SWIPE_RIGHT = 220;
+const MAX_SWIPE_LEFT = 160;
 
 export function SwipeableTrackRow({
   track,
@@ -112,10 +111,10 @@ export function SwipeableTrackRow({
     onEditProgress?.(track);
   }, [close, onEditProgress, track]);
 
-  // Smooth transitions between Backlog/Pause and Delete
+  // Smooth background color & text transitions between Backlog/Pause and Delete
   const containerBg = canReturn
     ? translateX.interpolate({
-        inputRange: [0, 80, 130, 160],
+        inputRange: [0, 70, 125, 155],
         outputRange: [c.secondaryContainer, c.secondaryContainer, c.errorContainer, c.errorContainer],
         extrapolate: 'clamp',
       })
@@ -123,15 +122,15 @@ export function SwipeableTrackRow({
 
   const pauseOpacity = canReturn
     ? translateX.interpolate({
-        inputRange: [0, 80, 120, 140],
-        outputRange: [1, 1, 0.2, 0],
+        inputRange: [0, 60, 115, 135],
+        outputRange: [1, 1, 0.15, 0],
         extrapolate: 'clamp',
       })
     : 0;
 
   const deleteOpacity = canReturn
     ? translateX.interpolate({
-        inputRange: [0, 85, 130, 160],
+        inputRange: [0, 80, 125, 150],
         outputRange: [0, 0, 0.85, 1],
         extrapolate: 'clamp',
       })
@@ -139,8 +138,8 @@ export function SwipeableTrackRow({
 
   const deleteScale = canReturn
     ? translateX.interpolate({
-        inputRange: [85, 140, 180],
-        outputRange: [0.8, 1, 1.06],
+        inputRange: [80, 135, 180],
+        outputRange: [0.8, 1, 1.08],
         extrapolate: 'clamp',
       })
     : 1;
@@ -152,8 +151,8 @@ export function SwipeableTrackRow({
           Math.abs(g.dx) > SLOP && Math.abs(g.dx) > Math.abs(g.dy) * 1.5,
         onPanResponderMove: (_e, g) => {
           const next = offset.current + g.dx;
-          const minX = canEdit ? -ACTION_WIDTH * 1.5 : 0;
-          const maxX = canReturn ? MAX_SWIPE_RIGHT : ACTION_WIDTH * 1.5;
+          const minX = canEdit ? -MAX_SWIPE_LEFT : 0;
+          const maxX = canReturn ? MAX_SWIPE_RIGHT : MAX_SWIPE_LEFT;
           const clamped = Math.max(minX, Math.min(maxX, next));
           translateX.setValue(clamped);
 
@@ -170,27 +169,21 @@ export function SwipeableTrackRow({
           setIsDeepSwipe(false);
 
           if (next >= DELETE_THRESHOLD) {
-            // Deep swipe to the right becomes delete
+            // Longer/deep swipe to the right triggers delete
             settle(0);
             confirmDelete();
-          } else if (!canReturn && next >= FULL_SWIPE) {
-            // Full swipe on backlog shelf deletes
+          } else if (!canReturn && (next >= LATCH || g.vx > 0.4)) {
+            // Backlog shelf swipe right deletes
             settle(0);
             confirmDelete();
-          } else if (canReturn && next >= FULL_SWIPE) {
-            // Full swipe on returnable shelf moves to backlog/pauses
+          } else if (canReturn && (next >= LATCH || g.vx > 0.4)) {
+            // Quick swipe to the right immediately activates pause / backlog
             settle(0);
             triggerReturn();
-          } else if (next >= LATCH) {
-            // Small right swipe latches open (Pause/Backlog or Delete)
-            settle(ACTION_WIDTH);
-          } else if (canEdit && next <= -FULL_SWIPE) {
-            // Full left swipe opens edit screen
+          } else if (canEdit && (next <= -LATCH || g.vx < -0.4)) {
+            // Quick swipe to the left immediately activates edit
             settle(0);
             handleEdit();
-          } else if (canEdit && next <= -LATCH) {
-            // Left swipe latches open edit button
-            settle(-ACTION_WIDTH);
           } else {
             settle(0);
           }
@@ -206,18 +199,18 @@ export function SwipeableTrackRow({
   return (
     <View style={styles.container}>
       <View style={styles.actions} pointerEvents="box-none">
-        {/* Left Action (revealed on Right Swipe: animated transition from Pause/Backlog to Delete) */}
+        {/* Left Action (revealed on Right Swipe: full length colored background with animated transition) */}
         {canReturn ? (
           <Animated.View
             style={[
-              styles.action,
-              styles.leftAction,
+              StyleSheet.absoluteFill,
+              styles.leftActionContainer,
               { backgroundColor: containerBg },
             ]}
           >
             {/* Pause / Backlog layer */}
             <Animated.View
-              style={[StyleSheet.absoluteFill, styles.actionInner, { opacity: pauseOpacity }]}
+              style={[StyleSheet.absoluteFill, styles.leftActionContent, { opacity: pauseOpacity }]}
               pointerEvents={isDeepSwipe ? 'none' : 'auto'}
             >
               <Pressable
@@ -226,7 +219,7 @@ export function SwipeableTrackRow({
                   resetting ? `Move ${track.title} to the backlog` : `Pause ${track.title}`
                 }
                 onPress={triggerReturn}
-                style={styles.pressableFill}
+                style={styles.actionPressableLeft}
               >
                 <Text style={[styles.actionText, styles.pauseText]}>
                   {resetting ? 'Backlog' : 'Pause'}
@@ -238,7 +231,7 @@ export function SwipeableTrackRow({
             <Animated.View
               style={[
                 StyleSheet.absoluteFill,
-                styles.actionInner,
+                styles.leftActionContent,
                 { opacity: deleteOpacity, transform: [{ scale: deleteScale }] },
               ]}
               pointerEvents={isDeepSwipe ? 'auto' : 'none'}
@@ -247,7 +240,7 @@ export function SwipeableTrackRow({
                 accessibilityRole="button"
                 accessibilityLabel={`Delete ${track.title}`}
                 onPress={confirmDelete}
-                style={styles.pressableFill}
+                style={styles.actionPressableLeft}
               >
                 <Text style={[styles.actionText, styles.deleteText]}>Delete</Text>
               </Pressable>
@@ -256,8 +249,8 @@ export function SwipeableTrackRow({
         ) : (
           <Animated.View
             style={[
-              styles.action,
-              styles.leftAction,
+              StyleSheet.absoluteFill,
+              styles.leftActionContainer,
               { backgroundColor: c.errorContainer },
             ]}
           >
@@ -265,21 +258,21 @@ export function SwipeableTrackRow({
               accessibilityRole="button"
               accessibilityLabel={`Delete ${track.title}`}
               onPress={confirmDelete}
-              style={styles.pressableFill}
+              style={styles.actionPressableLeft}
             >
               <Text style={[styles.actionText, styles.deleteText]}>Delete</Text>
             </Pressable>
           </Animated.View>
         )}
 
-        {/* Right Action (revealed on Left Swipe: Edit progress) */}
+        {/* Right Action (revealed on Left Swipe: full length colored background for Edit) */}
         {canEdit && (
-          <View style={[styles.action, styles.rightAction]}>
+          <View style={[StyleSheet.absoluteFill, styles.rightActionContainer]}>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`Edit ${track.title} progress`}
               onPress={handleEdit}
-              style={styles.pressableFill}
+              style={styles.actionPressableRight}
             >
               <Text style={[styles.actionText, styles.editText]}>Edit</Text>
             </Pressable>
@@ -304,47 +297,58 @@ export function SwipeableTrackRow({
 
 function createStyles(c: Palette) {
   return StyleSheet.create({
-    container: { position: 'relative' },
+    container: {
+      position: 'relative',
+      overflow: 'hidden',
+    },
     actions: {
       position: 'absolute',
       top: 0,
-      right: 0,
       bottom: 0,
       left: 0,
+      right: 0,
       justifyContent: 'center',
     },
-    action: {
+    leftActionContainer: {
       position: 'absolute',
-      top: 8,
-      bottom: 8,
-      width: 72,
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
       justifyContent: 'center',
-      alignItems: 'center',
-      borderRadius: radius.md,
-      overflow: 'hidden',
+      alignItems: 'flex-start',
     },
-    leftAction: {
-      left: 10,
-    },
-    rightAction: {
-      right: 10,
-      backgroundColor: c.primaryContainer,
-    },
-    actionInner: {
+    leftActionContent: {
       justifyContent: 'center',
-      alignItems: 'center',
+      alignItems: 'flex-start',
     },
-    pressableFill: {
-      width: '100%',
+    actionPressableLeft: {
       height: '100%',
       justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 8,
+      alignItems: 'flex-start',
+      paddingLeft: 24,
+      minWidth: 100,
+    },
+    rightActionContainer: {
+      position: 'absolute',
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: c.primaryContainer,
+      justifyContent: 'center',
+      alignItems: 'flex-end',
+    },
+    actionPressableRight: {
+      height: '100%',
+      justifyContent: 'center',
+      alignItems: 'flex-end',
+      paddingRight: 24,
+      minWidth: 100,
     },
     actionText: {
-      ...font.labelMedium,
+      ...font.labelLarge,
       fontWeight: '700',
-      textAlign: 'center',
     },
     pauseText: {
       color: c.onSecondaryContainer,
@@ -360,6 +364,7 @@ function createStyles(c: Palette) {
     },
   });
 }
+
 
 
 

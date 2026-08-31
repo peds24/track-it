@@ -34,9 +34,11 @@
 - **Category Grouping on Currently**: Grouped tracks on the Currently screen by their categories following the Add page order (Shows -> Movies -> Books -> Comics -> Manga). Each group features a subtitle header with vector icon badges and count chips. Advancing an item (`Done`) dynamically bubbles that item to the top within its category group while retaining stable category section placement.
 - **Medium Badge Cleanliness**: Kept row-level medium badges purely typographic (`SHOW`, `MOVIE`, `BOOK`, `COMIC`, `MANGA`) within a subtle `surfaceContainerHigh` badge for reduced visual noise alongside section icons.
 - **Swipe Actions Redesign & Animations**:
-  - **Rectangular Containers**: Switched swipe action containers to crisp Material 3 Medium rectangles (`radius.md` / 12dp) with inset geometry.
-  - **Left Swipe**: Reveals the **Edit** action button (`primaryContainer` rectangle) to open the episode/volume/issue progress editor dialog.
-  - **2-Step Right Swipe with Fluid Transition**: Short drag (< 140dp) latches/reveals the **Pause / Backlog** action (`secondaryContainer`). Continuing to drag smoothly interpolates container background color (secondaryContainer $\rightarrow$ errorContainer), cross-fades text/icons (Pause/Backlog $\rightarrow$ Delete), and scales the Delete indicator into place before triggering confirmation upon release.
+  - **Full-Length Colored Backgrounds**: Swiped action areas now color the entire revealed length and height of the row behind the surface.
+  - **Instant Quick Swipe Activation**: A quick right swipe past threshold immediately pauses/returns the track to the backlog on release without requiring a manual tap.
+  - **Left Swipe**: Quick swipe left opens the **Edit** progress editor dialog immediately.
+  - **2-Step Right Swipe with Fluid Transition**: Quick drag (< 140dp) pauses/moves to backlog. A longer, deeper drag (>= 140dp) dynamically morphs the background (`secondaryContainer` $\rightarrow$ `errorContainer`) and crossfades to Delete, triggering the delete confirmation upon release.
+
 
 
 
