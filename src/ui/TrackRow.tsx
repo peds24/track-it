@@ -257,23 +257,25 @@ function createStyles(c: Palette) {
     advance: {
       flexShrink: 0,
       minWidth: 72,
-      height: 38,
+      height: 36,
       alignItems: 'center',
       justifyContent: 'center',
       paddingHorizontal: 16,
-      backgroundColor: c.primaryContainer,
+      backgroundColor: 'transparent',
+      borderWidth: 1.5,
+      borderColor: c.primary,
       borderRadius: radius.full,
     },
     advancePressed: {
-      backgroundColor: c.primary,
+      backgroundColor: c.primaryContainer,
     },
     advanceText: {
       ...font.labelLarge,
-      color: c.onPrimaryContainer,
-      fontWeight: '600',
+      color: c.primary,
+      fontWeight: '700',
     },
     advanceTextPressed: {
-      color: c.onPrimary,
+      color: c.onPrimaryContainer,
     },
   });
 }

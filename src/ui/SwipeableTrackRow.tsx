@@ -1,12 +1,12 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { Alert, Animated, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { TrackSummary } from '@/data/trackRepo';
-import { font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
+import { font, layout, radius, useTheme, type Palette } from '@/ui/theme';
 import { TrackRow } from '@/ui/TrackRow';
 
-const ACTION_WIDTH = 96;
+const ACTION_WIDTH = 84;
 /** How far you must drag before the row latches open rather than snapping back. */
-const LATCH = 64;
+const LATCH = 52;
 /** Below this the gesture is treated as a list scroll, not a swipe. */
 const SLOP = 10;
 /**
@@ -143,7 +143,7 @@ export function SwipeableTrackRow({
             style={[styles.action, styles.pauseAction]}
           >
             <Text style={[styles.actionText, styles.pauseText]}>
-              {resetting ? 'To backlog' : 'Pause'}
+              {resetting ? 'Backlog' : 'Pause'}
             </Text>
           </Pressable>
         )}
@@ -181,31 +181,30 @@ function createStyles(c: Palette) {
       right: 0,
       bottom: 0,
       left: 0,
+      justifyContent: 'center',
     },
     action: {
       position: 'absolute',
-      top: 0,
-      bottom: 0,
-      width: ACTION_WIDTH,
+      top: 10,
+      bottom: 10,
+      width: 68,
       justifyContent: 'center',
-      paddingHorizontal: layout.inset,
-      marginVertical: space.xs,
-      borderRadius: radius.md,
+      alignItems: 'center',
+      paddingHorizontal: 6,
+      borderRadius: radius.full,
     },
     pauseAction: {
-      left: 0,
+      left: 10,
       backgroundColor: c.secondaryContainer,
-      marginLeft: space.xs,
     },
     deleteAction: {
-      right: 0,
+      right: 10,
       backgroundColor: c.errorContainer,
-      marginRight: space.xs,
-      alignItems: 'flex-end',
     },
     actionText: {
-      ...font.labelLarge,
-      fontWeight: '600',
+      ...font.labelMedium,
+      fontWeight: '700',
+      textAlign: 'center',
     },
     pauseText: {
       color: c.onSecondaryContainer,
@@ -218,4 +217,5 @@ function createStyles(c: Palette) {
     },
   });
 }
+
 

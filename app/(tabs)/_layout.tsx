@@ -29,7 +29,7 @@ export default function TabsLayout() {
                 font.labelLarge,
                 styles.label,
                 { color: focused ? c.onSecondaryContainer : c.onSurfaceVariant },
-                focused && styles.activeLabel,
+                focused ? styles.activeLabel : styles.inactiveLabel,
               ]}
             >
               {children}
@@ -47,7 +47,7 @@ export default function TabsLayout() {
           accessibilityLabel,
         }) => (
           <Pressable
-            android_ripple={{ color: c.surfaceContainerHighest, borderless: true }}
+            android_ripple={null}
             onPress={onPress}
             onLongPress={onLongPress}
             testID={testID}
@@ -70,18 +70,23 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   pillContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 18,
     paddingVertical: 6,
     borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
     minWidth: 84,
+    height: 34,
   },
   label: {
     textAlign: 'center',
   },
   activeLabel: {
-    fontWeight: '700',
+    fontWeight: '800',
+  },
+  inactiveLabel: {
+    fontWeight: '600',
   },
 });
+
 

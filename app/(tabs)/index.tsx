@@ -1,6 +1,6 @@
-import { Link, useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   advanceEntry,
@@ -11,13 +11,14 @@ import {
   type TrackSummary,
 } from '@/data/trackRepo';
 import { useDatabase } from '@/ui/DatabaseProvider';
-import { font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
+import { elevation, font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
 import { ProgressEditor } from '@/ui/ProgressEditor';
 import { SwipeableTrackRow } from '@/ui/SwipeableTrackRow';
 import { useTracks } from '@/ui/useTracks';
 
 export default function CurrentlyScreen() {
   const db = useDatabase();
+  const router = useRouter();
   const palette = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const { tracks, reload } = useTracks('currently');
@@ -100,11 +101,14 @@ export default function CurrentlyScreen() {
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>Currently</Text>
-        <Link href="/add" asChild>
-          <View style={styles.addButton} accessibilityRole="button" accessibilityLabel="Add a track">
-            <Text style={styles.addText}>+ Add</Text>
-          </View>
-        </Link>
+        <Pressable
+          onPress={() => router.push('/add')}
+          style={({ pressed }) => [styles.addButton, pressed && styles.addButtonPressed]}
+          accessibilityRole="button"
+          accessibilityLabel="Add a track"
+        >
+          <Text style={styles.addText}>+ Add</Text>
+        </Pressable>
       </View>
 
       <FlatList
@@ -162,13 +166,17 @@ function createStyles(c: Palette) {
       justifyContent: 'center',
       height: 36,
       paddingHorizontal: 16,
-      backgroundColor: c.primaryContainer,
+      backgroundColor: c.primary,
       borderRadius: radius.full,
+      ...elevation.level1,
+    },
+    addButtonPressed: {
+      opacity: 0.85,
     },
     addText: {
       ...font.labelLarge,
-      fontWeight: '600',
-      color: c.onPrimaryContainer,
+      fontWeight: '700',
+      color: c.onPrimary,
     },
     emptyContainer: {
       margin: layout.inset,

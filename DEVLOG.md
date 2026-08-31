@@ -25,7 +25,9 @@
 - **Card Surfaces & Separation**: Maintained clean hairline dividers with `outlineVariant` for list rows on `surface` while using elevated `surfaceContainerLow` cards for empty states and category selectors to retain density on mobile screens.
 - **Backward Compatibility**: Kept legacy palette property aliases (`bg`, `ink`, `muted`, `faint`, `rule`, `ruleStrong`, `chip`) mapped cleanly to their M3 equivalents, ensuring all 300 unit tests continue to pass without regressions.
 
-### Architecture State Snapshot
-- **Domain**: Pure TypeScript logic (`src/domain/`) remains 100% decoupled from UI and I/O.
-- **Data / DB**: SQLite repository layer (`src/data/`, `src/db/`).
-- **UI System**: Clean token-based Material 3 theme in `src/ui/theme.ts` consumed reactively via `useTheme()`.
+### Design Refinements (Post-Review)
+- **Bottom Navigation**: Removed circular ripple press overlay, reinforced active pill highlight container (`radius.full`), and gave active/inactive tabs distinct bold typography weights (800 / 600).
+- **Navigation Action**: Replaced `<Link asChild>` with direct `Pressable` + `useRouter().push('/add')` with a filled primary pill style (`elevation.level1`).
+- **Row Advance Action**: Switched row advance (`Done`/`Start`/`Resume`) to an outlined pill button (`borderWidth: 1.5`, `borderColor: c.primary`) to visually separate it from the filled `+ Add` primary action.
+- **Swipe Action Geometry**: Reduced swipe action rectangle to a compact, vertically centered pill (`width: 68`, `borderRadius: radius.full`, inset 10dp) preventing edge cutoff when swiping.
+
