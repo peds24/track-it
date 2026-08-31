@@ -33,9 +33,11 @@
 - **Row Advance Action**: Switched row advance (`Done`/`Start`/`Resume`) to an outlined pill button (`borderWidth: 1.5`, `borderColor: c.primary`) to visually separate it from the filled `+ Add` primary action.
 - **Category Grouping on Currently**: Grouped tracks on the Currently screen by their categories following the Add page order (Shows -> Movies -> Books -> Comics -> Manga). Each group features a subtitle header with vector icon badges and count chips. Advancing an item (`Done`) dynamically bubbles that item to the top within its category group while retaining stable category section placement.
 - **Medium Badge Cleanliness**: Kept row-level medium badges purely typographic (`SHOW`, `MOVIE`, `BOOK`, `COMIC`, `MANGA`) within a subtle `surfaceContainerHigh` badge for reduced visual noise alongside section icons.
-- **Swipe Actions Redesign**:
-  - **Left Swipe**: Reveals the **Edit** action button (`primaryContainer` pill) to open the episode/volume/issue progress editor dialog.
-  - **2-Step Right Swipe**: Short drag (< 140dp) latches/reveals the **Pause / Backlog** action (`secondaryContainer`). Continuing to drag past the deep threshold (>= 140dp) transitions the action to **Delete** (`errorContainer`) with confirmation.
+- **Swipe Actions Redesign & Animations**:
+  - **Rectangular Containers**: Switched swipe action containers to crisp Material 3 Medium rectangles (`radius.md` / 12dp) with inset geometry.
+  - **Left Swipe**: Reveals the **Edit** action button (`primaryContainer` rectangle) to open the episode/volume/issue progress editor dialog.
+  - **2-Step Right Swipe with Fluid Transition**: Short drag (< 140dp) latches/reveals the **Pause / Backlog** action (`secondaryContainer`). Continuing to drag smoothly interpolates container background color (secondaryContainer $\rightarrow$ errorContainer), cross-fades text/icons (Pause/Backlog $\rightarrow$ Delete), and scales the Delete indicator into place before triggering confirmation upon release.
+
 
 
 

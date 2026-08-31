@@ -42,7 +42,7 @@ export function SwipeableTrackRow({
       offset.current = to;
       Animated.spring(translateX, {
         toValue: to,
-        useNativeDriver: true,
+        useNativeDriver: false,
         bounciness: 0,
         speed: 20,
       }).start();
@@ -112,6 +112,39 @@ export function SwipeableTrackRow({
     onEditProgress?.(track);
   }, [close, onEditProgress, track]);
 
+  // Smooth transitions between Backlog/Pause and Delete
+  const containerBg = canReturn
+    ? translateX.interpolate({
+        inputRange: [0, 80, 130, 160],
+        outputRange: [c.secondaryContainer, c.secondaryContainer, c.errorContainer, c.errorContainer],
+        extrapolate: 'clamp',
+      })
+    : c.errorContainer;
+
+  const pauseOpacity = canReturn
+    ? translateX.interpolate({
+        inputRange: [0, 80, 120, 140],
+        outputRange: [1, 1, 0.2, 0],
+        extrapolate: 'clamp',
+      })
+    : 0;
+
+  const deleteOpacity = canReturn
+    ? translateX.interpolate({
+        inputRange: [0, 85, 130, 160],
+        outputRange: [0, 0, 0.85, 1],
+        extrapolate: 'clamp',
+      })
+    : 1;
+
+  const deleteScale = canReturn
+    ? translateX.interpolate({
+        inputRange: [85, 140, 180],
+        outputRange: [0.8, 1, 1.06],
+        extrapolate: 'clamp',
+      })
+    : 1;
+
   const pan = useMemo(
     () =>
       PanResponder.create({
@@ -173,52 +206,84 @@ export function SwipeableTrackRow({
   return (
     <View style={styles.container}>
       <View style={styles.actions} pointerEvents="box-none">
-        {/* Left Action (revealed on Right Swipe: Pause/Backlog or Delete on deep swipe) */}
+        {/* Left Action (revealed on Right Swipe: animated transition from Pause/Backlog to Delete) */}
         {canReturn ? (
-          isDeepSwipe ? (
+          <Animated.View
+            style={[
+              styles.action,
+              styles.leftAction,
+              { backgroundColor: containerBg },
+            ]}
+          >
+            {/* Pause / Backlog layer */}
+            <Animated.View
+              style={[StyleSheet.absoluteFill, styles.actionInner, { opacity: pauseOpacity }]}
+              pointerEvents={isDeepSwipe ? 'none' : 'auto'}
+            >
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={
+                  resetting ? `Move ${track.title} to the backlog` : `Pause ${track.title}`
+                }
+                onPress={triggerReturn}
+                style={styles.pressableFill}
+              >
+                <Text style={[styles.actionText, styles.pauseText]}>
+                  {resetting ? 'Backlog' : 'Pause'}
+                </Text>
+              </Pressable>
+            </Animated.View>
+
+            {/* Delete layer */}
+            <Animated.View
+              style={[
+                StyleSheet.absoluteFill,
+                styles.actionInner,
+                { opacity: deleteOpacity, transform: [{ scale: deleteScale }] },
+              ]}
+              pointerEvents={isDeepSwipe ? 'auto' : 'none'}
+            >
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Delete ${track.title}`}
+                onPress={confirmDelete}
+                style={styles.pressableFill}
+              >
+                <Text style={[styles.actionText, styles.deleteText]}>Delete</Text>
+              </Pressable>
+            </Animated.View>
+          </Animated.View>
+        ) : (
+          <Animated.View
+            style={[
+              styles.action,
+              styles.leftAction,
+              { backgroundColor: c.errorContainer },
+            ]}
+          >
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`Delete ${track.title}`}
               onPress={confirmDelete}
-              style={[styles.action, styles.deleteAction]}
+              style={styles.pressableFill}
             >
               <Text style={[styles.actionText, styles.deleteText]}>Delete</Text>
             </Pressable>
-          ) : (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={
-                resetting ? `Move ${track.title} to the backlog` : `Pause ${track.title}`
-              }
-              onPress={triggerReturn}
-              style={[styles.action, styles.pauseAction]}
-            >
-              <Text style={[styles.actionText, styles.pauseText]}>
-                {resetting ? 'Backlog' : 'Pause'}
-              </Text>
-            </Pressable>
-          )
-        ) : (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Delete ${track.title}`}
-            onPress={confirmDelete}
-            style={[styles.action, styles.deleteAction]}
-          >
-            <Text style={[styles.actionText, styles.deleteText]}>Delete</Text>
-          </Pressable>
+          </Animated.View>
         )}
 
         {/* Right Action (revealed on Left Swipe: Edit progress) */}
         {canEdit && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Edit ${track.title} progress`}
-            onPress={handleEdit}
-            style={[styles.action, styles.editAction]}
-          >
-            <Text style={[styles.actionText, styles.editText]}>Edit</Text>
-          </Pressable>
+          <View style={[styles.action, styles.rightAction]}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Edit ${track.title} progress`}
+              onPress={handleEdit}
+              style={styles.pressableFill}
+            >
+              <Text style={[styles.actionText, styles.editText]}>Edit</Text>
+            </Pressable>
+          </View>
         )}
       </View>
 
@@ -250,25 +315,31 @@ function createStyles(c: Palette) {
     },
     action: {
       position: 'absolute',
-      top: 10,
-      bottom: 10,
-      width: 68,
+      top: 8,
+      bottom: 8,
+      width: 72,
       justifyContent: 'center',
       alignItems: 'center',
-      paddingHorizontal: 6,
-      borderRadius: radius.full,
+      borderRadius: radius.md,
+      overflow: 'hidden',
     },
-    pauseAction: {
+    leftAction: {
       left: 10,
-      backgroundColor: c.secondaryContainer,
     },
-    deleteAction: {
-      left: 10,
-      backgroundColor: c.errorContainer,
-    },
-    editAction: {
+    rightAction: {
       right: 10,
       backgroundColor: c.primaryContainer,
+    },
+    actionInner: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    pressableFill: {
+      width: '100%',
+      height: '100%',
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 8,
     },
     actionText: {
       ...font.labelMedium,
@@ -289,6 +360,7 @@ function createStyles(c: Palette) {
     },
   });
 }
+
 
 
 
