@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Track It — Material 3 Design System Specification</title>
+<meta name="description" content="Official Material 3 Design System specifications for Track It: color roles, Google Sans typescale, surface elevations, and gesture physics.">
+<meta name="color-scheme" content="light dark">
+<style>
+  :root {
+    --md-sys-color-primary: #0B57D0;
+    --md-sys-color-on-primary: #FFFFFF;
+    --md-sys-color-primary-container: #D3E3FD;
+    --md-sys-color-on-primary-container: #041E49;
+    --md-sys-color-secondary: #00639B;
+    --md-sys-color-secondary-container: #C2E7FF;
+    --md-sys-color-on-secondary-container: #001D35;
+    --md-sys-color-surface: #FEF7FF;
+    --md-sys-color-surface-dim: #DED8E1;
+    --md-sys-color-surface-bright: #FEF7FF;
+    --md-sys-color-surface-container-lowest: #FFFFFF;
+    --md-sys-color-surface-container-low: #F7F2FA;
+    --md-sys-color-surface-container: #F3EDF7;
+    --md-sys-color-surface-container-high: #ECE6F0;
+    --md-sys-color-surface-container-highest: #E6E0E9;
+    --md-sys-color-on-surface: #1D1B20;
+    --md-sys-color-on-surface-variant: #49454F;
+    --md-sys-color-outline: #79747E;
+    --md-sys-color-outline-variant: #CAC4D0;
+    --md-sys-color-error: #BA1A1A;
+    --md-sys-color-error-container: #FFDAD6;
+    --md-sys-color-on-error-container: #410002;
+
+    --font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --md-sys-color-primary: #A8C7FA;
+      --md-sys-color-on-primary: #062E6F;
+      --md-sys-color-primary-container: #0842A0;
+      --md-sys-color-on-primary-container: #D3E3FD;
+      --md-sys-color-secondary: #7FCFFF;
+      --md-sys-color-secondary-container: #004A77;
+      --md-sys-color-on-secondary-container: #C2E7FF;
+      --md-sys-color-surface: #141218;
+      --md-sys-color-surface-dim: #141218;
+      --md-sys-color-surface-bright: #3B383E;
+      --md-sys-color-surface-container-lowest: #0F0D13;
+      --md-sys-color-surface-container-low: #1D1B20;
+      --md-sys-color-surface-container: #211F26;
+      --md-sys-color-surface-container-high: #2B2930;
+      --md-sys-color-surface-container-highest: #36343B;
+      --md-sys-color-on-surface: #E6E1E5;
+      --md-sys-color-on-surface-variant: #CAC4D0;
+      --md-sys-color-outline: #938F99;
+      --md-sys-color-outline-variant: #444746;
+      --md-sys-color-error: #FFB4AB;
+      --md-sys-color-error-container: #93000A;
+      --md-sys-color-on-error-container: #FFDAD6;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --md-sys-color-primary: #A8C7FA;
+    --md-sys-color-on-primary: #062E6F;
+    --md-sys-color-primary-container: #0842A0;
+    --md-sys-color-on-primary-container: #D3E3FD;
+    --md-sys-color-secondary: #7FCFFF;
+    --md-sys-color-secondary-container: #004A77;
+    --md-sys-color-on-secondary-container: #C2E7FF;
+    --md-sys-color-surface: #141218;
+    --md-sys-color-surface-dim: #141218;
+    --md-sys-color-surface-bright: #3B383E;
+    --md-sys-color-surface-container-lowest: #0F0D13;
+    --md-sys-color-surface-container-low: #1D1B20;
+    --md-sys-color-surface-container: #211F26;
+    --md-sys-color-surface-container-high: #2B2930;
+    --md-sys-color-surface-container-highest: #36343B;
+    --md-sys-color-on-surface: #E6E1E5;
+    --md-sys-color-on-surface-variant: #CAC4D0;
+    --md-sys-color-outline: #938F99;
+    --md-sys-color-outline-variant: #444746;
+    --md-sys-color-error: #FFB4AB;
+    --md-sys-color-error-container: #93000A;
+    --md-sys-color-on-error-container: #FFDAD6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+    font-family: var(--font-family);
+    line-height: 1.5;
+    padding: 32px 24px 80px;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  header {
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    padding-bottom: 24px;
+    margin-bottom: 40px;
+  }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--md-sys-color-primary);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+  p.lead { color: var(--md-sys-color-on-surface-variant); font-size: 18px; }
+
+  section { margin-bottom: 48px; }
+  h2 { font-size: 24px; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid var(--md-sys-color-outline-variant); padding-bottom: 8px; }
+  h3 { font-size: 18px; font-weight: 600; margin: 20px 0 12px; }
+
+  .palette-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .swatch {
+    padding: 16px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justifyContent: space-between;
+    min-height: 100px;
+    border: 1px solid var(--md-sys-color-outline-variant);
+  }
+  .swatch-name { font-weight: 700; font-size: 14px; }
+  .swatch-role { font-size: 12px; opacity: 0.8; }
+
+  .typescale-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+  }
+  .typescale-table th, .typescale-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  }
+  .typescale-table th {
+    background: var(--md-sys-color-surface-container);
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .card {
+    background: var(--md-sys-color-surface-container-low);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    margin-bottom: 16px;
+  }
+  code {
+    background: var(--md-sys-color-surface-container-highest);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <a href="../index.html" class="back-link">&larr; Back to Landing Page</a>
+    <h1>Material 3 Design Specification</h1>
+    <p class="lead">Design tokens, typography scales, surface elevation roles, and gesture physics for Track It.</p>
+  </header>
+
+  <section>
+    <h2>1. Color Roles & Palette</h2>
+    <p>Track It uses official Material 3 tonal color roles with dynamic contrast and surface containers.</p>
+    
+    <div class="palette-grid">
+      <div class="swatch" style="background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary);">
+        <span class="swatch-name">Primary</span>
+        <span class="swatch-role">Key CTAs, Add buttons, active highlights</span>
+      </div>
+      <div class="swatch" style="background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container);">
+        <span class="swatch-name">Primary Container</span>
+        <span class="swatch-role">Edit action container, selection fills</span>
+      </div>
+      <div class="swatch" style="background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container);">
+        <span class="swatch-name">Secondary Container</span>
+        <span class="swatch-role">Tab active pill, Pause / Backlog actions</span>
+      </div>
+      <div class="swatch" style="background: var(--md-sys-color-error-container); color: var(--md-sys-color-on-error-container);">
+        <span class="swatch-name">Error Container</span>
+        <span class="swatch-role">Delete action container, destructive alerts</span>
+      </div>
+      <div class="swatch" style="background: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface);">
+        <span class="swatch-name">Surface Container</span>
+        <span class="swatch-role">Navigation bar background, dialog surfaces</span>
+      </div>
+      <div class="swatch" style="background: var(--md-sys-color-surface-container-high); color: var(--md-sys-color-on-surface);">
+        <span class="swatch-name">Surface Container High</span>
+        <span class="swatch-role">Category badges, count chips, pill badges</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>2. Google Sans 15-Tier Typography Scale</h2>
+    <p>Standardized on the Google Sans typescale across Display, Headline, Title, Body, and Label roles.</p>
+    
+    <table class="typescale-table">
+      <thead>
+        <tr>
+          <th>Role</th>
+          <th>Size / Line Height</th>
+          <th>Weight</th>
+          <th>Usage in Track It</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Headline Medium</strong></td>
+          <td>28sp / 36sp</td>
+          <td>700 (Bold)</td>
+          <td>Screen title headers (<code>Currently</code>, <code>Backlog</code>, <code>Done</code>)</td>
+        </tr>
+        <tr>
+          <td><strong>Category Subtitle</strong></td>
+          <td>19sp / 26sp</td>
+          <td>700 (Bold)</td>
+          <td>Section subtitles (<code>Shows</code>, <code>Movies</code>, <code>Books</code>)</td>
+        </tr>
+        <tr>
+          <td><strong>Title Medium</strong></td>
+          <td>16sp / 24sp</td>
+          <td>500 (Medium)</td>
+          <td>Track item title rows (<code>Severance</code>, <code>The Matrix</code>)</td>
+        </tr>
+        <tr>
+          <td><strong>Label Large</strong></td>
+          <td>14sp / 20sp</td>
+          <td>700 (Bold)</td>
+          <td>Button labels (<code>+ Add</code>, <code>Done</code>, <code>Start</code>)</td>
+        </tr>
+        <tr>
+          <td><strong>Label Medium</strong></td>
+          <td>12sp / 16sp</td>
+          <td>700 (Bold)</td>
+          <td>Swipe action labels, section counts, active tab labels</td>
+        </tr>
+        <tr>
+          <td><strong>Label Small</strong></td>
+          <td>11sp / 14sp</td>
+          <td>700 (Bold)</td>
+          <td>Medium badges (<code>SHOW</code>, <code>MOVIE</code>, <code>BOOK</code>, <code>MANGA</code>)</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>3. 2-Step Gesture Physics & Swipe Mechanics</h2>
+    <div class="card">
+      <h3>Right Swipe (Backlog / Pause &rarr; Delete)</h3>
+      <ul>
+        <li><strong>0 to 28dp</strong>: Slop zone (treats gesture as vertical scroll).</li>
+        <li><strong>28dp to 175dp (Quick Swipe)</strong>: <code>secondaryContainer</code> background, reveals <code>pause-circle</code> / <code>bookmark</code> icon. Releasing immediately triggers Pause / Move to Backlog.</li>
+        <li><strong>&ge; 175dp (Deep Pull)</strong>: Smoothly morphs background to <code>errorContainer</code>, scales <code>trash</code> icon with pop animation, and prompts Delete confirmation on release.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Left Swipe (Progress Editor)</h3>
+      <ul>
+        <li><strong>&ge; 40dp (Quick Left Swipe)</strong>: <code>primaryContainer</code> background, reveals <code>create</code> pencil icon. Releasing immediately opens the Episode/Volume/Issue Progress Editor dialog.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>4. Shape Scale & Containers</h2>
+    <ul>
+      <li><strong>Pill / Round (radius.full / 9999dp)</strong>: Primary buttons, navigation tab active indicators, count chips.</li>
+      <li><strong>Medium (radius.md / 12dp)</strong>: Empty state cards, dialog surfaces, modal pickers.</li>
+      <li><strong>Small (radius.xs / 4dp)</strong>: Category icon badges, medium chips.</li>
+    </ul>
+  </section>
+</body>
+</html>
