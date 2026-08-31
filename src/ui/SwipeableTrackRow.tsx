@@ -1,7 +1,7 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { TrackSummary } from '@/data/trackRepo';
-import { font, layout, radius, useTheme, type Palette } from '@/ui/theme';
+import { font, radius, useTheme, type Palette } from '@/ui/theme';
 import { TrackRow } from '@/ui/TrackRow';
 
 const ACTION_WIDTH = 84;
@@ -9,10 +9,10 @@ const ACTION_WIDTH = 84;
 const LATCH = 52;
 /** Below this the gesture is treated as a list scroll, not a swipe. */
 const SLOP = 10;
-/**
- * Drag past this and release fires the action immediately — the row snaps
- * shut and the action runs.
- */
+/** Deep swipe threshold on right swipe that transitions from Backlog/Pause to Delete. */
+const DELETE_THRESHOLD = 140;
+/** Maximum swipe distances. */
+const MAX_SWIPE_RIGHT = 200;
 const FULL_SWIPE = ACTION_WIDTH * 1.8;
 
 export function SwipeableTrackRow({
@@ -35,6 +35,7 @@ export function SwipeableTrackRow({
 
   const translateX = useRef(new Animated.Value(0)).current;
   const offset = useRef(0);
+  const [isDeepSwipe, setIsDeepSwipe] = useState(false);
 
   const settle = useCallback(
     (to: number) => {
@@ -49,10 +50,17 @@ export function SwipeableTrackRow({
     [translateX],
   );
 
-  const close = useCallback(() => settle(0), [settle]);
+  const close = useCallback(() => {
+    setIsDeepSwipe(false);
+    settle(0);
+  }, [settle]);
 
   const canReturn = track.shelf !== 'backlog';
   const resetting = track.shelf === 'done';
+  const canEdit =
+    onEditProgress !== undefined &&
+    track.progress !== null &&
+    track.progress.total > 0;
 
   const confirmDelete = useCallback(() => {
     Alert.alert(
@@ -99,6 +107,11 @@ export function SwipeableTrackRow({
     );
   }, [track, resetting, onReturnToBacklog, close]);
 
+  const handleEdit = useCallback(() => {
+    close();
+    onEditProgress?.(track);
+  }, [close, onEditProgress, track]);
+
   const pan = useMemo(
     () =>
       PanResponder.create({
@@ -106,55 +119,107 @@ export function SwipeableTrackRow({
           Math.abs(g.dx) > SLOP && Math.abs(g.dx) > Math.abs(g.dy) * 1.5,
         onPanResponderMove: (_e, g) => {
           const next = offset.current + g.dx;
-          const clamped = Math.max(-FULL_SWIPE, Math.min(canReturn ? FULL_SWIPE : 0, next));
+          const minX = canEdit ? -ACTION_WIDTH * 1.5 : 0;
+          const maxX = canReturn ? MAX_SWIPE_RIGHT : ACTION_WIDTH * 1.5;
+          const clamped = Math.max(minX, Math.min(maxX, next));
           translateX.setValue(clamped);
+
+          if (canReturn) {
+            if (clamped >= DELETE_THRESHOLD) {
+              setIsDeepSwipe(true);
+            } else {
+              setIsDeepSwipe(false);
+            }
+          }
         },
         onPanResponderRelease: (_e, g) => {
           const next = offset.current + g.dx;
-          if (canReturn && next > FULL_SWIPE) {
-            settle(0);
-            triggerReturn();
-          } else if (next < -FULL_SWIPE) {
+          setIsDeepSwipe(false);
+
+          if (next >= DELETE_THRESHOLD) {
+            // Deep swipe to the right becomes delete
             settle(0);
             confirmDelete();
-          } else if (canReturn && next > LATCH) {
+          } else if (!canReturn && next >= FULL_SWIPE) {
+            // Full swipe on backlog shelf deletes
+            settle(0);
+            confirmDelete();
+          } else if (canReturn && next >= FULL_SWIPE) {
+            // Full swipe on returnable shelf moves to backlog/pauses
+            settle(0);
+            triggerReturn();
+          } else if (next >= LATCH) {
+            // Small right swipe latches open (Pause/Backlog or Delete)
             settle(ACTION_WIDTH);
-          } else if (next < -LATCH) {
+          } else if (canEdit && next <= -FULL_SWIPE) {
+            // Full left swipe opens edit screen
+            settle(0);
+            handleEdit();
+          } else if (canEdit && next <= -LATCH) {
+            // Left swipe latches open edit button
             settle(-ACTION_WIDTH);
           } else {
             settle(0);
           }
         },
-        onPanResponderTerminate: () => settle(offset.current),
+        onPanResponderTerminate: () => {
+          setIsDeepSwipe(false);
+          settle(offset.current);
+        },
       }),
-    [canReturn, settle, translateX, triggerReturn, confirmDelete],
+    [canReturn, canEdit, settle, translateX, triggerReturn, confirmDelete, handleEdit],
   );
 
   return (
     <View style={styles.container}>
       <View style={styles.actions} pointerEvents="box-none">
-        {canReturn && (
+        {/* Left Action (revealed on Right Swipe: Pause/Backlog or Delete on deep swipe) */}
+        {canReturn ? (
+          isDeepSwipe ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Delete ${track.title}`}
+              onPress={confirmDelete}
+              style={[styles.action, styles.deleteAction]}
+            >
+              <Text style={[styles.actionText, styles.deleteText]}>Delete</Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={
+                resetting ? `Move ${track.title} to the backlog` : `Pause ${track.title}`
+              }
+              onPress={triggerReturn}
+              style={[styles.action, styles.pauseAction]}
+            >
+              <Text style={[styles.actionText, styles.pauseText]}>
+                {resetting ? 'Backlog' : 'Pause'}
+              </Text>
+            </Pressable>
+          )
+        ) : (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={
-              resetting ? `Move ${track.title} to the backlog` : `Pause ${track.title}`
-            }
-            onPress={triggerReturn}
-            style={[styles.action, styles.pauseAction]}
+            accessibilityLabel={`Delete ${track.title}`}
+            onPress={confirmDelete}
+            style={[styles.action, styles.deleteAction]}
           >
-            <Text style={[styles.actionText, styles.pauseText]}>
-              {resetting ? 'Backlog' : 'Pause'}
-            </Text>
+            <Text style={[styles.actionText, styles.deleteText]}>Delete</Text>
           </Pressable>
         )}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Delete ${track.title}`}
-          onPress={confirmDelete}
-          style={[styles.action, styles.deleteAction]}
-        >
-          <Text style={[styles.actionText, styles.deleteText]}>Delete</Text>
-        </Pressable>
+
+        {/* Right Action (revealed on Left Swipe: Edit progress) */}
+        {canEdit && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Edit ${track.title} progress`}
+            onPress={handleEdit}
+            style={[styles.action, styles.editAction]}
+          >
+            <Text style={[styles.actionText, styles.editText]}>Edit</Text>
+          </Pressable>
+        )}
       </View>
 
       <Animated.View
@@ -198,8 +263,12 @@ function createStyles(c: Palette) {
       backgroundColor: c.secondaryContainer,
     },
     deleteAction: {
-      right: 10,
+      left: 10,
       backgroundColor: c.errorContainer,
+    },
+    editAction: {
+      right: 10,
+      backgroundColor: c.primaryContainer,
     },
     actionText: {
       ...font.labelMedium,
@@ -212,10 +281,14 @@ function createStyles(c: Palette) {
     deleteText: {
       color: c.onErrorContainer,
     },
+    editText: {
+      color: c.onPrimaryContainer,
+    },
     surface: {
       backgroundColor: c.surface,
     },
   });
 }
+
 
 

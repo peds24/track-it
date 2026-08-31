@@ -70,14 +70,31 @@ test('a backlog row reveals no return action at all', async () => {
 test('delete always confirms, regardless of shelf', async () => {
   const alertSpy = jest.spyOn(Alert, 'alert');
   const onDelete = jest.fn();
+  const backlogged: TrackSummary = { ...show, shelf: 'backlog' };
   await render(
-    <SwipeableTrackRow track={show} {...noop} onDelete={onDelete} onReturnToBacklog={() => {}} />,
+    <SwipeableTrackRow track={backlogged} {...noop} onDelete={onDelete} onReturnToBacklog={() => {}} />,
   );
 
   await fireEvent.press(screen.getByLabelText('Delete Severance'));
 
   expect(alertSpy).toHaveBeenCalled();
   expect(onDelete).not.toHaveBeenCalled();
+});
+
+test('swiping left reveals the edit action and triggers onEditProgress', async () => {
+  const onEditProgress = jest.fn();
+  await render(
+    <SwipeableTrackRow
+      track={show}
+      {...noop}
+      onReturnToBacklog={() => {}}
+      onEditProgress={onEditProgress}
+    />,
+  );
+
+  await fireEvent.press(screen.getByLabelText('Edit Severance progress'));
+
+  expect(onEditProgress).toHaveBeenCalledWith(show);
 });
 
 // A12: the row's own gesture, forwarded rather than handled here — the editor
@@ -97,3 +114,4 @@ test('holding the advance control forwards the track to the progress editor', as
 
   expect(onEditProgress).toHaveBeenCalledWith(show);
 });
+
