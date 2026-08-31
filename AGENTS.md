@@ -10,7 +10,7 @@ When creating, modifying, or committing code:
 Every git commit created or assisted by an Antigravity agent MUST include the Antigravity co-author trailer in the commit message body:
 
 ```
-Co-authored-by: Antigravity <antigravity@google.com>
+Co-authored-by: Google Antigravity <242056456+google-antigravity@users.noreply.github.com>
 ```
 
 ### Commit Message Structure
@@ -24,7 +24,7 @@ was addressed. Diff shows what changed; body explains why.
 
 - Bullet points for notable specifics if needed
 
-Co-authored-by: Antigravity <antigravity@google.com>
+Co-authored-by: Google Antigravity <242056456+google-antigravity@users.noreply.github.com>
 ```
 
 ### Git Tree & Branching Discipline
