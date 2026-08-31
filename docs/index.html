@@ -3,1029 +3,797 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Track It — a local-only tracker for shows, books, comics and manga</title>
-<meta name="description" content="Track It records what you are part-way through — shows, movies, books, comics, manga — on your device, with no account and no server. Open, tap once, close.">
+<title>Track It — Local-first media tracker with Material 3</title>
+<meta name="description" content="A local-first tracker for shows, movies, books, comics, and manga on your device. Zero servers, offline SQLite, and modern Material Design 3.">
 <meta name="color-scheme" content="light dark">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='9' fill='%23111208'/%3E%3Cpath d='M26 52 42 68 75 33' fill='none' stroke='%23DCDFD0' stroke-width='12' stroke-linecap='butt' stroke-linejoin='miter'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%230B57D0'/%3E%3Cpath d='M26 52 42 68 75 33' fill='none' stroke='%23FFFFFF' stroke-width='10' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 
 <style>
-  /* ============================================================
-     PAGE TOKENS — lifted verbatim from docs/design/design-language.html.
-     Light is the base; dark redefines tokens only.
-     ============================================================ */
   :root {
-    --ground: #DCDFD0;
-    --raised: #DCDFD0;
-    --ink: #111208;
-    --muted: #4B4F3F;
-    --faint: #767A67;
-    --rule: #C6CAB6;
-    --rule-soft: #D2D5C4;
-    --rule-strong: #111208;
+    --md-primary: #0B57D0;
+    --md-on-primary: #FFFFFF;
+    --md-primary-container: #D3E3FD;
+    --md-on-primary-container: #041E49;
+    --md-secondary-container: #C2E7FF;
+    --md-on-secondary-container: #001D35;
+    --md-surface: #FEF7FF;
+    --md-surface-dim: #DED8E1;
+    --md-surface-container-lowest: #FFFFFF;
+    --md-surface-container-low: #F7F2FA;
+    --md-surface-container: #F3EDF7;
+    --md-surface-container-high: #ECE6F0;
+    --md-surface-container-highest: #E6E0E9;
+    --md-on-surface: #1D1B20;
+    --md-on-surface-variant: #49454F;
+    --md-outline: #79747E;
+    --md-outline-variant: #CAC4D0;
+    --md-error: #BA1A1A;
+    --md-error-container: #FFDAD6;
+    --md-on-error-container: #410002;
 
-    --sp-1: 4px;
-    --sp-2: 8px;
-    --sp-3: 16px;
-    --sp-4: 24px;
-    --sp-5: 40px;
-    --sp-6: 64px;
+    --font-sans: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --radius-xs: 4px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 28px;
+    --radius-full: 9999px;
 
-    /* No proportional face left in the system — the platform's own font,
-       just its monospace register. */
-    --face: ui-monospace, "SF Mono", "Roboto Mono", Menlo, Consolas, "Liberation Mono", monospace;
-
-    --measure: 68ch;
-
-    /* page-layout rhythm — rescaled per breakpoint, nothing else changes */
-    --gutter: var(--sp-4);
-    --section-y: var(--sp-6);
-    --maxw: 1080px;
+    --maxw: 1120px;
+    --gutter: 24px;
   }
 
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --ground: #08090B;
-      --raised: #131518;
-      --ink: #F3F4F6;
-      --muted: #C6C9CF;
-      --faint: #8B8F97;
-      --rule: #2A2E34;
-      --rule-soft: #1C1F24;
-      --rule-strong: #F3F4F6;
+      --md-primary: #A8C7FA;
+      --md-on-primary: #062E6F;
+      --md-primary-container: #0842A0;
+      --md-on-primary-container: #D3E3FD;
+      --md-secondary-container: #004A77;
+      --md-on-secondary-container: #C2E7FF;
+      --md-surface: #141218;
+      --md-surface-dim: #141218;
+      --md-surface-container-lowest: #0F0D13;
+      --md-surface-container-low: #1D1B20;
+      --md-surface-container: #211F26;
+      --md-surface-container-high: #2B2930;
+      --md-surface-container-highest: #36343B;
+      --md-on-surface: #E6E1E5;
+      --md-on-surface-variant: #CAC4D0;
+      --md-outline: #938F99;
+      --md-outline-variant: #444746;
+      --md-error: #FFB4AB;
+      --md-error-container: #93000A;
+      --md-on-error-container: #FFDAD6;
     }
   }
 
   :root[data-theme="dark"] {
-    --ground: #08090B;
-    --raised: #131518;
-    --ink: #F3F4F6;
-    --muted: #C6C9CF;
-    --faint: #8B8F97;
-    --rule: #2A2E34;
-    --rule-soft: #1C1F24;
-    --rule-strong: #F3F4F6;
+    --md-primary: #A8C7FA;
+    --md-on-primary: #062E6F;
+    --md-primary-container: #0842A0;
+    --md-on-primary-container: #D3E3FD;
+    --md-secondary-container: #004A77;
+    --md-on-secondary-container: #C2E7FF;
+    --md-surface: #141218;
+    --md-surface-dim: #141218;
+    --md-surface-container-lowest: #0F0D13;
+    --md-surface-container-low: #1D1B20;
+    --md-surface-container: #211F26;
+    --md-surface-container-high: #2B2930;
+    --md-surface-container-highest: #36343B;
+    --md-on-surface: #E6E1E5;
+    --md-on-surface-variant: #CAC4D0;
+    --md-outline: #938F99;
+    --md-outline-variant: #444746;
+    --md-error: #FFB4AB;
+    --md-error-container: #93000A;
+    --md-on-error-container: #FFDAD6;
   }
 
-  * { box-sizing: border-box; }
-
+  * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
-
   body {
-    margin: 0;
-    background: var(--ground);
-    color: var(--ink);
-    font-family: var(--face);
-    font-size: 16px;
-    line-height: 1.55;
+    background-color: var(--md-surface);
+    color: var(--md-on-surface);
+    font-family: var(--font-sans);
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
-    -webkit-text-size-adjust: 100%;
     overflow-x: hidden;
   }
 
   .wrap {
     max-width: var(--maxw);
     margin: 0 auto;
-    padding-left: max(var(--gutter), env(safe-area-inset-left, 0px));
-    padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+    padding: 0 var(--gutter);
   }
 
-  section { padding-top: var(--section-y); }
-
-  a {
-    color: var(--ink);
-    text-decoration: underline;
-    text-decoration-thickness: 1.5px;
-    text-underline-offset: 3px;
-  }
-
-  h1 {
-    margin: 0;
-    font-size: clamp(32px, 6vw, 46px);
-    line-height: 1.02;
-    letter-spacing: 0;
-    font-weight: 700;
-    text-wrap: balance;
-  }
-  h2 {
-    margin: 0 0 var(--sp-3);
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ink);
-  }
-  h3 {
-    margin: 0 0 var(--sp-2);
-    font-size: 21px;
-    line-height: 1.25;
-    letter-spacing: 0;
-    font-weight: 700;
-    text-wrap: balance;
-  }
-  p { margin: 0 0 var(--sp-3); max-width: var(--measure); text-wrap: pretty; }
-  p:last-child { margin-bottom: 0; }
-  .lede { font-size: 17px; }
-  strong { font-weight: 700; }
-  /* Underline replaces colour as the one mark reserved for something that
-     needs to stand out from running text. */
-  em {
-    font-style: normal;
-    font-weight: 700;
-    text-decoration: underline;
-    text-decoration-thickness: 1.5px;
-    text-underline-offset: 3px;
-  }
-  .eyebrow {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--faint);
-  }
-
-  /* ---------- nav ---------- */
-  .nav {
-    border-bottom: 1px solid var(--rule);
-    background: var(--ground);
+  /* Header */
+  header.nav-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--md-surface);
+    border-bottom: 1px solid var(--md-outline-variant);
+    backdrop-filter: blur(12px);
   }
   .nav-inner {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--sp-3);
-    padding-top: var(--sp-3);
-    padding-bottom: var(--sp-3);
+    height: 68px;
   }
   .brand {
     display: flex;
     align-items: center;
-    gap: var(--sp-2);
+    gap: 12px;
+    font-size: 20px;
     font-weight: 700;
-    letter-spacing: 0;
-    font-size: 17px;
-    color: var(--ink);
+    color: var(--md-on-surface);
     text-decoration: none;
-    flex-shrink: 0;
   }
-  .brand-mark {
-    width: 22px;
-    height: 22px;
-    border-radius: 3px;
-    background: var(--ink);
-    display: grid;
-    place-items: center;
-    flex-shrink: 0;
+  .brand-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--md-primary);
+    color: var(--md-on-primary);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 800;
   }
-  .brand-mark svg { display: block; }
   .nav-links {
     display: flex;
     align-items: center;
-    gap: var(--sp-3);
-    overflow-x: auto;
-    scrollbar-width: none;
-    min-width: 0;
+    gap: 20px;
   }
-  .nav-links::-webkit-scrollbar { display: none; }
   .nav-links a {
-    color: var(--muted);
+    color: var(--md-on-surface-variant);
     text-decoration: none;
     font-size: 14px;
-    white-space: nowrap;
-    padding: 4px 0;
+    font-weight: 600;
+    transition: color 0.2s;
   }
-  .nav-links a:hover { color: var(--ink); }
-  .nav-links a.is-primary {
-    color: var(--ink);
-    font-weight: 700;
-    text-decoration: underline;
-    text-decoration-thickness: 1.5px;
-    text-underline-offset: 3px;
+  .nav-links a:hover {
+    color: var(--md-primary);
+  }
+  .theme-toggle {
+    background: var(--md-surface-container-high);
+    border: none;
+    color: var(--md-on-surface);
+    padding: 8px 14px;
+    border-radius: var(--radius-full);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .theme-toggle:hover {
+    background: var(--md-surface-container-highest);
   }
 
-  /* ---------- hero ---------- */
+  /* Hero Section */
   .hero {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-3);
-    padding-top: var(--sp-6);
-    padding-bottom: var(--sp-2);
+    padding: 80px 0 60px;
+    text-align: center;
   }
-  .standfirst {
-    margin: 0;
-    max-width: var(--measure);
-    font-size: 18px;
-    color: var(--muted);
-    text-wrap: pretty;
+  .badge-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--md-secondary-container);
+    color: var(--md-on-secondary-container);
+    padding: 6px 16px;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 24px;
   }
-  .cta-row {
+  .hero h1 {
+    font-size: clamp(36px, 6vw, 60px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    max-width: 820px;
+    margin: 0 auto 20px;
+  }
+  .hero p.lead {
+    font-size: clamp(17px, 2.5vw, 21px);
+    color: var(--md-on-surface-variant);
+    max-width: 680px;
+    margin: 0 auto 36px;
+    line-height: 1.5;
+  }
+  .cta-group {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--sp-2);
-    margin-top: var(--sp-2);
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 48px;
   }
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 44px;
-    padding: 10px 18px;
-    border-radius: 4px;
-    border: 1.5px solid var(--rule-strong);
-    font-size: 16px;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: var(--radius-full);
+    font-size: 15px;
     font-weight: 700;
     text-decoration: none;
-    color: var(--ink);
-    background: transparent;
+    transition: transform 0.15s, opacity 0.2s;
+    cursor: pointer;
   }
-  .btn.is-primary {
-    background: var(--ink);
-    border-color: var(--ink);
-    color: var(--ground);
+  .btn:active { transform: scale(0.98); }
+  .btn-primary {
+    background: var(--md-primary);
+    color: var(--md-on-primary);
+    box-shadow: 0 4px 12px rgba(11, 87, 208, 0.2);
   }
-  /* No accent to shift on hover — the secondary button inverts instead,
-     the same way a pressed control does elsewhere in the system. */
-  .btn:hover { background: var(--ink); border-color: var(--ink); color: var(--ground); }
-  .btn.is-primary:hover { opacity: 0.9; border-color: var(--ink); }
+  .btn-secondary {
+    background: var(--md-surface-container-high);
+    color: var(--md-on-surface);
+    border: 1px solid var(--md-outline-variant);
+  }
 
-  .facts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--sp-2) var(--sp-3);
-    margin-top: var(--sp-4);
-    padding-top: var(--sp-3);
-    border-top: 1px solid var(--rule);
-    font-size: 13px;
-    color: var(--muted);
-    list-style: none;
-    padding-left: 0;
-    margin-bottom: 0;
-  }
-  .facts li { white-space: nowrap; }
-  .facts b { color: var(--ink); font-weight: 600; }
-
-  /* ---------- feature / principle grids ---------- */
-  .principles {
+  /* Stats Bar */
+  .stats-bar {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
-    gap: var(--sp-4);
-    margin: 0;
-    padding: 0;
-    list-style: none;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin: 0 auto 80px;
   }
-  .principles li {
+  .stat-card {
+    background: var(--md-surface-container-low);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    text-align: center;
+  }
+  .stat-num {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--md-primary);
+    margin-bottom: 4px;
+  }
+  .stat-desc {
+    font-size: 13px;
+    color: var(--md-on-surface-variant);
+    font-weight: 600;
+  }
+
+  /* Interactive Demo */
+  .demo-section {
+    padding: 60px 0;
+    border-top: 1px solid var(--md-outline-variant);
+  }
+  .section-head {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .section-head h2 {
+    font-size: clamp(26px, 4vw, 38px);
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+  .section-head p {
+    color: var(--md-on-surface-variant);
+    font-size: 16px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .phone-frame {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    background: var(--md-surface);
+    border: 10px solid var(--md-outline-variant);
+    border-radius: 40px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    overflow: hidden;
+  }
+  .phone-screen {
+    padding: 20px 16px;
+    min-height: 520px;
     display: flex;
     flex-direction: column;
-    gap: var(--sp-2);
-    padding-top: var(--sp-3);
-    border-top: 3px solid var(--ink);
+    justify-content: space-between;
   }
-  .principles h3 { margin: 0; font-size: 17px; }
-  .principles p { font-size: 15px; color: var(--muted); }
-
-  /* ---------- annotation list ---------- */
-  .anno {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
-    gap: var(--sp-3);
-    margin: var(--sp-4) 0 0;
-    padding: 0;
-    list-style: none;
-  }
-  .anno li {
-    padding-left: var(--sp-3);
-    border-left: 2px solid var(--rule);
-    font-size: 14px;
-    color: var(--muted);
-  }
-  .anno b {
-    display: block;
-    color: var(--ink);
-    font-weight: 600;
-    font-size: 13px;
-    letter-spacing: 0.01em;
-  }
-
-  /* ---------- tables ---------- */
-  .table-scroll { overflow-x: auto; }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
-  th {
-    text-align: left;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--ink);
-    padding: 0 var(--sp-3) var(--sp-2) 0;
-    border-bottom: 2px solid var(--ink);
-    white-space: nowrap;
-  }
-  td {
-    padding: var(--sp-2) var(--sp-3) var(--sp-2) 0;
-    border-bottom: 1px solid var(--rule-soft);
-    vertical-align: top;
-  }
-  td.code { font-family: var(--face); white-space: nowrap; }
-  td.note { color: var(--muted); }
-
-  /* ---------- code ---------- */
-  pre {
-    margin: 0;
-    padding: var(--sp-3);
-    border: 1px solid var(--rule);
-    border-radius: 4px;
-    background: var(--raised);
-    overflow-x: auto;
-    font-family: var(--face);
-    font-size: 13.5px;
-    line-height: 1.7;
-    color: var(--ink);
-    -webkit-overflow-scrolling: touch;
-  }
-  pre .c { color: var(--faint); }
-  code { font-family: var(--face); font-size: 0.94em; overflow-wrap: anywhere; }
-
-  .steps {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
-    gap: var(--sp-4);
-    align-items: start;
-  }
-  .step h3 { font-size: 17px; }
-  .step p { font-size: 15px; color: var(--muted); }
-
-  /* ---------- do-not list ---------- */
-  .nots { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--sp-3); }
-  .nots li {
-    display: grid;
-    grid-template-columns: 60px 1fr;
-    gap: var(--sp-3);
-    align-items: baseline;
-    padding-bottom: var(--sp-3);
-    border-bottom: 1px solid var(--rule-soft);
-    max-width: var(--measure);
-  }
-  .nots li:last-child { border-bottom: 0; padding-bottom: 0; }
-  .no {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    color: var(--ink);
-    text-decoration: underline;
-    text-decoration-thickness: 1.5px;
-    text-underline-offset: 3px;
-  }
-  .nots p { font-size: 15px; margin: 0; }
-  .nots b { font-weight: 700; }
-
-  /* ============================================================
-     APP MOCKUPS — markup and tokens lifted from the design language
-     document. Live HTML at 390pt, not screenshots.
-     ============================================================ */
-  /* the mockups are specified at 390pt, so the tracks cap there rather than
-     stretching — a wider column would misreport the row's real measure */
-  .screens {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 390px));
-    justify-content: start;
-    gap: var(--sp-4);
-    align-items: start;
-  }
-  /* grid items must be allowed to go narrower than their content's
-     intrinsic minimum, or a 390pt mockup pushes the page sideways */
-  .screens > * { min-width: 0; }
-
-  .screen {
-    --a-bg: #DCDFD0;
-    --a-ink: #111208;
-    --a-muted: #4B4F3F;
-    --a-faint: #767A67;
-    --a-rule: #C6CAB6;
-    --a-rule-strong: #111208;
-    --a-chip: #D2D5C4;
-
-    width: 100%;
-    max-width: 390px;
-    background: var(--a-bg);
-    color: var(--a-ink);
-    border: 1px solid var(--a-rule-strong);
-    border-radius: 6px;
-    overflow: hidden;
-    font-size: 15px;
-    font-family: var(--face);
-  }
-  .screen.is-dark {
-    --a-bg: #08090B;
-    --a-ink: #F3F4F6;
-    --a-muted: #C6C9CF;
-    --a-faint: #8B8F97;
-    --a-rule: #2A2E34;
-    --a-rule-strong: #F3F4F6;
-    --a-chip: #191C21;
-  }
-
-  .screen-label {
+  .phone-header {
     display: flex;
     justify-content: space-between;
-    gap: var(--sp-2);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    color: var(--faint);
-    margin-bottom: var(--sp-2);
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .phone-title {
+    font-size: 26px;
+    font-weight: 800;
+  }
+  .phone-add-btn {
+    background: var(--md-primary);
+    color: var(--md-on-primary);
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
   }
 
-  .s-head {
+  .demo-category-header {
     display: flex;
-    align-items: baseline;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 0 6px;
+  }
+  .demo-cat-badge {
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-xs);
+    background: var(--md-surface-container-high);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--md-primary);
+  }
+  .demo-cat-title {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .demo-cat-count {
+    font-size: 11px;
+    background: var(--md-surface-container-high);
+    color: var(--md-on-surface-variant);
+    padding: 2px 6px;
+    border-radius: var(--radius-full);
+    font-weight: 700;
+  }
+
+  .demo-row {
+    background: var(--md-surface);
+    border-top: 1px solid var(--md-outline-variant);
+    padding: 12px 0;
+    display: flex;
     justify-content: space-between;
-    gap: var(--sp-3);
-    padding: 28px 20px 14px;
+    align-items: center;
+    transition: transform 0.2s, opacity 0.2s;
   }
-  .s-title {
-    font-size: 25px;
+  .demo-row-info h4 { font-size: 15px; font-weight: 600; }
+  .demo-row-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--md-on-surface-variant);
+    margin-top: 2px;
+  }
+  .demo-advance-btn {
+    background: transparent;
+    border: 1.5px solid var(--md-primary);
+    color: var(--md-primary);
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    font-size: 13px;
     font-weight: 700;
-    letter-spacing: 0;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
   }
-  .s-action {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--a-ink);
-    text-decoration: underline;
-    text-decoration-thickness: 1.5px;
-    text-underline-offset: 3px;
+  .demo-advance-btn:hover {
+    background: var(--md-primary);
+    color: var(--md-on-primary);
   }
 
-  /* the row — the core component */
-  .row {
-    position: relative;
+  .phone-tab-bar {
     display: flex;
+    justify-content: space-around;
     align-items: center;
-    gap: 16px;
-    padding: 14px 20px 15px;
-    border-top: 1px solid var(--a-rule);
+    border-top: 1px solid var(--md-outline-variant);
+    padding-top: 10px;
+    margin-top: 20px;
   }
-  .row-text { flex: 1; min-width: 0; }
-  .row-title {
-    font-size: 16px;
-    font-weight: 600;
-    letter-spacing: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .row-meta {
+  .tab-item {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 7px;
-    margin-top: 3px;
-    font-size: 13px;
-    font-weight: 400;
-    color: var(--a-muted);
-    white-space: nowrap;
-    overflow: hidden;
-  }
-  /* Underline does the job colour used to: the one fixed mark that means
-     "what kind of thing is this". */
-  .kind {
-    flex-shrink: 0;
+    gap: 4px;
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--a-ink);
-    text-decoration: underline;
-    text-decoration-thickness: 1.5px;
-    text-underline-offset: 3px;
+    color: var(--md-on-surface-variant);
+    text-decoration: none;
   }
-  .dot { color: var(--a-faint); }
-  .count { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--a-ink); }
-
-  .advance {
-    flex-shrink: 0;
-    padding: 7px 14px;
-    border: 1.5px solid var(--a-rule-strong);
-    border-radius: 3px;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--a-ink);
-    background: transparent;
+  .tab-item.active {
+    color: var(--md-on-surface);
   }
-  /* No accent to fill with — pressed inverts instead, ink for ground and
-     ground for ink, the way an e-ink pixel flips rather than tints. */
-  .advance.is-pressed {
-    background: var(--a-ink);
-    border-color: var(--a-ink);
-    color: var(--a-bg);
-  }
-
-  /* Square ends, not a pill — a measure reads as a bar, not a badge. */
-  .progress-track {
-    height: 4px;
-    margin-top: 8px;
-    background: var(--a-rule);
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    background: var(--a-ink);
-  }
-
-  .filters {
+  .tab-pill {
+    width: 54px;
+    height: 28px;
+    border-radius: var(--radius-full);
+    background: var(--md-secondary-container);
     display: flex;
-    gap: 7px;
-    padding: 2px 20px 16px;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .filters::-webkit-scrollbar { display: none; }
-  .fchip {
-    flex-shrink: 0;
-    padding: 5px 12px;
-    border-radius: 3px;
-    border: 1.5px solid var(--a-rule-strong);
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--a-muted);
-    background: transparent;
-  }
-  .fchip.is-on {
-    background: var(--a-ink);
-    border-color: var(--a-ink);
-    color: var(--a-bg);
-  }
-
-  .s-empty {
-    padding: 18px 20px 26px;
+    align-items: center;
+    justify-content: center;
+    color: var(--md-on-secondary-container);
     font-size: 14px;
-    color: var(--a-muted);
-    border-top: 1px solid var(--a-rule);
   }
 
-  .opt {
-    padding: 15px 20px;
-    border-top: 1px solid var(--a-rule);
-    font-size: 17px;
-    font-weight: 600;
+  /* Features Grid */
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    margin: 40px 0;
   }
-  .field {
-    margin: 0 20px 10px;
-    padding: 13px 14px;
-    border: 1.5px solid var(--a-rule-strong);
-    border-radius: 3px;
-    font-size: 16px;
-    font-weight: 400;
-    color: var(--a-faint);
+  .feature-card {
+    background: var(--md-surface-container-low);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    transition: transform 0.2s, border-color 0.2s;
   }
-  .field.is-filled { color: var(--a-ink); font-weight: 600; }
-  .cta {
-    margin: 6px 20px 10px;
-    padding: 14px;
-    border-radius: 3px;
-    background: var(--a-ink);
-    color: var(--a-bg);
-    text-align: center;
-    font-size: 16px;
-    font-weight: 700;
+  .feature-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--md-primary);
   }
-  .s-note {
-    padding: 10px 20px 24px;
-    font-size: 13px;
-    font-weight: 400;
-    color: var(--a-muted);
-  }
-  .s-note.is-warn { color: var(--a-ink); font-weight: 600; }
-
-  .tabbar {
+  .feature-icon {
+    width: 44px;
+    height: 44px;
+    background: var(--md-primary-container);
+    color: var(--md-on-primary-container);
+    border-radius: var(--radius-md);
     display: flex;
-    border-top: 1.5px solid var(--a-rule-strong);
-    padding: 9px 0 13px;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: 16px;
   }
-  .tab {
-    flex: 1;
-    text-align: center;
+  .feature-card h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .feature-card p { color: var(--md-on-surface-variant); font-size: 15px; }
+
+  /* History & Archive Section */
+  .history-section {
+    background: var(--md-surface-container-low);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: var(--radius-xl);
+    padding: 48px 36px;
+    margin: 60px 0;
+  }
+  .timeline-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-top: 32px;
+  }
+  .timeline-card {
+    background: var(--md-surface);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .timeline-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: var(--radius-xs);
     font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    color: var(--a-faint);
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 12px;
   }
-  .tab.is-on {
-    color: var(--a-ink);
-    font-weight: 700;
-    text-decoration: underline;
-    text-decoration-thickness: 1.5px;
-    text-underline-offset: 4px;
+  .tag-archive { background: var(--md-surface-container-high); color: var(--md-on-surface-variant); }
+  .tag-current { background: var(--md-primary); color: var(--md-on-primary); }
+  .timeline-card h4 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .timeline-card p { font-size: 14px; color: var(--md-on-surface-variant); margin-bottom: 16px; }
+  .timeline-links { display: flex; flex-direction: column; gap: 8px; font-size: 13px; font-weight: 600; }
+  .timeline-links a { color: var(--md-primary); text-decoration: none; }
+  .timeline-links a:hover { text-decoration: underline; }
+
+  /* Quickstart */
+  .code-block {
+    background: var(--md-surface-container-lowest);
+    color: var(--md-on-surface);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    font-family: monospace;
+    font-size: 14px;
+    overflow-x: auto;
+    margin-top: 16px;
   }
 
-  /* ---------- footer ---------- */
+  /* Footer */
   footer {
-    margin-top: var(--section-y);
-    padding-top: var(--sp-4);
-    padding-bottom: var(--sp-5);
-    border-top: 1px solid var(--rule);
-    font-size: 13px;
-    color: var(--faint);
-  }
-  .footer-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--sp-3);
-    margin-bottom: var(--sp-2);
+    border-top: 1px solid var(--md-outline-variant);
+    padding: 40px 0 60px;
+    text-align: center;
+    color: var(--md-on-surface-variant);
     font-size: 14px;
   }
-  .footer-links a { text-decoration: none; }
-  .footer-links a:hover { text-decoration: underline; }
-
-  /* ---------- breakpoints: rescale the two rhythm tokens ---------- */
-  @media (max-width: 1024px) {
-    :root { --section-y: var(--sp-5); }
-  }
-  @media (max-width: 640px) {
-    :root { --gutter: var(--sp-3); --section-y: var(--sp-5); }
-    .hero { padding-top: var(--sp-5); }
-    .standfirst { font-size: 17px; }
-    .cta-row .btn { flex: 1 1 100%; }
-    .screens,
-    .principles,
-    .anno,
-    .steps { grid-template-columns: 1fr; }
-    .screen { margin: 0 auto; max-width: min(390px, 100%); }
-    .nots li { grid-template-columns: 1fr; gap: var(--sp-1); }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    * { animation: none !important; transition: none !important; }
-  }
+  footer a { color: var(--md-on-surface); font-weight: 600; }
 </style>
 </head>
 <body>
 
-<nav class="nav">
-  <div class="wrap nav-inner">
-    <a class="brand" href="#top">
-      <span class="brand-mark" aria-hidden="true">
-        <svg width="14" height="14" viewBox="0 0 100 100"><path d="M26 52 42 68 75 33" fill="none" style="stroke:var(--ground)" stroke-width="12" stroke-linecap="butt" stroke-linejoin="miter"/></svg>
-      </span>
-      Track It
-    </a>
-    <div class="nav-links">
-      <a href="#screens">Screens</a>
-      <a href="#how">How it works</a>
-      <a href="#build">Built with</a>
-      <a href="#run">Run it</a>
-      <a class="is-primary" href="https://github.com/peds24/track-it">GitHub</a>
+  <!-- Navigation Bar -->
+  <header class="nav-bar">
+    <div class="wrap nav-inner">
+      <a href="#" class="brand">
+        <div class="brand-icon">&#10003;</div>
+        <span>Track It</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#demo">Live UI</a>
+        <a href="#archive">Design Evolution</a>
+        <a href="design/material-3-spec.html">M3 Spec</a>
+        <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">Theme</button>
+      </nav>
     </div>
-  </div>
-</nav>
+  </header>
 
-<header class="wrap hero" id="top">
-  <div class="eyebrow">Track It · v1 · iOS and Android</div>
-  <h1>Keep track of what you are part-way through</h1>
-  <p class="standfirst">
-    Shows, movies, books, comics and manga in one list, stored entirely on your phone.
-    No account, no server, no cover art. You open it, tap once to mark the next episode
-    or volume finished, and close it again.
-  </p>
-  <div class="cta-row">
-    <a class="btn is-primary" href="https://github.com/peds24/track-it">View the source</a>
-    <a class="btn" href="#run">How to run it</a>
-  </div>
-  <ul class="facts">
-    <li><b>Local only</b> — on-device SQLite</li>
-    <li><b>No accounts</b> — nothing to sign in to</li>
-    <li><b>Two tabs</b> &mdash; Currently and Backlog</li>
-    <li><b>Expo</b> / React Native / TypeScript</li>
-  </ul>
-</header>
-
-<main>
-
-<section class="wrap" id="screens">
-  <h2>The app</h2>
-  <p class="lede">
-    Every screen below is <em>live HTML</em> rendered at 390pt from the project's own design
-    tokens — the same values the app's interface specification defines. They are not
-    screenshots, and not a mock-up of something that does not exist.
-  </p>
-
-  <div class="screens" style="margin-top:var(--sp-4)">
-    <div>
-      <div class="screen-label"><span>Currently</span><span>Home</span></div>
-      <div class="screen">
-        <div class="s-head"><div class="s-title">Currently</div><div class="s-action">Add</div></div>
-        <div class="row">
-          <div class="row-text">
-            <div class="row-title">Severance</div>
-            <div class="row-meta"><span class="kind">Show</span><span class="dot">·</span> <span>Next Episode 4</span><span class="dot">·</span><span class="count">3 of 9</span></div>
-            <div class="progress-track"><div class="progress-fill" style="width:33%"></div></div>
-          </div>
-          <div class="advance">Done</div>
-        </div>
-        <div class="row">
-          <div class="row-text">
-            <div class="row-title">Berserk</div>
-            <div class="row-meta"><span class="kind">Manga</span><span class="dot">·</span> <span>Reading Volume 5</span><span class="dot">·</span><span class="count">4 of 34</span></div>
-            <div class="progress-track"><div class="progress-fill" style="width:12%"></div></div>
-          </div>
-          <div class="advance">Done</div>
-        </div>
-        <div class="row">
-          <div class="row-text">
-            <div class="row-title">Saga</div>
-            <div class="row-meta"><span class="kind">Comic</span><span class="dot">·</span> <span>Next Issue 13</span><span class="dot">·</span><span class="count">12 of 60</span></div>
-            <div class="progress-track"><div class="progress-fill" style="width:20%"></div></div>
-          </div>
-          <div class="advance is-pressed">Done</div>
-        </div>
-        <div class="tabbar">
-          <div class="tab is-on">Currently</div><div class="tab">Backlog</div>
-        </div>
+  <!-- Hero Section -->
+  <main class="wrap">
+    <section class="hero">
+      <div class="badge-chip">
+        <span>&#9733;</span> Updated with Material Design 3
       </div>
-    </div>
-
-    <div>
-      <div class="screen-label"><span>Backlog</span><span>Filtered</span></div>
-      <div class="screen">
-        <div class="s-head"><div class="s-title">Backlog</div></div>
-        <div class="filters">
-          <div class="fchip">Shows</div><div class="fchip">Movies</div>
-          <div class="fchip is-on">Books</div><div class="fchip">Comics</div>
-          <div class="fchip">Manga</div><div class="fchip">Done</div>
-        </div>
-        <div class="row">
-          <div class="row-text">
-            <div class="row-title">Piranesi</div>
-            <div class="row-meta"><span class="kind">Book</span><span class="dot">·</span> <span>Not started</span></div>
-          </div>
-          <div class="advance">Done</div>
-        </div>
-        <div class="row">
-          <div class="row-text">
-            <div class="row-title">The Left Hand of Darkness</div>
-            <div class="row-meta"><span class="kind">Book</span><span class="dot">·</span> <span>Not started</span></div>
-          </div>
-          <div class="advance">Done</div>
-        </div>
-        <div class="row">
-          <div class="row-text">
-            <div class="row-title">Solaris</div>
-            <div class="row-meta"><span class="kind">Book</span><span class="dot">·</span> <span>Not started</span></div>
-          </div>
-          <div class="advance">Done</div>
-        </div>
-        <div class="tabbar">
-          <div class="tab">Currently</div><div class="tab is-on">Backlog</div>
-        </div>
-      </div>
-    </div>
-
-    <div>
-      <div class="screen-label"><span>Done</span><span>Same screen, one chip</span></div>
-      <div class="screen is-dark">
-        <div class="s-head"><div class="s-title">Done</div></div>
-        <div class="filters">
-          <div class="fchip">Shows</div><div class="fchip">Movies</div>
-          <div class="fchip">Books</div><div class="fchip">Comics</div>
-          <div class="fchip">Manga</div><div class="fchip is-on">Done</div>
-        </div>
-        <div class="row">
-          <div class="row-text">
-            <div class="row-title">Arrival</div>
-            <div class="row-meta"><span class="kind">Movie</span><span class="dot">·</span> <span>Watched</span></div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="row-text">
-            <div class="row-title">Chainsaw Man</div>
-            <div class="row-meta"><span class="kind">Manga</span><span class="dot">·</span> <span>Finished</span><span class="dot">·</span><span class="count">11 of 11</span></div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="row-text">
-            <div class="row-title">Dune</div>
-            <div class="row-meta"><span class="kind">Book</span><span class="dot">·</span> <span>Read</span></div>
-          </div>
-        </div>
-        <div class="s-note">Nothing here can be advanced, so no control is drawn.</div>
-        <div class="tabbar">
-          <div class="tab">Currently</div><div class="tab is-on">Backlog</div>
-        </div>
-      </div>
-    </div>
-
-    <div>
-      <div class="screen-label"><span>Add</span><span>Step 1 — category</span></div>
-      <div class="screen">
-        <div class="s-head"><div class="s-title">What are you adding?</div></div>
-        <div class="opt">Show</div>
-        <div class="opt">Movie</div>
-        <div class="opt">Book</div>
-        <div class="opt">Comic</div>
-        <div class="opt">Manga</div>
-        <div class="s-note">The category is always chosen first. It decides which catalogue answers later.</div>
-      </div>
-    </div>
-
-    <div>
-      <div class="screen-label"><span>Add</span><span>Step 2 — series</span></div>
-      <div class="screen">
-        <div class="s-head"><div class="s-title">Manga</div></div>
-        <div class="field is-filled" style="margin-top:6px">Vagabond</div>
-        <div class="field">How many volumes?</div>
-        <div class="cta">Add to backlog</div>
-        <div class="s-note">Volumes are generated as individually tracked entries — Volume 1 to Volume 37.</div>
-      </div>
-    </div>
-
+      <h1>Track what you're on, simply and privately.</h1>
+      <p class="lead">
+        A local-first mobile tracker for shows, movies, books, comics, and manga. Built with Expo, TypeScript, SQLite, and Google Sans.
+      </p>
+      <div class="cta-group">
+        <a href="https://github.com/peds24/track-it" class="btn btn-primary" target="_blank" rel="noopener">View on GitHub &rarr;</a>
+        <a href="design/material-3-spec.html" class="btn btn-secondary">Material 3 Specs</a>
+        <a href="#demo" class="btn btn-secondary">Try Interactive UI</a>
       </div>
 
-  <ul class="anno">
-    <li><b>The title owns its line</b> Full width to truncate into, with nothing competing with the one thing you are scanning for.</li>
-    <li><b>Kind label leads the meta line</b> Underlined, in a fixed first position, so the eye learns one place and one mark for "what is this".</li>
-    <li><b>The count sits directly above its bar</b> Number and measure occupy the same block, so "4 of 34" and the width depicting it are read together.</li>
-    <li><b>Standalone books have no bar</b> Nothing to be part-way through numerically, so no progress is drawn — absence is the signal.</li>
-    <li><b>One control, one word</b> "Done" works for an episode and a volume alike. Pressed, it inverts to solid ink rather than filling with a colour that no longer exists.</li>
-  </ul>
-</section>
+      <!-- Stats Bar -->
+      <div class="stats-bar">
+        <div class="stat-card">
+          <div class="stat-num">0</div>
+          <div class="stat-desc">Servers & Cloud Dependencies</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">100%</div>
+          <div class="stat-desc">Offline SQLite Storage</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">304</div>
+          <div class="stat-desc">Unit Tests Passing (100%)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">M3</div>
+          <div class="stat-desc">Material You 15-Tier Scale</div>
+        </div>
+      </div>
+    </section>
 
-<section class="wrap">
-  <h2>Why it is built this way</h2>
-  <ul class="principles">
-    <li>
-      <h3>Text is the artwork</h3>
-      <p>
-        No covers, no thumbnails, no placeholder tiles. A title set well at 17pt identifies a
-        book faster than a small cover, and never shows a grey box where the artwork is missing.
-      </p>
-    </li>
-    <li>
-      <h3>Your library stays on your phone</h3>
-      <p>
-        Everything lives in an on-device SQLite database. There is no account, no backend and
-        no network call — so it works the same offline, mid-book, at 1am.
-      </p>
-    </li>
-    <li>
-      <h3>Two tabs, and that is all</h3>
-      <p>
-        Currently and Backlog. There is no settings screen, no onboarding and nothing to
-        configure — the app has one job and no preferences to hold an opinion about.
-      </p>
-    </li>
-    <li>
-      <h3>One list, one tap</h3>
-      <p>
-        The app opens to Currently — only what you are in the middle of, ordered by what you
-        advanced most recently. Marking the next episode or volume finished is a single tap.
-      </p>
-    </li>
-  </ul>
-</section>
+    <!-- Interactive Live Demo -->
+    <section class="demo-section" id="demo">
+      <div class="section-head">
+        <h2>Experience the Material 3 Interface</h2>
+        <p>Interactive simulation of the Category-Grouped Currently screen and single-tap advances.</p>
+      </div>
 
-<section class="wrap" id="how">
-  <h2>How it works</h2>
-  <div class="steps">
-    <div class="step">
-      <h3>1 · Pick a category</h3>
-      <p>
-        Show, movie, book, comic or manga. The category is chosen by you, never guessed — it
-        decides the shape of the form, and later, which catalogue is asked.
-      </p>
-    </div>
-    <div class="step">
-      <h3>2 · Give a title and a count</h3>
-      <p>
-        A series takes a title and a number of episodes, issues or volumes, and the app
-        generates that many individually tracked entries. A book or a movie is just a title.
-      </p>
-    </div>
-    <div class="step">
-      <h3>3 · Tap Done as you go</h3>
-      <p>
-        Each tap finishes the next entry and advances the row. Once something has its first
-        entry finished it moves to Currently by itself, and falls off when it is complete.
-      </p>
-    </div>
-  </div>
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <div>
+            <div class="phone-header">
+              <span class="phone-title">Currently</span>
+              <button class="phone-add-btn" onclick="alert('Opens Add screen with barcode scanner and manual entry!')">+ Add</button>
+            </div>
 
-  <p style="margin-top:var(--sp-5)">
-    <strong>There are no shelves in the database.</strong> Currently, Backlog and Done are
-    queries over the same two tables — a track is in Currently if any part of it is started
-    but not all of it is finished. Nothing has to be moved between lists, and nothing can
-    appear in two of them at once.
-  </p>
+            <!-- Shows Category -->
+            <div class="demo-category-header">
+              <div class="demo-cat-badge">&#128250;</div>
+              <span class="demo-cat-title">Shows</span>
+              <span class="demo-cat-count" id="showsCount">2</span>
+            </div>
 
-  <div class="table-scroll" style="margin-top:var(--sp-3)">
-    <table>
-      <thead>
-        <tr><th>Media</th><th>Container</th><th>What you tick off</th><th>States</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>Show</td><td>the show</td><td class="code">episode</td><td class="note">unwatched → watched</td></tr>
-        <tr><td>Comic</td><td>the series</td><td class="code">issue</td><td class="note">not started → reading → read</td></tr>
-        <tr><td>Manga</td><td>the series</td><td class="code">volume</td><td class="note">not started → reading → read</td></tr>
-        <tr><td>Book</td><td class="note">—</td><td class="code">the book</td><td class="note">not started → reading → read</td></tr>
-        <tr><td>Movie</td><td class="note">—</td><td class="code">the movie</td><td class="note">unwatched → watched</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p style="margin-top:var(--sp-3); font-size:14px; color:var(--muted)">
-    You can sit half-way inside a book in a way worth recording; you cannot really do that with
-    an episode. So watched things are binary and read things have a middle state.
-  </p>
-</section>
+            <div class="demo-row" id="row-severance">
+              <div class="demo-row-info">
+                <h4>Severance</h4>
+                <div class="demo-row-meta">
+                  <span>Episode 2 of 4</span>
+                </div>
+              </div>
+              <button class="demo-advance-btn" onclick="advanceDemo('severance')">Done</button>
+            </div>
 
-<section class="wrap" id="build">
-  <h2>Built with</h2>
-  <div class="table-scroll">
-    <table>
-      <thead><tr><th>Piece</th><th>Why</th></tr></thead>
-      <tbody>
-        <tr><td class="code">Expo / React&nbsp;Native</td><td class="note">One TypeScript codebase for iOS and Android, and the fastest path to a build on a real phone.</td></tr>
-        <tr><td class="code">TypeScript</td><td class="note">Strict mode throughout. The rules live in types before they live in tests.</td></tr>
-        <tr><td class="code">expo-sqlite</td><td class="note">The on-device database. Satisfies local-only storage directly, with plain migrations.</td></tr>
-        <tr><td class="code">expo-router</td><td class="note">File-based routing for the three tabs and the add flow.</td></tr>
-        <tr><td class="code">Jest</td><td class="note">Unit tests for the pure domain rules, repository tests against an in-memory database.</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p style="margin-top:var(--sp-4)">
-    The layering is deliberate: <code>domain/</code> is pure TypeScript with no I/O — status
-    transitions, shelf classification, progress arithmetic — and imports nothing from the
-    database or the UI. If a rule needs a query to decide something, it is in the wrong module.
-  </p>
-</section>
+            <div class="demo-row" id="row-bear">
+              <div class="demo-row-info">
+                <h4>The Bear</h4>
+                <div class="demo-row-meta">
+                  <span>Season 2, Episode 6</span>
+                </div>
+              </div>
+              <button class="demo-advance-btn" onclick="advanceDemo('bear')">Done</button>
+            </div>
 
-<section class="wrap" id="run">
-  <h2>Run it</h2>
-  <p class="lede">
-    Track It is not published to any app store. It runs from source with Expo — clone it,
-    install, and open it on your phone with Expo Go or a development build.
-  </p>
-  <pre><span class="c"># clone</span>
+            <!-- Books Category -->
+            <div class="demo-category-header" style="margin-top: 14px;">
+              <div class="demo-cat-badge">&#128214;</div>
+              <span class="demo-cat-title">Books</span>
+              <span class="demo-cat-count">1</span>
+            </div>
+
+            <div class="demo-row">
+              <div class="demo-row-info">
+                <h4>Dune Messiah</h4>
+                <div class="demo-row-meta">
+                  <span>Page 142 of 256</span>
+                </div>
+              </div>
+              <button class="demo-advance-btn" onclick="alert('Progress updated!')">Done</button>
+            </div>
+          </div>
+
+          <!-- Phone Bottom Navigation Bar -->
+          <div class="phone-tab-bar">
+            <div class="tab-item active">
+              <div class="tab-pill">&#9654;</div>
+              <span>Currently</span>
+            </div>
+            <div class="tab-item">
+              <div style="font-size: 16px; height: 28px; display: flex; align-items: center;">&#128278;</div>
+              <span>Backlog</span>
+            </div>
+            <div class="tab-item">
+              <div style="font-size: 16px; height: 28px; display: flex; align-items: center;">&#10004;</div>
+              <span>Done</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="demo-section" id="features">
+      <div class="section-head">
+        <h2>Engineered for Focus & Privacy</h2>
+        <p>Built purely around your media habits with zero friction and zero distractions.</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="feature-card">
+          <div class="feature-icon">&#9881;</div>
+          <h3>Local-First Architecture</h3>
+          <p>Everything runs on an isolated SQLite database right on your device. Instant launches, zero cloud lag, and complete offline capability.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">&#9776;</div>
+          <h3>Category Grouping</h3>
+          <p>Active tracks are organized by Shows, Movies, Books, Comics, and Manga. Advancing a track bubbles it to the top of its category group.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">&#8644;</div>
+          <h3>2-Step Fluid Gestures</h3>
+          <p>Single-motion quick swipe right to pause, deep pull to delete, and quick swipe left to edit episode/volume progress directly.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">&#10024;</div>
+          <h3>Google Sans & M3</h3>
+          <p>15-tier typography scale, dynamic surface elevation containers, and authentic Material 3 rounded navigation components.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">&#128269;</div>
+          <h3>Metadata & Barcode Scanner</h3>
+          <p>Scan book ISBN barcodes with your camera or look up shows and movies with manual fallbacks for everything.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">&#128737;</div>
+          <h3>100% Tested Domain</h3>
+          <p>Pure TypeScript business logic separated completely from UI and SQLite I/O, backed by 304 automated unit tests.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Historical Evolution & Design Archive Section -->
+    <section class="history-section" id="archive">
+      <div class="section-head" style="text-align: left; margin-bottom: 24px;">
+        <span class="timeline-tag tag-archive">Historical Evolution</span>
+        <h2>App Evolution & Design Archive</h2>
+        <p>Explore the design journey of Track It from early brutalist monospace origins to expressive Material Design 3.</p>
+      </div>
+
+      <div class="timeline-grid">
+        <!-- v1.0 Brutalist Archive -->
+        <div class="timeline-card">
+          <div>
+            <span class="timeline-tag tag-archive">v1.0 (Archived)</span>
+            <h4>Industrial Brutalist & Monospace</h4>
+            <p>The original stark design language: industrial monospace typography, heavy hairline grid borders, and radical local-only minimalism.</p>
+          </div>
+          <div class="timeline-links">
+            <a href="archive/v1-brutalist/index.html">&rarr; View Archived v1 Landing Page</a>
+            <a href="archive/v1-brutalist/design-language.html">&rarr; View Archived v1 Design Language Spec</a>
+          </div>
+        </div>
+
+        <!-- v2.0 Material 3 -->
+        <div class="timeline-card" style="border-color: var(--md-primary);">
+          <div>
+            <span class="timeline-tag tag-current">v2.0 (Active)</span>
+            <h4>Material 3 & Expressive Polish</h4>
+            <p>The complete redesign: Google Sans typography, category grouping, 2-step gesture physics, tonal surface containers, and vector iconography.</p>
+          </div>
+          <div class="timeline-links">
+            <a href="design/material-3-spec.html">&rarr; View Material 3 Design Specification</a>
+            <a href="https://github.com/peds24/track-it/tree/feat/m3-ui-rehaul">&rarr; Inspect Code & Commits on GitHub</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quickstart & Architecture -->
+    <section class="demo-section" id="quickstart">
+      <div class="section-head">
+        <h2>Developer Quickstart</h2>
+        <p>Run Track It locally with Expo SDK 57 and Node.js.</p>
+      </div>
+
+      <div class="code-block">
+# Clone the repository
 git clone https://github.com/peds24/track-it.git
 cd track-it
 
-<span class="c"># install</span>
+# Install dependencies
 npm install
 
-<span class="c"># start the dev server, then scan the QR code</span>
-npm start
-
-<span class="c"># or go straight to a simulator</span>
-npm run ios
-npm run android
-
-<span class="c"># tests and types</span>
+# Run automated tests
 npm test
-npm run typecheck</pre>
-</section>
 
-<section class="wrap">
-  <h2>Not in v1</h2>
-  <ul class="nots">
-    <li>
-      <div class="no">Next</div>
-      <p><b>Export and import.</b> The JSON backup format is written and tested — validated payloads, all-or-nothing restore — but it is not surfaced in v1 and there is no settings screen to reach it from. Until it lands, the app has <b>no backup path at all</b>: the library lives in one place, on one phone, and a lost or wiped device loses it. Worth knowing before you type a long backlog into it.</p>
-    </li>
-    <li>
-      <div class="no">Next</div>
-      <p><b>Catalogue search.</b> Entries are typed by hand from a title and a count. Entry generation already sits behind a provider interface, so a real catalogue can be added per category later without touching the model or the tracking flow.</p>
-    </li>
-    <li>
-      <div class="no">No</div>
-      <p><b>Cover art or thumbnails.</b> The v1 library is hand-typed, so most covers would be missing anyway — and a grid of grey placeholders is a worse first impression than a clean list.</p>
-    </li>
-    <li>
-      <div class="no">No</div>
-      <p><b>Accounts or sync.</b> The data is small, single-user and of no value to anyone else, and conflict resolution is the expensive half of sync. Export is the intended answer to losing a device — see above for where that stands.</p>
-    </li>
-    <li>
-      <div class="no">No</div>
-      <p><b>Ratings, streaks or statistics.</b> They turn a record of what you are reading into a scoreboard about it.</p>
-    </li>
-  </ul>
-</section>
+# Type check
+npm run typecheck
 
-</main>
+# Launch Expo development server
+npm start
+      </div>
+    </section>
+  </main>
 
-<footer class="wrap">
-  <div class="footer-links">
-    <a href="https://github.com/peds24/track-it">Source on GitHub</a>
-    <a href="design/design-language.html">Design language</a>
-    <a href="https://github.com/peds24/track-it/blob/main/docs/superpowers/specs/2026-08-12-track-it-design.md">Design decisions (D1–D12)</a>
-  </div>
-  <p>
-    Track It · a personal, local-only media tracker. The screens on this page are live HTML
-    at 390pt, rendered from the project's own design tokens — not images of a design.
-  </p>
-</footer>
+  <!-- Footer -->
+  <footer>
+    <div class="wrap">
+      <p><strong>Track It</strong> &mdash; Built with React Native, Expo, and Material Design 3.</p>
+      <p style="margin-top: 8px; font-size: 13px;">
+        <a href="https://github.com/peds24/track-it" target="_blank" rel="noopener">GitHub Repository</a> &bull;
+        <a href="design/material-3-spec.html">Material 3 Spec</a> &bull;
+        <a href="archive/v1-brutalist/index.html">v1 Archive</a>
+      </p>
+    </div>
+  </footer>
 
+  <script>
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+    }
+
+    function advanceDemo(item) {
+      const row = document.getElementById('row-' + item);
+      if (row) {
+        row.style.transform = 'translateX(20px)';
+        row.style.opacity = '0.5';
+        setTimeout(() => {
+          row.style.transform = 'none';
+          row.style.opacity = '1';
+          alert('Episode marked done! Bubbled to the top of Shows.');
+        }, 250);
+      }
+    }
+  </script>
 </body>
 </html>

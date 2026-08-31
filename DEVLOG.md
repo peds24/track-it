@@ -40,6 +40,11 @@
   - **Instant Quick Swipe Activation**: A quick right swipe past threshold (28dp) immediately pauses/returns the track to the backlog on release without requiring a manual tap.
   - **Left Swipe**: Quick swipe left opens the **Edit** progress editor dialog immediately.
   - **2-Step Right Swipe with Fluid Transition**: Quick drag (< 175dp) keeps Pause/Backlog active and clearly visible from early in the drag. A long, deep drag (>= 175dp) dynamically morphs the background (`secondaryContainer` $\rightarrow$ `errorContainer`), crossfades to Delete with a scale-up pop, and triggers the delete confirmation upon release.
+- **Landing Page Redesign & Design Evolution Archive**:
+  - Rebuilt `docs/index.html` with full Material 3 design tokens, Google Sans typography, light/dark mode support, and an interactive live mobile UI simulator.
+  - Created `docs/design/material-3-spec.html` documenting official M3 color roles, typescales, elevations, and gesture physics.
+  - Preserved the historical v1 Brutalist design language and landing page in `docs/archive/v1-brutalist/` with bi-directional links between active M3 docs and archived artifacts.
+
 
 
 
