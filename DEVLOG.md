@@ -1,5 +1,40 @@
 # DEVLOG
 
+## 2026-08-31 — Landing page: real screenshots, archived layout, corrected copy
+
+### What changed
+- Rebuilt `docs/index.html` again: kept the Material 3 tokens/typography/shape scale from the
+  migration above (that is still the committed design direction), but replaced the page's
+  *information architecture* with the earlier v1 layout — hero with a plain facts list, a real
+  screens section, a "why built this way" principles grid, a How it works walkthrough with the
+  media/state table, a Built-with table, a Run-it code block, and a "Not here yet" list — instead
+  of the M3 pass's stat-card hero, `alert()`-driven fake interactive demo, and a large timeline
+  section for the archive.
+- Captured six **real screenshots** (`docs/screenshots/`) from the current build running in an
+  Android emulator (Expo Go, since `expo start --web` hangs indefinitely — `expo-sqlite` never
+  resolves or rejects its `openDatabaseAsync()` promise on web, and iOS Simulator would not stay
+  booted in this environment): Currently (grouped by category, real progress bars), Backlog,
+  Done, and three Add-flow steps — the category picker, the comic single-issue/collection step,
+  and a **real AniList match** (Chainsaw Man, fetched live, not fabricated). Populated the app
+  with representative data through the real Add flow first (no seed script).
+- Patched the Expo Go dev-menu launcher (a floating gray circle Expo Go itself overlays in the
+  corner of every screen in development, not part of the shipped app) out of all six screenshots
+  with a small Pillow script, reconstructing the real `+ Add` pill and the Done tab's `?`
+  attribution button from sampled theme colors so the images read as production UI.
+- Corrected several claims the M3 pass's landing page had gotten stale or invented: test count
+  was hardcoded as "304" in two places (actual, freshly run: **342 passing, 29 suites**); the
+  interactive demo implied Currently only ever shows two categories with fictional rows; the
+  README's own "Done is a filter, not a tab" and "manual entry only" lines are also stale (Done
+  is a real third tab per A8; Google Books/AniList/Metron/TMDB + barcode scanning are shipped per
+  A9) but that file is out of scope for this session — landing page copy now reflects current
+  behavior regardless of what the README still says.
+
+### Why
+Asked to align the landing page's layout and content back toward the archived v1 page — which
+was written by hand against the real design spec — while keeping the current M3 visual identity,
+and to replace both the v1 mockups (live HTML, not screenshots) and the M3 pass's invented demo
+with actual screenshots of the actual app.
+
 ## 2026-08-31 — Material 3 Design System Migration
 
 ### What Changed
