@@ -12,26 +12,22 @@ import { generateEntries, unitLabelFor } from '@/providers/manual';
 import { providerFor } from '@/providers/registry';
 import type { SearchResult, SeriesDraft } from '@/providers/types';
 import { useDatabase } from '@/ui/DatabaseProvider';
-import { font, layout, radius, underline, useTheme, type Palette } from '@/ui/theme';
+import { elevation, font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
 
-/** book/manga are ISBN barcodes (EAN-13); comic is UPC-A. Show/movie have no
- * retail barcode at all — TMDB is search-by-title only (D5/A9). */
 const BARCODE_TYPES: Partial<Record<Category, BarcodeType[]>> = {
   book: ['ean13', 'ean8'],
   manga: ['ean13', 'ean8'],
   comic: ['upc_a'],
 };
 
-/** Debounce for search-as-you-type — long enough that a typing burst issues
- * one request, short enough that a result still feels immediate. */
 const SEARCH_DEBOUNCE_MS = 300;
 
-const CATEGORIES: readonly { value: Category; label: string }[] = [
-  { value: 'show', label: 'Show' },
-  { value: 'movie', label: 'Movie' },
-  { value: 'book', label: 'Book' },
-  { value: 'comic', label: 'Comic' },
-  { value: 'manga', label: 'Manga' },
+const CATEGORIES: readonly { value: Category; label: string; icon: string }[] = [
+  { value: 'show', label: 'Show', icon: '📺' },
+  { value: 'movie', label: 'Movie', icon: '🎬' },
+  { value: 'book', label: 'Book', icon: '📖' },
+  { value: 'comic', label: 'Comic', icon: '💥' },
+  { value: 'manga', label: 'Manga', icon: '🍙' },
 ];
 
 export default function AddTrackScreen() {
@@ -42,58 +38,29 @@ export default function AddTrackScreen() {
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [category, setCategory] = useState<Category | null>(null);
   const [title, setTitle] = useState('');
-  // Empty, not '1' — a pre-filled value hides the "How many volumes?" prompt
-  // and has to be cleared before it can be typed over.
   const [count, setCount] = useState('');
   const [saving, setSaving] = useState(false);
-  // A4: still being published, so there is no count to ask for.
   const [ongoing, setOngoing] = useState(false);
 
-  // A9: search-as-you-type and barcode scanning both just fill in the title
-  // field — a faster way to reach the same manual entry-generation flow, not
-  // a different feature. `picked` remembers which result that was, so submit
-  // time can hydrate from real matched data instead of the typed string; it
-  // is cleared the moment the user types past what they picked.
   const [results, setResults] = useState<SearchResult[]>([]);
   const [picked, setPicked] = useState<SearchResult | null>(null);
-  // A11: a real series match is confirmed before it's saved, not silently
-  // applied. `confirmedDraft` is the fetched summary shown in place of the
-  // manual count/ongoing fields; `editingCount` reopens those same fields
-  // as an override for the rare wrong-edition match.
   const [confirmedDraft, setConfirmedDraft] = useState<SeriesDraft | null>(null);
   const [hydrating, setHydrating] = useState(false);
-  // A rejected hydrate() (AniList/Metron do not catch a network failure
-  // internally, unlike TMDB's graceful degrade) must still land somewhere
-  // visible — this folds into showManualFields below so it degrades to
-  // exactly the same UI as a hand-typed title with no match, rather than
-  // stranding the screen with no field and no error.
   const [hydrateFailed, setHydrateFailed] = useState(false);
   const [editingCount, setEditingCount] = useState(false);
   const [scanning, setScanning] = useState(false);
-  // A comic scan resolves to a UPC-A only — expo-camera cannot read the
-  // 5-digit EAN-5 supplemental that actually pins the issue number, so this
-  // holds the scanned code while a small, skippable prompt asks for it.
   const [pendingUpc, setPendingUpc] = useState<string | null>(null);
   const [ean5, setEan5] = useState('');
   const [permission, requestPermission] = useCameraPermissions();
   const scanHandled = useRef(false);
-  // router.back() after a successful save is itself a `beforeRemove` trigger —
-  // without this, the guard below would catch its own exit and reset the form
-  // back to the category picker instead of actually leaving. Set right before
-  // that call; a ref rather than state so the very next event sees it, with no
-  // render/effect round trip to race against.
   const allowLeave = useRef(false);
 
   const isSeries = category !== null && unitLabelFor(category) !== null;
-  // A11: manual fields render only when there's no confirmed match to trust
-  // instead — a hand-typed title, or an explicit override of a wrong one.
   const showManualFields = isSeries && (!picked || editingCount || hydrateFailed);
   const needsCount = showManualFields && !ongoing;
   const unit = category ? unitLabelFor(category) : null;
   const barcodeTypes = category ? BARCODE_TYPES[category] : undefined;
 
-  // A search hit only ever confirms a title (D5) — once one is picked there
-  // is nothing left to search for until the user types past it again.
   useEffect(() => {
     if (!category || picked) {
       setResults([]);
@@ -111,9 +78,6 @@ export default function AddTrackScreen() {
           const hits = await providerFor(category).search(query);
           if (!cancelled) setResults(hits);
         } catch {
-          // Search is progressive enhancement, never a blocking requirement
-          // (D5) — offline, misconfigured, or a failed request all just mean
-          // no suggestions, and typing a title still works exactly as today.
           if (!cancelled) setResults([]);
         }
       })();
@@ -124,10 +88,6 @@ export default function AddTrackScreen() {
     };
   }, [title, category, picked]);
 
-  // A11: the confirm step's data source — runs once per pick, not once per
-  // keystroke like search does. Cancelled the same way search cancels a
-  // stale request if the user picks something else, or types past the pick,
-  // before this resolves.
   useEffect(() => {
     if (!category || !picked || !isSeries) {
       setConfirmedDraft(null);
@@ -144,10 +104,6 @@ export default function AddTrackScreen() {
         const draft = await providerFor(category).hydrate(picked);
         if (!cancelled) setConfirmedDraft(draft);
       } catch {
-        // Search — and the confirm step it feeds — is progressive
-        // enhancement, never a blocking requirement: a failed lookup just
-        // means no confirmed match, and the manual title/count fields still
-        // work exactly as they do for a hand-typed title.
         if (!cancelled) setHydrateFailed(true);
       } finally {
         if (!cancelled) setHydrating(false);
@@ -158,14 +114,6 @@ export default function AddTrackScreen() {
     };
   }, [category, picked, isSeries]);
 
-  // Picking a category never navigates — it just re-renders this component
-  // past the `category === null` branch — so leaving the modal for real and
-  // backing out of an in-progress category pick both arrive as the same
-  // navigation action (header back, hardware back, swipe-back gesture). This
-  // is the one place that distinguishes them: while a category is chosen,
-  // back resets to the category picker instead of leaving, clearing every bit
-  // of state the abandoned attempt left behind so picking a different
-  // category next starts clean.
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
       if (category === null || allowLeave.current) return;
@@ -214,8 +162,6 @@ export default function AddTrackScreen() {
     scanHandled.current = true;
     setScanning(false);
 
-    // A UPC-A alone identifies a comic's series, not its issue (A9) — the
-    // 5-digit supplemental prompt decides the query, so defer the lookup.
     if (category === 'comic') {
       setEan5('');
       setPendingUpc(data);
@@ -225,10 +171,6 @@ export default function AddTrackScreen() {
     void (async () => {
       try {
         if (category === 'manga') {
-          // AniList (which A11 swapped in for manga) has no ISBN index at
-          // all — only Google Books' title/ISBN search can still resolve a
-          // scanned barcode. Two hops: ISBN -> title (Google Books), then
-          // title -> real matches (AniList), same as typed search does.
           const isbnHits = await new GoogleBooksProvider('manga').search(data);
           const resolvedTitle = isbnHits[0]?.title;
           setResults(resolvedTitle ? await providerFor('manga').search(resolvedTitle) : []);
@@ -256,16 +198,10 @@ export default function AddTrackScreen() {
     }
   }
 
-  // `startNow` skips the trip to the Backlog tab and the Start tap that would
-  // otherwise follow — the same reason a "Start" swipe or button exists once a
-  // track is there, just offered at the moment it is most likely wanted.
   async function handleSave(startNow: boolean) {
     if (!category) return;
-    // A second tap before the insert resolves would create a second track, and
-    // there is no delete UI to undo it.
     if (saving) return;
 
-    // Parsed strictly: "2.5" or "abc" must be an error, not a silent 1.
     const parsedCount = /^\d+$/.test(count.trim()) ? Number.parseInt(count.trim(), 10) : Number.NaN;
     if (needsCount && !Number.isInteger(parsedCount)) {
       Alert.alert('Could not add track', `Enter how many ${unit}s as a whole number`);
@@ -275,23 +211,11 @@ export default function AddTrackScreen() {
     setSaving(true);
     try {
       const now = new Date().toISOString();
-      // A10: a comic/manga title may embed its own volume/issue number
-      // ("Absolute Batman #1", "Berserk Volume 5") — strip it so the series
-      // title doesn't carry the number twice, and start tracking at that
-      // entry instead of always at 1. Applies to whatever the final title
-      // string is, regardless of whether it was typed, picked from a search
-      // result, or filled in by a barcode scan — all three converge on
-      // `title` by this point.
       const { title: finalTitle, ordinal } =
         category === 'comic' || category === 'manga'
           ? parseSeriesTitle(title)
           : { title: title.trim(), ordinal: null };
 
-      // A11: an un-edited confirmed match is passed straight through as a
-      // ready draft — no second hydrate, no manual count to validate. An
-      // edited override rebuilds the draft locally the same way a
-      // hand-typed title always has, keeping the confirmed match's own
-      // external id/source rather than discarding where it came from.
       const draft: SeriesDraft | undefined =
         isSeries && confirmedDraft
           ? editingCount
@@ -324,9 +248,6 @@ export default function AddTrackScreen() {
       );
       if (startNow) {
         const first = await firstEntryOf(db, created);
-        // A10 may have already started the parsed entry at creation — Start's
-        // job is then already done, and advancing further would finish it
-        // instead of merely starting it.
         if (first.status !== 'in_progress') {
           await advanceEntry(db, first.id, now);
         }
@@ -340,27 +261,32 @@ export default function AddTrackScreen() {
     }
   }
 
-  // Category first, always — it decides which catalogue answers later (D10).
   if (category === null) {
     return (
       <View style={styles.screen}>
         <View style={styles.header}>
           <Text style={styles.prompt}>What are you adding?</Text>
         </View>
-        {CATEGORIES.map((c) => (
-          <Pressable key={c.value} style={styles.option} onPress={() => setCategory(c.value)}>
-            <Text style={styles.optionText}>{c.label}</Text>
-          </Pressable>
-        ))}
+        <View style={styles.categoryGrid}>
+          {CATEGORIES.map((c) => (
+            <Pressable
+              key={c.value}
+              style={styles.optionCard}
+              onPress={() => setCategory(c.value)}
+              android_ripple={{ color: palette.surfaceContainerHighest }}
+            >
+              <Text style={styles.optionIcon}>{c.icon}</Text>
+              <Text style={styles.optionText}>{c.label}</Text>
+            </Pressable>
+          ))}
+        </View>
         <Text style={styles.note}>
-          The category is always chosen first. It decides which catalogue answers later.
+          The category decides which catalogue to query and how progress is counted.
         </Text>
       </View>
     );
   }
 
-  // Full-screen while scanning — an inline conditional view rather than a
-  // separate route, so no state has to round-trip through router params.
   if (scanning && barcodeTypes) {
     return (
       <View style={styles.screen}>
@@ -389,7 +315,7 @@ export default function AddTrackScreen() {
       <TextInput
         style={styles.input}
         placeholder="Title"
-        placeholderTextColor={palette.faint}
+        placeholderTextColor={palette.onSurfaceVariant}
         accessibilityLabel="Title"
         value={title}
         onChangeText={(t) => {
@@ -399,8 +325,8 @@ export default function AddTrackScreen() {
           setHydrateFailed(false);
         }}
         autoFocus
-        cursorColor={palette.ink}
-        selectionColor={palette.ink}
+        cursorColor={palette.primary}
+        selectionColor={palette.primaryContainer}
         underlineColorAndroid="transparent"
       />
 
@@ -421,12 +347,13 @@ export default function AddTrackScreen() {
           style={styles.scanButton}
           onPress={() => void handleScanPress()}
           accessibilityRole="button"
+          android_ripple={{ color: palette.surfaceContainerHighest }}
         >
-          <Text style={styles.scanButtonText}>Scan barcode</Text>
+          <Text style={styles.scanButtonText}>📷 Scan barcode</Text>
         </Pressable>
       )}
 
-      {isSeries && picked && hydrating && <Text style={styles.hint}>Checking…</Text>}
+      {isSeries && picked && hydrating && <Text style={styles.hint}>Checking metadata…</Text>}
 
       {isSeries && picked && confirmedDraft && !editingCount && (
         <Pressable
@@ -451,19 +378,17 @@ export default function AddTrackScreen() {
         <TextInput
           style={styles.input}
           placeholder={`How many ${unit}s?`}
-          placeholderTextColor={palette.faint}
+          placeholderTextColor={palette.onSurfaceVariant}
           accessibilityLabel="Count"
           value={count}
           onChangeText={setCount}
           keyboardType="number-pad"
-          cursorColor={palette.ink}
-          selectionColor={palette.ink}
+          cursorColor={palette.primary}
+          selectionColor={palette.primaryContainer}
           underlineColorAndroid="transparent"
         />
       )}
 
-      {/* A4: a series still being published has no count to give. Reusing the
-          filter-chip shape rather than a switch keeps the screen to one idiom. */}
       {showManualFields && (
         <Pressable
           accessibilityRole="checkbox"
@@ -473,32 +398,30 @@ export default function AddTrackScreen() {
           style={[styles.toggle, ongoing && styles.toggleOn]}
         >
           <Text style={[styles.toggleText, ongoing && styles.toggleTextOn]}>
-            Ongoing series
+            {ongoing ? '✓ Ongoing series' : '+ Ongoing series'}
           </Text>
         </Pressable>
       )}
 
-      <Pressable
-        style={styles.save}
-        onPress={() => handleSave(true)}
-        accessibilityRole="button"
-      >
-        {/* A10: a movie still completes in one tap (D2) — "Start" implies a
-            middle state it never has, so the primary button says what it
-            actually does for a movie specifically. */}
-        <Text style={styles.saveText}>{category === 'movie' ? 'Watched' : 'Start'}</Text>
-      </Pressable>
-      <Pressable
-        style={styles.saveSecondary}
-        onPress={() => handleSave(false)}
-        accessibilityRole="button"
-      >
-        <Text style={styles.saveSecondaryText}>Add to backlog</Text>
-      </Pressable>
+      <View style={styles.buttonGroup}>
+        <Pressable
+          style={styles.save}
+          onPress={() => handleSave(true)}
+          accessibilityRole="button"
+          android_ripple={{ color: palette.onPrimary + '33' }}
+        >
+          <Text style={styles.saveText}>{category === 'movie' ? 'Watched' : 'Start'}</Text>
+        </Pressable>
+        <Pressable
+          style={styles.saveSecondary}
+          onPress={() => handleSave(false)}
+          accessibilityRole="button"
+          android_ripple={{ color: palette.surfaceContainerHighest }}
+        >
+          <Text style={styles.saveSecondaryText}>Add to backlog</Text>
+        </Pressable>
+      </View>
 
-      {/* A9: expo-camera cannot read the EAN-5 supplemental that pins a
-          comic's issue number — this is the one extra step a comic scan
-          needs, kept skippable so it never blocks adding the track. */}
       <Modal
         visible={pendingUpc !== null}
         transparent
@@ -507,22 +430,22 @@ export default function AddTrackScreen() {
       >
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>5-digit code?</Text>
+            <Text style={styles.modalTitle}>5-digit issue code?</Text>
             <Text style={styles.modalBody}>
-              The small 5-digit barcode next to the main one pins the exact issue. Skip to see
-              every matching issue instead.
+              The small 5-digit barcode next to the main one identifies the exact issue. Skip to see
+              all matching issues.
             </Text>
             <TextInput
               style={styles.input}
               placeholder="12345"
-              placeholderTextColor={palette.faint}
+              placeholderTextColor={palette.onSurfaceVariant}
               accessibilityLabel="5-digit code"
               value={ean5}
               onChangeText={setEan5}
               keyboardType="number-pad"
               maxLength={5}
-              cursorColor={palette.ink}
-              selectionColor={palette.ink}
+              cursorColor={palette.primary}
+              selectionColor={palette.primaryContainer}
               underlineColorAndroid="transparent"
             />
             <Pressable
@@ -537,7 +460,7 @@ export default function AddTrackScreen() {
               accessibilityRole="button"
               style={styles.modalSkip}
             >
-              <Text style={[styles.modalSkipText, underline]}>Skip</Text>
+              <Text style={styles.modalSkipText}>Skip</Text>
             </Pressable>
           </View>
         </View>
@@ -548,141 +471,222 @@ export default function AddTrackScreen() {
 
 function createStyles(c: Palette) {
   return StyleSheet.create({
-    screen: { flex: 1, backgroundColor: c.bg },
+    screen: { flex: 1, backgroundColor: c.surface },
     header: {
       paddingTop: layout.headerTop,
       paddingBottom: layout.headerBottom,
       paddingHorizontal: layout.inset,
     },
-    prompt: { ...font.screenTitle, color: c.ink },
-    option: {
-      paddingVertical: 15,
-      paddingHorizontal: layout.inset,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: c.rule,
+    prompt: {
+      ...font.headlineMedium,
+      color: c.onSurface,
+      fontWeight: '700',
     },
-    optionText: { ...font.option, color: c.ink },
-    input: {
-      ...font.body,
-      color: c.ink,
-      marginHorizontal: layout.inset,
-      marginBottom: 10,
-      paddingVertical: 13,
-      paddingHorizontal: 14,
-      borderWidth: 1.5,
-      borderColor: c.ruleStrong,
+    categoryGrid: {
+      paddingHorizontal: layout.inset,
+      gap: 10,
+    },
+    optionCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      backgroundColor: c.surfaceContainerLow,
       borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: c.outlineVariant,
+      gap: 12,
+    },
+    optionIcon: {
+      fontSize: 20,
+    },
+    optionText: {
+      ...font.titleMedium,
+      color: c.onSurface,
+      fontWeight: '600',
+    },
+    input: {
+      ...font.bodyLarge,
+      color: c.onSurface,
+      marginHorizontal: layout.inset,
+      marginBottom: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      height: 52,
+      backgroundColor: c.surfaceContainerLowest,
+      borderWidth: 1,
+      borderColor: c.outline,
+      borderRadius: radius.sm,
     },
     toggle: {
       alignSelf: 'flex-start',
       marginHorizontal: layout.inset,
-      marginBottom: 10,
-      paddingVertical: 6,
-      paddingHorizontal: 13,
-      borderWidth: 1.5,
-      borderColor: c.ruleStrong,
-      borderRadius: radius.chip,
+      marginBottom: 16,
+      paddingVertical: 8,
+      paddingHorizontal: 14,
+      borderRadius: radius.sm,
+      backgroundColor: c.surfaceContainerLow,
+      borderWidth: 1,
+      borderColor: c.outlineVariant,
     },
-    toggleOn: { backgroundColor: c.ink, borderColor: c.ink },
-    toggleText: { ...font.control, color: c.muted },
-    toggleTextOn: { color: c.bg },
-    hint: { ...font.meta, color: c.muted, marginHorizontal: layout.inset, marginBottom: 10 },
+    toggleOn: {
+      backgroundColor: c.secondaryContainer,
+      borderColor: c.secondaryContainer,
+    },
+    toggleText: {
+      ...font.labelLarge,
+      color: c.onSurfaceVariant,
+    },
+    toggleTextOn: {
+      color: c.onSecondaryContainer,
+      fontWeight: '600',
+    },
+    hint: {
+      ...font.bodyMedium,
+      color: c.primary,
+      marginHorizontal: layout.inset,
+      marginBottom: 10,
+    },
     summary: {
       marginHorizontal: layout.inset,
-      marginBottom: 10,
-      paddingVertical: 13,
-      paddingHorizontal: 14,
-      borderWidth: 1.5,
-      borderColor: c.ruleStrong,
+      marginBottom: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      backgroundColor: c.surfaceContainerLow,
+      borderWidth: 1,
+      borderColor: c.outlineVariant,
       borderRadius: radius.md,
     },
-    summaryText: { ...font.body, color: c.ink },
-    // The one filled control on the screen, so it carries ink rather than
-    // accent. Start is primary: adding something is usually the first step
-    // toward starting it, not toward filing it away.
+    summaryText: {
+      ...font.titleSmall,
+      color: c.onSurface,
+      fontWeight: '500',
+    },
+    buttonGroup: {
+      marginTop: 8,
+      gap: 10,
+    },
     save: {
-      marginTop: 6,
       marginHorizontal: layout.inset,
-      marginBottom: 10,
-      padding: 14,
-      borderRadius: radius.md,
-      backgroundColor: c.ink,
+      height: 48,
+      borderRadius: radius.full,
+      backgroundColor: c.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...elevation.level1,
     },
-    saveText: { ...font.body, fontWeight: '700', color: c.bg, textAlign: 'center' },
+    saveText: {
+      ...font.labelLarge,
+      color: c.onPrimary,
+      fontWeight: '700',
+    },
     saveSecondary: {
       marginHorizontal: layout.inset,
-      marginBottom: 24,
-      padding: 14,
-      borderRadius: radius.md,
-      borderWidth: 1.5,
-      borderColor: c.ruleStrong,
+      height: 48,
+      borderRadius: radius.full,
+      borderWidth: 1,
+      borderColor: c.outline,
+      backgroundColor: 'transparent',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
-    saveSecondaryText: { ...font.body, fontWeight: '700', color: c.ink, textAlign: 'center' },
+    saveSecondaryText: {
+      ...font.labelLarge,
+      color: c.primary,
+      fontWeight: '700',
+    },
     note: {
-      ...font.meta,
-      color: c.muted,
-      paddingTop: 10,
-      paddingBottom: 24,
+      ...font.bodySmall,
+      color: c.onSurfaceVariant,
+      paddingTop: 16,
       paddingHorizontal: layout.inset,
     },
-    // Reuses the row/list visual language rather than a new component system:
-    // sharp corners, a hairline between rows, ink for the title.
     results: {
       marginHorizontal: layout.inset,
-      marginBottom: 10,
-      borderWidth: 1.5,
-      borderColor: c.ruleStrong,
+      marginBottom: 12,
+      backgroundColor: c.surfaceContainerLow,
+      borderWidth: 1,
+      borderColor: c.outlineVariant,
       borderRadius: radius.md,
       overflow: 'hidden',
+      ...elevation.level1,
     },
     resultRow: {
       paddingVertical: 12,
-      paddingHorizontal: 14,
+      paddingHorizontal: 16,
       borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: c.rule,
+      borderTopColor: c.outlineVariant,
     },
-    resultText: { ...font.body, color: c.ink },
+    resultText: {
+      ...font.bodyMedium,
+      color: c.onSurface,
+    },
     scanButton: {
       alignSelf: 'flex-start',
       marginHorizontal: layout.inset,
-      marginBottom: 10,
-      paddingVertical: 6,
-      paddingHorizontal: 13,
-      borderWidth: 1.5,
-      borderColor: c.ruleStrong,
-      borderRadius: radius.chip,
+      marginBottom: 12,
+      paddingVertical: 8,
+      paddingHorizontal: 14,
+      borderRadius: radius.sm,
+      backgroundColor: c.surfaceContainerHigh,
     },
-    scanButtonText: { ...font.control, color: c.ink },
+    scanButtonText: {
+      ...font.labelLarge,
+      color: c.onSurface,
+    },
     scanCancel: {
       position: 'absolute',
       bottom: layout.inset,
       left: layout.inset,
       right: layout.inset,
-      padding: 14,
-      borderRadius: radius.md,
-      borderWidth: 1.5,
-      borderColor: c.bg,
-      backgroundColor: c.ink,
-    },
-    scanCancelText: { ...font.body, fontWeight: '700', color: c.bg, textAlign: 'center' },
-    modalBackdrop: {
-      flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.5)',
+      height: 48,
+      borderRadius: radius.full,
+      backgroundColor: c.primary,
       alignItems: 'center',
       justifyContent: 'center',
-      padding: layout.inset,
+    },
+    scanCancelText: {
+      ...font.labelLarge,
+      color: c.onPrimary,
+      fontWeight: '700',
+    },
+    modalBackdrop: {
+      flex: 1,
+      backgroundColor: c.scrim + '66',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: space.lg,
     },
     modalCard: {
       width: '100%',
-      backgroundColor: c.bg,
-      borderWidth: 1.5,
-      borderColor: c.ruleStrong,
-      borderRadius: radius.md,
-      padding: layout.inset,
+      backgroundColor: c.surfaceContainerHigh,
+      borderRadius: radius.xl,
+      padding: space.lg,
+      ...elevation.level3,
     },
-    modalTitle: { ...font.rowTitle, color: c.ink, marginBottom: 8 },
-    modalBody: { ...font.meta, color: c.muted, marginBottom: 14 },
-    modalSkip: { alignSelf: 'center', paddingVertical: 6 },
-    modalSkipText: { ...font.control, color: c.muted },
+    modalTitle: {
+      ...font.headlineSmall,
+      color: c.onSurface,
+      marginBottom: 8,
+      fontWeight: '600',
+    },
+    modalBody: {
+      ...font.bodyMedium,
+      color: c.onSurfaceVariant,
+      marginBottom: 16,
+      lineHeight: 20,
+    },
+    modalSkip: {
+      alignSelf: 'center',
+      marginTop: 8,
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+    },
+    modalSkipText: {
+      ...font.labelLarge,
+      color: c.primary,
+      fontWeight: '600',
+    },
   });
 }
+

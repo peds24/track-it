@@ -8,9 +8,10 @@ import {
   resumeTrack,
   returnTrackToBacklog,
   setTrackPosition,
-  type TrackSummary, } from '@/data/trackRepo';
+  type TrackSummary,
+} from '@/data/trackRepo';
 import { useDatabase } from '@/ui/DatabaseProvider';
-import { font, layout, underline, useTheme, type Palette } from '@/ui/theme';
+import { font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
 import { ProgressEditor } from '@/ui/ProgressEditor';
 import { SwipeableTrackRow } from '@/ui/SwipeableTrackRow';
 import { useTracks } from '@/ui/useTracks';
@@ -20,10 +21,8 @@ export default function CurrentlyScreen() {
   const palette = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const { tracks, reload } = useTracks('currently');
-  /** A12: the track whose position is being edited, or null when closed. */
   const [editing, setEditing] = useState<TrackSummary | null>(null);
 
-  /** A failed read has to reach the user; an unhandled rejection would not. */
   const reloadSafely = useCallback(async () => {
     try {
       await reload();
@@ -38,14 +37,6 @@ export default function CurrentlyScreen() {
     }, [reloadSafely]),
   );
 
-  /**
-   * `onAdvance` is fire-and-forget, so nothing downstream can await this. A
-   * double tap before the first reload lands means the second advance hits an
-   * entry that is already done and throws — surface it, and reload either way so
-   * the list resynchronises with what is actually stored. The reload sits after
-   * the try rather than inside a `finally`, where its own rejection would escape
-   * the catch above it and go unhandled.
-   */
   function handleAdvance(entryId: string): void {
     void (async () => {
       try {
@@ -81,11 +72,6 @@ export default function CurrentlyScreen() {
     })();
   }
 
-  /**
-   * A12: the editor is dismissed before the write, not after it. The write is
-   * fire-and-forget like handleAdvance, and leaving the dialog up until the
-   * reload lands would make a one-tap save look like it had hung.
-   */
   function handleSetPosition(track: TrackSummary, ordinal: number): void {
     setEditing(null);
     void (async () => {
@@ -113,27 +99,34 @@ export default function CurrentlyScreen() {
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Track It</Text>
-        <Link href="/add" style={styles.add} accessibilityLabel="Add a track">
-          Add
+        <Text style={styles.title}>Currently</Text>
+        <Link href="/add" asChild>
+          <View style={styles.addButton} accessibilityRole="button" accessibilityLabel="Add a track">
+            <Text style={styles.addText}>+ Add</Text>
+          </View>
         </Link>
       </View>
 
       <FlatList
         data={tracks}
         keyExtractor={(t) => `${t.kind}:${t.id}`}
-        renderItem={({ item }) => <SwipeableTrackRow
+        renderItem={({ item }) => (
+          <SwipeableTrackRow
             track={item}
             onAdvance={handleAdvance}
             onResume={handleResume}
             onDelete={handleDelete}
             onReturnToBacklog={handleReturnToBacklog}
             onEditProgress={setEditing}
-          />}
+          />
+        )}
         ListEmptyComponent={
-          <Text style={styles.empty}>
-            Nothing on the go. Add something, or start something from your backlog.
-          </Text>
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyTitle}>Nothing on the go</Text>
+            <Text style={styles.empty}>
+              Add something new, or start a track from your backlog.
+            </Text>
+          </View>
         }
       />
 
@@ -148,27 +141,55 @@ export default function CurrentlyScreen() {
 
 function createStyles(c: Palette) {
   return StyleSheet.create({
-    screen: { flex: 1, backgroundColor: c.bg },
+    screen: { flex: 1, backgroundColor: c.surface },
     header: {
       flexDirection: 'row',
-      alignItems: 'baseline',
+      alignItems: 'center',
       justifyContent: 'space-between',
-      gap: layout.rowGap,
       paddingTop: layout.headerTop,
       paddingBottom: layout.headerBottom,
       paddingHorizontal: layout.inset,
+      backgroundColor: c.surface,
     },
-    title: { ...font.screenTitle, color: c.ink },
-    add: { ...font.body, ...underline, fontWeight: '600', color: c.ink },
+    title: {
+      ...font.headlineMedium,
+      color: c.onSurface,
+      fontWeight: '700',
+    },
+    addButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: 36,
+      paddingHorizontal: 16,
+      backgroundColor: c.primaryContainer,
+      borderRadius: radius.full,
+    },
+    addText: {
+      ...font.labelLarge,
+      fontWeight: '600',
+      color: c.onPrimaryContainer,
+    },
+    emptyContainer: {
+      margin: layout.inset,
+      padding: space.lg,
+      backgroundColor: c.surfaceContainerLow,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: c.outlineVariant,
+      alignItems: 'center',
+    },
+    emptyTitle: {
+      ...font.titleMedium,
+      color: c.onSurface,
+      fontWeight: '600',
+      marginBottom: 6,
+    },
     empty: {
-      // 14pt: the empty state sits between meta and body, per the mockup.
-      fontSize: 14,
-      color: c.muted,
-      paddingTop: 18,
-      paddingBottom: 26,
-      paddingHorizontal: layout.inset,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: c.rule,
+      ...font.bodyMedium,
+      color: c.onSurfaceVariant,
+      textAlign: 'center',
     },
   });
 }
+

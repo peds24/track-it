@@ -25,8 +25,6 @@ export function FilterBar({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      // Without `flexGrow: 0` a horizontal ScrollView stretches to fill its
-      // column parent, and the chips grow to the full height of the screen.
       style={styles.scroller}
       contentContainerStyle={styles.bar}
     >
@@ -35,10 +33,15 @@ export function FilterBar({
         return (
           <Pressable
             key={c.value}
-            style={[styles.chip, active && styles.chipActive]}
+            style={[styles.chip, active ? styles.chipActive : styles.chipInactive]}
             onPress={() => onCategoryChange(active ? null : c.value)}
+            android_ripple={{ color: palette.surfaceContainerHighest, borderless: false }}
+            accessibilityRole="button"
+            accessibilityState={{ selected: active }}
           >
-            <Text style={[styles.chipText, active && styles.chipTextActive]}>{c.label}</Text>
+            <Text style={[styles.chipText, active ? styles.chipTextActive : styles.chipTextInactive]}>
+              {c.label}
+            </Text>
           </Pressable>
         );
       })}
@@ -51,23 +54,39 @@ function createStyles(c: Palette) {
     scroller: { flexGrow: 0, flexShrink: 0 },
     bar: {
       alignItems: 'center',
-      paddingTop: 2,
-      paddingBottom: space.md,
+      paddingTop: 4,
+      paddingBottom: space.sm,
       paddingHorizontal: layout.inset,
-      gap: 7,
+      gap: 8,
     },
     chip: {
       flexShrink: 0,
-      paddingVertical: 5,
-      paddingHorizontal: 12,
-      borderRadius: radius.chip,
-      borderWidth: 1.5,
-      borderColor: c.ruleStrong,
-      backgroundColor: 'transparent',
+      height: 32,
+      paddingHorizontal: 14,
+      borderRadius: radius.sm,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
-    // Active is filled with ink and reversed — one signal, not colour plus weight.
-    chipActive: { backgroundColor: c.ink, borderColor: c.ink },
-    chipText: { ...font.meta, color: c.muted },
-    chipTextActive: { color: c.bg },
+    chipInactive: {
+      backgroundColor: c.surfaceContainerLow,
+      borderWidth: 1,
+      borderColor: c.outlineVariant,
+    },
+    chipActive: {
+      backgroundColor: c.secondaryContainer,
+      borderWidth: 1,
+      borderColor: c.secondaryContainer,
+    },
+    chipText: {
+      ...font.labelLarge,
+    },
+    chipTextInactive: {
+      color: c.onSurfaceVariant,
+    },
+    chipTextActive: {
+      color: c.onSecondaryContainer,
+      fontWeight: '600',
+    },
   });
 }
+

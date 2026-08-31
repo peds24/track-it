@@ -7,11 +7,12 @@ import {
   deleteTrack,
   resumeTrack,
   returnTrackToBacklog,
-  type TrackSummary, } from '@/data/trackRepo';
+  type TrackSummary,
+} from '@/data/trackRepo';
 import type { Category } from '@/domain/types';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { FilterBar } from '@/ui/FilterBar';
-import { font, layout, radius, underline, useTheme, type Palette } from '@/ui/theme';
+import { elevation, font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
 import { SwipeableTrackRow } from '@/ui/SwipeableTrackRow';
 import { useTracks } from '@/ui/useTracks';
 
@@ -23,7 +24,6 @@ export default function DoneScreen() {
   const [attributionOpen, setAttributionOpen] = useState(false);
   const { tracks, reload } = useTracks('done', category ?? undefined);
 
-  /** A failed read has to reach the user; an unhandled rejection would not. */
   const reloadSafely = useCallback(async () => {
     try {
       await reload();
@@ -38,13 +38,6 @@ export default function DoneScreen() {
     }, [reloadSafely]),
   );
 
-  /**
-   * Mirrors the Currently screen: `onAdvance` is fire-and-forget, so a stale tap
-   * can hit an entry that is already done and throw — surface it, and reload
-   * either way so the list resynchronises with what is actually stored. The
-   * reload sits after the try rather than inside a `finally`, where its own
-   * rejection would escape the catch above it and go unhandled.
-   */
   function handleAdvance(entryId: string): void {
     void (async () => {
       try {
@@ -96,15 +89,12 @@ export default function DoneScreen() {
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>Done</Text>
-        {/* A9: TMDB's terms require this attribution to be reachable, not
-            necessarily visible by default (see the modal below) — the "?"
-            sits beside the title rather than in the list, since it is about
-            the screen's data sources, not any one row. */}
         <Pressable
           onPress={() => setAttributionOpen(true)}
           accessibilityRole="button"
           accessibilityLabel="About the data on this screen"
           style={styles.attributionButton}
+          android_ripple={{ color: palette.surfaceContainerHighest, borderless: true }}
         >
           <Text style={styles.attributionButtonText}>?</Text>
         </Pressable>
@@ -115,14 +105,21 @@ export default function DoneScreen() {
       <FlatList
         data={tracks}
         keyExtractor={(t) => `${t.kind}:${t.id}`}
-        renderItem={({ item }) => <SwipeableTrackRow
+        renderItem={({ item }) => (
+          <SwipeableTrackRow
             track={item}
             onAdvance={handleAdvance}
             onResume={handleResume}
             onDelete={handleDelete}
             onReturnToBacklog={handleReturnToBacklog}
-          />}
-        ListEmptyComponent={<Text style={styles.empty}>Nothing finished yet.</Text>}
+          />
+        )}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyTitle}>Nothing finished yet</Text>
+            <Text style={styles.empty}>Completed tracks will be listed here.</Text>
+          </View>
+        }
         ListFooterComponent={
           tracks.length > 0 ? (
             <Text style={styles.note}>Nothing here can be advanced, so no control is drawn.</Text>
@@ -139,7 +136,6 @@ export default function DoneScreen() {
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Data sources</Text>
-            {/* Verbatim, per TMDB's attribution requirement — not paraphrased. */}
             <Text style={styles.modalBody}>
               This product uses the TMDB API but is not endorsed or certified by TMDB.
             </Text>
@@ -151,7 +147,7 @@ export default function DoneScreen() {
               accessibilityRole="button"
               style={styles.modalClose}
             >
-              <Text style={[styles.modalCloseText, underline]}>Close</Text>
+              <Text style={styles.modalCloseText}>Close</Text>
             </Pressable>
           </View>
         </View>
@@ -162,7 +158,7 @@ export default function DoneScreen() {
 
 function createStyles(c: Palette) {
   return StyleSheet.create({
-    screen: { flex: 1, backgroundColor: c.bg },
+    screen: { flex: 1, backgroundColor: c.surface },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -170,52 +166,93 @@ function createStyles(c: Palette) {
       paddingTop: layout.headerTop,
       paddingBottom: layout.headerBottom,
       paddingHorizontal: layout.inset,
+      backgroundColor: c.surface,
     },
-    title: { ...font.screenTitle, color: c.ink },
+    title: {
+      ...font.headlineMedium,
+      color: c.onSurface,
+      fontWeight: '700',
+    },
     attributionButton: {
-      width: 30,
-      height: 30,
-      borderRadius: radius.control,
-      borderWidth: 1.5,
-      borderColor: c.ruleStrong,
+      width: 36,
+      height: 36,
+      borderRadius: radius.full,
+      backgroundColor: c.surfaceContainerHigh,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    attributionButtonText: { ...font.option, color: c.ink },
+    attributionButtonText: {
+      ...font.titleMedium,
+      color: c.onSurface,
+      fontWeight: '600',
+    },
     note: {
-      ...font.meta,
-      color: c.muted,
-      paddingTop: 10,
+      ...font.bodySmall,
+      color: c.onSurfaceVariant,
+      paddingTop: 12,
       paddingBottom: 24,
       paddingHorizontal: layout.inset,
+      textAlign: 'center',
+    },
+    emptyContainer: {
+      margin: layout.inset,
+      padding: space.lg,
+      backgroundColor: c.surfaceContainerLow,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: c.outlineVariant,
+      alignItems: 'center',
+    },
+    emptyTitle: {
+      ...font.titleMedium,
+      color: c.onSurface,
+      fontWeight: '600',
+      marginBottom: 6,
     },
     empty: {
-      fontSize: 14,
-      color: c.muted,
-      paddingTop: 18,
-      paddingBottom: 26,
-      paddingHorizontal: layout.inset,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: c.rule,
+      ...font.bodyMedium,
+      color: c.onSurfaceVariant,
+      textAlign: 'center',
     },
     modalBackdrop: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.5)',
+      backgroundColor: c.scrim + '66',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: layout.inset,
+      padding: space.lg,
     },
     modalCard: {
       width: '100%',
-      backgroundColor: c.bg,
-      borderWidth: 1.5,
-      borderColor: c.ruleStrong,
-      borderRadius: radius.md,
-      padding: layout.inset,
+      backgroundColor: c.surfaceContainerHigh,
+      borderRadius: radius.xl,
+      padding: space.lg,
+      ...elevation.level3,
     },
-    modalTitle: { ...font.rowTitle, color: c.ink, marginBottom: 10 },
-    modalBody: { ...font.meta, color: c.muted, marginBottom: 10 },
-    modalClose: { alignSelf: 'center', marginTop: 4, paddingVertical: 6 },
-    modalCloseText: { ...font.control, color: c.muted },
+    modalTitle: {
+      ...font.headlineSmall,
+      color: c.onSurface,
+      marginBottom: 12,
+      fontWeight: '600',
+    },
+    modalBody: {
+      ...font.bodyMedium,
+      color: c.onSurfaceVariant,
+      marginBottom: 12,
+      lineHeight: 20,
+    },
+    modalClose: {
+      alignSelf: 'flex-end',
+      marginTop: 8,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      backgroundColor: c.primary,
+      borderRadius: radius.full,
+    },
+    modalCloseText: {
+      ...font.labelLarge,
+      color: c.onPrimary,
+      fontWeight: '600',
+    },
   });
 }
+

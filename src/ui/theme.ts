@@ -1,50 +1,176 @@
 import { Platform, useColorScheme } from 'react-native';
 
 /**
- * Colour resolves per scheme (docs/design/design-language.html, "Palette"), so it
- * cannot live in a frozen object the way the metrics can. Components read it
- * through `useTheme()`; everything scheme-independent stays a plain export.
- *
- * There is no accent, danger or pause any more — the design went fully
- * achromatic. What colour used to signal (a kind label, a header action, an
- * irreversible swipe action) is now underline or weight/inversion instead;
- * see TrackRow and SwipeableTrackRow.
+ * Material Design 3 (M3) Semantic Color Palette.
+ * Derived from tonal palettes to ensure accessible contrast ratios and dynamic theming.
  */
 export type Palette = {
+  // Primary Accent
+  readonly primary: string;
+  readonly onPrimary: string;
+  readonly primaryContainer: string;
+  readonly onPrimaryContainer: string;
+
+  // Secondary Accent
+  readonly secondary: string;
+  readonly onSecondary: string;
+  readonly secondaryContainer: string;
+  readonly onSecondaryContainer: string;
+
+  // Tertiary Accent
+  readonly tertiary: string;
+  readonly onTertiary: string;
+  readonly tertiaryContainer: string;
+  readonly onTertiaryContainer: string;
+
+  // Feedback & Error
+  readonly error: string;
+  readonly onError: string;
+  readonly errorContainer: string;
+  readonly onErrorContainer: string;
+
+  // Surfaces & Base
+  readonly surface: string;
+  readonly onSurface: string;
+  readonly surfaceVariant: string;
+  readonly onSurfaceVariant: string;
+  readonly surfaceDim: string;
+  readonly surfaceBright: string;
+
+  // Surface Containers (Elevation Hierarchy)
+  readonly surfaceContainerLowest: string;
+  readonly surfaceContainerLow: string;
+  readonly surfaceContainer: string;
+  readonly surfaceContainerHigh: string;
+  readonly surfaceContainerHighest: string;
+
+  // Outlines & Borders
+  readonly outline: string;
+  readonly outlineVariant: string;
+
+  // Inverses & Scrim
+  readonly inverseSurface: string;
+  readonly inverseOnSurface: string;
+  readonly inversePrimary: string;
+  readonly scrim: string;
+  readonly shadow: string;
+
+  // Compatibility aliases
   readonly bg: string;
   readonly ink: string;
   readonly muted: string;
   readonly faint: string;
   readonly rule: string;
-  /** Bordered controls (buttons, chips, fields) draw from this, not `rule` —
-   * a list is quiet, a control is not, and the two should not share a weight. */
   readonly ruleStrong: string;
-  /** The surface behind a revealed, not-yet-inverted swipe action (Pause). */
   readonly chip: string;
 };
 
 export const palettes: { readonly light: Palette; readonly dark: Palette } = {
   light: {
-    // The colour of an e-ink panel's own film, not paper-white software
-    // convention — a grey with green in it.
-    bg: '#DCDFD0',
-    ink: '#111208',
-    muted: '#4B4F3F',
-    faint: '#767A67',
-    rule: '#C6CAB6',
-    ruleStrong: '#111208',
-    chip: '#D2D5C4',
+    // M3 Indigo / Deep Teal Key Colors (Authentic Material 3)
+    primary: '#0061A4',
+    onPrimary: '#FFFFFF',
+    primaryContainer: '#D1E4FF',
+    onPrimaryContainer: '#001D36',
+
+    secondary: '#535F70',
+    onSecondary: '#FFFFFF',
+    secondaryContainer: '#D7E3F7',
+    onSecondaryContainer: '#101C2B',
+
+    tertiary: '#6B5778',
+    onTertiary: '#FFFFFF',
+    tertiaryContainer: '#F2DAFF',
+    onTertiaryContainer: '#251431',
+
+    error: '#BA1A1A',
+    onError: '#FFFFFF',
+    errorContainer: '#FFDAD6',
+    onErrorContainer: '#410002',
+
+    surface: '#FDFBFF',
+    onSurface: '#1A1C1E',
+    surfaceVariant: '#DFE2EB',
+    onSurfaceVariant: '#43474E',
+    surfaceDim: '#D9D9E0',
+    surfaceBright: '#FDFBFF',
+
+    surfaceContainerLowest: '#FFFFFF',
+    surfaceContainerLow: '#F7F8FC',
+    surfaceContainer: '#F1F3F8',
+    surfaceContainerHigh: '#EBEFF4',
+    surfaceContainerHighest: '#E2E6EC',
+
+    outline: '#73777F',
+    outlineVariant: '#C3C7D0',
+
+    inverseSurface: '#2F3033',
+    inverseOnSurface: '#F1F0F4',
+    inversePrimary: '#9ECAFF',
+    scrim: '#000000',
+    shadow: '#000000',
+
+    // Aliases
+    bg: '#F7F8FC',
+    ink: '#1A1C1E',
+    muted: '#43474E',
+    faint: '#73777F',
+    rule: '#C3C7D0',
+    ruleStrong: '#73777F',
+    chip: '#E2E6EC',
   },
   dark: {
-    // Deliberately not tinted the way light is — e-ink is reflective and
-    // light-only, so there is no authentic dark panel to chase. Plain dark.
-    bg: '#08090B',
-    ink: '#F3F4F6',
-    muted: '#C6C9CF',
-    faint: '#8B8F97',
-    rule: '#2A2E34',
-    ruleStrong: '#F3F4F6',
-    chip: '#191C21',
+    // M3 Dark Palette (Tonal mappings for dark surfaces)
+    primary: '#9ECAFF',
+    onPrimary: '#003258',
+    primaryContainer: '#00497D',
+    onPrimaryContainer: '#D1E4FF',
+
+    secondary: '#BBC7DB',
+    onSecondary: '#253140',
+    secondaryContainer: '#3B4858',
+    onSecondaryContainer: '#D7E3F7',
+
+    tertiary: '#D7BDE4',
+    onTertiary: '#3B2948',
+    tertiaryContainer: '#523F5F',
+    onTertiaryContainer: '#F2DAFF',
+
+    error: '#FFB4AB',
+    onError: '#690005',
+    errorContainer: '#93000A',
+    onErrorContainer: '#FFDAD6',
+
+    surface: '#111318',
+    onSurface: '#E2E2E9',
+    surfaceVariant: '#43474E',
+    onSurfaceVariant: '#C3C7D0',
+    surfaceDim: '#111318',
+    surfaceBright: '#37393E',
+
+    surfaceContainerLowest: '#0C0E13',
+    surfaceContainerLow: '#191C20',
+    surfaceContainer: '#1D2024',
+    surfaceContainerHigh: '#282A2F',
+    surfaceContainerHighest: '#33353A',
+
+    outline: '#8D9199',
+    outlineVariant: '#43474E',
+
+    inverseSurface: '#E2E2E9',
+    inverseOnSurface: '#1A1C1E',
+    inversePrimary: '#0061A4',
+    scrim: '#000000',
+    shadow: '#000000',
+
+    // Aliases
+    bg: '#111318',
+    ink: '#E2E2E9',
+    muted: '#C3C7D0',
+    faint: '#8D9199',
+    rule: '#43474E',
+    ruleStrong: '#8D9199',
+    chip: '#282A2F',
   },
 };
 
@@ -52,60 +178,141 @@ export function useTheme(): Palette {
   return useColorScheme() === 'dark' ? palettes.dark : palettes.light;
 }
 
-export const space = { xs: 4, sm: 8, md: 16, lg: 24, xl: 40 } as const;
-
-export const radius = { sm: 3, md: 3, chip: 3, bar: 0, control: 3 } as const;
+export const space = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 48 } as const;
 
 /**
- * Screen metrics taken from the mockups, which are the rendered spec. The inset
- * is 20 there rather than the 24 the rhythm table names for `space.lg`; the
- * mockups win, since they are what the design was signed off against.
+ * Material 3 Shape Scale:
+ * - none: 0
+ * - xs (extraSmall): 4dp (snackbars, text field top corners)
+ * - sm (small): 8dp (chips, text fields)
+ * - md (medium): 12dp (cards, action sheets)
+ * - lg (large): 16dp (standard cards, navigation drawer)
+ * - xl (extraLarge): 28dp (dialogs, bottom sheets, FABs)
+ * - full: 9999 (pills, buttons, active navigation indicators)
  */
-export const layout = {
-  inset: 20,
-  headerTop: 28,
-  headerBottom: 14,
-  rowTop: 14,
-  rowBottom: 15,
-  /** Text column to advance control. */
-  rowGap: 16,
-  metaGap: 7,
-  progressHeight: 4,
+export const radius = {
+  none: 0,
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 28,
+  full: 9999,
+  // Backward-compatibility aliases
+  chip: 8,
+  bar: 9999,
+  control: 8,
 } as const;
 
 /**
- * The platform's own font, still — just its monospace register (SF Mono on
- * iOS, Roboto Mono on Android) rather than the proportional one. Sharper at
- * small sizes, and every glyph sits in an equal box, the way it does on the
- * e-ink panels this pass is chasing. `ui-monospace`/`Roboto Mono` are not
- * addressable through React Native's plain `fontFamily` string the way they
- * are in CSS, so this picks the closest always-available system face per
- * platform instead of bundling one.
+ * Material 3 Elevation & Shadow presets
  */
-export const monoFace = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
+export const elevation = {
+  level0: {
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  level1: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  level2: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  level3: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.22,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  level4: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  level5: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.28,
+    shadowRadius: 14,
+    elevation: 12,
+  },
+} as const;
+
+export const layout = {
+  inset: 16,
+  headerTop: 20,
+  headerBottom: 12,
+  rowTop: 12,
+  rowBottom: 12,
+  rowGap: 14,
+  metaGap: 6,
+  progressHeight: 6,
+} as const;
+
+export const systemSans = Platform.select({
+  ios: 'System',
+  android: 'Roboto',
+  default: 'System',
+});
+
+export const monoFace = Platform.select({
+  ios: 'Menlo',
+  android: 'monospace',
+  default: 'monospace',
+});
 
 /**
- * React Native only accepts weights in hundreds. The scale collapsed to three
- * stops this pass — regular, medium, bold — because a system monospace face
- * rarely ships the six-step gradient a variable proportional face does.
- * Letter-spacing dropped out everywhere except the uppercase kind label: a
- * monospace face is already an even grid, and tightening it just crowds the
- * boxes rather than closing up curves the way it did on the old face.
+ * Material 3 Typescale:
+ * 5 roles (Display, Headline, Title, Body, Label) × 3 sizes (Large, Medium, Small)
  */
 export const font = {
-  screenTitle: { fontFamily: monoFace, fontSize: 38, fontWeight: '700', letterSpacing: 0 },
-  rowTitle: { fontFamily: monoFace, fontSize: 17, fontWeight: '600', letterSpacing: 0 },
-  body: { fontFamily: monoFace, fontSize: 16, fontWeight: '400', letterSpacing: 0 },
-  option: { fontFamily: monoFace, fontSize: 17, fontWeight: '600', letterSpacing: 0 },
-  meta: { fontFamily: monoFace, fontSize: 13, fontWeight: '400', letterSpacing: 0 },
-  /** "4 of 34" — bolder than the meta line it sits beside. */
-  count: { fontFamily: monoFace, fontSize: 13, fontWeight: '600', letterSpacing: 0 },
-  control: { fontFamily: monoFace, fontSize: 13, fontWeight: '700', letterSpacing: 0 },
-  kind: { fontFamily: monoFace, fontSize: 11, fontWeight: '700', letterSpacing: 0.9 },
+  // M3 Official Scale
+  displayLarge: { fontFamily: systemSans, fontSize: 57, lineHeight: 64, fontWeight: '400' as const, letterSpacing: -0.25 },
+  displayMedium: { fontFamily: systemSans, fontSize: 45, lineHeight: 52, fontWeight: '400' as const, letterSpacing: 0 },
+  displaySmall: { fontFamily: systemSans, fontSize: 36, lineHeight: 44, fontWeight: '400' as const, letterSpacing: 0 },
+
+  headlineLarge: { fontFamily: systemSans, fontSize: 32, lineHeight: 40, fontWeight: '400' as const, letterSpacing: 0 },
+  headlineMedium: { fontFamily: systemSans, fontSize: 28, lineHeight: 36, fontWeight: '400' as const, letterSpacing: 0 },
+  headlineSmall: { fontFamily: systemSans, fontSize: 24, lineHeight: 32, fontWeight: '400' as const, letterSpacing: 0 },
+
+  titleLarge: { fontFamily: systemSans, fontSize: 22, lineHeight: 28, fontWeight: '500' as const, letterSpacing: 0 },
+  titleMedium: { fontFamily: systemSans, fontSize: 16, lineHeight: 24, fontWeight: '500' as const, letterSpacing: 0.15 },
+  titleSmall: { fontFamily: systemSans, fontSize: 14, lineHeight: 20, fontWeight: '500' as const, letterSpacing: 0.1 },
+
+  bodyLarge: { fontFamily: systemSans, fontSize: 16, lineHeight: 24, fontWeight: '400' as const, letterSpacing: 0.5 },
+  bodyMedium: { fontFamily: systemSans, fontSize: 14, lineHeight: 20, fontWeight: '400' as const, letterSpacing: 0.25 },
+  bodySmall: { fontFamily: systemSans, fontSize: 12, lineHeight: 16, fontWeight: '400' as const, letterSpacing: 0.4 },
+
+  labelLarge: { fontFamily: systemSans, fontSize: 14, lineHeight: 20, fontWeight: '500' as const, letterSpacing: 0.1 },
+  labelMedium: { fontFamily: systemSans, fontSize: 12, lineHeight: 16, fontWeight: '500' as const, letterSpacing: 0.5 },
+  labelSmall: { fontFamily: systemSans, fontSize: 11, lineHeight: 16, fontWeight: '500' as const, letterSpacing: 0.5 },
+
+  // Compatibility aliases
+  screenTitle: { fontFamily: systemSans, fontSize: 28, lineHeight: 36, fontWeight: '600' as const, letterSpacing: 0 },
+  rowTitle: { fontFamily: systemSans, fontSize: 16, lineHeight: 24, fontWeight: '600' as const, letterSpacing: 0.15 },
+  body: { fontFamily: systemSans, fontSize: 14, lineHeight: 20, fontWeight: '400' as const, letterSpacing: 0.25 },
+  option: { fontFamily: systemSans, fontSize: 16, lineHeight: 24, fontWeight: '500' as const, letterSpacing: 0.15 },
+  meta: { fontFamily: systemSans, fontSize: 12, lineHeight: 16, fontWeight: '400' as const, letterSpacing: 0.25 },
+  count: { fontFamily: systemSans, fontSize: 12, lineHeight: 16, fontWeight: '600' as const, letterSpacing: 0.25 },
+  control: { fontFamily: systemSans, fontSize: 14, lineHeight: 20, fontWeight: '600' as const, letterSpacing: 0.1 },
+  kind: { fontFamily: systemSans, fontSize: 11, lineHeight: 14, fontWeight: '700' as const, letterSpacing: 0.5 },
 } as const;
 
-/** Shared so every underline in the app reads as the same one mark, not a
- * handful of similar-but-not-identical ones. */
 export const underline = {
-  textDecorationLine: 'underline',
+  textDecorationLine: 'none',
 } as const;
+

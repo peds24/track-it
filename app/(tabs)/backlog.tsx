@@ -7,11 +7,12 @@ import {
   deleteTrack,
   resumeTrack,
   returnTrackToBacklog,
-  type TrackSummary, } from '@/data/trackRepo';
+  type TrackSummary,
+} from '@/data/trackRepo';
 import type { Category } from '@/domain/types';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { FilterBar } from '@/ui/FilterBar';
-import { font, layout, useTheme, type Palette } from '@/ui/theme';
+import { font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
 import { SwipeableTrackRow } from '@/ui/SwipeableTrackRow';
 import { useTracks } from '@/ui/useTracks';
 
@@ -22,7 +23,6 @@ export default function BacklogScreen() {
   const [category, setCategory] = useState<Category | null>(null);
   const { tracks, reload } = useTracks('backlog', category ?? undefined);
 
-  /** A failed read has to reach the user; an unhandled rejection would not. */
   const reloadSafely = useCallback(async () => {
     try {
       await reload();
@@ -37,13 +37,6 @@ export default function BacklogScreen() {
     }, [reloadSafely]),
   );
 
-  /**
-   * Mirrors the Currently screen: `onAdvance` is fire-and-forget, so a stale tap
-   * can hit an entry that is already done and throw — surface it, and reload
-   * either way so the list resynchronises with what is actually stored. The
-   * reload sits after the try rather than inside a `finally`, where its own
-   * rejection would escape the catch above it and go unhandled.
-   */
   function handleAdvance(entryId: string): void {
     void (async () => {
       try {
@@ -102,14 +95,21 @@ export default function BacklogScreen() {
       <FlatList
         data={tracks}
         keyExtractor={(t) => `${t.kind}:${t.id}`}
-        renderItem={({ item }) => <SwipeableTrackRow
+        renderItem={({ item }) => (
+          <SwipeableTrackRow
             track={item}
             onAdvance={handleAdvance}
             onResume={handleResume}
             onDelete={handleDelete}
             onReturnToBacklog={handleReturnToBacklog}
-          />}
-        ListEmptyComponent={<Text style={styles.empty}>Nothing here yet.</Text>}
+          />
+        )}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyTitle}>Nothing here yet</Text>
+            <Text style={styles.empty}>Tracks in your backlog will appear here.</Text>
+          </View>
+        }
       />
     </SafeAreaView>
   );
@@ -117,21 +117,38 @@ export default function BacklogScreen() {
 
 function createStyles(c: Palette) {
   return StyleSheet.create({
-    screen: { flex: 1, backgroundColor: c.bg },
+    screen: { flex: 1, backgroundColor: c.surface },
     header: {
       paddingTop: layout.headerTop,
       paddingBottom: layout.headerBottom,
       paddingHorizontal: layout.inset,
+      backgroundColor: c.surface,
     },
-    title: { ...font.screenTitle, color: c.ink },
+    title: {
+      ...font.headlineMedium,
+      color: c.onSurface,
+      fontWeight: '700',
+    },
+    emptyContainer: {
+      margin: layout.inset,
+      padding: space.lg,
+      backgroundColor: c.surfaceContainerLow,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: c.outlineVariant,
+      alignItems: 'center',
+    },
+    emptyTitle: {
+      ...font.titleMedium,
+      color: c.onSurface,
+      fontWeight: '600',
+      marginBottom: 6,
+    },
     empty: {
-      fontSize: 14,
-      color: c.muted,
-      paddingTop: 18,
-      paddingBottom: 26,
-      paddingHorizontal: layout.inset,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: c.rule,
+      ...font.bodyMedium,
+      color: c.onSurfaceVariant,
+      textAlign: 'center',
     },
   });
 }
+

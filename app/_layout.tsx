@@ -10,17 +10,14 @@ export default function RootLayout() {
 
   return (
     <DatabaseProvider>
-      {/* The navigator draws its own header on the add modal, and it does not
-          inherit the app's palette — left alone it stays white with black text
-          on a dark ground. Every colour it uses comes from the theme. */}
       <Stack
         screenOptions={{
           headerShown: false,
-          headerStyle: { backgroundColor: c.bg },
-          headerTintColor: c.ink,
-          headerTitleStyle: { color: c.ink, ...font.rowTitle },
+          headerStyle: { backgroundColor: c.surface },
+          headerTintColor: c.onSurface,
+          headerTitleStyle: { color: c.onSurface, ...font.titleLarge },
           headerShadowVisible: false,
-          contentStyle: { backgroundColor: c.bg },
+          contentStyle: { backgroundColor: c.surface },
         }}
       >
         <Stack.Screen name="(tabs)" />
@@ -30,9 +27,8 @@ export default function RootLayout() {
         />
       </Stack>
 
-      {/* Light glyphs on a dark ground, and the reverse — without this the
-          clock and battery are invisible in one of the two themes. */}
       <StatusBar style={dark ? 'light' : 'dark'} />
     </DatabaseProvider>
   );
 }
+

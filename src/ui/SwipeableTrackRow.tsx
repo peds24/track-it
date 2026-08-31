@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { Alert, Animated, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { TrackSummary } from '@/data/trackRepo';
-import { font, layout, radius, space, underline, useTheme, type Palette } from '@/ui/theme';
+import { font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
 import { TrackRow } from '@/ui/TrackRow';
 
 const ACTION_WIDTH = 96;
@@ -11,30 +11,10 @@ const LATCH = 64;
 const SLOP = 10;
 /**
  * Drag past this and release fires the action immediately — the row snaps
- * shut and the action runs, with no second tap on a revealed button. A drag
- * that stops short of it still just latches the button open, so a partial
- * swipe stays undo-able right up until something is actually pressed.
+ * shut and the action runs.
  */
 const FULL_SWIPE = ACTION_WIDTH * 1.8;
 
-/**
- * A row with two actions behind a swipe: drag right to pause (or, once a
- * track is already finished, to reset it back to the backlog), drag left to
- * delete. Both are one-gesture operations — drag far enough and releasing
- * fires the action, exactly like Mail's full-swipe-to-archive. A shorter drag
- * still latches the row open so the button can be tapped instead.
- *
- * Only delete confirms. Pausing used to mean "confirm, because the progress
- * cannot come back" (D4) — now it can (A6, Resume), so a paused track is not
- * destroying anything and needs no dialog in the way. Resetting an already
- * finished track still does, since that really does erase its history.
- *
- * Built on PanResponder rather than a gesture library on purpose. The
- * gesture-handler package's native API is not present in the Expo Go binary,
- * so a Swipeable there fails at runtime with "undefined is not a function".
- * PanResponder ships inside React Native itself and behaves the same in Expo
- * Go and in a standalone build.
- */
 export function SwipeableTrackRow({
   track,
   onAdvance,
@@ -48,7 +28,6 @@ export function SwipeableTrackRow({
   onResume: (track: TrackSummary) => void;
   onDelete: (track: TrackSummary) => void;
   onReturnToBacklog: (track: TrackSummary) => void;
-  /** A12: forwarded straight through — the editor belongs to the screen. */
   onEditProgress?: (track: TrackSummary) => void;
 }) {
   const c = useTheme();
@@ -72,10 +51,7 @@ export function SwipeableTrackRow({
 
   const close = useCallback(() => settle(0), [settle]);
 
-  // A backlog track has nowhere to go back to, so it reveals no left action.
   const canReturn = track.shelf !== 'backlog';
-  // A6: only a track with nothing left to finish gets the old D4 reset —
-  // everything still in progress is paused instead, and needs no confirmation.
   const resetting = track.shelf === 'done';
 
   const confirmDelete = useCallback(() => {
@@ -101,7 +77,6 @@ export function SwipeableTrackRow({
 
   const triggerReturn = useCallback(() => {
     if (!resetting) {
-      // Reversible — Resume undoes it — so there is nothing to confirm.
       close();
       onReturnToBacklog(track);
       return;
@@ -127,22 +102,15 @@ export function SwipeableTrackRow({
   const pan = useMemo(
     () =>
       PanResponder.create({
-        // Claim only clearly horizontal drags, so the list still scrolls.
         onMoveShouldSetPanResponder: (_e, g) =>
           Math.abs(g.dx) > SLOP && Math.abs(g.dx) > Math.abs(g.dy) * 1.5,
         onPanResponderMove: (_e, g) => {
-          // Let the drag travel all the way to FULL_SWIPE, not just
-          // ACTION_WIDTH, so the row keeps sliding as you approach the
-          // trigger point instead of stalling under your finger.
           const next = offset.current + g.dx;
           const clamped = Math.max(-FULL_SWIPE, Math.min(canReturn ? FULL_SWIPE : 0, next));
           translateX.setValue(clamped);
         },
         onPanResponderRelease: (_e, g) => {
           const next = offset.current + g.dx;
-          // A full-length drag fires the action on release — one gesture, no
-          // second tap on the revealed button. A shorter drag just latches
-          // the button open.
           if (canReturn && next > FULL_SWIPE) {
             settle(0);
             triggerReturn();
@@ -189,8 +157,6 @@ export function SwipeableTrackRow({
         </Pressable>
       </View>
 
-      {/* Opaque: it slides over the actions, and a transparent row would show
-          both layers at once. */}
       <Animated.View
         style={[styles.surface, { transform: [{ translateX }] }]}
         {...pan.panHandlers}
@@ -224,23 +190,32 @@ function createStyles(c: Palette) {
       justifyContent: 'center',
       paddingHorizontal: layout.inset,
       marginVertical: space.xs,
-      borderRadius: radius.control,
+      borderRadius: radius.md,
     },
-    // No colour left to tell "reversible" from "destructive" — weight does
-    // that job now. Pause stays as light as the row behind it; delete
-    // inverts to a solid block of ink, the heaviest mark on the screen,
-    // because it is the one action here that cannot be undone.
-    //
-    // Positioned absolutely on each side, not with flexbox space-between —
-    // Delete renders alone whenever a track is already in the backlog
-    // (`canReturn` is false), and space-between collapses a lone child to
-    // the start of the row rather than the end, leaving the swipe revealing
-    // empty space instead of the button.
-    pauseAction: { left: 0, backgroundColor: c.chip, marginLeft: space.sm },
-    deleteAction: { right: 0, backgroundColor: c.ink, marginRight: space.sm, alignItems: 'flex-end' },
-    actionText: { ...font.control, color: c.ink },
-    pauseText: { ...underline },
-    deleteText: { color: c.bg },
-    surface: { backgroundColor: c.bg },
+    pauseAction: {
+      left: 0,
+      backgroundColor: c.secondaryContainer,
+      marginLeft: space.xs,
+    },
+    deleteAction: {
+      right: 0,
+      backgroundColor: c.errorContainer,
+      marginRight: space.xs,
+      alignItems: 'flex-end',
+    },
+    actionText: {
+      ...font.labelLarge,
+      fontWeight: '600',
+    },
+    pauseText: {
+      color: c.onSecondaryContainer,
+    },
+    deleteText: {
+      color: c.onErrorContainer,
+    },
+    surface: {
+      backgroundColor: c.surface,
+    },
   });
 }
+
