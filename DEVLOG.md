@@ -33,12 +33,14 @@
 - **Row Advance Action**: Switched row advance (`Done`/`Start`/`Resume`) to an outlined pill button (`borderWidth: 1.5`, `borderColor: c.primary`) to visually separate it from the filled `+ Add` primary action.
 - **Category Grouping on Currently**: Grouped tracks on the Currently screen by their categories following the Add page order (Shows -> Movies -> Books -> Comics -> Manga). Each group features a subtitle header with vector icon badges and count chips. Advancing an item (`Done`) dynamically bubbles that item to the top within its category group while retaining stable category section placement.
 - **Medium Badge Cleanliness**: Kept row-level medium badges purely typographic (`SHOW`, `MOVIE`, `BOOK`, `COMIC`, `MANGA`) within a subtle `surfaceContainerHigh` badge for reduced visual noise alongside section icons.
+- **Category Header Typography Hierarchy**: Scaled category section header titles to 19dp (`fontWeight: '700'`), establishing a clear typographic hierarchy between the screen title ("Currently" at 28dp) and item titles ("Severance" at 16dp).
 - **Swipe Actions Redesign & Animations**:
   - **Direction-Isolated Backgrounds**: Added animated opacity masks separating left and right action containers to eliminate color bleed-through.
   - **Vector Icons & Semantic Labels**: Integrated Material vector icons (`pause-circle`, `bookmark`, `trash`, `create`) alongside bold labels for clear visual identification.
   - **Instant Quick Swipe Activation**: A quick right swipe past threshold (28dp) immediately pauses/returns the track to the backlog on release without requiring a manual tap.
   - **Left Swipe**: Quick swipe left opens the **Edit** progress editor dialog immediately.
   - **2-Step Right Swipe with Fluid Transition**: Quick drag (< 175dp) keeps Pause/Backlog active and clearly visible from early in the drag. A long, deep drag (>= 175dp) dynamically morphs the background (`secondaryContainer` $\rightarrow$ `errorContainer`), crossfades to Delete with a scale-up pop, and triggers the delete confirmation upon release.
+
 
 
 

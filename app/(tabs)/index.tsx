@@ -13,7 +13,7 @@ import {
 } from '@/data/trackRepo';
 import type { Category } from '@/domain/types';
 import { useDatabase } from '@/ui/DatabaseProvider';
-import { elevation, font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
+import { elevation, font, googleSans, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
 import { ProgressEditor } from '@/ui/ProgressEditor';
 import { SwipeableTrackRow } from '@/ui/SwipeableTrackRow';
 import { useTracks } from '@/ui/useTracks';
@@ -144,7 +144,7 @@ export default function CurrentlyScreen() {
         renderSectionHeader={({ section }) => (
           <View style={styles.sectionHeader}>
             <View style={styles.sectionIconBadge}>
-              <Ionicons name={section.iconName} size={13} color={palette.primary} />
+              <Ionicons name={section.iconName} size={15} color={palette.primary} />
             </View>
             <Text style={styles.sectionTitle}>{section.title}</Text>
             <Text style={styles.sectionCount}>{section.data.length}</Text>
@@ -217,31 +217,34 @@ function createStyles(c: Palette) {
     sectionHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingTop: 18,
-      paddingBottom: 8,
+      paddingTop: 22,
+      paddingBottom: 10,
       paddingHorizontal: layout.inset,
       backgroundColor: c.surface,
-      gap: 8,
+      gap: 10,
     },
     sectionIconBadge: {
-      width: 24,
-      height: 24,
+      width: 28,
+      height: 28,
       borderRadius: radius.xs,
       backgroundColor: c.surfaceContainerHigh,
       alignItems: 'center',
       justifyContent: 'center',
     },
     sectionTitle: {
-      ...font.titleSmall,
+      fontFamily: googleSans,
+      fontSize: 19,
+      lineHeight: 26,
       color: c.onSurface,
       fontWeight: '700',
+      letterSpacing: -0.15,
     },
     sectionCount: {
-      ...font.labelSmall,
+      ...font.labelMedium,
       color: c.onSurfaceVariant,
       backgroundColor: c.surfaceContainerHigh,
-      paddingHorizontal: 6,
-      paddingVertical: 1,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
       borderRadius: radius.full,
       fontVariant: ['tabular-nums'],
     },
