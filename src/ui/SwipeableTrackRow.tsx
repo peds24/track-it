@@ -6,13 +6,13 @@ import { font, useTheme, type Palette } from '@/ui/theme';
 import { TrackRow } from '@/ui/TrackRow';
 
 /** Threshold for quick swipe activation. */
-const LATCH = 40;
+const LATCH = 28;
 /** Below this the gesture is treated as a list scroll, not a swipe. */
 const SLOP = 10;
 /** Deep swipe threshold on right swipe that transitions from Backlog/Pause to Delete. */
-const DELETE_THRESHOLD = 130;
+const DELETE_THRESHOLD = 175;
 /** Maximum swipe distances. */
-const MAX_SWIPE_RIGHT = 220;
+const MAX_SWIPE_RIGHT = 260;
 const MAX_SWIPE_LEFT = 160;
 
 export function SwipeableTrackRow({
@@ -128,7 +128,7 @@ export function SwipeableTrackRow({
   // Smooth background color & text transitions between Backlog/Pause and Delete
   const containerBg = canReturn
     ? translateX.interpolate({
-        inputRange: [0, 60, 115, 140],
+        inputRange: [0, 100, 150, 180],
         outputRange: [c.secondaryContainer, c.secondaryContainer, c.errorContainer, c.errorContainer],
         extrapolate: 'clamp',
       })
@@ -136,15 +136,15 @@ export function SwipeableTrackRow({
 
   const pauseOpacity = canReturn
     ? translateX.interpolate({
-        inputRange: [0, 50, 105, 125],
-        outputRange: [1, 1, 0.1, 0],
+        inputRange: [0, 30, 130, 160],
+        outputRange: [1, 1, 0.2, 0],
         extrapolate: 'clamp',
       })
     : 0;
 
   const deleteOpacity = canReturn
     ? translateX.interpolate({
-        inputRange: [0, 65, 115, 140],
+        inputRange: [0, 120, 155, 180],
         outputRange: [0, 0, 0.85, 1],
         extrapolate: 'clamp',
       })
@@ -152,11 +152,12 @@ export function SwipeableTrackRow({
 
   const deleteScale = canReturn
     ? translateX.interpolate({
-        inputRange: [65, 125, 170],
-        outputRange: [0.75, 1, 1.08],
+        inputRange: [120, 175, 220],
+        outputRange: [0.75, 1, 1.1],
         extrapolate: 'clamp',
       })
     : 1;
+
 
   const pan = useMemo(
     () =>

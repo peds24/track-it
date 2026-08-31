@@ -36,9 +36,10 @@
 - **Swipe Actions Redesign & Animations**:
   - **Direction-Isolated Backgrounds**: Added animated opacity masks separating left and right action containers to eliminate color bleed-through.
   - **Vector Icons & Semantic Labels**: Integrated Material vector icons (`pause-circle`, `bookmark`, `trash`, `create`) alongside bold labels for clear visual identification.
-  - **Instant Quick Swipe Activation**: A quick right swipe past threshold immediately pauses/returns the track to the backlog on release without requiring a manual tap.
+  - **Instant Quick Swipe Activation**: A quick right swipe past threshold (28dp) immediately pauses/returns the track to the backlog on release without requiring a manual tap.
   - **Left Swipe**: Quick swipe left opens the **Edit** progress editor dialog immediately.
-  - **2-Step Right Swipe with Fluid Transition**: Quick drag (< 130dp) pauses/moves to backlog. A longer, deeper drag (>= 130dp) dynamically morphs the background (`secondaryContainer` $\rightarrow$ `errorContainer`), crossfades to Delete with a scale-up pop, and triggers the delete confirmation upon release.
+  - **2-Step Right Swipe with Fluid Transition**: Quick drag (< 175dp) keeps Pause/Backlog active and clearly visible from early in the drag. A long, deep drag (>= 175dp) dynamically morphs the background (`secondaryContainer` $\rightarrow$ `errorContainer`), crossfades to Delete with a scale-up pop, and triggers the delete confirmation upon release.
+
 
 
 
