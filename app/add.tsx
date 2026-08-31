@@ -1,4 +1,5 @@
 import { CameraView, useCameraPermissions, type BarcodeType } from 'expo-camera';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -22,13 +23,18 @@ const BARCODE_TYPES: Partial<Record<Category, BarcodeType[]>> = {
 
 const SEARCH_DEBOUNCE_MS = 300;
 
-const CATEGORIES: readonly { value: Category; label: string; icon: string }[] = [
-  { value: 'show', label: 'Show', icon: '📺' },
-  { value: 'movie', label: 'Movie', icon: '🎬' },
-  { value: 'book', label: 'Book', icon: '📖' },
-  { value: 'comic', label: 'Comic', icon: '💥' },
-  { value: 'manga', label: 'Manga', icon: '🍙' },
+const CATEGORIES: readonly {
+  value: Category;
+  label: string;
+  iconName: keyof typeof Ionicons.glyphMap;
+}[] = [
+  { value: 'show', label: 'Show', iconName: 'tv-outline' },
+  { value: 'movie', label: 'Movie', iconName: 'film-outline' },
+  { value: 'book', label: 'Book', iconName: 'book-outline' },
+  { value: 'comic', label: 'Comic', iconName: 'sparkles-outline' },
+  { value: 'manga', label: 'Manga', iconName: 'library-outline' },
 ];
+
 
 export default function AddTrackScreen() {
   const db = useDatabase();
@@ -275,8 +281,16 @@ export default function AddTrackScreen() {
               onPress={() => setCategory(c.value)}
               android_ripple={{ color: palette.surfaceContainerHighest }}
             >
-              <Text style={styles.optionIcon}>{c.icon}</Text>
+              <View style={styles.optionIconContainer}>
+                <Ionicons name={c.iconName} size={22} color={palette.primary} />
+              </View>
               <Text style={styles.optionText}>{c.label}</Text>
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={palette.outline}
+                style={styles.optionChevron}
+              />
             </Pressable>
           ))}
         </View>
@@ -349,7 +363,13 @@ export default function AddTrackScreen() {
           accessibilityRole="button"
           android_ripple={{ color: palette.surfaceContainerHighest }}
         >
-          <Text style={styles.scanButtonText}>📷 Scan barcode</Text>
+          <Ionicons
+            name="barcode-outline"
+            size={18}
+            color={palette.onSurface}
+            style={{ marginRight: 6 }}
+          />
+          <Text style={styles.scanButtonText}>Scan barcode</Text>
         </Pressable>
       )}
 
@@ -397,8 +417,14 @@ export default function AddTrackScreen() {
           onPress={() => setOngoing((v) => !v)}
           style={[styles.toggle, ongoing && styles.toggleOn]}
         >
+          <Ionicons
+            name={ongoing ? 'checkmark-circle' : 'add-circle-outline'}
+            size={18}
+            color={ongoing ? palette.onSecondaryContainer : palette.onSurfaceVariant}
+            style={{ marginRight: 6 }}
+          />
           <Text style={[styles.toggleText, ongoing && styles.toggleTextOn]}>
-            {ongoing ? '✓ Ongoing series' : '+ Ongoing series'}
+            Ongoing series
           </Text>
         </Pressable>
       )}
@@ -489,21 +515,30 @@ function createStyles(c: Palette) {
     optionCard: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 14,
+      paddingVertical: 12,
       paddingHorizontal: 16,
       backgroundColor: c.surfaceContainerLow,
       borderRadius: radius.md,
       borderWidth: 1,
       borderColor: c.outlineVariant,
-      gap: 12,
     },
-    optionIcon: {
-      fontSize: 20,
+    optionIconContainer: {
+      width: 40,
+      height: 40,
+      borderRadius: radius.sm,
+      backgroundColor: c.surfaceContainerHigh,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 14,
     },
     optionText: {
       ...font.titleMedium,
       color: c.onSurface,
       fontWeight: '600',
+      flex: 1,
+    },
+    optionChevron: {
+      marginLeft: 8,
     },
     input: {
       ...font.bodyLarge,
@@ -519,6 +554,8 @@ function createStyles(c: Palette) {
       borderRadius: radius.sm,
     },
     toggle: {
+      flexDirection: 'row',
+      alignItems: 'center',
       alignSelf: 'flex-start',
       marginHorizontal: layout.inset,
       marginBottom: 16,
@@ -622,6 +659,8 @@ function createStyles(c: Palette) {
       color: c.onSurface,
     },
     scanButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
       alignSelf: 'flex-start',
       marginHorizontal: layout.inset,
       marginBottom: 12,

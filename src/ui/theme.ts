@@ -263,11 +263,13 @@ export const layout = {
   progressHeight: 6,
 } as const;
 
-export const systemSans = Platform.select({
-  ios: 'System',
-  android: 'Roboto',
-  default: 'System',
+export const googleSans = Platform.select({
+  ios: 'Google Sans',
+  android: 'Google Sans',
+  default: 'Google Sans, Roboto, -apple-system, sans-serif',
 });
+
+export const systemSans = googleSans;
 
 export const monoFace = Platform.select({
   ios: 'Menlo',
@@ -278,38 +280,39 @@ export const monoFace = Platform.select({
 /**
  * Material 3 Typescale:
  * 5 roles (Display, Headline, Title, Body, Label) × 3 sizes (Large, Medium, Small)
+ * Powered by Google Sans.
  */
 export const font = {
   // M3 Official Scale
-  displayLarge: { fontFamily: systemSans, fontSize: 57, lineHeight: 64, fontWeight: '400' as const, letterSpacing: -0.25 },
-  displayMedium: { fontFamily: systemSans, fontSize: 45, lineHeight: 52, fontWeight: '400' as const, letterSpacing: 0 },
-  displaySmall: { fontFamily: systemSans, fontSize: 36, lineHeight: 44, fontWeight: '400' as const, letterSpacing: 0 },
+  displayLarge: { fontFamily: googleSans, fontSize: 57, lineHeight: 64, fontWeight: '400' as const, letterSpacing: -0.25 },
+  displayMedium: { fontFamily: googleSans, fontSize: 45, lineHeight: 52, fontWeight: '400' as const, letterSpacing: 0 },
+  displaySmall: { fontFamily: googleSans, fontSize: 36, lineHeight: 44, fontWeight: '400' as const, letterSpacing: 0 },
 
-  headlineLarge: { fontFamily: systemSans, fontSize: 32, lineHeight: 40, fontWeight: '400' as const, letterSpacing: 0 },
-  headlineMedium: { fontFamily: systemSans, fontSize: 28, lineHeight: 36, fontWeight: '400' as const, letterSpacing: 0 },
-  headlineSmall: { fontFamily: systemSans, fontSize: 24, lineHeight: 32, fontWeight: '400' as const, letterSpacing: 0 },
+  headlineLarge: { fontFamily: googleSans, fontSize: 32, lineHeight: 40, fontWeight: '400' as const, letterSpacing: 0 },
+  headlineMedium: { fontFamily: googleSans, fontSize: 28, lineHeight: 36, fontWeight: '400' as const, letterSpacing: 0 },
+  headlineSmall: { fontFamily: googleSans, fontSize: 24, lineHeight: 32, fontWeight: '400' as const, letterSpacing: 0 },
 
-  titleLarge: { fontFamily: systemSans, fontSize: 22, lineHeight: 28, fontWeight: '500' as const, letterSpacing: 0 },
-  titleMedium: { fontFamily: systemSans, fontSize: 16, lineHeight: 24, fontWeight: '500' as const, letterSpacing: 0.15 },
-  titleSmall: { fontFamily: systemSans, fontSize: 14, lineHeight: 20, fontWeight: '500' as const, letterSpacing: 0.1 },
+  titleLarge: { fontFamily: googleSans, fontSize: 22, lineHeight: 28, fontWeight: '500' as const, letterSpacing: 0 },
+  titleMedium: { fontFamily: googleSans, fontSize: 16, lineHeight: 24, fontWeight: '500' as const, letterSpacing: 0.15 },
+  titleSmall: { fontFamily: googleSans, fontSize: 14, lineHeight: 20, fontWeight: '500' as const, letterSpacing: 0.1 },
 
-  bodyLarge: { fontFamily: systemSans, fontSize: 16, lineHeight: 24, fontWeight: '400' as const, letterSpacing: 0.5 },
-  bodyMedium: { fontFamily: systemSans, fontSize: 14, lineHeight: 20, fontWeight: '400' as const, letterSpacing: 0.25 },
-  bodySmall: { fontFamily: systemSans, fontSize: 12, lineHeight: 16, fontWeight: '400' as const, letterSpacing: 0.4 },
+  bodyLarge: { fontFamily: googleSans, fontSize: 16, lineHeight: 24, fontWeight: '400' as const, letterSpacing: 0.5 },
+  bodyMedium: { fontFamily: googleSans, fontSize: 14, lineHeight: 20, fontWeight: '400' as const, letterSpacing: 0.25 },
+  bodySmall: { fontFamily: googleSans, fontSize: 12, lineHeight: 16, fontWeight: '400' as const, letterSpacing: 0.4 },
 
-  labelLarge: { fontFamily: systemSans, fontSize: 14, lineHeight: 20, fontWeight: '500' as const, letterSpacing: 0.1 },
-  labelMedium: { fontFamily: systemSans, fontSize: 12, lineHeight: 16, fontWeight: '500' as const, letterSpacing: 0.5 },
-  labelSmall: { fontFamily: systemSans, fontSize: 11, lineHeight: 16, fontWeight: '500' as const, letterSpacing: 0.5 },
+  labelLarge: { fontFamily: googleSans, fontSize: 14, lineHeight: 20, fontWeight: '500' as const, letterSpacing: 0.1 },
+  labelMedium: { fontFamily: googleSans, fontSize: 12, lineHeight: 16, fontWeight: '500' as const, letterSpacing: 0.5 },
+  labelSmall: { fontFamily: googleSans, fontSize: 11, lineHeight: 16, fontWeight: '500' as const, letterSpacing: 0.5 },
 
   // Compatibility aliases
-  screenTitle: { fontFamily: systemSans, fontSize: 28, lineHeight: 36, fontWeight: '600' as const, letterSpacing: 0 },
-  rowTitle: { fontFamily: systemSans, fontSize: 16, lineHeight: 24, fontWeight: '600' as const, letterSpacing: 0.15 },
-  body: { fontFamily: systemSans, fontSize: 14, lineHeight: 20, fontWeight: '400' as const, letterSpacing: 0.25 },
-  option: { fontFamily: systemSans, fontSize: 16, lineHeight: 24, fontWeight: '500' as const, letterSpacing: 0.15 },
-  meta: { fontFamily: systemSans, fontSize: 12, lineHeight: 16, fontWeight: '400' as const, letterSpacing: 0.25 },
-  count: { fontFamily: systemSans, fontSize: 12, lineHeight: 16, fontWeight: '600' as const, letterSpacing: 0.25 },
-  control: { fontFamily: systemSans, fontSize: 14, lineHeight: 20, fontWeight: '600' as const, letterSpacing: 0.1 },
-  kind: { fontFamily: systemSans, fontSize: 11, lineHeight: 14, fontWeight: '700' as const, letterSpacing: 0.5 },
+  screenTitle: { fontFamily: googleSans, fontSize: 28, lineHeight: 36, fontWeight: '600' as const, letterSpacing: 0 },
+  rowTitle: { fontFamily: googleSans, fontSize: 16, lineHeight: 24, fontWeight: '600' as const, letterSpacing: 0.15 },
+  body: { fontFamily: googleSans, fontSize: 14, lineHeight: 20, fontWeight: '400' as const, letterSpacing: 0.25 },
+  option: { fontFamily: googleSans, fontSize: 16, lineHeight: 24, fontWeight: '500' as const, letterSpacing: 0.15 },
+  meta: { fontFamily: googleSans, fontSize: 12, lineHeight: 16, fontWeight: '400' as const, letterSpacing: 0.25 },
+  count: { fontFamily: googleSans, fontSize: 12, lineHeight: 16, fontWeight: '600' as const, letterSpacing: 0.25 },
+  control: { fontFamily: googleSans, fontSize: 14, lineHeight: 20, fontWeight: '600' as const, letterSpacing: 0.1 },
+  kind: { fontFamily: googleSans, fontSize: 11, lineHeight: 14, fontWeight: '700' as const, letterSpacing: 0.5 },
 } as const;
 
 export const underline = {
