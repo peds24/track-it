@@ -51,6 +51,28 @@ A local-only mobile app for tracking shows, movies, books, comics, and manga bui
 - `src/ui/`: Reusable theme tokens, hooks, supporting UI components.
 - `app/`: Expo Router file-based screens (tabs, modals).
 
+### Landing Page & GitHub Pages
+- `docs/index.html` (plus `docs/design/`, `docs/archive/`, `docs/screenshots/`) is the source for
+  the project's landing page. It is versioned on `main` like any other file — edit it on a normal
+  feature branch, PR it in.
+- **The live site does not read from `main`.** GitHub Pages for this repo is configured to build
+  from the **`gh-pages` branch, root path** (`gh-pages -> https://peds24.github.io/track-it/`),
+  a separate orphan history from `main`. Merging a `docs/` change into `main` has **zero effect**
+  on the live site by itself.
+- Every landing page change that should go live needs a **second, separate publish step** once it
+  has landed on `main` (or sooner, if you want to preview it live before merging):
+  1. `git worktree add .gh-pages-publish gh-pages` (a throwaway worktree — remove it after).
+  2. Copy the updated files over the matching root-level paths: `docs/index.html` → `index.html`,
+     `docs/design/*.html` → `design/*.html`, `docs/archive/**` → `archive/**`,
+     `docs/screenshots/*` → `screenshots/*`. Relative links/`<img>` paths are written assuming
+     this flattened root layout, not the `docs/` prefix.
+  3. Commit and `git push origin gh-pages` directly — no PR review step for this branch, it is a
+     deploy target, not source code.
+  4. `git worktree remove .gh-pages-publish`.
+- Do not skip step 3 and call the work done because `docs/index.html` looks right on `main` — that
+  is the single most common way this page goes stale (it has happened before this instruction was
+  added).
+
 ---
 
 ## 3. Development & Verification Commands
