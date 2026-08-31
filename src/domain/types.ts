@@ -4,8 +4,11 @@ export type Category = 'show' | 'movie' | 'book' | 'comic' | 'manga';
 /** The unit a series is tracked in (D1). */
 export type UnitLabel = 'episode' | 'issue' | 'volume';
 
-/** What a single trackable entry is. */
-export type EntryMediaType = UnitLabel | 'book' | 'movie';
+/** What a single trackable entry is. A16: `comic` joins `book`/`movie` as a
+ * standalone type — a collected edition (TPB/hardcover/omnibus) tracks as
+ * one item, not an issue series, despite `comic`'s *category* still having
+ * a series unit label (`issue`) for the single-issue path. */
+export type EntryMediaType = UnitLabel | 'book' | 'movie' | 'comic';
 
 /** Consumption mode — derived from EntryMediaType, never stored. */
 export type Mode = 'watch' | 'read';

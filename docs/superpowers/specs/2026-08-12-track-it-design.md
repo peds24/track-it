@@ -778,6 +778,320 @@ addTrack.ts` (hydrate and save no longer happen in the same
 uninterruptible call), `src/ui/TrackRow.tsx` (segmented bar, season-
 scoped meta label).
 
+**A12 — Starting mid-series backfills what came before as done, reversing
+part of A10.** A10's ordinal-start ("Saga #12" → start at issue 12) only
+ever marked the *named* entry `in_progress`; issues 1–11 stayed
+`unstarted`. That was tested and deliberate at the time, but surfaced as
+two compounding bugs once A11's manga barcode scan started feeding it real
+data: scanning volume 29 of a 34-volume series reported progress as "0 of
+34" with an empty bar, and finishing volume 29 sent `nextEntry()` back to
+the lowest *unstarted* ordinal — volume 1 — instead of continuing to 30,
+because entries 1–28 were still sitting `unstarted`.
+
+Confirmed with the user this is a real reversal, not a silent fix:
+starting a series partway through now means everything before that point
+already happened. `createSeriesTrack` (`src/data/trackRepo.ts`) backfills
+every entry with `ordinal < validStartOrdinal` as `done` (`started_at` and
+`finished_at` both set to the creation timestamp), not `unstarted`; the
+named entry itself is still the one that starts `in_progress`. This
+applies to every category the ordinal-start mechanism serves — show,
+comic, manga — not only the manga-scan path that surfaced it, since it is
+the same shared code path A10 always was.
+
+**Rejected:** keeping A10's original 0-progress behavior and patching only
+the `nextEntry()` symptom (e.g. having it skip past already-`unstarted`
+entries below the started one). Rejected because the progress display
+would still misreport reality — "0 of 34" is simply false once you are
+demonstrably partway through — and a symptom-only fix would leave a second
+inconsistency (`nextEntry()`'s notion of "next" disagreeing with the
+displayed count) rather than removing the actual defect.
+
+**Mechanically:** `src/data/trackRepo.ts`'s `createSeriesTrack` entry-insert
+loop, plus its `INSERT` column list gaining `finished_at` (previously never
+set at creation, since no entry could start `done`). `src/data/__tests__/
+seriesTitleOrdinal.test.ts` updated to assert the backfilled progress and
+added a new test proving `nextEntry()` continues forward, not back to 1.
+
+**A13 — Season treatment follows real progress, not just the Currently
+shelf; reverses part of A11.** A11 scoped the segmented bar and `S{n} Ep
+{m} of {total}` label to `shelf === 'currently'` specifically, on the
+reasoning that a paused or not-yet-started show should keep its existing
+"Paused"/"Not started" wording. In practice that hid real information: a
+paused show still has genuine progress worth showing correctly, and a bare
+"Paused" said less than the row already knew.
+
+Season treatment is now keyed on *whether real progress exists*, not on
+which shelf the row sits in: `currently`, or `backlog` while `paused`. A
+show that has never been started (`backlog`, not paused) still gets
+neither — there is no season position to report for a show nobody has
+opened yet, so "Not started" and the flat bar are correct there. A paused
+show's label becomes `Paused · S{n} Ep {m} of {total}` — the existing
+"Paused" prefix, unchanged, with the season-scoped position appended
+instead of dropped.
+
+**Rejected:** keeping A11's Currently-only scoping and instead improving
+`positionLabel`'s own `Paused · {nextEntryTitle}` string for a show
+specifically. Rejected because the underlying problem is the segmented
+*bar* disappearing on pause, not just the label — a text-only fix would
+still show an empty flat bar for a show that is meaningfully partway
+through.
+
+**Mechanically:** `src/ui/TrackRow.tsx` gains a `hasSeasonProgress(track)`
+helper factoring out the eligibility check that `seasonPositionLabel` and
+the component's `segments` computation both used to duplicate — worth
+extracting now that the condition grew a second clause, where A11's
+original two-branch version was judged fine left inline.
+
+**A14 — Comics split into Single Issue (Metron) and Collection (Google
+Books).** D5's original candidate table already split comics this way
+in principle — "issues are not reliably in ISBN databases, and trades are
+not reliably in issue databases" — but D5/A9 only ever built the Single
+Issue half; Metron was comic's only provider, so a trade paperback,
+hardcover, or omnibus edition had no accurate catalogue at all. The Add
+screen gains one more step for `comic` specifically, right after the
+category itself: **Single issue** or **Collection**, before the title
+field. Single issue is A9 unchanged — Metron, typed search, and the
+UPC-A/EAN-5 scan flow, byte-for-byte. Collection routes to a
+comic-tagged `GoogleBooksProvider` instance instead — search, hydrate,
+and ISBN barcode scanning all work exactly as they already do for `book`,
+because Google Books' behavior was never category-specific to begin with.
+
+The registry (D10) stays a strict one-provider-per-category map;
+`comic`'s entry stays Metron. The Add screen resolves the collection
+exception itself (`providerForAdd(category, comicMode)`), rather than
+widening the registry's interface for one category's internal split.
+
+**Google Books can never return a real count (D5/A9), which A11's confirm
+step assumes every series provider can.** For Collection specifically,
+`autoConfirms` is false: the confirm-hydrate effect never runs, and the
+screen falls back to exactly A9's pre-A11 behavior — picking a result
+only ever confirms a title, the manual count/ongoing fields stay the
+answer. This is the same trade Google Books has always made for
+`book`/`manga`; A14 just extends it to comics that need it.
+
+**A consequence worth naming explicitly:** `addTrack`'s own fallback
+(`providerFor(input.category).hydrate(result)`) would resolve `comic` to
+Metron regardless of which mode picked the match — wrong provider,
+wrong ID format, a real network call to Metron with a Google Books ID
+that cannot succeed. The Add screen avoids this by hydrating a
+Collection match itself at save time (via the comic-tagged
+`GoogleBooksProvider`, not the registry) and passing the result as an
+explicit `draft` — `addTrack`'s own resolution only ever fires for the
+hand-typed, no-match case, where every provider's sentinel check
+(`result.id === this.id`) makes the "wrong" provider harmless, since none
+of them touch the network for an unmatched title.
+
+**Rejected:** a sixth `Category` value (e.g. `'comic-collection'`) to
+carry the distinction all the way through the domain layer. Rejected on
+D1's own reasoning restated: a collected edition is tracked exactly like
+a single issue — same `unitLabel: 'issue'`, same entry shape, same shelf
+rules — the only difference is which catalogue resolves the search, which
+is an Add-screen concern, not a new kind of trackable media.
+
+**Mechanically:** `src/providers/googleBooks.ts` (`GoogleBooksProvider`'s
+category type widens to include `comic`; never registered globally,
+`registry.ts` is unchanged). `app/add.tsx` gains `comicMode` state, a
+`providerForAdd()` resolver, a new screen between the category picker and
+the title screen, mode-aware `barcodeTypes`, and the `autoConfirms` guard
+threaded through the confirm-hydrate effect, `showManualFields`, and the
+save-time draft construction. Back navigation unwinds one level at a
+time, matching the category picker's own pattern: from the search screen,
+back returns to "Single issue or Collection?" before it returns to "What
+are you adding?".
+
+**A15 — Titles are editable in place, tap-and-hold, with no schema
+change.** v1 had no edit path for a title at all — a typo or an
+unwanted catalogue-supplied name (Google Books/AniList/TMDB/Metron)
+was permanent once created. The fix under consideration was a separate
+"display title" field, kept independent of the matched/canonical one, on
+the theory that renaming could otherwise sever the catalogue link. It
+does not: `externalSource`/`externalId` (and, for a show, `seasons_json`)
+already live in columns entirely separate from `title` — nothing about
+updating `title` touches them. A duplicate field would have been a second
+source of truth for a problem that didn't exist.
+
+Long-pressing a row's title (Currently, Backlog, or Done — the control is
+in `TrackRow` itself, not any one screen) turns it into an editable field
+in place, pre-filled with the current title. Submitting (return key or
+tapping away) commits a non-blank, changed title via a new `renameTrack`;
+a blank submission is silently discarded, keeping the old title, since
+there is still no delete UI to recover a row with no name from. No
+confirmation dialog — matches the reversible-action convention Pause
+already set (D4/A6): a rename is trivially undone by renaming again.
+
+**Rejected:** a separate display-title field. Rejected once the actual
+mechanics were checked — the concern it would have solved does not exist,
+so the added storage, the sync-in-two-places risk, and the "which one
+does the row actually show" question it would introduce were pure cost.
+
+**Mechanically:** `src/data/trackRepo.ts` gains `renameTrack(db, track,
+title)` — validates non-blank the same way `addTrack` does at creation,
+then a plain `UPDATE ... SET title` against `series` or `entry` depending
+on `track.kind`. `src/ui/TrackRow.tsx` gains local edit-mode state and an
+`onRename` prop; `SwipeableTrackRow.tsx` and all three list screens
+(`app/(tabs)/index.tsx`, `backlog.tsx`, `done.tsx`) thread it through
+identically, mirroring how `onDelete`/`onReturnToBacklog` already do.
+
+**A16 — A comic collection tracks as a standalone item, like a book;
+reverses part of A14.** A14 rejected a sixth `Category` value on the
+reasoning that "a collected edition is tracked exactly like a single
+issue — same `unitLabel: 'issue'`, same entry shape." Direct feedback
+after using it corrected that: a shelf of trade paperbacks is a shelf of
+*books*, not an issue count nobody is tracking issue-by-issue — "no more
+vols ahead, treat as books." A14's routing (which catalogue answers) was
+right and stays; its data shape (an issue series) was wrong for this case
+and changes.
+
+A comic collection now takes the exact same standalone path `book`/`movie`
+already do (D1) — one entry, no count, no ongoing toggle, the two-tap
+read ladder (D2) — while keeping `category: 'comic'` so the row still
+reads "COMIC", not "BOOK". This is additive to `EntryMediaType`
+(`'comic'` joins `'book'`/`'movie'` as a standalone type) rather than a
+new `Category`, which is what actually delivers on A14's own reasoning:
+`comic`'s *category* is unchanged, matched via Metron or Google Books
+exactly as A14 set up: only which *shape of entry* a collection produces
+changes.
+
+**A real consequence, not a workaround:** `entry.media_type`'s CHECK
+constraint had to widen to accept `'comic'`. SQLite has no `ALTER TABLE
+... ALTER COLUMN` for constraints, so the migration recreates the table —
+build the new shape, copy every row across unchanged, drop the old table,
+rename the new one in, rebuild the indexes a dropped table takes with it.
+Tested explicitly (`schema.test.ts`): a pre-migration row round-trips with
+every column intact, the widened constraint still rejects a genuinely
+unknown media type, and the indexes/cascade-delete survive the
+recreation.
+
+**A second consequence, caught before it shipped:** `addTrack`'s
+standalone branch derived `externalSource` from `providerFor(category).id`
+— correct for `book`/`movie`, where the registry's default provider is
+always the one that actually produced the match, but wrong for a
+collection comic, where the registry's `comic` entry deliberately stays
+Metron (A9/A14's single-issue default) while the real match came from
+Google Books. `addTrack` gains two narrow overrides — `standalone?:
+boolean` (routes past the series branch regardless of category) and
+`externalSource?: string` (overrides the registry-derived id) — both
+`undefined` and inert for every existing caller. The same audit simplified
+the standalone branch's match detection: comparing `match.id` against the
+registry provider's own id was vestigial (only the series branch's
+internal sentinel construction ever produces that shape; a caller never
+hands the standalone branch one), so it now just checks whether `match`
+is present at all.
+
+**Rejected:** a `comic-collection` pseudo-category, or a mode flag carried
+on `Series`/`Entry`. Both would resurrect exactly the "three
+near-duplicate models" D1 already argued against — `comic`'s *category*
+correctly stays one thing; only the entry shape a given pick produces
+depends on which sub-flow the Add screen is in, which is a screen-level
+routing decision, not a fact about the track itself.
+
+**Mechanically:** `src/domain/types.ts` (`EntryMediaType` gains `comic`),
+`src/domain/validate.ts` (`StandaloneMediaType`/`STANDALONE_MEDIA_TYPES`
+gain `comic`), `src/domain/mode.ts` (`comic` mapped to `read`),
+`src/db/schema.ts` (table-recreation migration), `src/data/trackRepo.ts`
+(`createStandaloneTrack`'s category type widens), `src/data/addTrack.ts`
+(`standalone`/`externalSource` overrides, simplified match detection).
+`app/add.tsx`: `isSeries` excludes a collection-mode comic outright, which
+is what let A14's `autoConfirms` workaround disappear entirely — there is
+no confirm step left to skip once a collection comic is simply not a
+series. `parseSeriesTitle` is skipped for the same reason a book's title
+always skips it: there is no series left to start partway through.
+
+**A17 — A real confirm screen replaces A11's tap-to-edit summary line, and
+extends to every category, not just series.** A11 part 3 shipped a single
+line of text ("18 volumes · Completed") that turned into an editable count
+field on tap — an override path for a wrong-edition match. Live use showed
+the bigger gap: a standalone match (book, movie, a comic collection) had
+no confirm step at all — `addTrack.ts` wrote it straight to the database
+off the search pick, the one case A9 explicitly deferred rather than
+designed. Building a real confirm screen for every category, per an
+approved mockup, made the count-override path moot at the same time: a
+wrong match is now rejected outright ("Nope, search again") rather than
+kept and manually corrected, since the screen already shows enough
+(title, meta line, blurb) to tell a wrong match apart before saving, not
+just a wrong count.
+
+*The screen.* Once a real search result is picked (`picked !== null`),
+`add.tsx` renders a dedicated full-screen view — title, a meta line
+(year range, count/status, publisher — whatever the provider has, joined
+with " · "), a 4-line-clamped blurb, and three actions: a medium-specific
+primary ("Start watching" for a show, "Watched" for a movie — D2's own
+wording, unchanged — "Start reading" for everything else), "Add to
+backlog", and "Nope, search again" (clears the pick, which re-triggers
+search on the still-present title text — genuinely searching again, not
+just dismissing). A hand-typed title with no match, or a match whose
+`hydrate()` failed, never reaches this screen — both fall through to
+today's manual title/count fields exactly as before; only a resolved
+match is confirmed here; nothing about the no-match path changes.
+
+*Where series data now comes from.* `SeriesDraft` gains two optional
+fields, `metaLine?: readonly string[]` and `blurb?: string | null`,
+populated by the same fetch each provider's `hydrate()` already makes for
+its count/ongoing signal (A11) — never a second round trip. TMDB reads
+`overview`/`first_air_date`/`last_air_date` off the `/tv/{id}` response it
+already has; Metron reads `desc`/`year_begin`/`publisher.name` off the
+`/series/{id}/` response; AniList reads `description`/`startDate`/
+`endDate` off the same `Media` query, stripping the `<br>` tags
+`description(asHtml: false)` still leaves in live output — confirmed
+against the real endpoint, not assumed from the parameter name.
+
+*Where standalone data comes from: a new optional provider method.*
+Neither `hydrate()` nor any existing fetch has a place to carry preview
+data for a standalone category — `generateEntries` only ever builds a
+count-of-1 draft with no season/meta concept. `MetadataProvider` gains an
+optional `preview(result): Promise<MatchPreview>`
+(`{ title, metaLine, blurb }`), implemented only by a provider that
+answers a standalone category: `TmdbProvider` (movie only — fetches
+`/movie/{id}` for `overview`/`release_date`) and `GoogleBooksProvider`
+(book and, via the same class, a comic collection — fetches
+`/volumes/{id}`, the one lookup `search()` never makes, for `authors`/
+`publishedDate`/`pageCount`/`description`). Optional because a
+series-only provider (Metron, AniList) has nothing to add here that
+`hydrate` doesn't already carry — implementing it there would just be a
+second fetch for data already in hand. Both implementations never throw:
+a failed or unconfigured lookup falls back to `{ title: result.title,
+metaLine: [], blurb: null }`, the same "progressive enhancement, not a
+blocking requirement" precedent A9's search already set — a confirm
+screen with no meta line is still a confirm screen, not a dead end.
+
+*What A11's override path becomes.* `editingCount` (the state that turned
+the summary line into an editable field) is gone entirely, along with the
+manual `generateEntries` rebuild it triggered at save time — a confirmed
+draft (series) or a picked result plus its preview (standalone) is now
+always passed straight through unedited once the confirm screen's own
+button is tapped. The Perfect-Edition case A11 named — a real match whose
+count is for the wrong printing — is now handled by rejecting the match
+outright rather than hand-correcting its count in place; the confirm
+screen shows enough context (title, meta line, blurb) to catch that
+before saving, which a bare number never could.
+
+**Rejected:**
+- Keeping A11's inline tap-to-edit count alongside the new screen — two
+  ways to correct a wrong match (reject-and-research vs. edit-in-place)
+  for the one problem "Nope, search again" already solves, and the
+  edit-in-place path only ever handled count, never a wrong title/edition
+  entirely.
+- A second network fetch for series metaLine/blurb, decoupled from
+  `hydrate()` — every provider's existing detail fetch already returns
+  the fields needed; a second call would be a real cost for data already
+  in hand.
+- Making `preview` a required method on every provider — AniList and
+  Metron are series-only in this app (D5); requiring a method they'd
+  never be called through, and would have to either duplicate `hydrate`'s
+  fetch or stub out, for no caller that reaches it.
+
+**Mechanically:** `src/providers/types.ts` (`SeriesDraft` gains
+`metaLine`/`blurb`, new `MatchPreview` type, `MetadataProvider` gains
+optional `preview`), `src/providers/tmdb.ts` (`hydrate`'s show path and
+new `preview` for movie), `src/providers/metron.ts` (`hydrate`'s
+`metaLine`/`blurb`), `src/providers/anilist.ts` (`hydrate`'s
+`metaLine`/`blurb`, `stripHtml`), `src/providers/googleBooks.ts` (new
+`preview`, fetches by volume id), `app/add.tsx` (confirm-screen render
+branch, `previewData`/`previewing` state and its fetch effect alongside
+the existing `confirmedDraft`/`hydrating`, `editingCount` and its UI
+removed, `handleSave`'s draft-building simplified to the one un-edited
+path).
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:

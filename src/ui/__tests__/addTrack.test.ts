@@ -85,6 +85,55 @@ test('adding a comic generates issue-labelled entries', async () => {
   expect(track!.nextEntryTitle).toBe('Issue 1');
 });
 
+// A16: a comic collection tracks as one standalone item, like a book — the
+// `standalone` override routes it past the series branch entirely, even
+// though `comic`'s own category has a series unit label for single issues.
+test('a comic with standalone:true creates one entry, not an issue series', async () => {
+  const db = await freshDb();
+  await addTrack(db, { title: 'Saga, Vol. 1', category: 'comic', count: 1, standalone: true }, NOW);
+
+  expect(await db.all('SELECT id FROM series')).toHaveLength(0);
+  const tracks = await listTracks(db, 'backlog');
+  expect(tracks).toHaveLength(1);
+  expect(tracks[0]!.kind).toBe('entry');
+  expect(tracks[0]!.progress).toBeNull();
+});
+
+// The registry's `comic` entry stays Metron (A9/A14's single-issue
+// default) — a collection's real match came from Google Books instead, so
+// the caller has to override what gets recorded, or a Metron-shaped
+// external_source would be written for a Google Books match.
+test('a standalone comic match records the caller-supplied external source, not the registry default', async () => {
+  const db = await freshDb();
+  await addTrack(
+    db,
+    {
+      title: 'Saga, Vol. 1',
+      category: 'comic',
+      count: 1,
+      standalone: true,
+      externalSource: 'google-books',
+      match: { id: 'gb-saga-1', title: 'Saga, Vol. 1', category: 'comic', count: 1 },
+    },
+    NOW,
+  );
+
+  const rows = await db.all<{ external_source: string | null; external_id: string | null }>(
+    'SELECT external_source, external_id FROM entry',
+  );
+  expect(rows).toEqual([{ external_source: 'google-books', external_id: 'gb-saga-1' }]);
+});
+
+test('a standalone comic with no picked match records no external source', async () => {
+  const db = await freshDb();
+  await addTrack(db, { title: 'Saga, Vol. 1', category: 'comic', count: 1, standalone: true }, NOW);
+
+  const rows = await db.all<{ external_source: string | null; external_id: string | null }>(
+    'SELECT external_source, external_id FROM entry',
+  );
+  expect(rows).toEqual([{ external_source: null, external_id: null }]);
+});
+
 // A9: a confirmed search/scan result records where a standalone track came
 // from — no fake series wrapper, straight through createStandaloneTrack.
 test('a book added from a confirmed search result records its external source and id', async () => {

@@ -30,3 +30,21 @@ export function parseSeriesTitle(raw: string): ParsedSeriesTitle {
 
   return { title: trimmed, ordinal: null };
 }
+
+/**
+ * A11: Google Books' manga volume titles append the number bare, with no
+ * "Vol"/"#" marker — "Attack on Titan 30" — confirmed against a real
+ * scanned barcode. `parseSeriesTitle` deliberately never matches a bare
+ * trailing number for a typed title (too likely to collide with a real
+ * title someone actually typed), so this is a separate, narrowly-scoped
+ * function for the one place a bare number is trustworthy: a provider's
+ * own title convention, not user input.
+ */
+export function stripBareTrailingNumber(raw: string): ParsedSeriesTitle {
+  const trimmed = raw.trim();
+  const match = trimmed.match(/\s+(\d+)\s*$/);
+  if (!match) return { title: trimmed, ordinal: null };
+  const stripped = trimmed.slice(0, match.index).trim();
+  if (stripped.length === 0) return { title: trimmed, ordinal: null };
+  return { title: stripped, ordinal: Number.parseInt(match[1]!, 10) };
+}

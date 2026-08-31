@@ -40,6 +40,21 @@ export async function addTrack(
      * Only meaningful for a series category; ignored for a standalone one.
      */
     draft?: SeriesDraft;
+    /**
+     * A16: overrides the category's default series/standalone routing —
+     * used only for a comic collection, which tracks as a standalone item
+     * (like a book) despite `comic`'s category having a series unit label
+     * for the single-issue path.
+     */
+    standalone?: boolean;
+    /**
+     * A16: overrides the registry-derived provider id recorded as
+     * `externalSource` for a standalone save. Needed specifically when the
+     * match didn't come from the category's own registered provider — a
+     * comic collection matches via Google Books, but `comic`'s registry
+     * entry stays Metron, the single-issue default (A9/A14).
+     */
+    externalSource?: string;
   },
   now: string,
 ): Promise<CreatedTrack> {
@@ -51,15 +66,18 @@ export async function addTrack(
   // Standalone categories have no container and no entries to generate (D1).
   // A search/scan result only ever confirms a title (D5) — there is no fake
   // series wrapper to hydrate, so this goes straight to the standalone path,
-  // recording where the title came from when a real match was picked.
-  if (unitLabelFor(input.category) === null) {
-    const matched = input.match && input.match.id !== provider.id;
+  // recording where the title came from when a real match was picked. The
+  // caller (never `addTrack` itself) is the only source of a standalone
+  // `match`, so its mere presence already means "real" — no sentinel-id
+  // check needed here the way the series branch below needs one.
+  if (unitLabelFor(input.category) === null || input.standalone === true) {
+    const matched = input.match !== undefined;
     const id = await createStandaloneTrack(
       db,
       {
         title,
-        category: input.category as 'book' | 'movie',
-        externalSource: matched ? provider.id : undefined,
+        category: input.category as 'book' | 'movie' | 'comic',
+        externalSource: matched ? (input.externalSource ?? provider.id) : undefined,
         externalId: matched ? input.match!.id : undefined,
       },
       now,

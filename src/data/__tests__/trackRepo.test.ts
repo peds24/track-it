@@ -1,5 +1,11 @@
 import { migrate } from '@/db/schema';
-import { createSeriesTrack, createStandaloneTrack, listTracks, toEntry } from '@/data/trackRepo';
+import {
+  createSeriesTrack,
+  createStandaloneTrack,
+  listTracks,
+  renameTrack,
+  toEntry,
+} from '@/data/trackRepo';
 import type { SqlDriver } from '@/db/driver';
 import { advance } from '@/domain/advance';
 import type { Entry } from '@/domain/types';
@@ -488,4 +494,67 @@ test('listTracks skips a parentless row whose media type is a unit label', async
   for (const track of backlog) {
     expect(['show', 'movie', 'book', 'comic', 'manga']).toContain(track.category);
   }
+});
+
+/**
+ * A15: renaming is purely cosmetic — externalSource/externalId (and, for a
+ * show, seasons_json) live in separate columns this never touches, so a
+ * catalogue-matched track keeps its provider link across a rename.
+ */
+test('renameTrack updates a series title, keeping its external source/id and seasons', async () => {
+  const db = await freshDb();
+  const seriesId = await createSeriesTrack(
+    db,
+    {
+      title: 'House',
+      mediaType: 'show',
+      unitLabel: 'episode',
+      entries: [{ ordinal: 1, title: 'Episode 1' }],
+      externalSource: 'tmdb',
+      externalId: '1408',
+      seasons: [{ number: 1, episodeCount: 1 }],
+    },
+    NOW,
+  );
+
+  await renameTrack(db, { kind: 'series', id: seriesId }, 'House, M.D.');
+
+  const [track] = await listTracks(db, 'backlog');
+  expect(track!.title).toBe('House, M.D.');
+  expect(track!.seasons).toEqual([{ number: 1, episodeCount: 1 }]);
+  const rows = await db.all<{ external_source: string | null; external_id: string | null }>(
+    'SELECT external_source, external_id FROM series WHERE id = ?',
+    [seriesId],
+  );
+  expect(rows[0]).toEqual({ external_source: 'tmdb', external_id: '1408' });
+});
+
+test('renameTrack updates a standalone entry title', async () => {
+  const db = await freshDb();
+  const bookId = await createStandaloneTrack(db, { title: 'Dune', category: 'book' }, NOW);
+
+  await renameTrack(db, { kind: 'entry', id: bookId }, 'Dune (1965)');
+
+  const [track] = await listTracks(db, 'backlog');
+  expect(track!.title).toBe('Dune (1965)');
+});
+
+test('renameTrack trims surrounding whitespace', async () => {
+  const db = await freshDb();
+  const bookId = await createStandaloneTrack(db, { title: 'Dune', category: 'book' }, NOW);
+
+  await renameTrack(db, { kind: 'entry', id: bookId }, '  Dune Messiah  ');
+
+  const [track] = await listTracks(db, 'backlog');
+  expect(track!.title).toBe('Dune Messiah');
+});
+
+test('renameTrack rejects a blank title', async () => {
+  const db = await freshDb();
+  const bookId = await createStandaloneTrack(db, { title: 'Dune', category: 'book' }, NOW);
+
+  await expect(renameTrack(db, { kind: 'entry', id: bookId }, '   ')).rejects.toThrow(/title/i);
+
+  const [track] = await listTracks(db, 'backlog');
+  expect(track!.title).toBe('Dune');
 });

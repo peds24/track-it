@@ -20,14 +20,34 @@ const DETAIL_QUERY = `
       volumes
       chapters
       status
+      description(asHtml: false)
+      startDate { year }
+      endDate { year }
     }
   }
 `;
 
 type AnilistSearchHit = { id: number; title: { romaji?: string; english?: string } };
 type AnilistSearchResponse = { data?: { Page?: { media?: AnilistSearchHit[] } } };
-type AnilistDetail = { volumes?: number | null; chapters?: number | null; status?: string };
+type AnilistDetail = {
+  volumes?: number | null;
+  chapters?: number | null;
+  status?: string;
+  description?: string | null;
+  startDate?: { year?: number | null };
+  endDate?: { year?: number | null };
+};
 type AnilistDetailResponse = { data?: { Media?: AnilistDetail } };
+
+/** `asHtml: false` still leaves `<br>` paragraph breaks in AniList's
+ * description field (confirmed live) — this is the one place any HTML
+ * survives, so it's stripped here rather than trusting the API param alone. */
+function stripHtml(text: string): string {
+  return text
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .trim();
+}
 
 /**
  * AniList — manga only (A11), replacing Google Books for that one category
@@ -88,6 +108,30 @@ export class AnilistProvider implements MetadataProvider {
       count: !ongoing && total && total > 0 ? total : result.count,
       ongoing,
     });
-    return { ...draft, externalSource: this.id, externalId: result.id };
+
+    // A17: the confirm screen's meta line/blurb — the same Media lookup
+    // hydrate already makes for volumes/chapters/status, no second fetch.
+    const startYear = media?.startDate?.year ?? null;
+    const endYear = media?.endDate?.year ?? null;
+    const yearRange = startYear
+      ? ongoing
+        ? `${startYear}–present`
+        : endYear && endYear !== startYear
+          ? `${startYear}–${endYear}`
+          : String(startYear)
+      : null;
+    const countLabel =
+      total && total > 0 ? `${total} ${media?.volumes ? 'volume' : 'chapter'}${total === 1 ? '' : 's'}` : null;
+    const metaLine = [yearRange, countLabel, ongoing ? 'Ongoing' : 'Completed'].filter(
+      (s): s is string => s !== null,
+    );
+
+    return {
+      ...draft,
+      externalSource: this.id,
+      externalId: result.id,
+      metaLine,
+      blurb: media?.description ? stripHtml(media.description) : null,
+    };
   }
 }

@@ -171,3 +171,125 @@ test('hydrate falls back to the guessed count when the season fetch fails', asyn
   // the count fell back, not the whole hydrate.
   expect(draft.externalSource).toBe('tmdb');
 });
+
+// A17: the confirm screen's data — no second fetch, the same /tv/{id} call
+// hydrate already makes for the season breakdown.
+describe('hydrate metaLine/blurb (A17)', () => {
+  test('an ended show gets a closed year range and its real status word', async () => {
+    process.env.EXPO_PUBLIC_TMDB_API_KEY = 'test-key';
+    mockFetchSequence({
+      body: {
+        status: 'Ended',
+        overview: 'A drug-addicted, unconventional medical genius.',
+        first_air_date: '2004-11-16',
+        last_air_date: '2012-05-21',
+        seasons: [
+          { season_number: 0, episode_count: 46 },
+          { season_number: 1, episode_count: 22 },
+          { season_number: 2, episode_count: 24 },
+        ],
+      },
+    });
+
+    const draft = await new TmdbProvider('show').hydrate({
+      id: '1408',
+      title: 'House',
+      category: 'show',
+      count: 1,
+    });
+
+    expect(draft.metaLine).toEqual(['2004–2012', '2 seasons', '46 episodes', 'Ended']);
+    expect(draft.blurb).toBe('A drug-addicted, unconventional medical genius.');
+  });
+
+  test('a still-running show gets an open year range and "Ongoing"', async () => {
+    process.env.EXPO_PUBLIC_TMDB_API_KEY = 'test-key';
+    mockFetchSequence({
+      body: {
+        status: 'Returning Series',
+        overview: 'Severed memories, divided lives.',
+        first_air_date: '2022-02-18',
+        seasons: [{ season_number: 1, episode_count: 9 }],
+      },
+    });
+
+    const draft = await new TmdbProvider('show').hydrate({
+      id: '95396',
+      title: 'Severance',
+      category: 'show',
+      count: 1,
+    });
+
+    expect(draft.metaLine).toEqual(['2022–present', '1 season', '9 episodes', 'Ongoing']);
+    expect(draft.blurb).toBe('Severed memories, divided lives.');
+  });
+
+  test('a failed detail fetch leaves metaLine/blurb unset, same as seasons', async () => {
+    process.env.EXPO_PUBLIC_TMDB_API_KEY = 'test-key';
+    mockFetchSequence({ body: {}, ok: false });
+
+    const draft = await new TmdbProvider('show').hydrate({
+      id: '111',
+      title: 'Severance',
+      category: 'show',
+      count: 3,
+    });
+
+    expect(draft.metaLine).toBeUndefined();
+    expect(draft.blurb).toBeUndefined();
+  });
+});
+
+describe('preview (A17, movie only)', () => {
+  test('fetches the movie detail and returns a year and the overview as blurb', async () => {
+    process.env.EXPO_PUBLIC_TMDB_API_KEY = 'test-key';
+    const fetchMock = mockFetchSequence({
+      body: { release_date: '2015-09-17', overview: 'An FBI agent joins the war on drugs.' },
+    });
+
+    const preview = await new TmdbProvider('movie').preview({
+      id: '273481',
+      title: 'Sicario',
+      category: 'movie',
+      count: 1,
+    });
+
+    const url = fetchMock.mock.calls[0]![0] as string;
+    expect(url).toContain('/movie/273481');
+    expect(preview).toEqual({
+      title: 'Sicario',
+      metaLine: ['2015'],
+      blurb: 'An FBI agent joins the war on drugs.',
+    });
+  });
+
+  test('falls back to just the title when the fetch fails, never throws', async () => {
+    process.env.EXPO_PUBLIC_TMDB_API_KEY = 'test-key';
+    mockFetchSequence({ body: {}, ok: false });
+
+    const preview = await new TmdbProvider('movie').preview({
+      id: '273481',
+      title: 'Sicario',
+      category: 'movie',
+      count: 1,
+    });
+
+    expect(preview).toEqual({ title: 'Sicario', metaLine: [], blurb: null });
+  });
+
+  test('falls back to just the title when no API key is configured', async () => {
+    delete process.env.EXPO_PUBLIC_TMDB_API_KEY;
+    const fetchMock = jest.fn();
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const preview = await new TmdbProvider('movie').preview({
+      id: '273481',
+      title: 'Sicario',
+      category: 'movie',
+      count: 1,
+    });
+
+    expect(preview).toEqual({ title: 'Sicario', metaLine: [], blurb: null });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});

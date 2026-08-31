@@ -20,7 +20,7 @@ const show: TrackSummary = {
   lastAdvancedAt: '2026-08-12T11:00:00.000Z',
 };
 
-const noop = { onAdvance: () => {}, onResume: () => {}, onDelete: () => {} };
+const noop = { onAdvance: () => {}, onResume: () => {}, onRename: () => {}, onDelete: () => {} };
 
 /**
  * A6: pausing a track that is still going is reversible — Resume undoes it —

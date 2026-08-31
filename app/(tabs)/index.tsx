@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   advanceEntry,
   deleteTrack,
+  renameTrack,
   resumeTrack,
   returnTrackToBacklog,
   setTrackPosition,
@@ -72,6 +73,21 @@ export default function CurrentlyScreen() {
         Alert.alert('Could not update', e instanceof Error ? e.message : String(e));
       }
       await reloadSafely();
+    })();
+  }
+
+  // A15: purely cosmetic — no confirmation, matching the reversible-action
+  // convention Pause already set (D4/A6) — a rename is trivially undone by
+  // renaming again, so it needs no dialog in the way.
+  function handleRename(track: TrackSummary, title: string): void {
+    void (async () => {
+      try {
+        await renameTrack(db, track, title);
+      } catch (e: unknown) {
+        Alert.alert('Could not rename track', e instanceof Error ? e.message : String(e));
+      } finally {
+        await reload();
+      }
     })();
   }
 
@@ -155,6 +171,7 @@ export default function CurrentlyScreen() {
             track={item}
             onAdvance={handleAdvance}
             onResume={handleResume}
+            onRename={handleRename}
             onDelete={handleDelete}
             onReturnToBacklog={handleReturnToBacklog}
             onEditProgress={setEditing}

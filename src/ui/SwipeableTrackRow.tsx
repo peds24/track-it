@@ -19,6 +19,7 @@ export function SwipeableTrackRow({
   track,
   onAdvance,
   onResume,
+  onRename,
   onDelete,
   onReturnToBacklog,
   onEditProgress,
@@ -26,6 +27,7 @@ export function SwipeableTrackRow({
   track: TrackSummary;
   onAdvance: (entryId: string) => void;
   onResume: (track: TrackSummary) => void;
+  onRename: (track: TrackSummary, title: string) => void;
   onDelete: (track: TrackSummary) => void;
   onReturnToBacklog: (track: TrackSummary) => void;
   onEditProgress?: (track: TrackSummary) => void;
@@ -314,6 +316,7 @@ export function SwipeableTrackRow({
           track={track}
           onAdvance={onAdvance}
           onResume={onResume}
+          onRename={onRename}
           onEditProgress={onEditProgress}
         />
       </Animated.View>

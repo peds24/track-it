@@ -149,18 +149,28 @@ export async function createSeriesTrack(
     );
 
     for (const entry of entries) {
+      // A11 fix: starting at ordinal N means N-1 units already happened —
+      // scanning volume 29 of a 34-volume series is "I've read up through
+      // 28," not "I own volume 29 and nothing else." Backfilling 1..N-1 as
+      // done (not left unstarted) is what makes both progress ("28 of 34")
+      // and nextEntry() (which resumes at the lowest unstarted ordinal)
+      // correct — leaving them unstarted made finishing the started entry
+      // fall back to ordinal 1 instead of continuing to N+1.
+      const isBeforeStart = validStartOrdinal !== null && entry.ordinal < validStartOrdinal;
       const startsHere = validStartOrdinal !== null && entry.ordinal === validStartOrdinal;
+      const status = isBeforeStart ? 'done' : startsHere ? 'in_progress' : 'unstarted';
       await db.run(
-        `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, started_at, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, started_at, finished_at, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           newId(),
           seriesId,
           entry.title,
           entry.ordinal,
           draft.unitLabel,
-          startsHere ? 'in_progress' : 'unstarted',
-          startsHere ? now : null,
+          status,
+          status !== 'unstarted' ? now : null,
+          status === 'done' ? now : null,
           now,
         ],
       );
@@ -174,7 +184,9 @@ export async function createStandaloneTrack(
   db: SqlDriver,
   input: {
     title: string;
-    category: 'book' | 'movie';
+    /** A16: `comic` joins `book`/`movie` — a collected edition tracks as
+     * one item, not an issue series. */
+    category: 'book' | 'movie' | 'comic';
     /** A9: set when the title came from a confirmed catalogue match rather
      * than being typed by hand — a search hit or a barcode scan. */
     externalSource?: string;
@@ -445,6 +457,26 @@ export async function deleteTrack(
 ): Promise<void> {
   const table = track.kind === 'series' ? 'series' : 'entry';
   await db.run(`DELETE FROM ${table} WHERE id = ?`, [track.id]);
+}
+
+/**
+ * A15: rename a track in place. `externalSource`/`externalId` (and, for a
+ * show, `seasons_json`) live in separate columns untouched by this — a
+ * catalogue match records where the data came from, not what the row is
+ * called, so renaming a track never needs to re-fetch or re-confirm
+ * anything. A blank title is rejected the same way `addTrack` already
+ * rejects one at creation, since there is no delete UI to recover from a
+ * row with no name.
+ */
+export async function renameTrack(
+  db: SqlDriver,
+  track: { kind: 'series' | 'entry'; id: string },
+  title: string,
+): Promise<void> {
+  const trimmed = title.trim();
+  if (trimmed.length === 0) throw new Error('A track needs a title');
+  const table = track.kind === 'series' ? 'series' : 'entry';
+  await db.run(`UPDATE ${table} SET title = ? WHERE id = ?`, [trimmed, track.id]);
 }
 
 /**

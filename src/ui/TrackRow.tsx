@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { TrackSummary } from '@/data/trackRepo';
 import { currentSeason, seasonSegments } from '@/domain/seasons';
 import type { Category } from '@/domain/types';
@@ -32,6 +32,8 @@ export function positionLabel(track: TrackSummary): string {
     return read ? 'Read' : 'Watched';
   }
   if (track.shelf === 'backlog') {
+    // A6: paused keeps the row pointed at wherever it was left, rather than
+    // reporting "Not started" for something that plainly was.
     if (track.paused && track.nextEntryTitle && track.nextEntryTitle !== track.title) {
       return `Paused · ${track.nextEntryTitle}`;
     }
@@ -47,17 +49,30 @@ export function positionLabel(track: TrackSummary): string {
 }
 
 /**
- * A11: replaces the whole-series `positionLabel` when a show has season
- * data and is actively being watched — "S3 Ep 15 of 24" instead of
- * "Watching Episode 61".
+ * A11/A13: a show gets season treatment (this label, and the segmented bar
+ * below) whenever it has real progress worth showing correctly — actively
+ * being watched, or paused with something already underway. A13 widened
+ * this from "Currently only": a paused show still has genuine progress,
+ * and "Paused" alone hid exactly what a segmented bar exists to convey. A
+ * show that has never been started (backlog, not paused) is excluded on
+ * purpose — there is no season position to report yet.
+ */
+function hasSeasonProgress(track: TrackSummary): boolean {
+  const eligible = track.shelf === 'currently' || (track.shelf === 'backlog' && track.paused);
+  return eligible && !!track.seasons && track.seasons.length > 0 && !!track.progress;
+}
+
+/**
+ * Replaces the whole-series `positionLabel` when `hasSeasonProgress` — "S3
+ * Ep 15 of 24" instead of "Watching Episode 61", or "Paused · S3 Ep 15 of
+ * 24" instead of a bare "Paused" once a show has season data.
  */
 export function seasonPositionLabel(track: TrackSummary): string | null {
-  if (track.shelf !== 'currently' || !track.seasons || track.seasons.length === 0 || !track.progress) {
-    return null;
-  }
-  const current = currentSeason(track.seasons, track.progress.done);
+  if (!hasSeasonProgress(track) || !track.progress) return null;
+  const current = currentSeason(track.seasons!, track.progress.done);
   if (!current) return null;
-  return `S${current.number} Ep ${current.nextEpisode} of ${current.episodeCount}`;
+  const seasonText = `S${current.number} Ep ${current.nextEpisode} of ${current.episodeCount}`;
+  return track.paused ? `Paused · ${seasonText}` : seasonText;
 }
 
 export function canEditPosition(track: TrackSummary): boolean {
@@ -74,16 +89,33 @@ export function TrackRow({
   track,
   onAdvance,
   onResume,
+  onRename,
   onEditProgress,
 }: {
   track: TrackSummary;
   onAdvance: (entryId: string) => void;
   onResume: (track: TrackSummary) => void;
+  onRename: (track: TrackSummary, title: string) => void;
   onEditProgress?: (track: TrackSummary) => void;
 }) {
   const palette = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const { nextEntryId, nextEntryTitle, progress } = track;
+
+  // A15: renaming is a lightweight in-place edit, not a confirm-and-refetch
+  // flow — externalSource/externalId (and a show's seasons) live in
+  // separate columns a rename never touches, so there's nothing to
+  // re-fetch or re-confirm. `titleDraft` is only ever seeded from
+  // `track.title` at the moment editing starts, not synced continuously,
+  // so it can't fight the user's own typing.
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState(track.title);
+
+  function commitRename(): void {
+    setEditingTitle(false);
+    const trimmed = titleDraft.trim();
+    if (trimmed.length > 0 && trimmed !== track.title) onRename(track, trimmed);
+  }
 
   const resuming = track.shelf === 'backlog' && track.paused;
   const starting = track.shelf === 'backlog' && !track.paused;
@@ -95,17 +127,39 @@ export function TrackRow({
       ? Math.min(1, Math.max(0, progress.done / progress.total))
       : null;
 
-  const segments =
-    track.shelf === 'currently' && track.seasons && track.seasons.length > 0 && track.progress
-      ? seasonSegments(track.seasons, track.progress.done)
-      : null;
+  // A11/A13: same eligibility as seasonPositionLabel, via the shared helper —
+  // a not-yet-started show keeps the flat bar, everything else with season
+  // data gets the segmented one.
+  const segments = hasSeasonProgress(track) ? seasonSegments(track.seasons!, track.progress!.done) : null;
 
   return (
     <View style={styles.row}>
       <View style={styles.text}>
-        <Text style={styles.title} numberOfLines={1}>
-          {track.title}
-        </Text>
+        {editingTitle ? (
+          <TextInput
+            style={styles.titleInput}
+            value={titleDraft}
+            onChangeText={setTitleDraft}
+            onSubmitEditing={commitRename}
+            onBlur={commitRename}
+            autoFocus
+            selectTextOnFocus
+            cursorColor={palette.primary}
+            selectionColor={palette.primaryContainer}
+            underlineColorAndroid="transparent"
+          />
+        ) : (
+          <Text
+            style={styles.title}
+            numberOfLines={1}
+            onLongPress={() => {
+              setTitleDraft(track.title);
+              setEditingTitle(true);
+            }}
+          >
+            {track.title}
+          </Text>
+        )}
 
         <View style={styles.meta}>
           <View style={styles.kindBadge}>
@@ -197,6 +251,16 @@ function createStyles(c: Palette) {
       ...font.titleMedium,
       color: c.onSurface,
     },
+    // A15: the one moment a row's text becomes a control, so it picks up a
+    // bottom border rather than a full box — it still reads as the same
+    // title in place, just editable.
+    titleInput: {
+      ...font.titleMedium,
+      color: c.onSurface,
+      padding: 0,
+      borderBottomWidth: 1.5,
+      borderBottomColor: c.primary,
+    },
     meta: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -279,4 +343,3 @@ function createStyles(c: Palette) {
     },
   });
 }
-
