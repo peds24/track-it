@@ -111,13 +111,13 @@ are clean:
    logic (`currentlySections.ts`) is unit-tested directly, but the actual
    tap target, chevron rotation, and how a collapse/expand feels alongside
    `SectionList`'s own scroll behavior haven't been tried on a device.
-5. **Swipe Delete & Alert Bridge stabilization.** Fixed `Alert.alert` being a no-op on
-   React Native Web via `src/ui/alert.ts` (`window.confirm`/`window.alert` bridge), extended
-   the Currently screen Pause zone (28–150dp) with `DELETE_THRESHOLD` set to 195dp, added
-   `onPanResponderTerminationRequest: () => false` to stop vertical lists from stealing active
-   swipes, tightened horizontal slop discrimination to `|dx| > 2 * |dy|` (`SLOP = 12`), and
-   added touch-action for web. Unit-tested across gesture recognition, scroll rejection,
-   web confirm dialogs, and termination triggers.
+5. **Swipe Row Stabilization, Circular Badges & Cross-Platform Alert Bridge.**
+   - **Root Cause & Fix for Web Delete:** `react-native-web` exports `Alert.alert` as an empty stub (`alert() {}`), silently dropping all delete confirmation dialogs and error alerts on Web/Safari PWA. Created `src/ui/alert.ts` (`showAlert()`) bridging `window.confirm` / `window.alert` on Web while preserving native `Alert.alert` on iOS/Android. Routed `SwipeableTrackRow.tsx`, `index.tsx`, `backlog.tsx`, `done.tsx`, and `add.tsx` through `showAlert`.
+   - **Gesture Recognition & Conflict Prevention:** Set `onPanResponderTerminationRequest: () => false` on the row pan responder so parent `SectionList`/`FlatList`/`ScrollView` cannot steal active horizontal drags. Tightened horizontal drag discrimination to `|dx| > 2.0 * |dy|` with `SLOP = 12`, and added `touchAction: 'pan-y'` and `userSelect: 'none'` for web.
+   - **Thresholds & Extended Pause Runway:** Increased activation latch `LATCH` to 50dp so tiny thumb twitches or diagonal drifts do not trigger pause. Set `DELETE_THRESHOLD` to 280dp (max swipe 360dp) with a massive 50–210dp runway for Pause/Backlog. Visual morphing from `secondaryContainer` to `errorContainer` runs across 180–255dp, with a snappy scale pop on the delete badge at 280dp.
+   - **Right-Aligned Edit Action:** Updated `actionPressableRight` with `paddingRight: 16` and `justifyContent: 'flex-end'` (removing artificial `minWidth: 120` offset) so Edit reveals immediately from the very first few pixels of a left swipe.
+   - **Visual Badge Polish (Video Reference):** Encapsulated action icons inside 34dp circular badges (`pauseBadge`, `deleteBadge`, `editBadge`) with on-token icon colors (`onSecondary`, `onError`, `onPrimary`) and bold typography, matching modern email swipe interactions (Shortwave/Superhuman style).
+   - **Test Coverage:** Verified across 32 unit test suites (376 tests) covering web confirm/dismiss execution, sub-50dp springback vs >=50dp pause trigger, left-swipe edit progress activation, scroll rejection, termination refusal, and release/terminate delete triggers.
 
 ## Things that cost time once — do not relearn them
 
@@ -154,16 +154,16 @@ are clean:
 
 ## Next steps, in order
 
-1. Boot the app on a real device/emulator and check all five unverified
+1. Boot the app on a real device/emulator or Safari PWA (`apple/web` branch) and check all five unverified
    items above: the new `add.tsx` screens (comic single/collection step,
    the confirm screen for every category), the A19 backlog edit gesture
    (swipe left, and long-press Resume, on a paused Backlog row), the A20
    ongoing-series edit gesture (same interactions, on an ongoing show/
    comic/manga row — including the rewind-then-re-advance sequence), A21's
    collapsible Currently sections (tap each category header, confirm the
-   chevron and row count track correctly), and the retuned swipe-Edit
-   order / Delete threshold (does "Edit" actually read earlier now, and
-   does Delete finally feel deliberate rather than accidental).
+   chevron and row count track correctly), and the updated swipe row
+   (circular action badges, immediate Edit visibility on left drag, comfortable
+   50–210dp pause zone, and web delete confirmation dialog).
 2. Fix whatever that turns up.
 3. Delete the now-fully-merged branches listed under "Branch state" once
    confident nothing on them is still needed.
