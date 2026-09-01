@@ -2,11 +2,12 @@ import { CameraView, useCameraPermissions, type BarcodeType } from 'expo-camera'
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { addTrack } from '@/data/addTrack';
 import { advanceEntry, firstEntryOf } from '@/data/trackRepo';
 import { parseSeriesTitle, stripBareTrailingNumber } from '@/domain/seriesTitle';
 import type { Category } from '@/domain/types';
+import { showAlert } from '@/ui/alert';
 import { GoogleBooksProvider } from '@/providers/googleBooks';
 import { MetronProvider } from '@/providers/metron';
 import { unitLabelFor } from '@/providers/manual';
@@ -289,7 +290,7 @@ export default function AddTrackScreen() {
       perm = await requestPermission();
     }
     if (!perm.granted) {
-      Alert.alert('Camera access needed', 'Camera access is needed to scan a barcode.');
+      showAlert('Camera access needed', 'Camera access is needed to scan a barcode.');
       return;
     }
     scanHandled.current = false;
@@ -366,7 +367,7 @@ export default function AddTrackScreen() {
 
     const parsedCount = /^\d+$/.test(count.trim()) ? Number.parseInt(count.trim(), 10) : Number.NaN;
     if (needsCount && !Number.isInteger(parsedCount)) {
-      Alert.alert('Could not add track', `Enter how many ${unit}s as a whole number`);
+      showAlert('Could not add track', `Enter how many ${unit}s as a whole number`);
       return;
     }
 
@@ -421,7 +422,7 @@ export default function AddTrackScreen() {
       allowLeave.current = true;
       router.back();
     } catch (error) {
-      Alert.alert('Could not add track', error instanceof Error ? error.message : String(error));
+      showAlert('Could not add track', error instanceof Error ? error.message : String(error));
     } finally {
       setSaving(false);
     }

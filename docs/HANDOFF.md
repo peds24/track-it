@@ -111,11 +111,13 @@ are clean:
    logic (`currentlySections.ts`) is unit-tested directly, but the actual
    tap target, chevron rotation, and how a collapse/expand feels alongside
    `SectionList`'s own scroll behavior haven't been tried on a device.
-5. **Swipe Delete stabilization.** `DELETE_THRESHOLD` was recalibrated to 150dp
-   (from an excessive 230dp), `onPanResponderTerminationRequest: () => false` added
-   to stop vertical lists from stealing active swipes, horizontal slop discrimination
-   tightened to `|dx| > 2 * |dy|` with `SLOP = 12`, and touch-action added for web.
-   Unit-tested across gesture recognition, scroll rejection, and termination triggers.
+5. **Swipe Delete & Alert Bridge stabilization.** Fixed `Alert.alert` being a no-op on
+   React Native Web via `src/ui/alert.ts` (`window.confirm`/`window.alert` bridge), extended
+   the Currently screen Pause zone (28–150dp) with `DELETE_THRESHOLD` set to 195dp, added
+   `onPanResponderTerminationRequest: () => false` to stop vertical lists from stealing active
+   swipes, tightened horizontal slop discrimination to `|dx| > 2 * |dy|` (`SLOP = 12`), and
+   added touch-action for web. Unit-tested across gesture recognition, scroll rejection,
+   web confirm dialogs, and termination triggers.
 
 ## Things that cost time once — do not relearn them
 

@@ -96,22 +96,32 @@ comic-mode/confirm screens, the A19/A20 edit gestures, and A21's collapsible
 headers — see docs/HANDOFF.md's "What's unverified" for the full list.
 ```
 
-## 2026-08-31 — Swipe Gesture Stabilization & Delete Trigger Fix
+## 2026-08-31 — Swipe Gesture Stabilization & Web Delete Alert Bridge
 
 ### What Changed
+- **Cross-Platform Alert Bridge (`src/ui/alert.ts`)**:
+  - React Native Web stubs `Alert.alert` as an empty function (`alert() {}`), silently dropping all delete confirmation dialogs and error alerts on Web/Safari PWA.
+  - Implemented `showAlert(title, message, buttons, options)` bridging `window.confirm` / `window.alert` on Web while preserving native `Alert.alert` on iOS and Android.
+  - Routed all row deletion and backlog-reset confirmations in `SwipeableTrackRow.tsx` and screens (`index.tsx`, `backlog.tsx`, `done.tsx`, `add.tsx`) through `showAlert`.
+- **Extended Pause Distance & Calibrated Delete Threshold**:
+  - Extended the comfortable Pause/Backlog zone on the Currently screen to 28–150dp so quick swipes never inadvertently trigger Delete.
+  - Set `DELETE_THRESHOLD = 195dp` (with `MAX_SWIPE_RIGHT = 280dp`), smoothly morphing background color (`secondaryContainer` to `errorContainer`) across 110–175dp and fading in Delete across 135–175dp with scale pop at 195dp.
 - **Swipe Recognition & Scroll Discrimination**:
   - Tightened horizontal drag ratio requirement to `|dx| > 2.0 * |dy|` with `SLOP = 12` in `onMoveShouldSetPanResponder`, preventing vertical list scrolls from accidentally triggering row swipe gestures.
   - Set `onPanResponderTerminationRequest: () => false` on the active row pan responder so parent `SectionList`/`FlatList`/`ScrollView` cannot hijack the gesture mid-drag when a user drags horizontally with minor vertical finger wobble.
   - Added `touchAction: 'pan-y'` and `userSelect: 'none'` on web to let browsers handle vertical list scrolling natively while passing horizontal swipes to the PanResponder without touch cancellation.
-- **Reliable Delete Activation**:
-  - Calibrated `DELETE_THRESHOLD` from 230dp down to 150dp (and `MAX_SWIPE_RIGHT` to 240dp), fitting standard mobile screen widths (~360–390dp) within a natural thumb sweep (~40% of screen width).
   - Handled `onPanResponderTerminate` gracefully: if a gesture is cancelled by the OS/browser near or past the delete threshold (`>= DELETE_THRESHOLD`), it confirms the delete action instead of silently dropping the gesture and resetting the row.
-  - Re-anchored fluid color/opacity transition breakpoints (`secondaryContainer` to `errorContainer` smoothly across 80–135dp, scale pop at 150dp).
-  - Added unit tests in `src/ui/__tests__/SwipeableTrackRow.test.tsx` verifying scroll vs swipe gesture discrimination, termination refusal, and release/terminate delete triggers.
+- **Testing & Verification**:
+  - Added unit tests in `src/ui/__tests__/alert.test.ts` verifying native delegation vs web `window.confirm` / `window.alert` execution.
+  - Added unit tests in `src/ui/__tests__/SwipeableTrackRow.test.tsx` verifying web deletion confirmation, scroll vs swipe gesture discrimination, termination refusal, and release/terminate delete triggers.
 
 ### Design Decisions & Trade-offs
-*Why 150dp instead of 230dp?*
-A 230dp threshold represented ~65–75% of the total screen width on standard phones, requiring an uncomfortable full-width thumb drag that virtually always introduced vertical wobble or hit the screen edge. Coupled with unrefused termination requests, the list view would abort the gesture mid-flight and silently drop the delete action. 150dp provides a clear distinction from quick pause (28–80dp) while remaining easily and reliably reachable in a deliberate swipe.
+*Why create a unified `showAlert` helper?*
+`react-native-web` does not implement `Alert.alert`. Rather than sprinkling `Platform.OS === 'web'` branches across every screen and component, `src/ui/alert.ts` provides a single drop-in replacement that handles multi-button cancel/destructive flows with `window.confirm` and informational alerts with `window.alert`.
+
+*Why 195dp with a 28–150dp Pause zone?*
+A 28–150dp Pause zone provides wide, forgiving travel for the frequent, reversible "Pause / Backlog" quick swipe without triggering the destructive Delete action prematurely. The Delete threshold at 195dp clearly signals intentional deep pulling via the red `errorContainer` transition starting at 150dp.
+
 
 
 

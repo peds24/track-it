@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, Pressable, SectionList, StyleSheet, Text, View } from 'react-native';
+import { Pressable, SectionList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   advanceEntry,
@@ -13,6 +13,7 @@ import {
   type TrackSummary,
 } from '@/data/trackRepo';
 import type { Category } from '@/domain/types';
+import { showAlert } from '@/ui/alert';
 import { currentlySections } from '@/ui/currentlySections';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { elevation, font, googleSans, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
@@ -50,7 +51,7 @@ export default function CurrentlyScreen() {
     try {
       await reload();
     } catch (e: unknown) {
-      Alert.alert('Could not load your tracks', e instanceof Error ? e.message : String(e));
+      showAlert('Could not load your tracks', e instanceof Error ? e.message : String(e));
     }
   }, [reload]);
 
@@ -65,7 +66,7 @@ export default function CurrentlyScreen() {
       try {
         await advanceEntry(db, entryId, new Date().toISOString());
       } catch (e: unknown) {
-        Alert.alert('Could not update', e instanceof Error ? e.message : String(e));
+        showAlert('Could not update', e instanceof Error ? e.message : String(e));
       }
       await reloadSafely();
     })();
@@ -79,7 +80,7 @@ export default function CurrentlyScreen() {
       try {
         await renameTrack(db, track, title);
       } catch (e: unknown) {
-        Alert.alert('Could not rename track', e instanceof Error ? e.message : String(e));
+        showAlert('Could not rename track', e instanceof Error ? e.message : String(e));
       } finally {
         await reload();
       }
@@ -91,7 +92,7 @@ export default function CurrentlyScreen() {
       try {
         await deleteTrack(db, track);
       } catch (e: unknown) {
-        Alert.alert('Could not delete', e instanceof Error ? e.message : String(e));
+        showAlert('Could not delete', e instanceof Error ? e.message : String(e));
       } finally {
         await reload();
       }
@@ -103,7 +104,7 @@ export default function CurrentlyScreen() {
       try {
         await returnTrackToBacklog(db, track);
       } catch (e: unknown) {
-        Alert.alert('Could not move track', e instanceof Error ? e.message : String(e));
+        showAlert('Could not move track', e instanceof Error ? e.message : String(e));
       } finally {
         await reload();
       }
@@ -116,7 +117,7 @@ export default function CurrentlyScreen() {
       try {
         await setTrackPosition(db, track.id, ordinal, new Date().toISOString());
       } catch (e: unknown) {
-        Alert.alert('Could not update', e instanceof Error ? e.message : String(e));
+        showAlert('Could not update', e instanceof Error ? e.message : String(e));
       }
       await reloadSafely();
     })();
@@ -127,7 +128,7 @@ export default function CurrentlyScreen() {
       try {
         await resumeTrack(db, track);
       } catch (e: unknown) {
-        Alert.alert('Could not resume track', e instanceof Error ? e.message : String(e));
+        showAlert('Could not resume track', e instanceof Error ? e.message : String(e));
       } finally {
         await reload();
       }

@@ -1,4 +1,4 @@
-import { Alert, Animated } from 'react-native';
+import { Alert, Animated, Platform } from 'react-native';
 import { act, render, screen, fireEvent } from '@testing-library/react-native';
 import { SwipeableTrackRow } from '@/ui/SwipeableTrackRow';
 import type { TrackSummary } from '@/data/trackRepo';
@@ -269,9 +269,10 @@ test('deep right swipe past delete threshold triggers delete confirmation on rel
   );
   const panSurface = screen.getByTestId('swipeable-surface');
 
-  // Release after deep swipe past threshold (150)
+  const horizEvent = makeTouchEvent(210, 0);
+  panSurface.props.onMoveShouldSetResponderCapture(horizEvent);
   await act(async () => {
-    panSurface.props.onResponderRelease({ nativeEvent: {} }, { dx: 160, dy: 0, vx: 0.1 });
+    panSurface.props.onResponderRelease(horizEvent);
   });
 
   expect(alertSpy).toHaveBeenCalledWith(
@@ -290,9 +291,10 @@ test('deep right swipe past delete threshold triggers delete confirmation even i
   );
   const panSurface = screen.getByTestId('swipeable-surface');
 
-  // Terminate after reaching deep swipe (160)
+  const horizEvent = makeTouchEvent(210, 0);
+  panSurface.props.onMoveShouldSetResponderCapture(horizEvent);
   await act(async () => {
-    panSurface.props.onResponderTerminate({ nativeEvent: {} }, { dx: 160, dy: 0, vx: 0.1 });
+    panSurface.props.onResponderTerminate(horizEvent);
   });
 
   expect(alertSpy).toHaveBeenCalledWith(
@@ -301,6 +303,33 @@ test('deep right swipe past delete threshold triggers delete confirmation even i
     expect.any(Array),
     expect.any(Object),
   );
+});
+
+test('on web platform, swiping to delete invokes window.confirm and calls onDelete when confirmed', async () => {
+  const originalPlatform = Platform.OS;
+  Platform.OS = 'web';
+  if (typeof window === 'undefined') {
+    (global as any).window = {};
+  }
+  const confirmSpy = jest.fn().mockReturnValue(true);
+  (window as any).confirm = confirmSpy;
+
+  const onDelete = jest.fn();
+  await render(
+    <SwipeableTrackRow track={show} {...noop} onDelete={onDelete} onReturnToBacklog={() => {}} />,
+  );
+  const panSurface = screen.getByTestId('swipeable-surface');
+
+  const horizEvent = makeTouchEvent(210, 0);
+  panSurface.props.onMoveShouldSetResponderCapture(horizEvent);
+  await act(async () => {
+    panSurface.props.onResponderRelease(horizEvent);
+  });
+
+  expect(confirmSpy).toHaveBeenCalledWith(expect.stringContaining('Delete Severance?'));
+  expect(onDelete).toHaveBeenCalledWith(show);
+
+  Platform.OS = originalPlatform;
 });
 
 
