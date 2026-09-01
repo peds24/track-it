@@ -8,12 +8,14 @@ import {
   renameTrack,
   resumeTrack,
   returnTrackToBacklog,
+  setTrackPosition,
   type TrackSummary,
 } from '@/data/trackRepo';
 import type { Category } from '@/domain/types';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { FilterBar } from '@/ui/FilterBar';
 import { font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
+import { ProgressEditor } from '@/ui/ProgressEditor';
 import { SwipeableTrackRow } from '@/ui/SwipeableTrackRow';
 import { useTracks } from '@/ui/useTracks';
 
@@ -22,6 +24,7 @@ export default function BacklogScreen() {
   const palette = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [category, setCategory] = useState<Category | null>(null);
+  const [editing, setEditing] = useState<TrackSummary | null>(null);
   const { tracks, reload } = useTracks('backlog', category ?? undefined);
 
   const reloadSafely = useCallback(async () => {
@@ -100,6 +103,20 @@ export default function BacklogScreen() {
     })();
   }
 
+  // A19: setTrackPosition already clears `paused` (A12/A6) — correcting a
+  // paused row's position picks it back up, same as tapping Resume would.
+  function handleSetPosition(track: TrackSummary, ordinal: number): void {
+    setEditing(null);
+    void (async () => {
+      try {
+        await setTrackPosition(db, track.id, ordinal, new Date().toISOString());
+      } catch (e: unknown) {
+        Alert.alert('Could not update', e instanceof Error ? e.message : String(e));
+      }
+      await reloadSafely();
+    })();
+  }
+
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
@@ -119,6 +136,7 @@ export default function BacklogScreen() {
             onRename={handleRename}
             onDelete={handleDelete}
             onReturnToBacklog={handleReturnToBacklog}
+            onEditProgress={setEditing}
           />
         )}
         ListEmptyComponent={
@@ -127,6 +145,12 @@ export default function BacklogScreen() {
             <Text style={styles.empty}>Tracks in your backlog will appear here.</Text>
           </View>
         }
+      />
+
+      <ProgressEditor
+        track={editing}
+        onCancel={() => setEditing(null)}
+        onSubmit={handleSetPosition}
       />
     </SafeAreaView>
   );

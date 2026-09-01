@@ -8,7 +8,11 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.peds24.trackit",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -21,7 +25,14 @@
       "package": "com.peds24.trackit"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/favicon.png",
+      "themeColor": "#386A20",
+      "backgroundColor": "#FBFDF8"
+    },
+    "experiments": {
+      "baseUrl": "/track-it-private"
     },
     "plugins": [
       "expo-sqlite",
@@ -44,7 +55,7 @@
       }
     },
     "runtimeVersion": {
-      "policy": "appVersion"
+      "policy": "sdkVersion"
     },
     "updates": {
       "url": "https://u.expo.dev/d319cc51-6ebe-43b0-b50b-f0e843d1903c"

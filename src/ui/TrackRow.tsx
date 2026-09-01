@@ -75,13 +75,26 @@ export function seasonPositionLabel(track: TrackSummary): string | null {
   return track.paused ? `Paused · ${seasonText}` : seasonText;
 }
 
+/**
+ * A19: eligible on Currently, or on a paused Backlog row — the same
+ * eligibility `hasSeasonProgress` (A13) already applies to the season bar.
+ * A backlog row that was never started has nothing worth correcting yet.
+ *
+ * A20: an ongoing series has no `progress` to check (A4 — it has no total),
+ * but its existing entries are just as correctable, bounded by however many
+ * exist so far (`entryCount`) rather than a fixed total. A fresh ongoing
+ * series with only its first entry is excluded the same way a fresh finite
+ * one would be — there being only one entry means there's nothing to walk
+ * back through yet.
+ */
 export function canEditPosition(track: TrackSummary): boolean {
+  const hasCorrectableProgress = track.ongoing
+    ? track.entryCount > 1
+    : track.progress !== null && track.progress.total > 0;
   return (
     track.kind === 'series' &&
-    track.shelf === 'currently' &&
-    !track.ongoing &&
-    track.progress !== null &&
-    track.progress.total > 0
+    (track.shelf === 'currently' || (track.shelf === 'backlog' && track.paused)) &&
+    hasCorrectableProgress
   );
 }
 

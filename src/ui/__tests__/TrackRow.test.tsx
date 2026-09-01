@@ -11,6 +11,8 @@ const show: TrackSummary = {
   createdAt: '2026-08-12T10:00:00.000Z',
   progress: { done: 3, total: 9 },
   nextEntryId: 'e4',
+  nextEntryOrdinal: 4,
+  entryCount: 9,
   ongoing: false,
   paused: false,
   seasons: null,
@@ -354,7 +356,7 @@ test('a not-yet-started backlog show (unpaused) keeps the flat bar and "Not star
   expect(screen.queryByText(/^S\d/)).toBeNull();
 });
 
-// A12: long-pressing the advance control opens the progress editor, but only
+// A18: long-pressing the advance control opens the progress editor, but only
 // where a position is a thing the track actually has.
 test('long-pressing Done on a finite series asks to edit its position', async () => {
   const onEditProgress = jest.fn();
@@ -371,19 +373,31 @@ test('long-pressing Done on a finite series asks to edit its position', async ()
   expect(onEditProgress).toHaveBeenCalledWith(show);
 });
 
-test('long-pressing an ongoing series does nothing — it has no total to sit inside', async () => {
+// A20 reverses this: an ongoing series with no entries yet has nothing to
+// correct, same as a not-yet-started backlog row — but one with real
+// progress does (see the ongoing case further down).
+test('long-pressing an ongoing series with only its first entry does nothing yet', async () => {
   const onEditProgress = jest.fn();
-  const ongoing: TrackSummary = { ...show, title: 'One Piece', category: 'manga', ongoing: true, progress: null };
+  const freshOngoing: TrackSummary = {
+    ...show,
+    title: 'One Piece',
+    category: 'manga',
+    ongoing: true,
+    progress: null,
+    entryCount: 1,
+    nextEntryOrdinal: 1,
+    nextEntryTitle: 'Volume 1',
+  };
   await render(
     <TrackRow
-      track={ongoing}
+      track={freshOngoing}
       onAdvance={() => {}}
       onResume={() => {}}
       onRename={() => {}}
       onEditProgress={onEditProgress}
     />,
   );
-  await fireEvent(screen.getByLabelText('Mark Episode 4 read'), 'longPress');
+  await fireEvent(screen.getByLabelText('Mark Volume 1 read'), 'longPress');
   expect(onEditProgress).not.toHaveBeenCalled();
 });
 
@@ -411,7 +425,7 @@ test('long-pressing a standalone movie does nothing — there is no position in 
   expect(onEditProgress).not.toHaveBeenCalled();
 });
 
-test('long-pressing a backlog row does nothing — the editor is a Currently gesture', async () => {
+test('long-pressing a not-yet-started backlog row does nothing — there is no position to correct yet', async () => {
   const onEditProgress = jest.fn();
   const backlogged: TrackSummary = { ...show, shelf: 'backlog' };
   await render(
@@ -425,6 +439,52 @@ test('long-pressing a backlog row does nothing — the editor is a Currently ges
   );
   await fireEvent(screen.getByLabelText('Start Severance'), 'longPress');
   expect(onEditProgress).not.toHaveBeenCalled();
+});
+
+// A19: a paused backlog track still has real progress worth correcting —
+// the same reasoning A13 already applied to the season bar.
+test('long-pressing Resume on a paused backlog track asks to edit its position', async () => {
+  const onEditProgress = jest.fn();
+  const pausedBacklog: TrackSummary = { ...show, shelf: 'backlog', paused: true };
+  await render(
+    <TrackRow
+      track={pausedBacklog}
+      onAdvance={() => {}}
+      onResume={() => {}}
+      onRename={() => {}}
+      onEditProgress={onEditProgress}
+    />,
+  );
+  await fireEvent(screen.getByLabelText('Resume Severance'), 'longPress');
+  expect(onEditProgress).toHaveBeenCalledWith(pausedBacklog);
+});
+
+// A20: an ongoing series has no total, but its existing entries are just as
+// correctable as a finite series' — there was previously no way to walk one
+// back after advancing too far, or too fast, by mistake.
+test('long-pressing Done on an ongoing series asks to edit its position too', async () => {
+  const onEditProgress = jest.fn();
+  const ongoing: TrackSummary = {
+    ...show,
+    title: 'One Piece',
+    category: 'manga',
+    ongoing: true,
+    progress: null,
+    entryCount: 30,
+    nextEntryOrdinal: 30,
+    nextEntryTitle: 'Volume 30',
+  };
+  await render(
+    <TrackRow
+      track={ongoing}
+      onAdvance={() => {}}
+      onResume={() => {}}
+      onRename={() => {}}
+      onEditProgress={onEditProgress}
+    />,
+  );
+  await fireEvent(screen.getByLabelText('Mark Volume 30 read'), 'longPress');
+  expect(onEditProgress).toHaveBeenCalledWith(ongoing);
 });
 
 test('an editable row tells a screen reader the gesture exists', async () => {

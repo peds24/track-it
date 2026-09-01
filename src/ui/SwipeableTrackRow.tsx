@@ -3,16 +3,16 @@ import { Alert, Animated, PanResponder, Pressable, StyleSheet, Text, View } from
 import { Ionicons } from '@expo/vector-icons';
 import type { TrackSummary } from '@/data/trackRepo';
 import { font, useTheme, type Palette } from '@/ui/theme';
-import { TrackRow } from '@/ui/TrackRow';
+import { canEditPosition, TrackRow } from '@/ui/TrackRow';
 
 /** Threshold for quick swipe activation. */
 const LATCH = 28;
 /** Below this the gesture is treated as a list scroll, not a swipe. */
 const SLOP = 10;
 /** Deep swipe threshold on right swipe that transitions from Backlog/Pause to Delete. */
-const DELETE_THRESHOLD = 175;
+const DELETE_THRESHOLD = 230;
 /** Maximum swipe distances. */
-const MAX_SWIPE_RIGHT = 260;
+const MAX_SWIPE_RIGHT = 320;
 const MAX_SWIPE_LEFT = 160;
 
 export function SwipeableTrackRow({
@@ -59,10 +59,9 @@ export function SwipeableTrackRow({
 
   const canReturn = track.shelf !== 'backlog';
   const resetting = track.shelf === 'done';
-  const canEdit =
-    onEditProgress !== undefined &&
-    track.progress !== null &&
-    track.progress.total > 0;
+  // Single-sourced from TrackRow's own gate (A18/A19) so the swipe action and
+  // the row's long-press gesture never disagree about what's editable.
+  const canEdit = onEditProgress !== undefined && canEditPosition(track);
 
   const confirmDelete = useCallback(() => {
     Alert.alert(
@@ -127,10 +126,13 @@ export function SwipeableTrackRow({
     extrapolate: 'clamp',
   });
 
-  // Smooth background color & text transitions between Backlog/Pause and Delete
+  // Smooth background color & text transitions between Backlog/Pause and Delete.
+  // Every breakpoint here is anchored relative to DELETE_THRESHOLD (pause
+  // gone and delete opaque just *before* it, the scale pop centered right on
+  // it) so a future retune only has to move the one constant.
   const containerBg = canReturn
     ? translateX.interpolate({
-        inputRange: [0, 100, 150, 180],
+        inputRange: [0, 130, 200, DELETE_THRESHOLD + 5],
         outputRange: [c.secondaryContainer, c.secondaryContainer, c.errorContainer, c.errorContainer],
         extrapolate: 'clamp',
       })
@@ -138,7 +140,7 @@ export function SwipeableTrackRow({
 
   const pauseOpacity = canReturn
     ? translateX.interpolate({
-        inputRange: [0, 30, 130, 160],
+        inputRange: [0, 30, 170, 210],
         outputRange: [1, 1, 0.2, 0],
         extrapolate: 'clamp',
       })
@@ -146,7 +148,7 @@ export function SwipeableTrackRow({
 
   const deleteOpacity = canReturn
     ? translateX.interpolate({
-        inputRange: [0, 120, 155, 180],
+        inputRange: [0, 155, 200, DELETE_THRESHOLD + 5],
         outputRange: [0, 0, 0.85, 1],
         extrapolate: 'clamp',
       })
@@ -154,7 +156,7 @@ export function SwipeableTrackRow({
 
   const deleteScale = canReturn
     ? translateX.interpolate({
-        inputRange: [120, 175, 220],
+        inputRange: [155, DELETE_THRESHOLD, DELETE_THRESHOLD + 60],
         outputRange: [0.75, 1, 1.1],
         extrapolate: 'clamp',
       })
@@ -301,8 +303,13 @@ export function SwipeableTrackRow({
               onPress={handleEdit}
               style={styles.actionPressableRight}
             >
-              <Text style={[styles.actionText, styles.editText]}>Edit</Text>
+              {/* Icon first, label last: this pill is pinned to the right
+                  edge (rightActionContainer's alignItems: 'flex-end'), and a
+                  left swipe uncovers it right edge first — so whichever
+                  child is last in this row is what actually reads earliest,
+                  with the smallest swipe. */}
               <Ionicons name="create" size={24} color={c.onPrimaryContainer} />
+              <Text style={[styles.actionText, styles.editText]}>Edit</Text>
             </Pressable>
           </Animated.View>
         )}

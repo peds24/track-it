@@ -1,5 +1,5 @@
 import { addTrack } from '@/data/addTrack';
-import { advanceEntry, listTracks } from '@/data/trackRepo';
+import { advanceEntry, listTracks, setTrackPosition } from '@/data/trackRepo';
 import type { SqlDriver } from '@/db/driver';
 import { migrate } from '@/db/schema';
 import { createMemoryDriver } from '../../../test/memoryDriver';
@@ -110,4 +110,49 @@ test('finishing an earlier entry out of order does not append', async () => {
 
   const rows = await db.all('SELECT id FROM entry');
   expect(rows).toHaveLength(2);
+});
+
+// A20: there was previously no way to correct an ongoing series that got
+// advanced too far — setTrackPosition (A18) never checked `ongoing` at all,
+// it only needed the entries that already exist, so it already worked here
+// underneath the UI gate that excluded it.
+test('setTrackPosition rewinds an ongoing series to an earlier, already-existing entry', async () => {
+  const db = await freshDb();
+  await addTrack(db, { title: 'One Piece', category: 'manga', count: 0, ongoing: true }, NOW);
+  await advanceTimes(db, 4); // volumes 1-3 done, volume 4 in progress
+
+  const [beforeRewind] = await listTracks(db, 'currently');
+  expect(beforeRewind!.entryCount).toBe(4);
+
+  await setTrackPosition(db, beforeRewind!.id, 2, NOW);
+
+  const [rewound] = await listTracks(db, 'currently');
+  expect(rewound!.nextEntryTitle).toBe('Volume 2');
+  expect(rewound!.nextEntryStatus).toBe('in_progress');
+  // Volumes 3 and 4 already existed before the rewind — moving backward must
+  // not delete or duplicate them.
+  expect(await db.all('SELECT id FROM entry')).toHaveLength(4);
+});
+
+test('advancing forward again after a rewind reuses the existing entries before growing past them', async () => {
+  const db = await freshDb();
+  await addTrack(db, { title: 'One Piece', category: 'manga', count: 0, ongoing: true }, NOW);
+  await advanceTimes(db, 4); // volumes 1-3 done, volume 4 in progress
+  await setTrackPosition(db, (await listTracks(db, 'currently'))[0]!.id, 2, NOW);
+
+  // Finishing volume 2 (not the highest ordinal) must reuse the already-
+  // existing volume 3 rather than appending a duplicate.
+  await advanceTimes(db, 1);
+  let rows = await db.all<{ title: string }>('SELECT title FROM entry ORDER BY ordinal');
+  expect(rows.map((r) => r.title)).toEqual(['Volume 1', 'Volume 2', 'Volume 3', 'Volume 4']);
+
+  // Finishing volume 3, still not the highest, reuses volume 4 the same way.
+  await advanceTimes(db, 1);
+  rows = await db.all<{ title: string }>('SELECT title FROM entry ORDER BY ordinal');
+  expect(rows).toHaveLength(4);
+
+  // Only finishing the true last entry (volume 4) grows the series again.
+  await advanceTimes(db, 1);
+  rows = await db.all<{ title: string }>('SELECT title FROM entry ORDER BY ordinal');
+  expect(rows.map((r) => r.title)).toEqual(['Volume 1', 'Volume 2', 'Volume 3', 'Volume 4', 'Volume 5']);
 });

@@ -79,7 +79,7 @@ test('advance does not mutate its input', () => {
   expect(original.status).toBe('unstarted');
 });
 
-// A12: setting a position directly, instead of tapping forward one unit at a
+// A18: setting a position directly, instead of tapping forward one unit at a
 // time. `episodes(n)` builds a flat, unstarted series of n children.
 function episodes(count: number, over: (ordinal: number) => Partial<Entry> = () => ({})): Entry[] {
   return Array.from({ length: count }, (_, i) => {

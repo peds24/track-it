@@ -40,13 +40,20 @@ export function ProgressEditor({
     setUnitValue('');
   }, [trackId]);
 
-  if (track === null || track.progress === null) return null;
+  if (track === null) return null;
 
-  const total = track.progress.total;
+  // A20: an ongoing series reports no `progress` at all (A4 — it has no
+  // fixed total), so `entryCount` — however many entries actually exist —
+  // stands in as the upper bound instead. For a finite series the two are
+  // always equal, since `progress.total` is `entryCount` by construction.
+  const total = track.entryCount;
   const unit = unitLabelFor(track.category) ?? 'episode';
   const unitWord = UNIT_WORD[unit];
 
-  const currentOrdinal = track.progress.done + 1;
+  // `nextEntryOrdinal` is the position editor's real source of truth in both
+  // cases — `progress.done + 1` was only ever the finite-series way of
+  // deriving the same number.
+  const currentOrdinal = track.nextEntryOrdinal ?? 1;
 
   const seasons = track.seasons && track.seasons.length > 0 ? track.seasons : null;
   const at = seasons ? positionIn(seasons, currentOrdinal) : null;

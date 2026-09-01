@@ -12,6 +12,8 @@ const show: TrackSummary = {
   // 3 done means episode 4 is the one being watched.
   progress: { done: 3, total: 9 },
   nextEntryId: 'e4',
+  nextEntryOrdinal: 4,
+  entryCount: 9,
   ongoing: false,
   paused: false,
   seasons: null,
@@ -25,6 +27,8 @@ const HOUSE: TrackSummary = {
   title: 'House',
   // 60 done means episode 61 overall — season 3, episode 15.
   progress: { done: 60, total: 70 },
+  nextEntryOrdinal: 61,
+  entryCount: 70,
   seasons: [
     { number: 1, episodeCount: 22 },
     { number: 2, episodeCount: 24 },
@@ -142,4 +146,40 @@ test('saving does nothing for a season the show does not have', async () => {
 test('a closed editor renders nothing', async () => {
   await render(<ProgressEditor track={null} onCancel={noop} onSubmit={noop} />);
   expect(screen.queryByText('Edit track number')).toBeNull();
+});
+
+// A20: an ongoing series has no `progress` (it has no total to report), but
+// the editor still needs to render for it against however many entries
+// already exist — `entryCount`/`nextEntryOrdinal` carry that instead.
+const ONGOING_MANGA: TrackSummary = {
+  ...show,
+  title: 'One Piece',
+  category: 'manga',
+  ongoing: true,
+  progress: null,
+  entryCount: 30,
+  nextEntryOrdinal: 30,
+  nextEntryTitle: 'Volume 30',
+};
+
+test('an ongoing track seeds the field from its current entry, against how many exist so far', async () => {
+  await render(<ProgressEditor track={ONGOING_MANGA} onCancel={noop} onSubmit={noop} />);
+  expect(screen.getByLabelText('Volume number').props.placeholder).toBe('30');
+  expect(screen.getByText('of 30')).toBeTruthy();
+});
+
+test('saving a typed number for an ongoing track reports it as a position', async () => {
+  const onSubmit = jest.fn();
+  await render(<ProgressEditor track={ONGOING_MANGA} onCancel={noop} onSubmit={onSubmit} />);
+  await fireEvent.changeText(screen.getByLabelText('Volume number'), '17');
+  await fireEvent.press(screen.getByLabelText('Save position'));
+  expect(onSubmit).toHaveBeenCalledWith(ONGOING_MANGA, 17);
+});
+
+test('saving does nothing for an ongoing track past how many entries exist so far', async () => {
+  const onSubmit = jest.fn();
+  await render(<ProgressEditor track={ONGOING_MANGA} onCancel={noop} onSubmit={onSubmit} />);
+  await fireEvent.changeText(screen.getByLabelText('Volume number'), '31');
+  await fireEvent.press(screen.getByLabelText('Save position'));
+  expect(onSubmit).not.toHaveBeenCalled();
 });

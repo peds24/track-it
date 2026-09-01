@@ -788,6 +788,11 @@ data: scanning volume 29 of a 34-volume series reported progress as "0 of
 the lowest *unstarted* ordinal — volume 1 — instead of continuing to 30,
 because entries 1–28 were still sitting `unstarted`.
 
+*A note on numbering:* a since-merged branch independently used "A12" for
+the position-editing feature below. That entry now carries the next free
+number, **A18**, rather than this one — this entry was already correctly
+sequenced between A11 and A13, and A18's own content notes the rename.
+
 Confirmed with the user this is a real reversal, not a silent fix:
 starting a series partway through now means everything before that point
 already happened. `createSeriesTrack` (`src/data/trackRepo.ts`) backfills
@@ -1092,6 +1097,206 @@ the existing `confirmedDraft`/`hydrating`, `editingCount` and its UI
 removed, `handleSave`'s draft-building simplified to the one un-edited
 path).
 
+**A18 — A position can be set directly, not only tapped up to.** Every way to
+move a track forward went through D8's one-tap advance, one unit per tap.
+That is right for the ordinary case and wrong for the common recovery case:
+coming back to a show you watched twenty episodes of elsewhere means twenty
+taps, each writing a `finished_at` that claims you finished that episode just
+now. Holding the row's advance control opens an editor that takes the number
+directly.
+
+*This entry was originally numbered A12, before the amendment now at that
+number (mid-series backfill) existed on the branch this merged with — see
+that entry's own note.*
+
+*The number is the unit you are on, not the count you have finished.* A
+target of 5 leaves four done and the fifth `in_progress` — the same shape
+`advance` produces via A5's auto-start, reached in one move. This is
+deliberately *not* the "3 of 9" count the meta line shows next to it, which
+is one lower. The row's own words are what the field is echoing ("Watching
+Episode 5", "S3 Ep 15 of 24"), and those name the unit in hand; a field that
+took the finished-count would read as off-by-one against the label directly
+above it.
+
+*A consequence worth stating: the editor cannot finish a track.* The largest
+position a series has is its last unit, and being on the last unit is not
+having finished it. Tapping Done there still is. The editor positions; it
+does not complete.
+
+*The total is not editable.* It is the number of `Entry` rows the series has,
+so changing it would mean creating or deleting units — a different operation
+from saying where you are, and one the Add screen and delete already cover.
+
+*Nothing is clamped.* A number the series does not have leaves Save inert
+rather than being corrected to the nearest one that exists. A silently
+adjusted number would move a track somewhere the user did not type, and there
+is no undo for that.
+
+*Scope, as originally shipped: finite series on Currently only.* A movie or
+a standalone book has no units to be part-way through. An ongoing series
+(A4) has no total for a position to sit inside — supporting it would mean
+generating entries up to the target, which is a separate decision, not a
+free extension of this one. And the gesture hung off the Done button, so a
+backlog row — whose control is Start or Resume, meaning something else —
+did not offer it. **A19 widens the Currently-only half of this scope**; the
+rest stands.
+
+*Seasons get two fields.* A show with TMDB season data (A11) asks for season
+and episode rather than an episode number in the high hundreds, converting to
+the flat ordinal through new pure helpers `ordinalFor`/`positionIn` in
+`domain/seasons.ts` — the inverse of what `currentSeason` already reports.
+Seasons remain display metadata: entries stay flat (D3), and a show whose
+season data does not line up with its entry count falls back to the single
+flat field rather than offering two fields that cannot address every unit.
+
+*Where it lives.* `domain/advance.ts` gains `setPosition`, pure, returning
+only the entries that changed; `data/trackRepo.ts` gains `setTrackPosition`,
+which persists them and clears `paused` — naming where you are in a track is
+resuming it (A6). Timestamps survive wherever the status does not change, so
+re-positioning backwards does not rewrite when you first finished episode 1;
+units that move back out of done lose theirs, because they no longer describe
+anything that happened.
+
+**A19 — Editing a position is also available on a paused Backlog row, not
+only Currently; widens part of A18.** A18 scoped the editor to Currently on
+the reasoning that a backlog row's control means Start or Resume, not Done —
+true, but beside the point once a *paused* row is in view: pausing (A6)
+keeps every bit of progress a track had, and that progress is exactly as
+capable of being wrong (skipped several issues at once, or logged more than
+was actually read) whether or not the row currently happens to sit in
+Currently. Requiring a Resume tap first, just to reach the same editor, added
+a step with no purpose behind it.
+
+Eligibility follows the same test `hasSeasonProgress` (A13) already applies
+to the season bar for the identical reason: real progress exists on
+`currently`, or on `backlog` while `paused`. A backlog row that was never
+started still gets neither the editor nor the season bar — there is no
+position to correct on a track nobody has opened. `SwipeableTrackRow`'s own
+swipe-to-edit action, which had never actually checked shelf or pause state
+at all (unreachable in practice, since no screen wired `onEditProgress` into
+Backlog until now), is unified onto `TrackRow`'s `canEditPosition` rather
+than keeping a second, looser copy of the same gate.
+
+**Rejected:** a separate "Edit" swipe action scoped only to Backlog, kept
+apart from Currently's long-press gesture. Rejected because the two are the
+same operation on the same kind of row — the row simply happens to render in
+a different list — and a second code path for identical behavior would be
+exactly the kind of gate-duplication this amendment is also cleaning up.
+
+**Mechanically:** `src/ui/TrackRow.tsx`'s `canEditPosition` gains the
+`backlog && paused` clause; `src/ui/SwipeableTrackRow.tsx` imports it instead
+of computing its own `canEdit`; `app/(tabs)/backlog.tsx` gains the
+`editing`/`ProgressEditor`/`handleSetPosition` wiring `app/(tabs)/index.tsx`
+already had. `app/(tabs)/done.tsx` is unchanged on purpose — a finished track
+renders no advance control at all (`nextEntryId` is null once `shelf ===
+'done'`), so the long-press gesture has nothing to hang off, and "done"
+already means there is no position left to be wrong about.
+
+**A20 — Editing a position is also available on an ongoing series, widening
+A18's "finite series only" scope.** A18 excluded ongoing series (A4) on the
+reasoning that an ongoing series has no total for a position to sit inside —
+true of a *target beyond what exists*, but beside the point for correcting
+something that already happened: skipping ahead several issues in one
+sitting, or logging more volumes than were actually read, is exactly as
+possible on an ongoing series as a finite one, and there was no way to walk
+it back short of resetting entries by hand outside the app.
+
+*What actually blocked it — and what didn't.* `domain/advance.ts`'s
+`setPosition` and `data/trackRepo.ts`'s `setTrackPosition` never checked
+`ongoing` at all; they only need the entries that already exist, which an
+ongoing series has just as much as a finite one. `appendNextOngoingEntry`
+(A4) already guarded against out-of-order completion — "only extend from the
+end" — for a different reason (an out-of-order re-finish), which turns out
+to make rewinding-then-re-advancing an ongoing series safe for free: finishing
+a non-highest entry after a rewind reuses the next already-existing entry
+rather than appending, and growth resumes only once the true highest entry is
+reached again. The block was entirely in the UI layer: `canEditPosition`
+required `progress !== null`, and an ongoing series' `progress` is always
+`null` by design (A4) — there was never a total to check against.
+
+*The bound, for an ongoing series, is "however many entries exist so far," not
+a total.* `TrackSummary` gains `entryCount` (`children.length`, populated
+regardless of `ongoing` — equal to `progress.total` for a finite series,
+since that is how `progress.total` was already computed) and
+`nextEntryOrdinal` (the ordinal of whichever entry `nextEntryId` names — the
+position editor's real seed value in both cases; `progress.done + 1` was only
+ever the finite-series way of deriving the same number). `canEditPosition`
+now checks `entryCount > 1` for an ongoing series specifically — a fresh one
+with only its bootstrap entry has nothing to walk back through yet, same as a
+never-started finite one has nothing to correct. `ProgressEditor` no longer
+touches `track.progress` at all: `entryCount` replaces `progress.total` as
+the upper bound (nothing generates new entries past it — the exact concern
+A18's original scope note raised, still respected), and `nextEntryOrdinal`
+replaces `progress.done + 1` as the seed.
+
+**Rejected:** generating entries up to a typed target that exceeds
+`entryCount`, so an ongoing series' editor could also move *forward* past
+what exists. This is the actual case A18's scope note was protecting
+against, and it stays out — it is a different operation (deciding how many
+new entries to create) from correcting where you already are, which is all
+this amendment does.
+
+**Mechanically:** `src/data/trackRepo.ts`'s `TrackSummary` gains
+`entryCount`/`nextEntryOrdinal`, populated in `listTracks` for both branches
+(a series' real values; `0`/`null` for a standalone entry, which
+`canEditPosition`'s `kind === 'series'` check excludes regardless).
+`src/ui/TrackRow.tsx`'s `canEditPosition` branches on `track.ongoing` between
+the existing `progress`-based check and the new `entryCount > 1` one.
+`src/ui/ProgressEditor.tsx` derives `total`/`currentOrdinal` from
+`entryCount`/`nextEntryOrdinal` unconditionally instead of `track.progress`.
+
+**A21 — Currently's category sections are collapsible, completing D12's
+reversal.** D12 kept Currently as one flat list, explicitly rejecting
+grouping by media type: "the screen should hold roughly three to six
+things. Grouping that few items adds headers without adding navigation."
+That assumption stopped holding at some point during the Material 3 rework
+— category sections (`feat(ui): group Currently tracks by category with
+section subtitles`) shipped without ever being recorded as reversing D12,
+the same kind of gap this session already found and fixed once for the
+duplicate "A12." Recorded here for the first time, retroactively, since
+this amendment builds directly on top of it: sections answer D12's own
+objection for a small library, but a library that outgrows "three to six
+things" is exactly the case D12 didn't anticipate, and headers with nothing
+to fold away are exactly the "adds headers without adding navigation"
+D12 warned about. Collapsibility is what turns a header into real
+navigation rather than a label.
+
+Each category header (Shows, Movies, Books, Comics, Manga) is now a
+button: tapping it toggles that category's section between expanded and
+collapsed, independently of the others. A collapsed section keeps its
+header — icon, title, and count badge all stay visible — with a chevron
+that points forward instead of down, and its rows simply do not render.
+Collapse state lives in the screen's own component state, keyed by
+category; it is **not** persisted anywhere (not to `AsyncStorage`, not to
+the database) and resets to all-expanded every time the screen remounts.
+This was a deliberate scope cut, not an oversight: persisting a purely
+cosmetic UI preference would mean either a new storage mechanism or a
+schema change for something `src/domain/` has no reason to know about,
+and nothing about the request implied it needed to survive an app
+restart.
+
+**Rejected:** persisting collapse state (`AsyncStorage` or a new
+preferences table). Left out for the reason above — pure display state,
+not domain data, and out of scope unless it turns out to matter enough to
+ask for specifically.
+
+**Mechanically:** the grouping logic that used to live inline in
+`app/(tabs)/index.tsx` (a local `CATEGORY_SECTIONS` constant plus a
+`useMemo`) is extracted to a new pure, tested module,
+`src/ui/currentlySections.ts` — `currentlySections(tracks,
+collapsedCategories)` returns one `CurrentlySection` per category with
+anything Currently, each carrying `data` (empty when collapsed), `count`
+(always real, for the header badge), and `collapsed` (for the chevron and
+`accessibilityState`). This is the first screen-level UI logic in the app
+pulled out and unit-tested directly, rather than left as untested glue —
+consistent with the "most logic lives in `domain/`, where it is cheapest
+to test" bias the Testing section states, just applied one layer up: this
+particular piece of `app/` glue had real, cheaply-testable logic (grouping
+and filtering) sitting inside otherwise-untested screen code.
+`app/(tabs)/index.tsx` gains `collapsedCategories` state and a
+`toggleSection` handler; `renderSectionHeader` becomes a `Pressable` with
+`accessibilityRole="button"` and `accessibilityState={{ expanded }}`.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:
@@ -1118,60 +1323,6 @@ There is no offline case to handle, because there is no network.
 
 The bias is deliberate: most logic lives in `domain/`, where it is cheapest to
 test, and the UI layer stays thin enough to need little testing.
-
-**A12 — A position can be set directly, not only tapped up to.** Every way to
-move a track forward went through D8's one-tap advance, one unit per tap.
-That is right for the ordinary case and wrong for the common recovery case:
-coming back to a show you watched twenty episodes of elsewhere means twenty
-taps, each writing a `finished_at` that claims you finished that episode just
-now. Holding the row's advance control opens an editor that takes the number
-directly.
-
-*The number is the unit you are on, not the count you have finished.* A
-target of 5 leaves four done and the fifth `in_progress` — the same shape
-`advance` produces via A5's auto-start, reached in one move. This is
-deliberately *not* the "3 of 9" count the meta line shows next to it, which
-is one lower. The row's own words are what the field is echoing ("Watching
-Episode 5", "S3 Ep 15 of 24"), and those name the unit in hand; a field that
-took the finished-count would read as off-by-one against the label directly
-above it.
-
-*A consequence worth stating: the editor cannot finish a track.* The largest
-position a series has is its last unit, and being on the last unit is not
-having finished it. Tapping Done there still is. The editor positions; it
-does not complete.
-
-*The total is not editable.* It is the number of `Entry` rows the series has,
-so changing it would mean creating or deleting units — a different operation
-from saying where you are, and one the Add screen and delete already cover.
-
-*Nothing is clamped.* A number the series does not have leaves Save inert
-rather than being corrected to the nearest one that exists. A silently
-adjusted number would move a track somewhere the user did not type, and there
-is no undo for that.
-
-*Scope: finite series on Currently only.* A movie or a standalone book has no
-units to be part-way through. An ongoing series (A4) has no total for a
-position to sit inside — supporting it would mean generating entries up to
-the target, which is a separate decision, not a free extension of this one.
-And the gesture hangs off the Done button, so a backlog row — whose control
-is Start or Resume, meaning something else — does not offer it.
-
-*Seasons get two fields.* A show with TMDB season data (A11) asks for season
-and episode rather than an episode number in the high hundreds, converting to
-the flat ordinal through new pure helpers `ordinalFor`/`positionIn` in
-`domain/seasons.ts` — the inverse of what `currentSeason` already reports.
-Seasons remain display metadata: entries stay flat (D3), and a show whose
-season data does not line up with its entry count falls back to the single
-flat field rather than offering two fields that cannot address every unit.
-
-*Where it lives.* `domain/advance.ts` gains `setPosition`, pure, returning
-only the entries that changed; `data/trackRepo.ts` gains `setTrackPosition`,
-which persists them and clears `paused` — naming where you are in a track is
-resuming it (A6). Timestamps survive wherever the status does not change, so
-re-positioning backwards does not rewrite when you first finished episode 1;
-units that move back out of done lose theirs, because they no longer describe
-anything that happened.
 
 ---
 

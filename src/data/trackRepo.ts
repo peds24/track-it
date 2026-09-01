@@ -28,6 +28,17 @@ export type TrackSummary = {
   nextEntryStatus: Status | null;
   nextEntryId: string | null;
   nextEntryTitle: string | null;
+  /** A20: the ordinal of `nextEntryId` — the position editor's seed value for
+   * both a finite series (where it also equals `progress.done + 1`) and an
+   * ongoing one (which has no `progress` to derive it from at all). `null`
+   * only for a standalone entry, which has no ordinal to report. */
+  nextEntryOrdinal: number | null;
+  /** A20: how many entries the series actually has right now, regardless of
+   * `ongoing` — an ongoing series has no fixed total (A4), but its existing
+   * entries are still a real upper bound on where the position editor can
+   * send it; generating new ones is a different operation (A18's own note).
+   * `0` for a standalone entry, which has no entries of its own. */
+  entryCount: number;
   /** When this track last moved forward. Derived at read time (D3), never stored. */
   lastAdvancedAt: string | null;
 };
@@ -316,6 +327,8 @@ export async function listTracks(
       nextEntryStatus: next?.status ?? null,
       nextEntryId: next?.id ?? null,
       nextEntryTitle: next?.title ?? null,
+      nextEntryOrdinal: next?.ordinal ?? null,
+      entryCount: children.length,
       lastAdvancedAt: lastAdvanceAcross(children),
     });
   }
@@ -345,6 +358,11 @@ export async function listTracks(
       nextEntryStatus: entry.status === 'done' ? null : entry.status,
       nextEntryId: entry.status === 'done' ? null : entry.id,
       nextEntryTitle: entry.status === 'done' ? null : entry.title,
+      // A standalone entry has no series to hold an ordinal or a count of
+      // siblings — `canEditPosition` never reaches these regardless (it
+      // requires `kind === 'series'` first), so both are inert placeholders.
+      nextEntryOrdinal: null,
+      entryCount: 0,
       lastAdvancedAt: lastAdvanceOf(entry),
     });
   }
@@ -533,7 +551,7 @@ export async function resumeTrack(
 }
 
 /**
- * A12: put a series at a position directly, instead of tapping Done up to it.
+ * A18: put a series at a position directly, instead of tapping Done up to it.
  * The transition rules live in domain/setPosition; this only persists them
  * (D8's split, same as advanceEntry).
  *

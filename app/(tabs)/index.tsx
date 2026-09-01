@@ -13,23 +13,13 @@ import {
   type TrackSummary,
 } from '@/data/trackRepo';
 import type { Category } from '@/domain/types';
+import { currentlySections } from '@/ui/currentlySections';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { elevation, font, googleSans, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
 import { ProgressEditor } from '@/ui/ProgressEditor';
 import { SwipeableTrackRow } from '@/ui/SwipeableTrackRow';
+import { IosInstallPrompt } from '@/ui/IosInstallPrompt';
 import { useTracks } from '@/ui/useTracks';
-
-const CATEGORY_SECTIONS: readonly {
-  category: Category;
-  title: string;
-  iconName: keyof typeof Ionicons.glyphMap;
-}[] = [
-  { category: 'show', title: 'Shows', iconName: 'tv-outline' },
-  { category: 'movie', title: 'Movies', iconName: 'film-outline' },
-  { category: 'book', title: 'Books', iconName: 'book-outline' },
-  { category: 'comic', title: 'Comics', iconName: 'sparkles-outline' },
-  { category: 'manga', title: 'Manga', iconName: 'library-outline' },
-];
 
 export default function CurrentlyScreen() {
   const db = useDatabase();
@@ -38,18 +28,23 @@ export default function CurrentlyScreen() {
   const styles = useMemo(() => createStyles(palette), [palette]);
   const { tracks, reload } = useTracks('currently');
   const [editing, setEditing] = useState<TrackSummary | null>(null);
+  // A21: which category sections are collapsed — session-only, not
+  // persisted, resets to all-expanded on every fresh mount of this screen.
+  const [collapsedCategories, setCollapsedCategories] = useState<ReadonlySet<Category>>(new Set());
 
-  const sections = useMemo(() => {
-    return CATEGORY_SECTIONS.map((sec) => {
-      // tracks is already ordered by most recently advanced from trackRepo.
-      // Filtering maintains recency ordering within each category group.
-      const data = tracks.filter((t) => t.category === sec.category);
-      return {
-        ...sec,
-        data,
-      };
-    }).filter((s) => s.data.length > 0);
-  }, [tracks]);
+  const sections = useMemo(
+    () => currentlySections(tracks, collapsedCategories),
+    [tracks, collapsedCategories],
+  );
+
+  function toggleSection(category: Category): void {
+    setCollapsedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(category)) next.delete(category);
+      else next.add(category);
+      return next;
+    });
+  }
 
   const reloadSafely = useCallback(async () => {
     try {
@@ -153,18 +148,33 @@ export default function CurrentlyScreen() {
         </Pressable>
       </View>
 
+      <IosInstallPrompt />
+
       <SectionList
         sections={sections}
         keyExtractor={(t) => `${t.kind}:${t.id}`}
         stickySectionHeadersEnabled={false}
         renderSectionHeader={({ section }) => (
-          <View style={styles.sectionHeader}>
+          <Pressable
+            onPress={() => toggleSection(section.category)}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: !section.collapsed }}
+            accessibilityLabel={`${section.collapsed ? 'Expand' : 'Collapse'} ${section.title}`}
+            style={styles.sectionHeader}
+            android_ripple={{ color: palette.surfaceContainerHighest }}
+          >
             <View style={styles.sectionIconBadge}>
               <Ionicons name={section.iconName} size={15} color={palette.primary} />
             </View>
             <Text style={styles.sectionTitle}>{section.title}</Text>
-            <Text style={styles.sectionCount}>{section.data.length}</Text>
-          </View>
+            <Text style={styles.sectionCount}>{section.count}</Text>
+            <View style={styles.sectionSpacer} />
+            <Ionicons
+              name={section.collapsed ? 'chevron-forward' : 'chevron-down'}
+              size={18}
+              color={palette.onSurfaceVariant}
+            />
+          </Pressable>
         )}
         renderItem={({ item }) => (
           <SwipeableTrackRow
@@ -264,6 +274,9 @@ function createStyles(c: Palette) {
       paddingVertical: 2,
       borderRadius: radius.full,
       fontVariant: ['tabular-nums'],
+    },
+    sectionSpacer: {
+      flex: 1,
     },
     emptyContainer: {
       margin: layout.inset,

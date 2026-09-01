@@ -45,9 +45,57 @@
   - Created `docs/design/material-3-spec.html` documenting official M3 color roles, typescales, elevations, and gesture physics.
   - Preserved the historical v1 Brutalist design language and landing page in `docs/archive/v1-brutalist/` with bi-directional links between active M3 docs and archived artifacts.
 
+## 2026-08-31 — Merge Reconciliation, Position-Editing Extensions, and Currently-Screen Polish (Claude Code session)
 
+### What Changed
+- Finished an in-progress merge of `worktree-completed-series-autofill` into `main`, left half-resolved by an earlier session — `app/add.tsx` still had all 11 conflict hunks unresolved; `TrackRow.tsx` was already hand-resolved, `SwipeableTrackRow.tsx`/`TrackRow.test.tsx` had one hunk each left. Rewrote `app/add.tsx` to keep the Material 3 visual layer above while porting over the feature branch's comic Single Issue/Collection step, standalone-comic handling, and full confirm screen.
+- Added a cross-agent coordination protocol to `CLAUDE.md` (new) and `AGENTS.md`/`GEMINI.md`: branch-naming-as-ownership, splitting work by feature area rather than by whichever agent is free, and a read-before-write/write-before-handoff habit around `docs/HANDOFF.md` and the design spec.
+- **A18/A19** — the position editor (long-press the advance control, or swipe left) now works on a paused Backlog row, not just Currently. Unified `SwipeableTrackRow`'s own edit gate (previously looser, and unreachable in practice) onto `TrackRow.canEditPosition`.
+- **A20** — the position editor now works on an ongoing series too. `TrackSummary` gained `entryCount`/`nextEntryOrdinal` so the editor has something to bound and seed itself against without a `progress.total`, which an ongoing series never reports (A4).
+- **A21** — Currently's category sections are now collapsible: tap a header to fold it away, count badge stays visible. Extracted the section-grouping logic out of `app/(tabs)/index.tsx` into a new pure, unit-tested module, `src/ui/currentlySections.ts`.
+- Reordered the swipe-Edit pill's children (icon, then label) so the word "Edit" — not just the icon — becomes visible with less swipe distance, since the rightmost child in the row is the one nearest the screen edge a left-swipe uncovers first.
+- Retuned the right-swipe Delete threshold a second time: `DELETE_THRESHOLD` 175→230dp, `MAX_SWIPE_RIGHT` 260→320dp. Every visual breakpoint (background crossfade, Pause fade-out, Delete fade-in/scale-pop) is now expressed as an offset from the `DELETE_THRESHOLD` constant rather than a second, independently hand-tuned set of numbers.
+- Fixed a duplicate "A12" in the design spec — the M3 branch and the feature branch had each independently used that number for a different amendment, and a textually-clean git merge let both survive. Renumbered the position-editor entry A18 and relocated it into sequence.
 
+### Design Decisions & Trade-offs
 
+*Why fix the duplicate "A12" now, mid-feature-work, instead of leaving it?*
+This session was adding two more amendments (A19, A20) to the exact feature the misnumbered entry described. Leaving the collision in place would only make it worse for the next reader trying to follow the thread. Renumbered it A18 — the correct next-in-sequence slot — and left forward/back pointers at both entries so anyone still holding "A12" in their head from an older conversation can find where it went. Updated the handful of code comments (`trackRepo.ts`, `advance.ts`, `seasons.ts`, two test files) that cited the old number.
+
+*Why did extending the position editor to ongoing series need no domain-layer changes?*
+`domain/advance.ts`'s `setPosition` and `data/trackRepo.ts`'s `setTrackPosition` never actually checked `ongoing` — they only need the entries that already exist. `appendNextOngoingEntry`'s existing "only extend from the end" guard (written for an unrelated out-of-order-completion edge case) turns out to make rewind-then-re-advance safe for free: finishing a non-highest entry after a rewind reuses the next already-existing entry instead of appending a duplicate, and growth resumes only once the true highest entry is reached again. The entire block was in the UI layer — `canEditPosition` required `progress !== null`, and an ongoing series' `progress` is always `null` by design — so the fix stayed there too: two new `TrackSummary` fields, zero schema or domain changes. Proved this with two data-layer tests (`ongoing.test.ts`) rewinding and re-advancing a real ongoing series through the actual repo functions.
+
+*Why not persist Currently's collapsed-section state?*
+It's cosmetic UI preference, not domain data — persisting it would mean either `AsyncStorage` or a new preferences table for something `src/domain/` has no architectural reason to know about (D1's whole point). Nothing in the request implied it needed to survive an app restart, so it stayed as plain component state that resets on remount, rather than reaching for storage nobody asked for.
+
+*Why 230dp/320dp for the Delete threshold, and not a smaller nudge?*
+An earlier pass (commit `4239d10`) had already moved this once, from 130dp to 175dp, and it still read as transitioning too quickly. Rather than a marginal correction that might need a third pass just as soon, pushed by roughly the same proportion again (~+31% on the threshold, ~+23% on the max travel) and re-anchored every visual breakpoint as an explicit `DELETE_THRESHOLD`-relative offset instead of a second independently-tuned set of numbers — so the next retune, if the feel still isn't right, is a one-line constant change instead of re-deriving five interpolation ranges by hand.
+
+### Architecture state after this session
+```
+main is fully reconciled: Material 3 visual system (src/ui/theme.ts) +
+worktree-completed-series-autofill's feature work (A13-A17) — no more
+diverging branches touching the same UI surface.
+
+Position editing (A12/A18) now works on Currently, a paused Backlog row
+(A19), and an ongoing series (A20) — all gated through the single
+TrackRow.canEditPosition, shared by the long-press gesture and
+SwipeableTrackRow's swipe action rather than two copies of the same rule.
+
+Currently screen: grouped by category (A21 — retroactively documents a
+previously-undocumented D12 reversal that shipped during the M3 rework),
+each section collapsible, collapse state session-only. Grouping logic
+lives in src/ui/currentlySections.ts: pure, unit-tested, no longer inline
+screen glue.
+
+Design spec (docs/superpowers/specs/2026-08-12-track-it-design.md): now
+D1-D12 + A1-A21, sequential and duplicate-free.
+
+Not yet verified on a real device this session: app/add.tsx's new
+comic-mode/confirm screens, the A19/A20 edit gestures, A21's collapsible
+headers, and the retuned swipe-delete feel — see docs/HANDOFF.md's "What's
+unverified" for the full list.
+```
 
 
 

@@ -25,7 +25,7 @@ export function advance(entry: Entry, now: string): Entry {
 }
 
 /**
- * A12: jump straight to a position instead of tapping `advance` up to it.
+ * A18: jump straight to a position instead of tapping `advance` up to it.
  * Everything before `targetOrdinal` becomes done, the target itself becomes
  * in_progress, and everything after goes back to unstarted — the same shape
  * `advance` leaves behind after A5's auto-start, just reached in one move.

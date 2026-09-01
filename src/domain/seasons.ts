@@ -44,7 +44,7 @@ export function currentSeason(
 }
 
 /**
- * A12: the flat series ordinal a season-and-episode pair names — the inverse
+ * A18: the flat series ordinal a season-and-episode pair names — the inverse
  * of what `currentSeason` reports. The progress editor takes "S3 Ep 15" and
  * has to say which of the 176 flat `Entry` rows that is, because entries stay
  * flat (D3) and seasons remain display metadata (A11).
@@ -70,7 +70,7 @@ export function ordinalFor(
 }
 
 /**
- * A12: the season and within-season episode a flat ordinal falls on. Seeds the
+ * A18: the season and within-season episode a flat ordinal falls on. Seeds the
  * editor's two fields from where the track already is, and `null` past either
  * end for the same reason `ordinalFor` returns it.
  */
