@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { Alert, Animated, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Animated, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { TrackSummary } from '@/data/trackRepo';
 import { font, useTheme, type Palette } from '@/ui/theme';
@@ -7,13 +7,13 @@ import { canEditPosition, TrackRow } from '@/ui/TrackRow';
 
 /** Threshold for quick swipe activation. */
 const LATCH = 28;
-/** Below this the gesture is treated as a list scroll, not a swipe. */
-const SLOP = 10;
+/** Below this horizontal distance, the gesture is treated as a list scroll, not a swipe. */
+const SLOP = 12;
 /** Deep swipe threshold on right swipe that transitions from Backlog/Pause to Delete. */
-const DELETE_THRESHOLD = 230;
+const DELETE_THRESHOLD = 150;
 /** Maximum swipe distances. */
-const MAX_SWIPE_RIGHT = 320;
-const MAX_SWIPE_LEFT = 160;
+const MAX_SWIPE_RIGHT = 240;
+const MAX_SWIPE_LEFT = 140;
 
 export function SwipeableTrackRow({
   track,
@@ -127,12 +127,10 @@ export function SwipeableTrackRow({
   });
 
   // Smooth background color & text transitions between Backlog/Pause and Delete.
-  // Every breakpoint here is anchored relative to DELETE_THRESHOLD (pause
-  // gone and delete opaque just *before* it, the scale pop centered right on
-  // it) so a future retune only has to move the one constant.
+  // Every breakpoint here is anchored relative to DELETE_THRESHOLD (150dp).
   const containerBg = canReturn
     ? translateX.interpolate({
-        inputRange: [0, 130, 200, DELETE_THRESHOLD + 5],
+        inputRange: [0, 80, 130, DELETE_THRESHOLD + 5],
         outputRange: [c.secondaryContainer, c.secondaryContainer, c.errorContainer, c.errorContainer],
         extrapolate: 'clamp',
       })
@@ -140,7 +138,7 @@ export function SwipeableTrackRow({
 
   const pauseOpacity = canReturn
     ? translateX.interpolate({
-        inputRange: [0, 30, 170, 210],
+        inputRange: [0, 20, 110, 135],
         outputRange: [1, 1, 0.2, 0],
         extrapolate: 'clamp',
       })
@@ -148,7 +146,7 @@ export function SwipeableTrackRow({
 
   const deleteOpacity = canReturn
     ? translateX.interpolate({
-        inputRange: [0, 155, 200, DELETE_THRESHOLD + 5],
+        inputRange: [0, 95, 135, DELETE_THRESHOLD + 5],
         outputRange: [0, 0, 0.85, 1],
         extrapolate: 'clamp',
       })
@@ -156,22 +154,25 @@ export function SwipeableTrackRow({
 
   const deleteScale = canReturn
     ? translateX.interpolate({
-        inputRange: [155, DELETE_THRESHOLD, DELETE_THRESHOLD + 60],
+        inputRange: [95, DELETE_THRESHOLD, DELETE_THRESHOLD + 40],
         outputRange: [0.75, 1, 1.1],
         extrapolate: 'clamp',
       })
     : 1;
 
-
   const pan = useMemo(
     () =>
       PanResponder.create({
         onMoveShouldSetPanResponder: (_e, g) =>
-          Math.abs(g.dx) > SLOP && Math.abs(g.dx) > Math.abs(g.dy) * 1.5,
+          Math.abs(g.dx) > SLOP && Math.abs(g.dx) > Math.abs(g.dy) * 2.0,
+        onPanResponderGrant: () => {
+          translateX.stopAnimation();
+        },
+        onPanResponderTerminationRequest: () => false,
         onPanResponderMove: (_e, g) => {
           const next = offset.current + g.dx;
           const minX = canEdit ? -MAX_SWIPE_LEFT : 0;
-          const maxX = canReturn ? MAX_SWIPE_RIGHT : MAX_SWIPE_LEFT;
+          const maxX = MAX_SWIPE_RIGHT;
           const clamped = Math.max(minX, Math.min(maxX, next));
           translateX.setValue(clamped);
 
@@ -187,7 +188,7 @@ export function SwipeableTrackRow({
           const next = offset.current + g.dx;
           setIsDeepSwipe(false);
 
-          if (next >= DELETE_THRESHOLD) {
+          if (canReturn && (next >= DELETE_THRESHOLD || (next >= 120 && g.vx > 0.5))) {
             // Longer/deep swipe to the right triggers delete
             settle(0);
             confirmDelete();
@@ -207,9 +208,19 @@ export function SwipeableTrackRow({
             settle(0);
           }
         },
-        onPanResponderTerminate: () => {
+        onPanResponderTerminate: (_e, g) => {
+          const next = offset.current + (g?.dx ?? 0);
           setIsDeepSwipe(false);
-          settle(offset.current);
+
+          if (canReturn && next >= DELETE_THRESHOLD) {
+            settle(0);
+            confirmDelete();
+          } else if (!canReturn && next >= LATCH) {
+            settle(0);
+            confirmDelete();
+          } else {
+            settle(0);
+          }
         },
       }),
     [canReturn, canEdit, settle, translateX, triggerReturn, confirmDelete, handleEdit],
@@ -316,6 +327,7 @@ export function SwipeableTrackRow({
       </View>
 
       <Animated.View
+        testID="swipeable-surface"
         style={[styles.surface, { transform: [{ translateX }] }]}
         {...pan.panHandlers}
       >
@@ -399,9 +411,11 @@ function createStyles(c: Palette) {
     },
     surface: {
       backgroundColor: c.surface,
+      ...(Platform.OS === 'web' ? ({ touchAction: 'pan-y', userSelect: 'none' } as any) : {}),
     },
   });
 }
+
 
 
 

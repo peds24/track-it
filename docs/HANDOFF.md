@@ -111,13 +111,11 @@ are clean:
    logic (`currentlySections.ts`) is unit-tested directly, but the actual
    tap target, chevron rotation, and how a collapse/expand feels alongside
    `SectionList`'s own scroll behavior haven't been tried on a device.
-5. **The retuned swipe-Edit order and Delete threshold.** The Edit pill's
-   icon/label were swapped (label now nearest the screen edge, so it
-   should read earlier in a left swipe) and `DELETE_THRESHOLD` moved
-   175dp→230dp (`MAX_SWIPE_RIGHT` 260dp→320dp) — the second tuning pass on
-   this exact gesture (see commit `4239d10` for the first). Both are pure
-   feel changes with no way to verify "did this actually fix it" outside a
-   real swipe on a real screen.
+5. **Swipe Delete stabilization.** `DELETE_THRESHOLD` was recalibrated to 150dp
+   (from an excessive 230dp), `onPanResponderTerminationRequest: () => false` added
+   to stop vertical lists from stealing active swipes, horizontal slop discrimination
+   tightened to `|dx| > 2 * |dy|` with `SLOP = 12`, and touch-action added for web.
+   Unit-tested across gesture recognition, scroll rejection, and termination triggers.
 
 ## Things that cost time once — do not relearn them
 

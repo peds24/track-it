@@ -1,5 +1,5 @@
-import { Alert } from 'react-native';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { Alert, Animated } from 'react-native';
+import { act, render, screen, fireEvent } from '@testing-library/react-native';
 import { SwipeableTrackRow } from '@/ui/SwipeableTrackRow';
 import type { TrackSummary } from '@/data/trackRepo';
 
@@ -23,6 +23,33 @@ const show: TrackSummary = {
 };
 
 const noop = { onAdvance: () => {}, onResume: () => {}, onRename: () => {}, onDelete: () => {} };
+
+let touchTime = 1000;
+function makeTouchEvent(dx: number, dy: number) {
+  touchTime += 50;
+  return {
+    nativeEvent: { touches: [{ pageX: 100 + dx, pageY: 100 + dy }] },
+    touchHistory: {
+      touchBank: [
+        {
+          touchActive: true,
+          startPageX: 100,
+          startPageY: 100,
+          startTimeStamp: 1000,
+          currentPageX: 100 + dx,
+          currentPageY: 100 + dy,
+          currentTimeStamp: touchTime,
+          previousPageX: 100,
+          previousPageY: 100,
+          previousTimeStamp: touchTime - 50,
+        },
+      ],
+      numberActiveTouches: 1,
+      indexOfSingleActiveTouch: 0,
+      mostRecentTimeStamp: touchTime,
+    },
+  };
+}
 
 /**
  * A6: pausing a track that is still going is reversible — Resume undoes it —
@@ -196,4 +223,84 @@ test('an ongoing series with only its first entry reveals no edit action', async
 
   expect(screen.queryByLabelText(/Edit .* progress/)).toBeNull();
 });
+
+test('gesture handler ignores predominantly vertical scroll movements', async () => {
+  await render(
+    <SwipeableTrackRow track={show} {...noop} onReturnToBacklog={() => {}} />,
+  );
+  const panSurface = screen.getByTestId('swipeable-surface');
+
+  // Vertical scroll: dx=10, dy=30
+  const vertEvent = makeTouchEvent(10, 30);
+  panSurface.props.onMoveShouldSetResponderCapture(vertEvent);
+  expect(panSurface.props.onMoveShouldSetResponder(vertEvent)).toBe(false);
+  await act(async () => {
+    panSurface.props.onResponderRelease({ nativeEvent: {} });
+  });
+
+  // Slight diagonal jitter during vertical scroll: dx=12, dy=10 (dx not > 2 * dy)
+  const jitterEvent = makeTouchEvent(12, 10);
+  panSurface.props.onMoveShouldSetResponderCapture(jitterEvent);
+  expect(panSurface.props.onMoveShouldSetResponder(jitterEvent)).toBe(false);
+  await act(async () => {
+    panSurface.props.onResponderRelease({ nativeEvent: {} });
+  });
+
+  // Clear horizontal swipe: dx=25, dy=4
+  const horizEvent = makeTouchEvent(25, 4);
+  panSurface.props.onMoveShouldSetResponderCapture(horizEvent);
+  expect(panSurface.props.onMoveShouldSetResponder(horizEvent)).toBe(true);
+});
+
+test('gesture handler rejects responder termination to prevent scroll hijack during swipe', async () => {
+  await render(
+    <SwipeableTrackRow track={show} {...noop} onReturnToBacklog={() => {}} />,
+  );
+  const panSurface = screen.getByTestId('swipeable-surface');
+
+  expect(panSurface.props.onResponderTerminationRequest()).toBe(false);
+});
+
+test('deep right swipe past delete threshold triggers delete confirmation on release', async () => {
+  const alertSpy = jest.spyOn(Alert, 'alert');
+  const onDelete = jest.fn();
+  await render(
+    <SwipeableTrackRow track={show} {...noop} onDelete={onDelete} onReturnToBacklog={() => {}} />,
+  );
+  const panSurface = screen.getByTestId('swipeable-surface');
+
+  // Release after deep swipe past threshold (150)
+  await act(async () => {
+    panSurface.props.onResponderRelease({ nativeEvent: {} }, { dx: 160, dy: 0, vx: 0.1 });
+  });
+
+  expect(alertSpy).toHaveBeenCalledWith(
+    'Delete Severance?',
+    expect.stringContaining('This removes the track'),
+    expect.any(Array),
+    expect.any(Object),
+  );
+});
+
+test('deep right swipe past delete threshold triggers delete confirmation even if terminated by OS', async () => {
+  const alertSpy = jest.spyOn(Alert, 'alert');
+  const onDelete = jest.fn();
+  await render(
+    <SwipeableTrackRow track={show} {...noop} onDelete={onDelete} onReturnToBacklog={() => {}} />,
+  );
+  const panSurface = screen.getByTestId('swipeable-surface');
+
+  // Terminate after reaching deep swipe (160)
+  await act(async () => {
+    panSurface.props.onResponderTerminate({ nativeEvent: {} }, { dx: 160, dy: 0, vx: 0.1 });
+  });
+
+  expect(alertSpy).toHaveBeenCalledWith(
+    'Delete Severance?',
+    expect.stringContaining('This removes the track'),
+    expect.any(Array),
+    expect.any(Object),
+  );
+});
+
 
