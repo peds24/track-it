@@ -140,6 +140,67 @@ are clean:
   If the installed dev-client/preview build predates the dependency, the
   feature using it silently doesn't work until a fresh EAS build ships.
 
+## Upcoming Architecture: Vercel Implementation & Secure API Proxy
+
+We have agreed to move forward with a **Vercel deployment + serverless API proxy architecture**. This solves secure environment variable management by ensuring that private API keys (Metron, TMDB, Google Books, AniList, etc.) are never bundled into the client-side JavaScript export.
+
+### Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Client (Expo Web / PWA)                  │
+│   • Built via `npx expo export -p web` into `dist/`         │
+│   • Holds ZERO private API keys in client bundle            │
+│   • Calls relative proxy endpoints: `/api/proxy/<service>`   │
+└──────────────────────────────┬──────────────────────────────┘
+                               │ HTTPS Request
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Vercel Serverless Functions (`api/`)           │
+│   • Runs server-side Node.js / Edge runtime                 │
+│   • Reads secret env variables (e.g. `METRON_API_KEY`)      │
+│   • Injects auth headers, forwards query to upstream API    │
+│   • Applies rate limiting & response caching                │
+└──────────────────────────────┬──────────────────────────────┘
+                               │ Authenticated API Call
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│           Upstream Providers (Metron, TMDB, etc.)           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Action Plan for Vercel Implementation
+
+1. **Vercel Project Configuration (`vercel.json`)**:
+   - Configure build command: `npx expo export -p web`
+   - Output directory: `dist`
+   - Set up rewrites for client-side Expo Router navigation and `/api/(.*)` serverless endpoints:
+     ```json
+     {
+       "buildCommand": "npx expo export -p web",
+       "outputDirectory": "dist",
+       "rewrites": [
+         { "source": "/api/(.*)", "destination": "/api/$1" },
+         { "source": "/(.*)", "destination": "/index.html" }
+       ]
+     }
+     ```
+
+2. **Serverless Proxy Handlers (`api/proxy/*`)**:
+   - `api/proxy/metron.ts`: Serverless route querying Metron API with server-side credentials (`METRON_USERNAME`, `METRON_PASSWORD`).
+   - `api/proxy/tmdb.ts`: Serverless route querying TMDB API with server-side token (`TMDB_READ_ACCESS_TOKEN`).
+   - `api/proxy/google-books.ts`: Serverless route or referrer-restricted public endpoint.
+   - `api/proxy/anilist.ts`: Serverless route forwarding GraphQL requests.
+
+3. **Provider Refactoring (`src/providers/*`)**:
+   - Adapt `MetronProvider`, `TmdbProvider`, etc. to query `/api/proxy/...` on web builds while preserving offline fallback / mock capabilities for local unit testing.
+
+4. **Vercel Secret Injection**:
+   - Store all private keys in the Vercel Dashboard under **Project Settings > Environment Variables** (Production and Preview).
+   - Ensure none of the private keys are prefixed with `EXPO_PUBLIC_`, preventing Expo Web from baking them into client-side JS bundles.
+
+---
+
 ## Open risks
 
 1. **The provider/scanning feature set (search, barcode scanning, real
@@ -154,22 +215,23 @@ are clean:
 
 ## Next steps, in order
 
-1. Boot the app on a real device/emulator or Safari PWA (`apple/web` branch) and check all five unverified
-   items above: the new `add.tsx` screens (comic single/collection step,
-   the confirm screen for every category), the A19 backlog edit gesture
-   (swipe left, and long-press Resume, on a paused Backlog row), the A20
-   ongoing-series edit gesture (same interactions, on an ongoing show/
-   comic/manga row — including the rewind-then-re-advance sequence), A21's
-   collapsible Currently sections (tap each category header, confirm the
-   chevron and row count track correctly), and the updated swipe row
-   (circular action badges, immediate Edit visibility on left drag, comfortable
-   50–210dp pause zone, and web delete confirmation dialog).
-2. Fix whatever that turns up.
-3. Delete the now-fully-merged branches listed under "Branch state" once
+1. **Execute Vercel Implementation**:
+   - Add `vercel.json` configuration for Expo Web export.
+   - Create `api/proxy/` serverless functions for provider secret encapsulation.
+   - Update `src/providers/` to route through the proxy on web.
+   - Configure secrets in the Vercel project environment.
+2. **Boot the app on a real device/emulator or Safari PWA (`apple/web` branch)**:
+   - Check the new `add.tsx` screens (comic single/collection step, the confirm screen for every category).
+   - Check the A19 backlog edit gesture (swipe left, and long-press Resume, on a paused Backlog row).
+   - Check the A20 ongoing-series edit gesture (same interactions, on an ongoing show/comic/manga row).
+   - Check A21's collapsible Currently sections (tap each category header).
+   - Check the updated swipe row (circular action badges, immediate Edit visibility on left drag, comfortable 50–210dp pause zone, and web delete confirmation dialog).
+3. Fix whatever that turns up.
+4. Delete the now-fully-merged branches listed under "Branch state" once
    confident nothing on them is still needed.
-4. Audit `docs/design/material-3-spec.html` against the actual running app
+5. Audit `docs/design/material-3-spec.html` against the actual running app
    and, if it holds up, retire or clearly mark `design-language.html` as
    historical so it stops being a trap for the next session.
-5. Re-surface export/import (`src/data/backup.ts`, already built and
+6. Re-surface export/import (`src/data/backup.ts`, already built and
    tested) — still the single biggest gap between "what the app can do"
    and "what protects the user's data," per D6/A3.
