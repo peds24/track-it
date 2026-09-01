@@ -107,6 +107,9 @@ headers — see docs/HANDOFF.md's "What's unverified" for the full list.
   - Increased pause activation latch `LATCH` from 28dp to 50dp (and `SLOP = 12`) so tiny thumb twitches or diagonal drifts do not trigger pause inadvertently; pausing now requires a deliberate, purposeful drag.
   - Extended the comfortable Pause/Backlog zone on the Currently screen across 50–210dp.
   - Set `DELETE_THRESHOLD = 280dp` (with `MAX_SWIPE_RIGHT = 360dp`), smoothly morphing background color (`secondaryContainer` to `errorContainer`) across 180–255dp and fading in Delete across 190–255dp with scale pop at 280dp.
+- **Circular Icon Badges & Action Styling**:
+  - Encapsulated action icons inside 34dp circular badges (`pauseBadge`, `deleteBadge`, `editBadge`) matching modern swipe-action visual patterns (like Shortwave/Superhuman email swipe design).
+  - Paired high-contrast on-color icons (`onSecondary`, `onError`, `onPrimary`) with semantic bold typography, providing instant visual feedback on both swipe phases.
 - **Right-Aligned Edit Action**:
   - Tucked the "Edit" label and pencil icon directly against the right container edge (`paddingRight: 16`, `justifyContent: 'flex-end'`, removed artificial `minWidth` offset), so swiping left reveals the Edit action immediately from the very first few pixels of drag.
 - **Swipe Recognition & Scroll Discrimination**:

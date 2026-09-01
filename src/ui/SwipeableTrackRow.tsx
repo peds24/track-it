@@ -251,11 +251,13 @@ export function SwipeableTrackRow({
                 onPress={triggerReturn}
                 style={styles.actionPressableLeft}
               >
-                <Ionicons
-                  name={resetting ? 'bookmark' : 'pause-circle'}
-                  size={24}
-                  color={c.onSecondaryContainer}
-                />
+                <View style={[styles.badge, styles.pauseBadge]}>
+                  <Ionicons
+                    name={resetting ? 'bookmark' : 'pause'}
+                    size={18}
+                    color={c.onSecondary}
+                  />
+                </View>
                 <Text style={[styles.actionText, styles.pauseText]}>
                   {resetting ? 'Backlog' : 'Pause'}
                 </Text>
@@ -277,7 +279,9 @@ export function SwipeableTrackRow({
                 onPress={confirmDelete}
                 style={styles.actionPressableLeft}
               >
-                <Ionicons name="trash" size={24} color={c.onErrorContainer} />
+                <View style={[styles.badge, styles.deleteBadge]}>
+                  <Ionicons name="trash" size={18} color={c.onError} />
+                </View>
                 <Text style={[styles.actionText, styles.deleteText]}>Delete</Text>
               </Pressable>
             </Animated.View>
@@ -295,7 +299,9 @@ export function SwipeableTrackRow({
               onPress={confirmDelete}
               style={styles.actionPressableLeft}
             >
-              <Ionicons name="trash" size={24} color={c.onErrorContainer} />
+              <View style={[styles.badge, styles.deleteBadge]}>
+                <Ionicons name="trash" size={18} color={c.onError} />
+              </View>
               <Text style={[styles.actionText, styles.deleteText]}>Delete</Text>
             </Pressable>
           </Animated.View>
@@ -320,7 +326,9 @@ export function SwipeableTrackRow({
                   left swipe uncovers it right edge first — so whichever
                   child is last in this row is what actually reads earliest,
                   with the smallest swipe. */}
-              <Ionicons name="create" size={24} color={c.onPrimaryContainer} />
+              <View style={[styles.badge, styles.editBadge]}>
+                <Ionicons name="create" size={18} color={c.onPrimary} />
+              </View>
               <Text style={[styles.actionText, styles.editText]}>Edit</Text>
             </Pressable>
           </Animated.View>
@@ -375,9 +383,8 @@ function createStyles(c: Palette) {
       height: '100%',
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
-      paddingLeft: 24,
-      minWidth: 120,
+      gap: 10,
+      paddingLeft: 20,
     },
     rightActionContainer: {
       position: 'absolute',
@@ -394,8 +401,24 @@ function createStyles(c: Palette) {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'flex-end',
-      gap: 6,
+      gap: 8,
       paddingRight: 16,
+    },
+    badge: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    pauseBadge: {
+      backgroundColor: c.secondary,
+    },
+    deleteBadge: {
+      backgroundColor: c.error,
+    },
+    editBadge: {
+      backgroundColor: c.primary,
     },
     actionText: {
       ...font.labelLarge,
