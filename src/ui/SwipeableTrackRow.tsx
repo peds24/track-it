@@ -11,9 +11,9 @@ const LATCH = 50;
 /** Below this horizontal distance, the gesture is treated as a list scroll, not a swipe. */
 const SLOP = 12;
 /** Deep swipe threshold on right swipe that transitions from Backlog/Pause to Delete. */
-const DELETE_THRESHOLD = 230;
+const DELETE_THRESHOLD = 280;
 /** Maximum swipe distances. */
-const MAX_SWIPE_RIGHT = 300;
+const MAX_SWIPE_RIGHT = 360;
 const MAX_SWIPE_LEFT = 140;
 
 export function SwipeableTrackRow({
@@ -128,10 +128,10 @@ export function SwipeableTrackRow({
   });
 
   // Smooth background color & text transitions between Backlog/Pause and Delete.
-  // Pause remains cleanly visible across 50-180dp before transitioning to Delete at 230dp.
+  // Pause remains cleanly visible across 50-210dp before transitioning to Delete at 280dp.
   const containerBg = canReturn
     ? translateX.interpolate({
-        inputRange: [0, 140, 205, DELETE_THRESHOLD + 5],
+        inputRange: [0, 180, 255, DELETE_THRESHOLD + 5],
         outputRange: [c.secondaryContainer, c.secondaryContainer, c.errorContainer, c.errorContainer],
         extrapolate: 'clamp',
       })
@@ -139,7 +139,7 @@ export function SwipeableTrackRow({
 
   const pauseOpacity = canReturn
     ? translateX.interpolate({
-        inputRange: [0, 40, 180, 215],
+        inputRange: [0, 40, 210, 245],
         outputRange: [1, 1, 0.2, 0],
         extrapolate: 'clamp',
       })
@@ -147,7 +147,7 @@ export function SwipeableTrackRow({
 
   const deleteOpacity = canReturn
     ? translateX.interpolate({
-        inputRange: [0, 160, 205, DELETE_THRESHOLD + 5],
+        inputRange: [0, 190, 245, DELETE_THRESHOLD + 5],
         outputRange: [0, 0, 0.85, 1],
         extrapolate: 'clamp',
       })
@@ -155,7 +155,7 @@ export function SwipeableTrackRow({
 
   const deleteScale = canReturn
     ? translateX.interpolate({
-        inputRange: [160, DELETE_THRESHOLD, DELETE_THRESHOLD + 40],
+        inputRange: [190, DELETE_THRESHOLD, DELETE_THRESHOLD + 40],
         outputRange: [0.75, 1, 1.1],
         extrapolate: 'clamp',
       })
@@ -189,7 +189,7 @@ export function SwipeableTrackRow({
           const next = offset.current + g.dx;
           setIsDeepSwipe(false);
 
-          if (canReturn && (next >= DELETE_THRESHOLD || (next >= 190 && g.vx > 0.7))) {
+          if (canReturn && (next >= DELETE_THRESHOLD || (next >= 230 && g.vx > 0.8))) {
             // Longer/deep swipe to the right triggers delete
             settle(0);
             confirmDelete();
@@ -201,7 +201,7 @@ export function SwipeableTrackRow({
             // Quick swipe to the right immediately activates pause / backlog
             settle(0);
             triggerReturn();
-          } else if (canEdit && (next <= -LATCH || (next <= -30 && g.vx < -0.4))) {
+          } else if (canEdit && (next <= -LATCH || (next <= -25 && g.vx < -0.4))) {
             // Quick swipe to the left immediately activates edit
             settle(0);
             handleEdit();
@@ -393,9 +393,9 @@ function createStyles(c: Palette) {
       height: '100%',
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
-      paddingRight: 24,
-      minWidth: 120,
+      justifyContent: 'flex-end',
+      gap: 6,
+      paddingRight: 16,
     },
     actionText: {
       ...font.labelLarge,

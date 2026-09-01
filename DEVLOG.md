@@ -105,8 +105,10 @@ headers — see docs/HANDOFF.md's "What's unverified" for the full list.
   - Routed all row deletion and backlog-reset confirmations in `SwipeableTrackRow.tsx` and screens (`index.tsx`, `backlog.tsx`, `done.tsx`, `add.tsx`) through `showAlert`.
 - **Extended Pause Activation & Calibrated Delete Threshold**:
   - Increased pause activation latch `LATCH` from 28dp to 50dp (and `SLOP = 12`) so tiny thumb twitches or diagonal drifts do not trigger pause inadvertently; pausing now requires a deliberate, purposeful drag.
-  - Extended the comfortable Pause/Backlog zone on the Currently screen across 50–180dp.
-  - Set `DELETE_THRESHOLD = 230dp` (with `MAX_SWIPE_RIGHT = 300dp`), smoothly morphing background color (`secondaryContainer` to `errorContainer`) across 140–205dp and fading in Delete across 160–205dp with scale pop at 230dp.
+  - Extended the comfortable Pause/Backlog zone on the Currently screen across 50–210dp.
+  - Set `DELETE_THRESHOLD = 280dp` (with `MAX_SWIPE_RIGHT = 360dp`), smoothly morphing background color (`secondaryContainer` to `errorContainer`) across 180–255dp and fading in Delete across 190–255dp with scale pop at 280dp.
+- **Right-Aligned Edit Action**:
+  - Tucked the "Edit" label and pencil icon directly against the right container edge (`paddingRight: 16`, `justifyContent: 'flex-end'`, removed artificial `minWidth` offset), so swiping left reveals the Edit action immediately from the very first few pixels of drag.
 - **Swipe Recognition & Scroll Discrimination**:
   - Tightened horizontal drag ratio requirement to `|dx| > 2.0 * |dy|` with `SLOP = 12` in `onMoveShouldSetPanResponder`, preventing vertical list scrolls from accidentally triggering row swipe gestures.
   - Set `onPanResponderTerminationRequest: () => false` on the active row pan responder so parent `SectionList`/`FlatList`/`ScrollView` cannot hijack the gesture mid-drag when a user drags horizontally with minor vertical finger wobble.
@@ -114,14 +116,17 @@ headers — see docs/HANDOFF.md's "What's unverified" for the full list.
   - Handled `onPanResponderTerminate` gracefully: if a gesture is cancelled by the OS/browser near or past the delete threshold (`>= DELETE_THRESHOLD`), it confirms the delete action instead of silently dropping the gesture and resetting the row.
 - **Testing & Verification**:
   - Added unit tests in `src/ui/__tests__/alert.test.ts` verifying native delegation vs web `window.confirm` / `window.alert` execution.
-  - Added unit tests in `src/ui/__tests__/SwipeableTrackRow.test.tsx` verifying web deletion confirmation, sub-50dp springback vs >=50dp pause trigger, scroll rejection, termination refusal, and release/terminate delete triggers.
+  - Added unit tests in `src/ui/__tests__/SwipeableTrackRow.test.tsx` verifying web deletion confirmation, sub-50dp springback vs >=50dp pause trigger, left-swipe edit progress trigger, scroll rejection, termination refusal, and release/terminate delete triggers.
 
 ### Design Decisions & Trade-offs
 *Why create a unified `showAlert` helper?*
 `react-native-web` does not implement `Alert.alert`. Rather than sprinkling `Platform.OS === 'web'` branches across every screen and component, `src/ui/alert.ts` provides a single drop-in replacement that handles multi-button cancel/destructive flows with `window.confirm` and informational alerts with `window.alert`.
 
-*Why 50dp latch and 230dp delete threshold?*
-A 50dp latch prevents accidental triggers during loose scrolling while keeping the pause gesture easy to complete. The generous 50–180dp travel allows users to swipe with confidence without fear of triggering delete, which is kept safely at 230dp.
+*Why 50dp latch, 50–210dp pause zone, and 280dp delete threshold?*
+A 50dp latch prevents accidental triggers during loose scrolling while keeping the pause gesture easy to complete. The generous 50–210dp travel gives a massive 160dp buffer for pausing before delete begins its visual crossfade at 180–255dp, ensuring delete (at 280dp) requires an unmistakably deep, intentional pull.
+
+*Why right-align the Edit button with `justifyContent: 'flex-end'`?*
+Since a left swipe uncovers the action container starting from the rightmost edge, placing the button contents right against the edge (`paddingRight: 16`) ensures the user immediately sees the Edit option as soon as the row slides open, rather than having to drag past 80dp of empty background.
 
 
 

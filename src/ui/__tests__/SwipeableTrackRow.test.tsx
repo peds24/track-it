@@ -269,7 +269,7 @@ test('deep right swipe past delete threshold triggers delete confirmation on rel
   );
   const panSurface = screen.getByTestId('swipeable-surface');
 
-  const horizEvent = makeTouchEvent(245, 0);
+  const horizEvent = makeTouchEvent(295, 0);
   panSurface.props.onMoveShouldSetResponderCapture(horizEvent);
   await act(async () => {
     panSurface.props.onResponderRelease(horizEvent);
@@ -291,7 +291,7 @@ test('deep right swipe past delete threshold triggers delete confirmation even i
   );
   const panSurface = screen.getByTestId('swipeable-surface');
 
-  const horizEvent = makeTouchEvent(245, 0);
+  const horizEvent = makeTouchEvent(295, 0);
   panSurface.props.onMoveShouldSetResponderCapture(horizEvent);
   await act(async () => {
     panSurface.props.onResponderTerminate(horizEvent);
@@ -320,7 +320,7 @@ test('on web platform, swiping to delete invokes window.confirm and calls onDele
   );
   const panSurface = screen.getByTestId('swipeable-surface');
 
-  const horizEvent = makeTouchEvent(245, 0);
+  const horizEvent = makeTouchEvent(295, 0);
   panSurface.props.onMoveShouldSetResponderCapture(horizEvent);
   await act(async () => {
     panSurface.props.onResponderRelease(horizEvent);
@@ -330,6 +330,27 @@ test('on web platform, swiping to delete invokes window.confirm and calls onDele
   expect(onDelete).toHaveBeenCalledWith(show);
 
   Platform.OS = originalPlatform;
+});
+
+test('swiping left past latch triggers onEditProgress', async () => {
+  const onEditProgress = jest.fn();
+  await render(
+    <SwipeableTrackRow
+      track={show}
+      {...noop}
+      onReturnToBacklog={() => {}}
+      onEditProgress={onEditProgress}
+    />,
+  );
+  const panSurface = screen.getByTestId('swipeable-surface');
+
+  const leftSwipeEvent = makeTouchEvent(-60, 0);
+  panSurface.props.onMoveShouldSetResponderCapture(leftSwipeEvent);
+  await act(async () => {
+    panSurface.props.onResponderRelease(leftSwipeEvent);
+  });
+
+  expect(onEditProgress).toHaveBeenCalledWith(show);
 });
 
 test('sub-threshold right drag below 50dp springs back without triggering pause', async () => {
