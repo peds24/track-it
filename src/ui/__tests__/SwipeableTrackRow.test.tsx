@@ -269,7 +269,7 @@ test('deep right swipe past delete threshold triggers delete confirmation on rel
   );
   const panSurface = screen.getByTestId('swipeable-surface');
 
-  const horizEvent = makeTouchEvent(210, 0);
+  const horizEvent = makeTouchEvent(245, 0);
   panSurface.props.onMoveShouldSetResponderCapture(horizEvent);
   await act(async () => {
     panSurface.props.onResponderRelease(horizEvent);
@@ -291,7 +291,7 @@ test('deep right swipe past delete threshold triggers delete confirmation even i
   );
   const panSurface = screen.getByTestId('swipeable-surface');
 
-  const horizEvent = makeTouchEvent(210, 0);
+  const horizEvent = makeTouchEvent(245, 0);
   panSurface.props.onMoveShouldSetResponderCapture(horizEvent);
   await act(async () => {
     panSurface.props.onResponderTerminate(horizEvent);
@@ -320,7 +320,7 @@ test('on web platform, swiping to delete invokes window.confirm and calls onDele
   );
   const panSurface = screen.getByTestId('swipeable-surface');
 
-  const horizEvent = makeTouchEvent(210, 0);
+  const horizEvent = makeTouchEvent(245, 0);
   panSurface.props.onMoveShouldSetResponderCapture(horizEvent);
   await act(async () => {
     panSurface.props.onResponderRelease(horizEvent);
@@ -330,6 +330,38 @@ test('on web platform, swiping to delete invokes window.confirm and calls onDele
   expect(onDelete).toHaveBeenCalledWith(show);
 
   Platform.OS = originalPlatform;
+});
+
+test('sub-threshold right drag below 50dp springs back without triggering pause', async () => {
+  const onReturnToBacklog = jest.fn();
+  await render(
+    <SwipeableTrackRow track={show} {...noop} onReturnToBacklog={onReturnToBacklog} />,
+  );
+  const panSurface = screen.getByTestId('swipeable-surface');
+
+  const smallEvent = makeTouchEvent(25, 0);
+  panSurface.props.onMoveShouldSetResponderCapture(smallEvent);
+  await act(async () => {
+    panSurface.props.onResponderRelease(smallEvent);
+  });
+
+  expect(onReturnToBacklog).not.toHaveBeenCalled();
+});
+
+test('deliberate right drag >= 50dp triggers pause / move to backlog', async () => {
+  const onReturnToBacklog = jest.fn();
+  await render(
+    <SwipeableTrackRow track={show} {...noop} onReturnToBacklog={onReturnToBacklog} />,
+  );
+  const panSurface = screen.getByTestId('swipeable-surface');
+
+  const pauseEvent = makeTouchEvent(80, 0);
+  panSurface.props.onMoveShouldSetResponderCapture(pauseEvent);
+  await act(async () => {
+    panSurface.props.onResponderRelease(pauseEvent);
+  });
+
+  expect(onReturnToBacklog).toHaveBeenCalledWith(show);
 });
 
 
