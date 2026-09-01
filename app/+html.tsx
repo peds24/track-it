@@ -25,9 +25,9 @@ export default function Root({ children }: PropsWithChildren) {
         <meta name="mobile-web-app-capable" content="yes" />
 
         {/* Apple Touch Icon & Manifest */}
-        <link rel="apple-touch-icon" href="/track-it-private/apple-touch-icon.png" />
-        <link rel="icon" type="image/png" href="/track-it-private/favicon.png" />
-        <link rel="manifest" href="/track-it-private/manifest.json" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" href="/favicon.png" />
+        <link rel="manifest" href="/manifest.json" />
 
         {/* Expo Router style reset */}
         <ScrollViewStyleReset />

@@ -2,21 +2,21 @@
   "name": "Track It",
   "short_name": "Track It",
   "description": "Local-first media tracker for shows, movies, books, comics, and manga",
-  "start_url": "/track-it-private/",
-  "scope": "/track-it-private/",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#FBFDF8",
   "theme_color": "#386A20",
   "icons": [
     {
-      "src": "/track-it-private/icon.png",
+      "src": "/icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/track-it-private/apple-touch-icon.png",
+      "src": "/apple-touch-icon.png",
       "sizes": "180x180",
       "type": "image/png"
     }

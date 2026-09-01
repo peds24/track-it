@@ -31,9 +31,6 @@
       "themeColor": "#386A20",
       "backgroundColor": "#FBFDF8"
     },
-    "experiments": {
-      "baseUrl": "/track-it-private"
-    },
     "plugins": [
       "expo-sqlite",
       "expo-router",
