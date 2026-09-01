@@ -3,8 +3,7 @@ name: Deploy PWA to GitHub Pages
 on:
   push:
     branches:
-      - apple/web
-      - main
+      - web
   workflow_dispatch:
 
 permissions:

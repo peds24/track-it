@@ -220,7 +220,7 @@ We have agreed to move forward with a **Vercel deployment + serverless API proxy
    - Create `api/proxy/` serverless functions for provider secret encapsulation.
    - Update `src/providers/` to route through the proxy on web.
    - Configure secrets in the Vercel project environment.
-2. **Boot the app on a real device/emulator or Safari PWA (`apple/web` branch)**:
+2. **Boot the app on a real device/emulator or Safari PWA (`web` branch)**:
    - Check the new `add.tsx` screens (comic single/collection step, the confirm screen for every category).
    - Check the A19 backlog edit gesture (swipe left, and long-press Resume, on a paused Backlog row).
    - Check the A20 ongoing-series edit gesture (same interactions, on an ongoing show/comic/manga row).
