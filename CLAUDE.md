@@ -31,7 +31,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
 
 ### Git Tree & Branching Discipline
 1. **Orient First**: Run `git status`, `git log --oneline -5`, `git branch --show-current`. This repo maintains active work on feature branches from both Claude Code and Antigravity; always verify your base branch before starting, and check for an in-progress merge (`git rev-parse --verify MERGE_HEAD`) before assuming the tree is clean.
-2. **Branch for Work**: Isolate feature work on dedicated branches. Claude Code's own branches, created via the `using-git-worktrees` skill, are named `worktree-<slug>` and live under `.claude/worktrees/<slug>` — keep using that convention so branch provenance is visible from `git branch -a` alone (see §5).
+2. **Branch for Work, always — never commit directly to `android`, `web`, or `gh-pages`**: Isolate every change on a dedicated branch off whichever of the three long-lived branches it targets (see §6), then merge that branch back in with a real `git merge` once it's verified — never a manual copy-paste "publish" commit. Claude Code's own branches, created via the `using-git-worktrees` skill, are named `worktree-<slug>` and live under `.claude/worktrees/<slug>` — keep using that convention so branch provenance is visible from `git branch -a` alone (see §5).
 3. **Stage Deliberately**: NEVER use `git add .` or `git add -A` blindly. Explicitly stage modified files (`git add src/domain/tracker.ts`). Always review `git diff --staged` before committing.
 4. **One Commit, One Reason**: Keep commits atomic, clean, and revertible.
 5. **Linear History**: Rebase local commits onto the upstream base before pushing; never create unnecessary merge commits on local branches — the exception is reconciling a genuinely diverged branch (see §5), where a merge commit documents the reconciliation itself.
@@ -89,5 +89,23 @@ This repository is actively developed by both Claude Code and Google Antigravity
 - **Split by feature area, not by whichever agent is free.** The costliest merge in this repo's history came from both agents rewriting the same UI surface — a Material 3 redesign on one side, a features branch on the other — independently, for weeks, before anyone merged them. Prefer handing ownership of a layer (the shared design system in `src/ui/theme.ts`, one screen family, one provider) to a single agent for the duration of a change, rather than having both touch it at once.
 - **Read before you write.** Before any nontrivial change, read `docs/HANDOFF.md` (session-to-session state) and `docs/superpowers/specs/2026-08-12-track-it-design.md` (the numbered decision record, D1–D12 plus amendments A1 onward). Both exist so an agent picking up mid-project doesn't have to reverse-engineer intent from a diff.
 - **Write before you hand off.** After a change substantial enough to matter to whoever works here next — a new screen, a reversed decision, a new architectural rule — update `docs/HANDOFF.md`. If it reverses or fulfills a numbered decision, add the next `A<n>` amendment to the design spec instead of letting the record go stale.
-- **Sync early against a moving target, not at merge time.** If a branch touches shared UI/theme files and lives more than a day or two, periodically check `git log --oneline main..<branch>` and diff against current `main`. Don't let two independent rewrites of the same screen accumulate for weeks before the conflict surfaces.
+- **Sync early against a moving target, not at merge time.** If a branch touches shared UI/theme files and lives more than a day or two, periodically check `git log --oneline <target-branch>..<branch>` and diff against the current state of whichever of `android`/`web`/`gh-pages` it targets (see §6 — there is no `main` anymore). Don't let two independent rewrites of the same screen accumulate for weeks before the conflict surfaces.
 - **Co-author trailers stay distinct per agent**, so `git log` shows who actually did what: Claude Code uses `Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>` (§1); Antigravity uses `Co-authored-by: Google Antigravity <242056456+google-antigravity@users.noreply.github.com>` (`AGENTS.md` §1). Never drop or merge the two when a commit had input from both agents.
+
+---
+
+## 6. Branch Pipeline: `android` → `web` → `gh-pages`
+
+As of 2026-09-01 this repo has exactly **three long-lived branches** — there is no `main`:
+
+| Branch | What it is | Deploys to |
+| --- | --- | --- |
+| `android` | The main dev platform. Feature work starts here first. | — (source of truth) |
+| `web` | The React Native Web port of the same app (Expo web export, `expo-sqlite` on web, `vercel.json`). | Not yet deployed live (see `docs/HANDOFF.md`'s Vercel plan). |
+| `gh-pages` | The published static marketing/landing page (root `index.html`, not `docs/`). | `https://peds24.github.io/track-it/` — genuinely live. |
+
+**The rule, for every change on every one of these three branches:** create a dedicated branch off the branch you're targeting, do the work there, verify it, then bring it in with an actual `git merge` (`git merge --no-ff <your-branch>` on the target, or an equivalent PR merge) — never commit straight to `android`, `web`, or `gh-pages`, and never hand-copy content between them the way earlier `gh-pages` "Publish: ..." commits did. A merge preserves history and makes the provenance of every change on these branches traceable; a manual copy does not.
+
+**Direction of flow:** `android` is upstream of `web` — a feature lands on `android` first (it's the primary platform), then gets ported to `web` (see the android→web port skill, once it exists, for how). Anything on `web` that's relevant to the public landing page (a new screen worth showing off, an updated component) can inform work merged into `gh-pages`, but `gh-pages` content is written by hand for that page — it is never a raw copy of `web`'s app code.
+
+**Before touching any of the three**, check `git branch -a` and `git log --oneline -5` on it specifically — each has its own independent history now, and a change verified on one says nothing about whether it's needed or safe on another.
