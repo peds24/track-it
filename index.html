@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Track It — a local-only tracker for shows, movies, books, comics and manga</title>
-<meta name="description" content="Track It records what you are part-way through — shows, movies, books, comics, manga — on your device, with no account and no server. Material 3, real catalogue matching, one tap to advance.">
+<title>Track It — Local-first media tracker with Material 3</title>
+<meta name="description" content="Keep track of every show, movie, book, comic, and manga you're into — stored entirely on your device, no account, no server.">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%230B57D0'/%3E%3Cpath d='M26 52 42 68 75 33' fill='none' stroke='%23FFFFFF' stroke-width='10' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 
 <style>
-  /* Ionicons, subset to the glyphs used below (tv/book/library outline,
-     play-circle, bookmark, checkmark-circle-outline, pause, trash, create,
-     chevron-down/forward), pulled from the exact font file the app ships
-     (node_modules/@expo/vector-icons/.../Fonts/Ionicons.ttf) via `pyftsubset` —
-     so the interactive demo's icons are the app's real icons. */
+  /* Ionicons, subset to the glyphs this page uses (tv/book/library/sparkles
+     outline, play-circle, bookmark, checkmark-circle-outline, pause, trash,
+     create), pulled straight from the exact font file the app ships
+     (node_modules/@expo/vector-icons/.../Fonts/Ionicons.ttf) via `pyftsubset`,
+     so these render as the app's real icons, not redrawn guesses. */
   @font-face {
     font-family: 'Ionicons';
     src: url(data:font/woff2;base64,d09GMgABAAAAAAqcAAsAAAAAEzQAAApNAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAABmAAgRQRCAqdWJYNATYCJAMkCyIABCAFgVQHggsbhQ5RlG1WH+BjMY4l8QFCy1g+/zjd3xdrPS9Jp8CW1BBLOgNvN++AiYFX8LO1M7b/fYj6d1PMeqX717v2VHnmwATP30QkKAycNK32u5OSbsFIIBincpfJpbOfliULqocaWxjOo1AeYdKk+ZXvGDt5xlKlDlWP2xZjxx5CLVWMQRg0wliO10obrNtDFJBtmDlfdw5wJEW2gAfIJDIfQMXRdBpZWDHCgGeB+lB8e+38srno+/+WMzx5LvUcRpBXUAGAiFGVAhjAKq4SJbmeQ1+oPyj1uvb/b/n/9hO5JwInxp7YdiJ18pFT20+9c3rj6RNn+FQKkOjttpq3fwbnDOd0x8+ODx1vOpY4LPYGW69tgrXP2t9qBQFaSlIpMLcFVF4A8ORj2yyncR985ZRZAAnZYKKgbBLAH7HAla7lZmn9+vXPoTSQ6ZREUaL2rya5yWymzDJn6zPTJCpZ9njSBvo9I+09eqRlZ4qbJarX0AVHEORSeJTdc+TogMoPW0RTTD49HNGzv9j1MD3r2fNRDYeCrGBjFCIqh9YzHIGDnv3TnVqb25Or0bhfgQqXpt2LygDRZtDSujv9wKk+q258Cmn83WKEMP5YOLRZSncJ+oFui1YGhqrqa+w7FORSAtqbwqIFq7Dpl5S0ATZo7XmzuHrDk4Rye3z2/s7jxVj4t3PP9n46mCGcmndo1LeE79rTnftVX8zdkXrGg3LWo3aAgD8592kCWsSRI4vnk5uoBFr6hbRyzWMdbYAk+/XZ40xPPL/++/ni4safFz3z08mPC/kOG6ucMhlkqQ7l74xuQy0IsszpOIvK7IzjzA33Cc0aoIP4JGdcrgkru7/n/gvD5F6QVh66E5RbuQPWGH+2N3gNhx6P4d+mvFvh+Wv+4/mih30SDq1gU6DKKSqDaGi5QIsbc3SmPOcaIWMDwSJkCcIfapPJleI+uJvkQgswqqLDsAOHYBQFhHVCBU6igNQZvFM5ZD2hukO/pgKixXeDPgW5pOTfYYrtUBziu+9F5KL7t7rG1TunPffmxkOeq/xZhdh7nqfyZWaLwpyN44kOEoJNS5B6qU9p6RyBcCjRNueL0vL+/7O5bQtFvxXRPeH/Yp5DAYnYwkpc3o3WetcZFnprVHMoWZ0I4za3a864HzYVqqoYdmk2/kybRdfaBDSbwgSZoyDt16J5bjYQt1LtKOfMIJtD+ggNPWMx/D723I8svfdB7jrbTcYGeSTXZKeYud8B+IByXaeDrz7dQNddkxv4JLfkz7NEeAw6IirXiQI72QAy5E5mqHN3ho+yogN+iSFmj5ticVRbzwAhWeH48Ts10dx4hu1aaIMkoK96wP32sty2y2/DlA+OaAwdIC2thGTDvLmIvFsp+7dE3Zi4Oqx28mlT+LP9OU1nWbZUFGmIY70x1gKUkI7Zh2tFT1o92K2UjEiefCoEoiEDmvkakQ0GA2TY7bmjuM/0+tVK7bf7O2vmbG8+2IW0nT8eWE3eOVukStiDOhfNu9V/p8HPDN4UdLYyWneJ1wOPt6R73RTTgx88f02ZeN3VpKD8VzmcOr/w9nhUfYKMfqkZ98W7i3xsz7Vi2TXD37NatmwRImm0hX+q+7qFlqq2J+py1mCLnbrq7Ykqy0Jc1/3jb7sG2SIQsPkgEHkfdYMeRMbTzzD8J3G1eCyKxwZHnwvM74gWMs8c5ae/gS0H696vO7Frgh8dxBeKC1qxrNavGPKRDvgn7PpjAFA8f57+QwLeO+44flNMiN2E4+m63jD+2/Tdc3XcNe9airO8WT3WM8kjC7Z6ty44kjxj7aG+sSW20xHf/P61CD4w8L4xFTeavebFRkncaDQajOJrzD7z/t3dQhmg9kn1Ln+hvPqoGu+i44qV6ltWdmsferrWzcO8AcBNO40UguiVU8bKmwQqKE++rVP97ScVIRcPzAc6utRw+CuWsl89aUT6/jRnFDLBIIJoK6YwIxdPb9bjO8eyvWtMeUsXc0Wlq5fPnMFxTXtdzAz4XNNffInRg5N7DwHBxYKjLMIQMGxfn7JcU6+CbjWMG28MUkOYgYR/3W2ILVsWu20d/DcuEke9iYkJvTf4oNJPsAr9lAeDPfW3Zytsf0NyKvMlqVlWfLKoXCSBt2olt2NYkewN3hX0yokqQXM6OrwkR/YpcrMkN1aHBmj1ilQi/eeMKrIY5rQcKcTbqaxEnf+xgkrTJOqdVClPUuo1Sj1u0XWJFL9X7E0WBN4LFCTDXOMdqOj2UKo1yFJTWBO1pxs00aF1OSXMAJoq1StiDtmVfPKzgz0Yah9k3FSVJjpDP5mO7OkdzLhLTI7bm37s2LbirM46VhCiaEqla/ZHwertAfS822Oovb/J7Z63lc/h5aTrvvtc4ZtCmZmhm8IuPt3QO1Rj6FBWnfHJc6r63NwtdettlN7GZkyWyPZwDI7RxnDEWO4WtLFvVVFdp1C3sBJU+nQQr4G9bVqRFsvgQ/6Adl9/tc4nV8quHQRgXbHOpZTLaSGjiHaauXGcCf9vKuN22lLUUim4hULXeLzSEnFHfsElyVxhCR9+rF53XQdQwueBqaqSy+r1ZIm0erXUXmLHdcsa/1It1lEquc1ud7JENxryt+Sj9ulP2uTz0sI7fNW76PdkVbQqVPfSvlVSxV65VDCVSt9LA/JH5yzvDvx0Nz6l9WmjV2mXLj77rlxAy0hmEBfHe8O97rNkk1cbnl80UGGZgds7SbSrZArxh2+KMh7XZAI5XZnNeIqMqAbyEZ8nzXH5FWD2lPk/nSYwYqHTUt6H3M9PeYYkpbbBtL5o+vSielp7WqliaskCq/1qeWg72oYYj/R/REsMwZCkXOCZBuQC1Ssn5fjy8j6djMmfTpXqy5m0shrwzmnZMcPNRLwN5XjzYHAWQqcSlS5HIKDFR5SVihbLPuG6wqLWh1dEGuJ1vwXM5u3mHRaxtGxEXAsEHK7KRHu2NHSo5HY6dN3hbJ8Ze8jHmr7kLXM/afUIzAJ2AZNWTOofzFe6u5XrPw3I0S2XvnVhy0dNY0w/MkPtosizCbAJmUVeIrghOHd7kWXmNJt/x7zadbXzdvht02Zairbdlq29+KJaWyC3tSpywHjpJSMgK61tbqW2P0BN6vb07aqgbrdZgTQyr3Zv19zCOeK40+ZchpX//ujNG8tFqf9TjzP9yMsQN4Np6SSvcJIYwUCiDpj6z2/G4ElIkAJFBHMdzThc2k2FhC0YBB3ARNCWrZS0wDUNASoWMAUsCGeRECiptzNwgrazCCOnnJNr55GDhVTglVYhiQQWIV7evQv1mIcFWIJWRNGJ8o12g9LpIX9ARQAjrnzGMVA1EA43UIDhJRCACeihPDS3Vzql6CJpmEw6dKQN4wYG6FfqS2QBL0ABwhCWcIQnAjERM7EQK7ERO3EQJxEJtQ/sbMMHp3bzgNFOKyKXZg4oMZX8d0BxAXa9pzOZGD4WtIsEMpTUhNGkah99io1s4nBT/Izn26NLuubZBphEfblSFyXdtGscDL29K/bkuzujXQut3T0AAA==) format('woff2');
@@ -21,13 +21,20 @@
     font-style: normal;
     font-display: block;
   }
-  .ionicon { font-family: 'Ionicons'; font-style: normal; line-height: 1; -webkit-font-smoothing: antialiased; }
+  .ionicon {
+    font-family: 'Ionicons';
+    font-style: normal;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+  }
 
   :root {
     --md-primary: #0B57D0;
     --md-on-primary: #FFFFFF;
     --md-primary-container: #D3E3FD;
     --md-on-primary-container: #041E49;
+    --md-secondary: #535F70;
+    --md-on-secondary: #FFFFFF;
     --md-secondary-container: #C2E7FF;
     --md-on-secondary-container: #001D35;
     --md-surface: #FEF7FF;
@@ -42,11 +49,17 @@
     --md-outline: #79747E;
     --md-outline-variant: #CAC4D0;
     --md-error: #BA1A1A;
+    --md-on-error: #FFFFFF;
     --md-error-container: #FFDAD6;
     --md-on-error-container: #410002;
 
+    --cat-show: #0B57D0;
+    --cat-movie: #8447E3;
+    --cat-book: #00897B;
+    --cat-comic: #E8710A;
+    --cat-manga: #D3116B;
+
     --font-sans: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    --font-mono: ui-monospace, "SF Mono", "Roboto Mono", Menlo, Consolas, "Liberation Mono", monospace;
     --radius-xs: 4px;
     --radius-sm: 8px;
     --radius-md: 12px;
@@ -54,16 +67,8 @@
     --radius-xl: 28px;
     --radius-full: 9999px;
 
-    --sp-1: 4px;
-    --sp-2: 8px;
-    --sp-3: 16px;
-    --sp-4: 24px;
-    --sp-5: 40px;
-    --sp-6: 64px;
-
-    --gutter: 24px;
-    --section-y: 64px;
     --maxw: 1120px;
+    --gutter: 24px;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -72,6 +77,8 @@
       --md-on-primary: #062E6F;
       --md-primary-container: #0842A0;
       --md-on-primary-container: #D3E3FD;
+      --md-secondary: #BBC7DB;
+      --md-on-secondary: #253140;
       --md-secondary-container: #004A77;
       --md-on-secondary-container: #C2E7FF;
       --md-surface: #141218;
@@ -86,8 +93,15 @@
       --md-outline: #938F99;
       --md-outline-variant: #444746;
       --md-error: #FFB4AB;
+      --md-on-error: #690005;
       --md-error-container: #93000A;
       --md-on-error-container: #FFDAD6;
+
+      --cat-show: #A8C7FA;
+      --cat-movie: #CFBCFF;
+      --cat-book: #4DD8C5;
+      --cat-comic: #FFB870;
+      --cat-manga: #FFAFD3;
     }
   }
 
@@ -96,6 +110,8 @@
     --md-on-primary: #062E6F;
     --md-primary-container: #0842A0;
     --md-on-primary-container: #D3E3FD;
+    --md-secondary: #BBC7DB;
+    --md-on-secondary: #253140;
     --md-secondary-container: #004A77;
     --md-on-secondary-container: #C2E7FF;
     --md-surface: #141218;
@@ -110,74 +126,39 @@
     --md-outline: #938F99;
     --md-outline-variant: #444746;
     --md-error: #FFB4AB;
+    --md-on-error: #690005;
     --md-error-container: #93000A;
     --md-on-error-container: #FFDAD6;
+
+    --cat-show: #A8C7FA;
+    --cat-movie: #CFBCFF;
+    --cat-book: #4DD8C5;
+    --cat-comic: #FFB870;
+    --cat-manga: #FFAFD3;
   }
 
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
   body {
-    margin: 0;
     background-color: var(--md-surface);
     color: var(--md-on-surface);
     font-family: var(--font-sans);
-    font-size: 16px;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
-    -webkit-text-size-adjust: 100%;
     overflow-x: hidden;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { animation: none !important; transition: none !important; }
   }
 
   .wrap {
     max-width: var(--maxw);
     margin: 0 auto;
-    padding-left: max(var(--gutter), env(safe-area-inset-left, 0px));
-    padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+    padding: 0 var(--gutter);
   }
 
-  section { padding-top: var(--section-y); }
-
-  a { color: var(--md-primary); text-decoration: none; }
-  a:hover { text-decoration: underline; }
-
-  h1 {
-    margin: 0;
-    font-size: clamp(32px, 5.6vw, 52px);
-    font-weight: 800;
-    line-height: 1.08;
-    letter-spacing: -0.01em;
-    max-width: 820px;
-    text-wrap: balance;
-  }
-  h2 {
-    margin: 0 0 var(--sp-2);
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--md-on-surface-variant);
-  }
-  h3 { margin: 0 0 var(--sp-2); font-size: 20px; font-weight: 700; line-height: 1.25; }
-  p { margin: 0 0 var(--sp-3); max-width: 68ch; }
-  p:last-child { margin-bottom: 0; }
-  .lede { font-size: 17px; color: var(--md-on-surface-variant); }
-  strong { font-weight: 700; }
-
-  .eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    color: var(--md-on-secondary-container);
-    background: var(--md-secondary-container);
-    padding: 5px 14px;
-    border-radius: var(--radius-full);
-    margin-bottom: var(--sp-3);
-  }
-
-  /* ---------- nav ---------- */
+  /* Header */
   header.nav-bar {
     position: sticky;
     top: 0;
@@ -190,47 +171,61 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--sp-3);
     height: 68px;
   }
   .brand {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 18px;
+    gap: 12px;
+    font-size: 20px;
     font-weight: 700;
     color: var(--md-on-surface);
-    flex-shrink: 0;
+    text-decoration: none;
   }
-  .brand:hover { text-decoration: none; }
   .brand-icon {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     background: var(--md-primary);
     color: var(--md-on-primary);
     border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
+    font-size: 18px;
+    font-weight: 800;
   }
   .nav-links {
     display: flex;
     align-items: center;
-    gap: var(--sp-4);
-    overflow-x: auto;
-    scrollbar-width: none;
+    gap: 20px;
     min-width: 0;
-    white-space: nowrap;
   }
-  .nav-links::-webkit-scrollbar { display: none; }
   .nav-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     color: var(--md-on-surface-variant);
+    text-decoration: none;
     font-size: 14px;
     font-weight: 600;
-    flex-shrink: 0;
+    white-space: nowrap;
+    transition: color 0.2s;
   }
-  .nav-links a:hover { color: var(--md-primary); text-decoration: none; }
+  .nav-icon { font-size: 15px; line-height: 1; }
+  .nav-links a:hover {
+    color: var(--md-primary);
+  }
+  @media (max-width: 480px) {
+    .nav-links { gap: 14px; }
+    .nav-links a { font-size: 13px; }
+    .theme-toggle { padding: 8px 12px; font-size: 12px; }
+  }
+  @media (max-width: 400px) {
+    /* Icon-only nav on narrow phones — the label text is what no longer fits,
+       not the icon, so drop the label rather than a whole link. */
+    .nav-label { display: none; }
+    .nav-links { gap: 10px; }
+  }
   .theme-toggle {
     background: var(--md-surface-container-high);
     border: none;
@@ -241,1123 +236,1405 @@
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    flex-shrink: 0;
+    transition: background 0.2s;
   }
-  .theme-toggle:hover { background: var(--md-surface-container-highest); }
+  .theme-toggle:hover {
+    background: var(--md-surface-container-highest);
+  }
 
-  /* ---------- hero ---------- */
-  .hero { padding-top: 56px; padding-bottom: 8px; }
-  .standfirst { font-size: 18px; color: var(--md-on-surface-variant); max-width: 68ch; }
-  .cta-row { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
+  /* Hero Section */
+  .hero {
+    padding: 80px 0 60px;
+    text-align: center;
+  }
+  .badge-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--md-secondary-container);
+    color: var(--md-on-secondary-container);
+    padding: 6px 16px;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 24px;
+  }
+  .hero h1 {
+    font-size: clamp(36px, 6vw, 60px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    max-width: 820px;
+    margin: 0 auto 20px;
+  }
+  .hero p.lead {
+    font-size: clamp(17px, 2.5vw, 21px);
+    color: var(--md-on-surface-variant);
+    max-width: 680px;
+    margin: 0 auto 36px;
+    line-height: 1.5;
+  }
+  .cta-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 48px;
+  }
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    min-height: 44px;
-    padding: 12px 24px;
+    padding: 14px 28px;
     border-radius: var(--radius-full);
     font-size: 15px;
     font-weight: 700;
+    text-decoration: none;
+    transition: transform 0.15s, opacity 0.2s;
     cursor: pointer;
-    border: 1px solid transparent;
   }
-  .btn-primary { background: var(--md-primary); color: var(--md-on-primary); box-shadow: 0 4px 12px rgba(11,87,208,0.2); }
-  .btn-primary:hover { text-decoration: none; opacity: 0.92; }
-  .btn-secondary { background: var(--md-surface-container-high); color: var(--md-on-surface); border-color: var(--md-outline-variant); }
-  .btn-secondary:hover { text-decoration: none; background: var(--md-surface-container-highest); }
-
-  .facts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--sp-2) var(--sp-4);
-    margin: var(--sp-4) 0 0;
-    padding-top: var(--sp-3);
-    padding-left: 0;
-    border-top: 1px solid var(--md-outline-variant);
-    font-size: 13px;
-    color: var(--md-on-surface-variant);
-    list-style: none;
+  .btn:active { transform: scale(0.98); }
+  .btn-primary {
+    background: var(--md-primary);
+    color: var(--md-on-primary);
+    box-shadow: 0 4px 12px rgba(11, 87, 208, 0.2);
   }
-  .facts b { color: var(--md-on-surface); font-weight: 700; }
+  .btn-secondary {
+    background: var(--md-surface-container-high);
+    color: var(--md-on-surface);
+    border: 1px solid var(--md-outline-variant);
+  }
 
-  /* ---------- screens / real screenshots ---------- */
-  .lede em { font-style: normal; font-weight: 700; color: var(--md-on-surface); }
-
-  .screens {
+  /* Stats Bar */
+  .stats-bar {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 260px));
-    justify-content: start;
-    gap: var(--sp-4) var(--sp-3);
-    margin-top: var(--sp-4);
+    grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+    gap: 16px;
+    margin: 0 auto 80px;
   }
-  .screens > * { min-width: 0; }
-  .screen-label {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--sp-2);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--md-on-surface-variant);
-    margin-bottom: var(--sp-2);
-  }
-  .phone-frame {
-    width: 100%;
-    max-width: 260px;
-    margin: 0 auto;
-    background: var(--md-surface-container-lowest);
-    border: 8px solid var(--md-outline-variant);
-    border-radius: 30px;
-    box-shadow: 0 16px 36px rgba(0,0,0,0.16);
-    overflow: hidden;
-  }
-  .phone-frame img { display: block; width: 100%; height: auto; }
-
-  /* ---------- annotation list ---------- */
-  .anno {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
-    gap: var(--sp-3);
-    margin: var(--sp-4) 0 0;
-    padding: 0;
-    list-style: none;
-  }
-  .anno li {
-    padding: var(--sp-3);
+  .stat-card {
     background: var(--md-surface-container-low);
     border: 1px solid var(--md-outline-variant);
-    border-radius: var(--radius-md);
-    font-size: 14px;
-    color: var(--md-on-surface-variant);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    text-align: center;
   }
-  .anno b { display: block; color: var(--md-on-surface); font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+  .stat-num {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--md-primary);
+    margin-bottom: 4px;
+  }
+  .stat-desc {
+    font-size: 13px;
+    color: var(--md-on-surface-variant);
+    font-weight: 600;
+  }
 
-  /* ---------- interactive demo (reproduction, not a screenshot) ---------- */
-  .demo-layout { display: grid; grid-template-columns: minmax(260px, 320px) 1fr; gap: var(--sp-4); align-items: start; margin-top: var(--sp-4); }
-  @media (max-width: 760px) { .demo-layout { grid-template-columns: 1fr; justify-items: center; } }
-  .demo-frame {
-    width: 100%;
-    max-width: 300px;
-    height: 660px;
+  /* Interactive Demo */
+  .demo-section {
+    padding: 60px 0;
+    border-top: 1px solid var(--md-outline-variant);
+  }
+  .section-head {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .section-head h2 {
+    font-size: clamp(26px, 4vw, 38px);
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+  .section-head p {
+    color: var(--md-on-surface-variant);
+    font-size: 16px;
+    max-width: 600px;
     margin: 0 auto;
-    background: var(--md-surface-container-lowest);
-    border: 8px solid var(--md-outline-variant);
-    border-radius: 30px;
-    box-shadow: 0 16px 36px rgba(0,0,0,0.16);
+  }
+
+  .phone-frame {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    background: var(--md-surface);
+    border: 10px solid var(--md-outline-variant);
+    border-radius: 40px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
     overflow: hidden;
+  }
+  .phone-screen {
+    padding: 0;
+    height: 760px;
     display: flex;
     flex-direction: column;
     position: relative;
+    overflow: hidden;
   }
-  .sw-header { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: var(--sp-4) var(--sp-3) var(--sp-2); }
-  .sw-header h2 { margin: 0; font-size: 22px; font-weight: 800; text-transform: none; letter-spacing: 0; color: var(--md-on-surface); }
-  .sw-add-btn { background: var(--md-primary); color: var(--md-on-primary); border: none; padding: 7px 14px; border-radius: var(--radius-full); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
-  .sw-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-bottom: var(--sp-1); }
-  .sw-section { max-height: 800px; transition: max-height 0.25s ease, opacity 0.2s ease; overflow: hidden; }
+
+  /* Swipeable demo — ported from src/ui/{TrackRow,SwipeableTrackRow,currentlySections}.tsx
+     on the `web` branch: same M3 tokens, thresholds and gesture behaviour, reimplemented
+     in vanilla JS (no React, no app code shipped to the landing page). */
+  .sw-header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 20px 12px;
+  }
+  .sw-header h2 { font-size: 26px; font-weight: 800; }
+  .sw-add-btn {
+    background: var(--md-primary);
+    color: var(--md-on-primary);
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .sw-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding-bottom: 8px;
+  }
+  .sw-section {
+    max-height: 800px;
+    transition: max-height 0.25s ease, opacity 0.2s ease;
+    overflow: hidden;
+  }
   .sw-section.is-empty { max-height: 0 !important; opacity: 0; }
-  .sw-section-header { display: flex; align-items: center; gap: 7px; width: 100%; padding: var(--sp-3) var(--sp-3) var(--sp-1); background: none; border: none; font-family: inherit; text-align: left; cursor: pointer; }
-  .sw-section-icon { flex-shrink: 0; width: 22px; height: 22px; border-radius: var(--radius-xs); background: var(--md-surface-container-high); display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--md-primary); }
-  .sw-section-title { font-size: 14.5px; font-weight: 700; color: var(--md-on-surface); text-transform: none; letter-spacing: 0; }
-  .sw-section-count { font-size: 10px; font-weight: 700; background: var(--md-surface-container-high); color: var(--md-on-surface-variant); padding: 2px 6px; border-radius: var(--radius-full); }
+  .sw-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px 20px 8px;
+    background: none;
+    border: none;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .sw-section-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-xs);
+    background: var(--md-surface-container-high);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: var(--md-primary);
+  }
+  .sw-section-title { font-size: 17px; font-weight: 700; color: var(--md-on-surface); }
+  .sw-section-count {
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--md-surface-container-high);
+    color: var(--md-on-surface-variant);
+    padding: 2px 7px;
+    border-radius: var(--radius-full);
+  }
   .sw-spacer { flex: 1; }
-  .sw-chevron { font-size: 13px; color: var(--md-on-surface-variant); display: inline-block; }
-  .sw-rows { overflow: hidden; max-height: 600px; opacity: 1; transition: max-height 0.25s ease, opacity 0.2s ease; }
+  .sw-chevron { font-size: 15px; color: var(--md-on-surface-variant); display: inline-block; }
+  .sw-rows {
+    overflow: hidden;
+    max-height: 600px;
+    opacity: 1;
+    transition: max-height 0.25s ease, opacity 0.2s ease;
+  }
   .sw-rows.is-collapsed { max-height: 0; opacity: 0; }
-  .sw-row { position: relative; overflow: hidden; border-top: 1px solid var(--md-outline-variant); transition: max-height 0.25s ease, opacity 0.2s ease; max-height: 180px; }
+
+  .sw-row {
+    position: relative;
+    overflow: hidden;
+    border-top: 1px solid var(--md-outline-variant);
+    transition: max-height 0.25s ease, opacity 0.2s ease;
+    max-height: 200px;
+  }
   .sw-row.is-removing { max-height: 0; opacity: 0; border-top-color: transparent; }
   .sw-actions { position: absolute; inset: 0; }
-  .sw-action { position: absolute; inset: 0; display: flex; align-items: center; gap: 9px; }
-  .sw-action-left { justify-content: flex-start; padding-left: var(--sp-3); }
-  .sw-action-right { justify-content: flex-end; padding-right: var(--sp-3); background: var(--md-primary-container); }
-  .sw-badge { flex-shrink: 0; width: 28px; height: 28px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
-  .sw-badge.badge-pause { background: var(--md-secondary, #535F70); color: #fff; }
-  .sw-badge.badge-delete { background: var(--md-error); color: #fff; }
+  .sw-action {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sw-action-left { justify-content: flex-start; padding-left: 20px; }
+  .sw-action-right { justify-content: flex-end; padding-right: 20px; background: var(--md-primary-container); }
+  .sw-badge {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+  .sw-badge.badge-pause { background: var(--md-secondary); color: var(--md-on-secondary); }
+  .sw-badge.badge-delete { background: var(--md-error); color: var(--md-on-error); }
   .sw-badge.badge-edit { background: var(--md-primary); color: var(--md-on-primary); }
-  .sw-action-text { font-size: 12px; font-weight: 700; }
-  .sw-surface { position: relative; background: var(--md-surface-container-lowest); touch-action: pan-y; }
-  .sw-row-inner { display: flex; align-items: center; gap: var(--sp-3); padding: 11px var(--sp-3); }
+  .sw-action-text { font-size: 13px; font-weight: 700; }
+  .sw-surface {
+    position: relative;
+    background: var(--md-surface);
+    touch-action: pan-y;
+  }
+  .sw-row-inner { display: flex; align-items: center; gap: 16px; padding: 14px 20px; }
   .sw-row-text { flex: 1; min-width: 0; }
-  .sw-row-title { font-size: 14.5px; font-weight: 700; color: var(--md-on-surface); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .sw-row-meta { display: flex; align-items: center; gap: 5px; margin-top: 3px; font-size: 11.5px; color: var(--md-on-surface-variant); flex-wrap: wrap; }
-  .sw-kind { background: var(--md-surface-container-high); color: var(--md-primary); font-size: 9.5px; font-weight: 800; letter-spacing: 0.03em; padding: 2px 5px; border-radius: 4px; }
+  .sw-row-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--md-on-surface);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sw-row-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    font-size: 12.5px;
+    color: var(--md-on-surface-variant);
+    flex-wrap: wrap;
+  }
+  .sw-kind {
+    background: var(--md-surface-container-high);
+    color: var(--md-primary);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
   .sw-dot { color: var(--md-outline); }
   .sw-count { font-weight: 700; color: var(--md-on-surface); font-variant-numeric: tabular-nums; }
-  .sw-progress-track { height: 4px; margin-top: 8px; border-radius: var(--radius-full); background: var(--md-surface-container-highest); overflow: hidden; }
+  .sw-progress-track {
+    height: 5px;
+    margin-top: 9px;
+    border-radius: var(--radius-full);
+    background: var(--md-surface-container-highest);
+    overflow: hidden;
+  }
   .sw-progress-fill { height: 100%; background: var(--md-primary); border-radius: var(--radius-full); transition: width 0.25s ease; }
   .sw-progress-segmented { display: flex; gap: 3px; background: none; }
   .sw-segment { flex: 1; height: 100%; border-radius: var(--radius-full); background: var(--md-surface-container-highest); overflow: hidden; }
   .sw-segment-fill { height: 100%; background: var(--md-primary); }
-  .sw-advance { flex-shrink: 0; min-width: 60px; height: 30px; display: flex; align-items: center; justify-content: center; border: 1.5px solid var(--md-primary); border-radius: var(--radius-full); background: transparent; color: var(--md-primary); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; transition: background 0.15s, color 0.15s; }
-  .sw-advance:active { background: var(--md-primary-container); color: var(--md-on-primary-container); }
-  .sw-toast { position: absolute; left: 12px; right: 12px; bottom: 14px; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #2F3033; color: #fff; padding: 10px 13px; border-radius: var(--radius-md); font-size: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.25); transform: translateY(10px); opacity: 0; pointer-events: none; transition: transform 0.2s ease, opacity 0.2s ease; }
-  .sw-toast.is-visible { transform: translateY(0); opacity: 1; pointer-events: auto; }
-  .sw-toast button { background: none; border: none; color: #9ECAFF; font-weight: 700; font-size: 12px; cursor: pointer; font-family: inherit; }
-  .sw-dialog-backdrop { position: absolute; inset: 0; z-index: 30; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; padding: var(--sp-4); opacity: 0; pointer-events: none; transition: opacity 0.15s ease; }
-  .sw-dialog-backdrop.is-visible { opacity: 1; pointer-events: auto; }
-  .sw-dialog-card { width: 100%; max-width: 240px; background: var(--md-surface-container-high); border-radius: var(--radius-lg); padding: var(--sp-4) var(--sp-3); transform: scale(0.95); transition: transform 0.15s ease; }
-  .sw-dialog-backdrop.is-visible .sw-dialog-card { transform: scale(1); }
-  .sw-dialog-title { font-size: 15px; font-weight: 800; margin-bottom: 6px; color: var(--md-on-surface); }
-  .sw-dialog-body { font-size: 12.5px; color: var(--md-on-surface-variant); line-height: 1.5; margin-bottom: var(--sp-3); }
-  .sw-dialog-actions { display: flex; justify-content: flex-end; gap: 4px; }
-  .sw-dialog-btn { border: none; background: none; font-family: inherit; font-size: 12px; font-weight: 700; color: var(--md-primary); padding: 7px 10px; border-radius: var(--radius-full); cursor: pointer; }
-  .sw-dialog-btn.is-destructive { color: var(--md-error); }
-  .sw-stepper { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: var(--sp-3); }
-  .sw-stepper-btn { width: 34px; height: 34px; border-radius: 17px; border: 1.5px solid var(--md-outline-variant); background: var(--md-surface-container-lowest); color: var(--md-on-surface); font-family: inherit; font-size: 16px; font-weight: 800; cursor: pointer; }
-  .sw-stepper-value { min-width: 56px; text-align: center; font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
-  .sw-tabbar { flex-shrink: 0; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--md-outline-variant); padding: 9px 0; }
-  .sw-tab { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; font-weight: 700; color: var(--md-on-surface-variant); }
-  .sw-tab.active { color: var(--md-on-surface); }
-  .sw-tab-pill { width: 46px; height: 24px; border-radius: var(--radius-full); background: var(--md-secondary-container); display: flex; align-items: center; justify-content: center; color: var(--md-on-secondary-container); font-size: 12px; }
-  .demo-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--md-on-surface-variant); margin-bottom: var(--sp-2); }
-  .demo-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--md-primary); }
-
-  /* ---------- feature / principle grids ---------- */
-  .grid-3, .principles {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
-    gap: var(--sp-3);
-    margin: var(--sp-4) 0 0;
-    padding: 0;
-    list-style: none;
+  .sw-advance {
+    flex-shrink: 0;
+    min-width: 68px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid var(--md-primary);
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--md-primary);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
   }
-  .feature-card, .principles li {
+  .sw-advance:active { background: var(--md-primary-container); color: var(--md-on-primary-container); }
+
+  .sw-toast {
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 70px;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: #2F3033;
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    transform: translateY(12px);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  .sw-toast.is-visible { transform: translateY(0); opacity: 1; pointer-events: auto; }
+  .sw-toast button { background: none; border: none; color: #9ECAFF; font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; }
+
+  .sw-dialog-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+  .sw-dialog-backdrop.is-visible { opacity: 1; pointer-events: auto; }
+  .sw-dialog-card {
+    width: 100%;
+    max-width: 270px;
+    background: var(--md-surface-container-high);
+    border-radius: var(--radius-xl);
+    padding: 22px 20px;
+    transform: scale(0.95);
+    transition: transform 0.15s ease;
+  }
+  .sw-dialog-backdrop.is-visible .sw-dialog-card { transform: scale(1); }
+  .sw-dialog-title { font-size: 17px; font-weight: 800; margin-bottom: 8px; }
+  .sw-dialog-body { font-size: 13.5px; color: var(--md-on-surface-variant); line-height: 1.5; margin-bottom: 20px; }
+  .sw-dialog-actions { display: flex; justify-content: flex-end; gap: 4px; }
+  .sw-dialog-btn {
+    border: none;
+    background: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--md-primary);
+    padding: 8px 12px;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+  }
+  .sw-dialog-btn.is-destructive { color: var(--md-error); }
+  .sw-stepper { display: flex; align-items: center; justify-content: center; gap: 18px; margin-bottom: 22px; }
+  .sw-stepper-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 19px;
+    border: 1.5px solid var(--md-outline-variant);
+    background: var(--md-surface-container-lowest);
+    color: var(--md-on-surface);
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .sw-stepper-value { min-width: 64px; text-align: center; font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+  .sw-tabbar {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid var(--md-outline-variant);
+    padding: 10px 0;
+  }
+  .sw-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--md-on-surface-variant);
+  }
+  .sw-tab.active { color: var(--md-on-surface); }
+  .sw-tab-pill {
+    width: 52px;
+    height: 26px;
+    border-radius: var(--radius-full);
+    background: var(--md-secondary-container);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--md-on-secondary-container);
+    font-size: 13px;
+  }
+
+  /* Features Grid */
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+    gap: 24px;
+    margin: 40px 0;
+  }
+  .feature-card {
     background: var(--md-surface-container-low);
     border: 1px solid var(--md-outline-variant);
     border-radius: var(--radius-lg);
-    padding: var(--sp-4);
+    padding: 28px;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .feature-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--md-primary);
   }
   .feature-icon {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     background: var(--md-primary-container);
     color: var(--md-on-primary-container);
     border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 19px;
-    margin-bottom: var(--sp-2);
+    font-size: 22px;
+    margin-bottom: 16px;
   }
-  .feature-card h3, .principles h3 { font-size: 17px; margin-bottom: 6px; }
-  .feature-card p, .principles p { font-size: 14.5px; color: var(--md-on-surface-variant); }
+  .feature-card h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .feature-card p { color: var(--md-on-surface-variant); font-size: 15px; }
 
-  /* ---------- steps ---------- */
-  .steps {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
-    gap: var(--sp-4);
-    align-items: start;
-    margin-top: var(--sp-4);
-  }
-  .step-num {
+  /* Coming Soon */
+  .cs-tag {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
+    background: var(--md-primary-container);
+    color: var(--md-on-primary-container);
+    padding: 4px 12px;
     border-radius: var(--radius-full);
-    background: var(--md-primary);
-    color: var(--md-on-primary);
-    font-size: 13px;
-    font-weight: 800;
-    margin-bottom: var(--sp-2);
-  }
-  .step h3 { font-size: 17px; }
-  .step p { font-size: 14.5px; color: var(--md-on-surface-variant); }
-
-  /* ---------- tables ---------- */
-  .table-scroll { overflow-x: auto; margin-top: var(--sp-3); }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th {
-    text-align: left;
     font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
+    font-weight: 800;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--md-on-surface-variant);
-    padding: 0 var(--sp-3) var(--sp-2) 0;
-    border-bottom: 2px solid var(--md-outline-variant);
-    white-space: nowrap;
+    margin-bottom: 14px;
   }
-  td { padding: var(--sp-2) var(--sp-3) var(--sp-2) 0; border-bottom: 1px solid var(--md-outline-variant); vertical-align: top; }
-  td.code { font-family: var(--font-mono); font-size: 13px; white-space: nowrap; }
-  td.note { color: var(--md-on-surface-variant); }
+  .cs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr));
+    gap: 24px;
+    margin-top: 40px;
+  }
+  .cs-card {
+    background: var(--md-surface-container-low);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: var(--radius-xl);
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+  }
+  .cs-card h3 { font-size: 21px; font-weight: 800; margin-bottom: 8px; }
+  .cs-card > p { color: var(--md-on-surface-variant); font-size: 14.5px; margin-bottom: 20px; max-width: 46ch; }
+  .cs-card.cs-compact {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 18px;
+  }
+  .cs-compact .feature-icon { margin-bottom: 0; flex-shrink: 0; }
+  .cs-compact .cs-body { display: flex; flex-direction: column; }
+  .cs-compact .cs-body > p { margin-bottom: 0; }
 
-  /* ---------- code ---------- */
+  /* Stats preview card */
+  .stats-preview {
+    background: var(--md-surface-container-lowest);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+  }
+  .sp-hero { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .sp-num { font-size: 44px; font-weight: 800; color: var(--md-primary); line-height: 1; }
+  .sp-cap { font-size: 13px; font-weight: 700; color: var(--md-on-surface-variant); }
+  .sp-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .sp-chip {
+    background: var(--md-secondary-container);
+    color: var(--md-on-secondary-container);
+    border-radius: var(--radius-full);
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .sp-chip b { font-weight: 800; }
+  .sp-body { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+  .sp-bars { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 10px; }
+  .sp-bar-row { display: flex; align-items: center; gap: 10px; }
+  .sp-bar-label {
+    width: 46px; flex-shrink: 0; font-size: 11px; font-weight: 700;
+    color: var(--md-on-surface-variant); text-transform: uppercase;
+  }
+  .sp-bar-track { flex: 1; height: 8px; border-radius: var(--radius-full); background: var(--md-surface-container-high); overflow: hidden; }
+  .sp-bar-fill { height: 100%; border-radius: var(--radius-full); }
+  .sp-bar-val { width: 30px; flex-shrink: 0; text-align: right; font-size: 12px; font-weight: 700; color: var(--md-on-surface); }
+  .sp-gauge { flex-shrink: 0; text-align: center; }
+  .sp-gauge-num { font-size: 18px; font-weight: 800; fill: var(--md-primary); }
+  .sp-gauge-cap { font-size: 6.5px; font-weight: 700; letter-spacing: 0.06em; fill: var(--md-on-surface-variant); }
+  .sp-gauge-label { font-size: 11px; color: var(--md-on-surface-variant); margin-top: 4px; }
+
+  /* Track It screen preview (cover art + actions) */
+  .track-preview {
+    display: flex;
+    justify-content: center;
+  }
+  .track-phone {
+    width: 100%;
+    max-width: 300px;
+    background: var(--md-surface);
+    border: 8px solid var(--md-outline-variant);
+    border-radius: 32px;
+    overflow: hidden;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.15);
+  }
+  .cover-art {
+    height: 200px;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    padding: 16px;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.55) 100%),
+      linear-gradient(135deg, #0B57D0 0%, #7C4DFF 100%);
+    color: #fff;
+  }
+  .cover-art .cover-ghost {
+    position: absolute;
+    top: 14px; left: 16px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: rgba(255,255,255,0.2);
+    padding: 4px 8px;
+    border-radius: var(--radius-full);
+  }
+  .cover-art h4 { font-size: 22px; font-weight: 800; color: #fff; }
+  .track-body { padding: 16px 18px 20px; }
+  .track-meta {
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    font-size: 12px; color: var(--md-on-surface-variant); margin-bottom: 10px;
+  }
+  .track-meta .kind {
+    background: var(--md-secondary-container);
+    color: var(--md-on-secondary-container);
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+  .track-blurb {
+    font-size: 13px;
+    color: var(--md-on-surface-variant);
+    margin-bottom: 18px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .track-actions { display: flex; flex-direction: column; gap: 10px; }
+  .ta-btn {
+    padding: 11px;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    cursor: default;
+  }
+  .ta-filled { background: var(--md-primary); color: var(--md-on-primary); }
+  .ta-outlined { background: transparent; border: 1.5px solid var(--md-outline); color: var(--md-on-surface); }
+  .ta-text { background: none; color: var(--md-on-surface-variant); font-weight: 600; }
+
+  /* Quickstart */
   .code-block {
     background: var(--md-surface-container-lowest);
     color: var(--md-on-surface);
     border: 1px solid var(--md-outline-variant);
     border-radius: var(--radius-md);
-    padding: var(--sp-3);
-    font-family: var(--font-mono);
-    font-size: 13.5px;
-    line-height: 1.7;
+    padding: 20px;
+    font-family: monospace;
+    font-size: 14px;
+    white-space: pre-wrap;
     overflow-x: auto;
-    margin-top: var(--sp-3);
-    -webkit-overflow-scrolling: touch;
+    margin-top: 16px;
   }
-  .code-block .c { color: var(--md-on-surface-variant); }
-
-  /* ---------- do-not list ---------- */
-  .nots { margin: var(--sp-4) 0 0; padding: 0; list-style: none; display: grid; gap: var(--sp-3); }
-  .nots li {
-    display: grid;
-    grid-template-columns: 64px 1fr;
-    gap: var(--sp-3);
-    align-items: baseline;
-    padding-bottom: var(--sp-3);
-    border-bottom: 1px solid var(--md-outline-variant);
-    max-width: 68ch;
-  }
-  .nots li:last-child { border-bottom: 0; padding-bottom: 0; }
-  .tag-pill {
-    display: inline-flex;
-    justify-content: center;
-    font-size: 10.5px;
-    font-weight: 800;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 4px 8px;
-    border-radius: var(--radius-xs);
-  }
-  .tag-next { background: var(--md-secondary-container); color: var(--md-on-secondary-container); }
-  .tag-no { background: var(--md-surface-container-high); color: var(--md-on-surface-variant); }
-  .nots p { font-size: 14.5px; margin: 0; }
-  .nots b { font-weight: 700; color: var(--md-on-surface); }
-
-  /* ---------- history / archive strip ---------- */
-  .history-strip {
-    background: var(--md-surface-container-low);
-    border: 1px solid var(--md-outline-variant);
-    border-radius: var(--radius-lg);
-    padding: var(--sp-4);
-    margin-top: var(--sp-4);
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--sp-3) var(--sp-4);
-    align-items: center;
-    justify-content: space-between;
-  }
-  .history-strip p { margin: 0; font-size: 14.5px; color: var(--md-on-surface-variant); max-width: 52ch; }
-  .history-links { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); font-size: 14px; font-weight: 600; }
-
-  /* ---------- footer ---------- */
-  footer {
-    margin-top: var(--section-y);
-    padding-top: var(--sp-4);
-    padding-bottom: var(--sp-5);
+  .quickstart-section {
+    padding: 40px 0 56px;
     border-top: 1px solid var(--md-outline-variant);
-    font-size: 13px;
+  }
+  .quickstart-section .section-head { margin-bottom: 24px; }
+  .quickstart-section .section-head h2 { font-size: clamp(20px, 3vw, 26px); }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--md-outline-variant);
+    padding: 40px 0 60px;
+    text-align: center;
     color: var(--md-on-surface-variant);
+    font-size: 14px;
   }
-  .footer-links { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin-bottom: var(--sp-2); font-size: 14px; font-weight: 600; }
-
-  /* ---------- breakpoints ---------- */
-  @media (max-width: 1024px) {
-    :root { --section-y: 52px; }
-  }
-  @media (max-width: 640px) {
-    :root { --gutter: 16px; --section-y: 40px; }
-    .hero { padding-top: 40px; }
-    .standfirst { font-size: 16px; }
-    .cta-row .btn { flex: 1 1 100%; }
-    .nots li { grid-template-columns: 1fr; gap: var(--sp-1); }
-    .history-strip { flex-direction: column; align-items: flex-start; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-  }
+  footer a { color: var(--md-on-surface); font-weight: 600; }
 </style>
 </head>
 <body>
 
-<header class="nav-bar">
-  <div class="wrap nav-inner">
-    <a class="brand" href="#top">
-      <span class="brand-icon" aria-hidden="true">
-        <svg width="15" height="15" viewBox="0 0 100 100"><path d="M26 52 42 68 75 33" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-      Track It
-    </a>
-    <nav class="nav-links">
-      <a href="#screens">Screens</a>
-      <a href="#how">How it works</a>
-      <a href="#build">Built with</a>
-      <a href="#run">Run it</a>
-      <a href="https://github.com/peds24/track-it">GitHub</a>
-      <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">Theme</button>
-    </nav>
-  </div>
-</header>
-
-<main class="wrap">
-
-<header class="hero" id="top">
-  <div class="eyebrow">Track It · Material 3 · iOS and Android</div>
-  <h1>Keep track of what you are part-way through</h1>
-  <p class="standfirst">
-    Shows, movies, books, comics and manga in one place, stored entirely on your phone.
-    No account, no server, no cover art. Search finds and confirms the real thing —
-    or type a title by hand — then one tap moves it along.
-  </p>
-  <div class="cta-row">
-    <a class="btn btn-primary" href="https://github.com/peds24/track-it">View the source</a>
-    <a class="btn btn-secondary" href="#run">How to run it</a>
-    <a class="btn btn-secondary" href="design/material-3-spec.html">Material 3 spec</a>
-  </div>
-  <ul class="facts">
-    <li><b>Local only</b> — on-device SQLite</li>
-    <li><b>No accounts</b> — nothing to sign in to</li>
-    <li><b>Three tabs</b> — Currently, Backlog, Done</li>
-    <li><b>Real matches</b> — Google Books, AniList, Metron, TMDB + barcode scan</li>
-  </ul>
-</header>
-
-<section id="screens">
-  <h2>The app</h2>
-  <p class="lede">
-    Every screen below is a <em>real screenshot</em>, taken from the current build running on
-    an emulator — not a mock-up standing in for something that does not exist yet.
-  </p>
-
-  <div class="screens">
-    <div>
-      <div class="screen-label"><span>Currently</span><span>Home</span></div>
-      <div class="phone-frame"><img src="screenshots/currently.png" alt="Currently tab grouped by category: Shows, Books, Comics and Manga, each row showing progress and a Done button" loading="lazy"></div>
+  <!-- Navigation Bar -->
+  <header class="nav-bar">
+    <div class="wrap nav-inner">
+      <a href="#" class="brand">
+        <div class="brand-icon">
+          <svg width="18" height="18" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+            <path d="M26 52 42 68 75 33" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span>Track It</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#features" aria-label="Features"><span class="ionicon nav-icon">&#62861;</span><span class="nav-label">Features</span></a>
+        <a href="#demo" aria-label="Live UI"><span class="ionicon nav-icon">&#62670;</span><span class="nav-label">Live UI</span></a>
+        <a href="#coming-soon" aria-label="Coming Soon"><span class="ionicon nav-icon">&#61865;</span><span class="nav-label">Coming Soon</span></a>
+        <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">Theme</button>
+      </nav>
     </div>
-    <div>
-      <div class="screen-label"><span>Backlog</span><span>Not started</span></div>
-      <div class="phone-frame"><img src="screenshots/backlog.png" alt="Backlog tab listing not-started tracks with category filter chips" loading="lazy"></div>
-    </div>
-    <div>
-      <div class="screen-label"><span>Done</span><span>Filtered by category</span></div>
-      <div class="phone-frame"><img src="screenshots/done.png" alt="Done tab showing finished tracks, with no advance control since nothing here can be advanced" loading="lazy"></div>
-    </div>
-    <div>
-      <div class="screen-label"><span>Add</span><span>Step 1 — category</span></div>
-      <div class="phone-frame"><img src="screenshots/add-category.png" alt="Add a track screen asking what category is being added: Show, Movie, Book, Comic or Manga" loading="lazy"></div>
-    </div>
-    <div>
-      <div class="screen-label"><span>Add</span><span>Comic's extra step</span></div>
-      <div class="phone-frame"><img src="screenshots/add-comic-step.png" alt="Comic add flow asking whether this is a single issue or a collection" loading="lazy"></div>
-    </div>
-    <div>
-      <div class="screen-label"><span>Add</span><span>A real match, confirmed</span></div>
-      <div class="phone-frame"><img src="screenshots/add-confirm.png" alt="Add flow confirm screen showing a real AniList match for Chainsaw Man with its blurb and a Start reading button" loading="lazy"></div>
-    </div>
-  </div>
+  </header>
 
-  <ul class="anno">
-    <li><b>Category groups lead Currently</b> Shows, Movies, Books, Comics, Manga — the same order as picking a category to add one.</li>
-    <li><b>A real match is confirmed, not assumed</b> Search hits a real catalogue per category, shows what it found, and waits for you to confirm before it saves anything.</li>
-    <li><b>Comic asks one more question</b> A single issue is matched by barcode down to the printing; a collection tracks as one item, the same as a book.</li>
-    <li><b>Standalone books have no bar</b> Nothing to be part-way through numerically, so no progress is drawn — absence is the signal.</li>
-    <li><b>One control, one word</b> "Done" finishes an episode, an issue or a volume alike, wherever you are in the app.</li>
-  </ul>
-</section>
-
-<section id="try-it">
-  <h2>Try it</h2>
-  <div class="demo-badge">Interactive reproduction &mdash; not a screenshot</div>
-  <p class="lede">
-    Built from the app's own pieces, not redrawn from memory: the exact Ionicons font the app
-    ships, the same Material 3 color tokens, and the same swipe thresholds as
-    <code>SwipeableTrackRow.tsx</code>. Swipe a row right to pause, past the line to delete, or
-    left to jump to any episode or volume &mdash; or just tap Done.
-  </p>
-
-  <div class="demo-layout">
-    <div class="demo-frame" id="swPhone">
-      <div class="sw-header">
-        <h2>Currently</h2>
-        <button type="button" class="sw-add-btn" id="swAddBtn">+ Add</button>
+  <!-- Hero Section -->
+  <main class="wrap">
+    <section class="hero">
+      <div class="badge-chip">
+        <span>&#9733;</span> Actively building v2
+      </div>
+      <h1>Track what you're on, simply and privately.</h1>
+      <p class="lead">
+        A local-first mobile tracker for shows, movies, books, comics, and manga. Everything lives on
+        your device — no account, no server, no sign-up.
+      </p>
+      <div class="cta-group">
+        <a href="https://github.com/peds24/track-it" class="btn btn-primary" target="_blank" rel="noopener">View on GitHub &rarr;</a>
+        <a href="#demo" class="btn btn-secondary">Try Interactive UI</a>
+        <a href="#coming-soon" class="btn btn-secondary">See What's Coming</a>
       </div>
 
-      <div class="sw-body" id="swBody"></div>
-
-      <div class="sw-tabbar">
-        <div class="sw-tab active">
-          <div class="sw-tab-pill ionicon">&#62669;</div>
-          <span>Currently</span>
+      <!-- Stats Bar -->
+      <div class="stats-bar">
+        <div class="stat-card">
+          <div class="stat-num">0</div>
+          <div class="stat-desc">Servers & Cloud Dependencies</div>
         </div>
-        <div class="sw-tab">
-          <span class="ionicon" style="font-size: 16px;">&#61865;</span>
-          <span>Backlog</span>
+        <div class="stat-card">
+          <div class="stat-num">100%</div>
+          <div class="stat-desc">Offline SQLite Storage</div>
         </div>
-        <div class="sw-tab">
-          <span class="ionicon" style="font-size: 16px;">&#61983;</span>
-          <span>Done</span>
+        <div class="stat-card">
+          <div class="stat-num">5</div>
+          <div class="stat-desc">Media Types, One App</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">M3</div>
+          <div class="stat-desc">Material You Design Language</div>
         </div>
       </div>
+    </section>
 
-      <div class="sw-toast" id="swToast">
-        <span id="swToastMsg"></span>
-        <button type="button" id="swToastAction" hidden>Undo</button>
+    <!-- Interactive Live Demo -->
+    <section class="demo-section" id="demo">
+      <div class="section-head">
+        <h2>The Real Interface, Not a Mockup</h2>
+        <p>Swipe right to pause, past the line to delete, and swipe left to jump to any episode or volume — the same gestures as the app.</p>
       </div>
 
-      <div class="sw-dialog-backdrop" id="swDeleteBackdrop">
-        <div class="sw-dialog-card">
-          <div class="sw-dialog-title" id="swDeleteTitle">Delete?</div>
-          <div class="sw-dialog-body" id="swDeleteBody"></div>
-          <div class="sw-dialog-actions">
-            <button type="button" class="sw-dialog-btn" id="swDeleteCancel">Cancel</button>
-            <button type="button" class="sw-dialog-btn is-destructive" id="swDeleteConfirm">Delete</button>
+      <div class="phone-frame">
+        <div class="phone-screen" id="swPhone">
+          <div class="sw-header">
+            <h2>Currently</h2>
+            <button type="button" class="sw-add-btn" id="swAddBtn">+ Add</button>
+          </div>
+
+          <div class="sw-body" id="swBody"></div>
+
+          <div class="sw-tabbar">
+            <div class="sw-tab active">
+              <div class="sw-tab-pill ionicon">&#62669;</div>
+              <span>Currently</span>
+            </div>
+            <div class="sw-tab">
+              <span class="ionicon" style="font-size: 17px;">&#61865;</span>
+              <span>Backlog</span>
+            </div>
+            <div class="sw-tab">
+              <span class="ionicon" style="font-size: 17px;">&#61983;</span>
+              <span>Done</span>
+            </div>
+          </div>
+
+          <div class="sw-toast" id="swToast">
+            <span id="swToastMsg"></span>
+            <button type="button" id="swToastAction" hidden>Undo</button>
+          </div>
+
+          <div class="sw-dialog-backdrop" id="swDeleteBackdrop">
+            <div class="sw-dialog-card">
+              <div class="sw-dialog-title" id="swDeleteTitle">Delete?</div>
+              <div class="sw-dialog-body" id="swDeleteBody"></div>
+              <div class="sw-dialog-actions">
+                <button type="button" class="sw-dialog-btn" id="swDeleteCancel">Cancel</button>
+                <button type="button" class="sw-dialog-btn is-destructive" id="swDeleteConfirm">Delete</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="sw-dialog-backdrop" id="swEditBackdrop">
+            <div class="sw-dialog-card">
+              <div class="sw-dialog-title">Edit position</div>
+              <div class="sw-dialog-body" id="swEditSubtitle"></div>
+              <div class="sw-stepper">
+                <button type="button" class="sw-stepper-btn" id="swEditMinus" aria-label="Decrease">&minus;</button>
+                <div class="sw-stepper-value" id="swEditValue">1</div>
+                <button type="button" class="sw-stepper-btn" id="swEditPlus" aria-label="Increase">+</button>
+              </div>
+              <div class="sw-dialog-actions">
+                <button type="button" class="sw-dialog-btn" id="swEditCancel">Cancel</button>
+                <button type="button" class="sw-dialog-btn" id="swEditSave">Save</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+    </section>
 
-      <div class="sw-dialog-backdrop" id="swEditBackdrop">
-        <div class="sw-dialog-card">
-          <div class="sw-dialog-title">Edit position</div>
-          <div class="sw-dialog-body" id="swEditSubtitle"></div>
-          <div class="sw-stepper">
-            <button type="button" class="sw-stepper-btn" id="swEditMinus" aria-label="Decrease">&minus;</button>
-            <div class="sw-stepper-value" id="swEditValue">1</div>
-            <button type="button" class="sw-stepper-btn" id="swEditPlus" aria-label="Increase">+</button>
+    <!-- Features Section -->
+    <section class="demo-section" id="features">
+      <div class="section-head">
+        <h2>Engineered for Focus & Privacy</h2>
+        <p>Built purely around your media habits with zero friction and zero distractions.</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="feature-card">
+          <div class="feature-icon">&#128274;</div>
+          <h3>Everything Stays On Your Phone</h3>
+          <p>Your library lives in an isolated SQLite database on your device. Instant launches, zero cloud lag, and it works with no connection at all.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">&#9776;</div>
+          <h3>Category Grouping</h3>
+          <p>Active tracks are organized by Shows, Movies, Books, Comics, and Manga. Advancing a track bubbles it to the top of its category group.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">&#8644;</div>
+          <h3>2-Step Fluid Gestures</h3>
+          <p>Single-motion quick swipe right to pause, deep pull to delete, and quick swipe left to edit episode/volume progress directly.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">&#10024;</div>
+          <h3>Google Sans & M3</h3>
+          <p>15-tier typography scale, dynamic surface elevation containers, and authentic Material 3 rounded navigation components.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">&#128269;</div>
+          <h3>Metadata & Barcode Scanner</h3>
+          <p>Scan book ISBN barcodes with your camera or look up shows and movies with manual fallbacks for everything.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">&#128241;</div>
+          <h3>iOS & Android, One Codebase</h3>
+          <p>Built on Expo and React Native, so the same app — and the same interface — runs natively on both platforms.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Coming Soon -->
+    <section class="demo-section" id="coming-soon">
+      <div class="section-head">
+        <h2>Coming Soon</h2>
+        <p>Design previews for the next release — none of this is in the app yet.</p>
+      </div>
+
+      <div class="cs-grid">
+        <!-- Stats -->
+        <div class="cs-card">
+          <span class="cs-tag">Coming Soon</span>
+          <h3>Stats</h3>
+          <p>See your habits at a glance — what you've finished, how fast you start things, and how often you follow through.</p>
+          <div class="stats-preview">
+            <div class="sp-hero">
+              <div class="sp-num">37</div>
+              <div class="sp-cap">Completed in 2026</div>
+            </div>
+            <div class="sp-chips">
+              <span class="sp-chip"><b>3</b> this month</span>
+              <span class="sp-chip"><b>9</b> in backlog</span>
+              <span class="sp-chip"><b>4d</b> avg to start</span>
+            </div>
+            <div class="sp-body">
+              <div class="sp-bars">
+                <div class="sp-bar-row">
+                  <span class="sp-bar-label" style="color:var(--cat-show)">Show</span>
+                  <div class="sp-bar-track"><div class="sp-bar-fill" style="width:48%;background:var(--cat-show)"></div></div>
+                  <span class="sp-bar-val">21d</span>
+                </div>
+                <div class="sp-bar-row">
+                  <span class="sp-bar-label" style="color:var(--cat-movie)">Movie</span>
+                  <div class="sp-bar-track"><div class="sp-bar-fill" style="width:3%;background:var(--cat-movie)"></div></div>
+                  <span class="sp-bar-val">&lt;1d</span>
+                </div>
+                <div class="sp-bar-row">
+                  <span class="sp-bar-label" style="color:var(--cat-book)">Book</span>
+                  <div class="sp-bar-track"><div class="sp-bar-fill" style="width:41%;background:var(--cat-book)"></div></div>
+                  <span class="sp-bar-val">18d</span>
+                </div>
+                <div class="sp-bar-row">
+                  <span class="sp-bar-label" style="color:var(--cat-comic)">Comic</span>
+                  <div class="sp-bar-track"><div class="sp-bar-fill" style="width:20%;background:var(--cat-comic)"></div></div>
+                  <span class="sp-bar-val">9d</span>
+                </div>
+                <div class="sp-bar-row">
+                  <span class="sp-bar-label" style="color:var(--cat-manga)">Manga</span>
+                  <div class="sp-bar-track"><div class="sp-bar-fill" style="width:14%;background:var(--cat-manga)"></div></div>
+                  <span class="sp-bar-val">6d</span>
+                </div>
+              </div>
+              <div class="sp-gauge">
+                <svg width="88" height="88" viewBox="0 0 92 92">
+                  <circle cx="46" cy="46" r="38" fill="none" stroke="var(--md-surface-container-high)" stroke-width="8"></circle>
+                  <circle cx="46" cy="46" r="38" fill="none" stroke="var(--md-primary)" stroke-width="8"
+                    stroke-dasharray="178.9 238.8" stroke-dashoffset="59.7"
+                    stroke-linecap="round" transform="rotate(-90 46 46)"></circle>
+                  <text x="46" y="43" text-anchor="middle" class="sp-gauge-num">74%</text>
+                  <text x="46" y="56" text-anchor="middle" class="sp-gauge-cap">37 OF 50</text>
+                </svg>
+                <div class="sp-gauge-label">Finish rate</div>
+              </div>
+            </div>
           </div>
-          <div class="sw-dialog-actions">
-            <button type="button" class="sw-dialog-btn" id="swEditCancel">Cancel</button>
-            <button type="button" class="sw-dialog-btn" id="swEditSave">Save</button>
+        </div>
+
+        <!-- Track It screen -->
+        <div class="cs-card">
+          <span class="cs-tag">Coming Soon</span>
+          <h3>Cover Art & Quick Actions</h3>
+          <p>A more visual details screen for each track — cover art up front, with every action one tap away.</p>
+          <div class="track-preview">
+            <div class="track-phone">
+              <div class="cover-art">
+                <span class="cover-ghost">Cover Art</span>
+                <h4>House</h4>
+              </div>
+              <div class="track-body">
+                <div class="track-meta">
+                  <span class="kind">Show</span>
+                  <span>2004&ndash;2012 &middot; 8 seasons &middot; 176 episodes</span>
+                </div>
+                <p class="track-blurb">
+                  Dr. Gregory House, a drug-addicted, unconventional, misanthropic medical genius,
+                  leads a team of diagnosticians at a New Jersey teaching hospital.
+                </p>
+                <div class="track-actions">
+                  <div class="ta-btn ta-filled">Start Watching</div>
+                  <div class="ta-btn ta-outlined">Add to Backlog</div>
+                  <div class="ta-btn ta-text">Search Again</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Import/Export -->
+        <div class="cs-card cs-compact">
+          <div class="feature-icon">&#128229;</div>
+          <div class="cs-body">
+            <span class="cs-tag">Coming Soon</span>
+            <h3>Import & Export</h3>
+            <p>Full JSON backup and restore, surfaced right in Settings. Import validates the whole file before touching your library — nothing changes unless the entire restore succeeds.</p>
+          </div>
+        </div>
+
+        <!-- Native iOS build -->
+        <div class="cs-card cs-compact">
+          <div class="feature-icon">&#128242;</div>
+          <div class="cs-body">
+            <span class="cs-tag">Coming Soon</span>
+            <h3>Native iOS App</h3>
+            <p>A real installable build — no dev server or Expo Go required to try it. Today, Track It only runs from source; this closes that gap.</p>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <ul class="anno">
-      <li><b>Real icons</b> The category, tab and swipe-action icons are the app's actual Ionicons font, subset to just these glyphs and embedded &mdash; not redrawn.</li>
-      <li><b>Real gesture thresholds</b> Swipe distances and the pause/delete crossover point match <code>SwipeableTrackRow.tsx</code>'s <code>LATCH</code> and <code>DELETE_THRESHOLD</code> constants, scaled to this frame.</li>
-      <li><b>Books have no tracker</b> Dune Messiah shows only Reading/Done &mdash; no unit count, no progress bar &mdash; matching the "standalone books have no bar" rule above.</li>
-      <li><b>What's not real</b> No React, no SQLite, no persistence &mdash; state resets on reload. Sample data only.</li>
-    </ul>
-  </div>
-</section>
+    <!-- Quickstart & Architecture -->
+    <section class="quickstart-section" id="quickstart">
+      <div class="section-head">
+        <h2>Developer Quickstart</h2>
+        <p>Run Track It locally with Expo SDK 57 and Node.js.</p>
+      </div>
 
-<section>
-  <h2>Why it is built this way</h2>
-  <ul class="principles">
-    <li>
-      <h3>Text is the artwork</h3>
-      <p>No covers, no thumbnails, no placeholder tiles. A title set well identifies a book faster than a small cover, and never shows a grey box where the artwork is missing.</p>
-    </li>
-    <li>
-      <h3>Your library stays on your phone</h3>
-      <p>Everything lives in an on-device SQLite database. There is no account, no backend and no network call required to use the app — catalogue search is a convenience, not a dependency.</p>
-    </li>
-    <li>
-      <h3>Three tabs, and that is all</h3>
-      <p>Currently, Backlog and Done. There is no settings screen, no onboarding and nothing to configure — the app has one job and no preferences to hold an opinion about.</p>
-    </li>
-    <li>
-      <h3>One tap moves things along</h3>
-      <p>The app opens to Currently, grouped by category and ordered by what you advanced most recently. Marking the next episode, issue or volume finished is a single tap.</p>
-    </li>
-  </ul>
-</section>
-
-<section id="how">
-  <h2>How it works</h2>
-  <div class="steps">
-    <div class="step">
-      <div class="step-num">1</div>
-      <h3>Pick a category</h3>
-      <p>Show, movie, book, comic or manga. A comic asks one more question first — single issue or collection — since they are matched by completely different catalogues.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">2</div>
-      <h3>Match it, or type it</h3>
-      <p>Type a title and the right catalogue answers — Google Books, AniList, Metron or TMDB, per category — plus barcode scanning for books, manga and single-issue comics. No match, no problem: type a title and a count by hand instead.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">3</div>
-      <h3>Tap Done as you go</h3>
-      <p>Each tap finishes the next entry and advances the row. Once something has its first entry finished it moves to Currently by itself, and drops to Done once every entry is finished.</p>
-    </div>
-  </div>
-
-  <p style="margin-top: var(--sp-5)">
-    <strong>There are no shelves in the database.</strong> Currently, Backlog and Done are queries
-    over the same tables — a track is in Currently if any part of it is started but not all of it
-    is finished. Nothing has to be moved between lists, and nothing can appear in two of them at once.
-  </p>
-
-  <div class="table-scroll">
-    <table>
-      <thead>
-        <tr><th>Media</th><th>Container</th><th>What you tick off</th><th>States</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>Show</td><td>the show</td><td class="code">episode</td><td class="note">unwatched → watched</td></tr>
-        <tr><td>Comic, single issue</td><td>the series</td><td class="code">issue</td><td class="note">not started → reading → read</td></tr>
-        <tr><td>Manga</td><td>the series</td><td class="code">volume</td><td class="note">not started → reading → read</td></tr>
-        <tr><td>Book, or a comic collection</td><td class="note">—</td><td class="code">the book</td><td class="note">not started → reading → read</td></tr>
-        <tr><td>Movie</td><td class="note">—</td><td class="code">the movie</td><td class="note">unwatched → watched</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p style="margin-top: var(--sp-3); font-size: 14px; color: var(--md-on-surface-variant)">
-    You can sit half-way inside a book in a way worth recording; you cannot really do that with an
-    episode. So watched things are binary and read things have a middle state.
-  </p>
-</section>
-
-<section id="build">
-  <h2>Built with</h2>
-  <div class="table-scroll">
-    <table>
-      <thead><tr><th>Piece</th><th>Why</th></tr></thead>
-      <tbody>
-        <tr><td class="code">Expo / React&nbsp;Native</td><td class="note">One TypeScript codebase for iOS and Android, and the fastest path to a build on a real phone.</td></tr>
-        <tr><td class="code">TypeScript</td><td class="note">Strict mode throughout. The rules live in types before they live in tests.</td></tr>
-        <tr><td class="code">expo-sqlite</td><td class="note">The on-device database. Satisfies local-only storage directly, with plain migrations.</td></tr>
-        <tr><td class="code">expo-router</td><td class="note">File-based routing for the three tabs and the add flow.</td></tr>
-        <tr><td class="code">Google Books · AniList · Metron · TMDB</td><td class="note">Real catalogue lookups behind one <code>MetadataProvider</code> interface, one provider per category. Manual entry is still the fallback when a match fails or none exists.</td></tr>
-        <tr><td class="code">expo-camera</td><td class="note">Barcode scanning — ISBN for books and manga, UPC-A plus a 5-digit supplemental code for single-issue comics.</td></tr>
-        <tr><td class="code">Jest</td><td class="note">Unit and repository tests — 342 passing across 29 suites as of this build.</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p style="margin-top: var(--sp-4)">
-    The layering is deliberate: <code>src/domain/</code> is pure TypeScript with no I/O — status
-    transitions, shelf classification, progress arithmetic — and imports nothing from the database
-    or the UI. If a rule needs a query to decide something, it is in the wrong module.
-  </p>
-</section>
-
-<section id="run">
-  <h2>Run it</h2>
-  <p class="lede">
-    Track It is not published to any app store. It runs from source with Expo — clone it, install,
-    and open it on your phone with Expo Go or a development build.
-  </p>
-  <div class="code-block"><span class="c"># clone</span>
+      <div class="code-block">
+# Clone the repository
 git clone https://github.com/peds24/track-it.git
 cd track-it
 
-<span class="c"># install</span>
+# Install dependencies
 npm install
 
-<span class="c"># start the dev server, then scan the QR code</span>
-npm start
-
-<span class="c"># or go straight to a simulator</span>
-npm run ios
-npm run android
-
-<span class="c"># tests and types</span>
+# Run automated tests
 npm test
-npm run typecheck</div>
-</section>
 
-<section>
-  <h2>Not here yet</h2>
-  <ul class="nots">
-    <li>
-      <span class="tag-pill tag-next">Next</span>
-      <p><b>Export and import.</b> The JSON backup format is written and tested — validated payloads, all-or-nothing restore — but it is not surfaced yet and there is no settings screen to reach it from. Until it lands, the app has <b>no backup path at all</b>: the library lives in one place, on one phone, and a lost or wiped device loses it.</p>
-    </li>
-    <li>
-      <span class="tag-pill tag-next">Next</span>
-      <p><b>Cover art, on a details screen.</b> Reversed from earlier — v1 discarded artwork on purpose, but a details screen with real cover art and one-tap actions (start, backlog, search again) is planned for v2. The rest of the app — the row-based lists — stays text-only.</p>
-    </li>
-    <li>
-      <span class="tag-pill tag-next">Next</span>
-      <p><b>Stats.</b> What you've finished, how fast you start things, and how often you follow through. Every figure would come from columns that already exist — <code>created_at</code>, <code>started_at</code>, <code>finished_at</code> — so no schema change is anticipated once this gets built.</p>
-    </li>
-    <li>
-      <span class="tag-pill tag-next">Next</span>
-      <p><b>A native iOS build.</b> Today the app only runs from source via Expo Go or a dev build — a real installable build isn't set up yet.</p>
-    </li>
-    <li>
-      <span class="tag-pill tag-no">No</span>
-      <p><b>Accounts or sync.</b> The data is small, single-user and of no value to anyone else, and conflict resolution is the expensive half of sync. Export is the intended answer to losing a device — see above for where that stands.</p>
-    </li>
-  </ul>
+# Type check
+npm run typecheck
 
-  <div class="screens" style="margin-top: var(--sp-4)">
-    <div>
-      <div class="screen-label"><span>Cover Art & Quick Actions</span><span>Mockup, not a screenshot</span></div>
-      <div class="phone-frame" style="display:flex;flex-direction:column;">
-        <div style="height:150px;position:relative;display:flex;align-items:flex-end;padding:12px;background:linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.55) 100%), linear-gradient(135deg, #0B57D0 0%, #7C4DFF 100%);color:#fff;">
-          <span style="position:absolute;top:10px;left:12px;font-size:9px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;background:rgba(255,255,255,0.2);padding:3px 7px;border-radius:999px;">Cover Art</span>
-          <h4 style="margin:0;font-size:18px;font-weight:800;color:#fff;">House</h4>
-        </div>
-        <div style="padding:12px 14px 16px;background:var(--md-surface-container-lowest);">
-          <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:11px;color:var(--md-on-surface-variant);margin-bottom:8px;">
-            <span style="background:var(--md-secondary-container);color:var(--md-on-secondary-container);padding:2px 7px;border-radius:999px;font-size:9px;font-weight:800;text-transform:uppercase;">Show</span>
-            <span>2004&ndash;2012 &middot; 8 seasons</span>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:8px;">
-            <div style="padding:9px;border-radius:999px;font-size:12px;font-weight:700;text-align:center;background:var(--md-primary);color:var(--md-on-primary);">Start Watching</div>
-            <div style="padding:9px;border-radius:999px;font-size:12px;font-weight:700;text-align:center;background:transparent;border:1.5px solid var(--md-outline);color:var(--md-on-surface);">Add to Backlog</div>
-          </div>
-        </div>
+# Launch Expo development server
+npm start
       </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="wrap">
+      <p><strong>Track It</strong> &mdash; Built with React Native, Expo, and Material Design 3.</p>
+      <p style="margin-top: 8px; font-size: 13px;">
+        <a href="https://github.com/peds24/track-it" target="_blank" rel="noopener">GitHub Repository</a> &bull;
+        <a href="design/material-3-spec.html">Design Details</a>
+      </p>
     </div>
-  </div>
+  </footer>
 
-  <div class="history-strip">
-    <p>Track It's design has gone through two full passes — an e-ink brutalist read, then this Material 3 rebuild.</p>
-    <div class="history-links">
-      <a href="archive/v1-brutalist/index.html">v1 landing page (archived)</a>
-      <a href="archive/v1-brutalist/design-language.html">v1 design language (archived)</a>
-      <a href="design/material-3-spec.html">Material 3 spec</a>
-    </div>
-  </div>
-</section>
-
-</main>
-
-<footer class="wrap">
-  <div class="footer-links">
-    <a href="https://github.com/peds24/track-it">Source on GitHub</a>
-    <a href="design/material-3-spec.html">Material 3 spec</a>
-    <a href="https://github.com/peds24/track-it/blob/main/docs/superpowers/specs/2026-08-12-track-it-design.md">Design decisions (D1–D17)</a>
-  </div>
-  <p>
-    Track It · a personal, local-only media tracker. Every screenshot on this page is real, taken
-    from the current build. The "Try it" demo above and the "not here yet" mockups are clearly
-    labeled reproductions and previews — not screenshots.
-  </p>
-</footer>
-
-<script>
-  function toggleTheme() {
-    var current = document.documentElement.getAttribute('data-theme');
-    var next = current === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-  }
-
-  // Swipeable demo — ported from src/ui/{TrackRow,SwipeableTrackRow,currentlySections}.tsx
-  // on the `web` branch. Same M3 tokens, thresholds and gesture behaviour; reimplemented
-  // in vanilla JS so nothing from the actual app ships to this static page.
-  (function () {
-    // Ionicons glyphs, matching currentlySections.ts's CATEGORY_ORDER exactly:
-    // 'tv-outline' (show), 'book-outline' (book), 'library-outline' (manga).
-    var CATS = [
-      { key: 'show', title: 'Shows', icon: String.fromCodePoint(0xf605) },
-      { key: 'book', title: 'Books', icon: String.fromCodePoint(0xf1a6) },
-      { key: 'manga', title: 'Manga', icon: String.fromCodePoint(0xf3b6) },
-    ];
-
-    var ITEMS = [
-      {
-        id: 'severance', section: 'show', title: 'Severance', kind: 'SHOW',
-        canEdit: true, segmented: true, seasons: [{ n: 1, total: 9 }, { n: 2, total: 10 }],
-        done: 12,
-      },
-      {
-        id: 'bear', section: 'show', title: 'The Bear', kind: 'SHOW',
-        canEdit: true, total: 8, done: 6,
-      },
-      // A book is binary — Reading or Done — so it never reports a unit position.
-      {
-        id: 'dune', section: 'book', title: 'Dune Messiah', kind: 'BOOK',
-        canEdit: false, binary: true,
-      },
-      {
-        id: 'berserk', section: 'manga', title: 'Berserk', kind: 'MANGA',
-        canEdit: true, ongoing: true, done: 5,
-      },
-    ];
-
-    var state = new Map();
-    ITEMS.forEach(function (it) { state.set(it.id, Object.assign({}, it)); });
-
-    function seasonInfo(item) {
-      var remaining = item.done;
-      for (var i = 0; i < item.seasons.length; i++) {
-        var s = item.seasons[i];
-        if (remaining <= s.total) return { season: s.n, ep: remaining, seasonTotal: s.total };
-        remaining -= s.total;
-      }
-      var last = item.seasons[item.seasons.length - 1];
-      return { season: last.n, ep: last.total, seasonTotal: last.total };
+  <script>
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
     }
 
-    function totalUnits(item) {
-      return item.segmented ? item.seasons.reduce(function (a, s) { return a + s.total; }, 0) : item.total;
-    }
+    // Swipeable demo — ported from src/ui/{TrackRow,SwipeableTrackRow,currentlySections}.tsx
+    // on the `web` branch. Same M3 tokens, thresholds and gesture behaviour; reimplemented
+    // in vanilla JS so nothing from the actual app ships to this static page.
+    (function () {
+      // Ionicons glyphs, matching currentlySections.ts's CATEGORY_ORDER exactly:
+      // 'tv-outline' (show), 'book-outline' (book), 'library-outline' (manga).
+      const CATS = [
+        { key: 'show', title: 'Shows', icon: '' },
+        { key: 'book', title: 'Books', icon: '' },
+        { key: 'manga', title: 'Manga', icon: '' },
+      ];
 
-    function metaText(item) {
-      if (item.segmented) {
-        var info = seasonInfo(item);
-        return 'S' + info.season + ' Ep ' + info.ep + ' of ' + info.seasonTotal;
-      }
-      if (item.ongoing) return 'Reading Volume ' + item.done;
-      if (item.binary) return 'Reading';
-      return 'Watching Episode ' + Math.min(item.done + 1, item.total);
-    }
+      const ITEMS = [
+        {
+          id: 'severance', section: 'show', title: 'Severance', kind: 'SHOW',
+          canEdit: true, segmented: true, seasons: [{ n: 1, total: 9 }, { n: 2, total: 10 }],
+          done: 12,
+        },
+        {
+          id: 'bear', section: 'show', title: 'The Bear', kind: 'SHOW',
+          canEdit: true, total: 8, done: 6,
+        },
+        // A book is just Reading / Done — no unit count, no progress bar, per
+        // the design principle that a standalone item has nothing to be
+        // "part-way through" numerically.
+        {
+          id: 'dune', section: 'book', title: 'Dune Messiah', kind: 'BOOK',
+          canEdit: false, binary: true,
+        },
+        {
+          id: 'berserk', section: 'manga', title: 'Berserk', kind: 'MANGA',
+          canEdit: true, ongoing: true, done: 5,
+        },
+      ];
 
-    function countHTML(item) {
-      if (item.binary) return '';
-      if (item.ongoing) return '<span class="sw-dot">&middot;</span><span class="sw-count">Ongoing</span>';
-      return '<span class="sw-dot">&middot;</span><span class="sw-count">' + item.done + ' of ' + totalUnits(item) + '</span>';
-    }
+      const state = new Map();
+      ITEMS.forEach((it) => state.set(it.id, Object.assign({}, it)));
 
-    function progressHTML(item) {
-      if (item.segmented) {
-        var remaining = item.done;
-        var segs = item.seasons.map(function (s) {
-          var doneInSeg = Math.max(0, Math.min(s.total, remaining));
+      function seasonInfo(item) {
+        let remaining = item.done;
+        for (const s of item.seasons) {
+          if (remaining <= s.total) return { season: s.n, ep: remaining, seasonTotal: s.total };
           remaining -= s.total;
-          var pct = s.total > 0 ? (doneInSeg / s.total) * 100 : 0;
-          return '<div class="sw-segment"><div class="sw-segment-fill" style="width:' + pct + '%"></div></div>';
+        }
+        const last = item.seasons[item.seasons.length - 1];
+        return { season: last.n, ep: last.total, seasonTotal: last.total };
+      }
+
+      function totalUnits(item) {
+        return item.segmented ? item.seasons.reduce((a, s) => a + s.total, 0) : item.total;
+      }
+
+      function metaText(item) {
+        if (item.segmented) {
+          const info = seasonInfo(item);
+          return `S${info.season} Ep ${info.ep} of ${info.seasonTotal}`;
+        }
+        if (item.ongoing) return `Reading Volume ${item.done}`;
+        // A book is binary — Reading or Done — so it never reports a unit position.
+        if (item.binary) return 'Reading';
+        return `Watching Episode ${Math.min(item.done + 1, item.total)}`;
+      }
+
+      function countHTML(item) {
+        if (item.binary) return '';
+        if (item.ongoing) return `<span class="sw-dot">&middot;</span><span class="sw-count">Ongoing</span>`;
+        return `<span class="sw-dot">&middot;</span><span class="sw-count">${item.done} of ${totalUnits(item)}</span>`;
+      }
+
+      function progressHTML(item) {
+        if (item.segmented) {
+          let remaining = item.done;
+          const segs = item.seasons.map((s) => {
+            const doneInSeg = Math.max(0, Math.min(s.total, remaining));
+            remaining -= s.total;
+            const pct = s.total > 0 ? (doneInSeg / s.total) * 100 : 0;
+            return `<div class="sw-segment"><div class="sw-segment-fill" style="width:${pct}%"></div></div>`;
+          });
+          return `<div class="sw-progress-track sw-progress-segmented">${segs.join('')}</div>`;
+        }
+        // Ongoing (no fixed total) and binary (no unit count at all) items get no bar.
+        if (item.ongoing || item.binary) return '';
+        const total = totalUnits(item);
+        const pct = total > 0 ? Math.min(100, (item.done / total) * 100) : 0;
+        return `<div class="sw-progress-track"><div class="sw-progress-fill" style="width:${pct}%"></div></div>`;
+      }
+
+      function rowInnerHTML(item) {
+        return `
+          <div class="sw-row-text">
+            <div class="sw-row-title">${item.title}</div>
+            <div class="sw-row-meta">
+              <span class="sw-kind">${item.kind}</span>
+              <span class="sw-dot">&middot;</span>
+              <span>${metaText(item)}</span>
+              ${countHTML(item)}
+            </div>
+            ${progressHTML(item)}
+          </div>
+          <button type="button" class="sw-advance" data-advance="${item.id}">Done</button>
+        `;
+      }
+
+      function rowHTML(item) {
+        return `
+          <div class="sw-row" data-row="${item.id}">
+            <div class="sw-actions">
+              <div class="sw-action sw-action-left" data-layer="pause" style="background:var(--md-secondary-container)">
+                <div class="sw-badge badge-pause ionicon">&#62611;</div>
+                <span class="sw-action-text" style="color:var(--md-on-secondary-container)">Pause</span>
+              </div>
+              <div class="sw-action sw-action-left" data-layer="delete" style="background:var(--md-error-container); opacity:0;">
+                <div class="sw-badge badge-delete ionicon">&#62962;</div>
+                <span class="sw-action-text" style="color:var(--md-on-error-container)">Delete</span>
+              </div>
+              ${item.canEdit ? `
+              <div class="sw-action sw-action-right" style="opacity:0;">
+                <span class="sw-action-text" style="color:var(--md-on-primary-container)">Edit</span>
+                <div class="sw-badge badge-edit ionicon">&#62098;</div>
+              </div>` : ''}
+            </div>
+            <div class="sw-surface" data-surface="${item.id}">
+              <div class="sw-row-inner" data-inner="${item.id}">${rowInnerHTML(item)}</div>
+            </div>
+          </div>
+        `;
+      }
+
+      const body = document.getElementById('swBody');
+      const collapsed = new Set();
+
+      function sectionCount(key) {
+        return ITEMS.filter((it) => it.section === key && !state.get(it.id).removed).length;
+      }
+
+      function buildBody() {
+        body.innerHTML = CATS.map((cat) => {
+          const items = ITEMS.filter((it) => it.section === cat.key);
+          const count = sectionCount(cat.key);
+          return `
+            <div class="sw-section${count === 0 ? ' is-empty' : ''}" data-section="${cat.key}">
+              <button type="button" class="sw-section-header" data-toggle="${cat.key}">
+                <span class="sw-section-icon ionicon">${cat.icon}</span>
+                <span class="sw-section-title">${cat.title}</span>
+                <span class="sw-section-count" data-count="${cat.key}">${count}</span>
+                <span class="sw-spacer"></span>
+                <span class="sw-chevron ionicon">&#62002;</span>
+              </button>
+              <div class="sw-rows" data-rows="${cat.key}">
+                ${items.map((it) => rowHTML(state.get(it.id))).join('')}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        ITEMS.forEach((it) => attachSwipe(it.id));
+        body.querySelectorAll('[data-toggle]').forEach((btn) => {
+          btn.addEventListener('click', () => toggleSection(btn.getAttribute('data-toggle')));
         });
-        return '<div class="sw-progress-track sw-progress-segmented">' + segs.join('') + '</div>';
-      }
-      if (item.ongoing || item.binary) return '';
-      var total = totalUnits(item);
-      var pct = total > 0 ? Math.min(100, (item.done / total) * 100) : 0;
-      return '<div class="sw-progress-track"><div class="sw-progress-fill" style="width:' + pct + '%"></div></div>';
-    }
-
-    function rowInnerHTML(item) {
-      return '' +
-        '<div class="sw-row-text">' +
-          '<div class="sw-row-title">' + item.title + '</div>' +
-          '<div class="sw-row-meta">' +
-            '<span class="sw-kind">' + item.kind + '</span>' +
-            '<span class="sw-dot">&middot;</span>' +
-            '<span>' + metaText(item) + '</span>' +
-            countHTML(item) +
-          '</div>' +
-          progressHTML(item) +
-        '</div>' +
-        '<button type="button" class="sw-advance" data-advance="' + item.id + '">Done</button>';
-    }
-
-    function rowHTML(item) {
-      return '' +
-        '<div class="sw-row" data-row="' + item.id + '">' +
-          '<div class="sw-actions">' +
-            '<div class="sw-action sw-action-left" data-layer="pause" style="background:var(--md-secondary-container)">' +
-              '<div class="sw-badge badge-pause ionicon">&#62611;</div>' +
-              '<span class="sw-action-text" style="color:var(--md-on-secondary-container)">Pause</span>' +
-            '</div>' +
-            '<div class="sw-action sw-action-left" data-layer="delete" style="background:var(--md-error-container); opacity:0;">' +
-              '<div class="sw-badge badge-delete ionicon">&#62962;</div>' +
-              '<span class="sw-action-text" style="color:var(--md-on-error-container)">Delete</span>' +
-            '</div>' +
-            (item.canEdit ? (
-              '<div class="sw-action sw-action-right" style="opacity:0;">' +
-                '<span class="sw-action-text" style="color:var(--md-on-primary-container)">Edit</span>' +
-                '<div class="sw-badge badge-edit ionicon">&#62098;</div>' +
-              '</div>'
-            ) : '') +
-          '</div>' +
-          '<div class="sw-surface" data-surface="' + item.id + '">' +
-            '<div class="sw-row-inner" data-inner="' + item.id + '">' + rowInnerHTML(item) + '</div>' +
-          '</div>' +
-        '</div>';
-    }
-
-    var body = document.getElementById('swBody');
-    var collapsed = new Set();
-
-    function sectionCount(key) {
-      return ITEMS.filter(function (it) { return it.section === key && !state.get(it.id).removed; }).length;
-    }
-
-    function buildBody() {
-      body.innerHTML = CATS.map(function (cat) {
-        var items = ITEMS.filter(function (it) { return it.section === cat.key; });
-        var count = sectionCount(cat.key);
-        return '' +
-          '<div class="sw-section' + (count === 0 ? ' is-empty' : '') + '" data-section="' + cat.key + '">' +
-            '<button type="button" class="sw-section-header" data-toggle="' + cat.key + '">' +
-              '<span class="sw-section-icon ionicon">' + cat.icon + '</span>' +
-              '<span class="sw-section-title">' + cat.title + '</span>' +
-              '<span class="sw-section-count" data-count="' + cat.key + '">' + count + '</span>' +
-              '<span class="sw-spacer"></span>' +
-              '<span class="sw-chevron ionicon">&#62002;</span>' +
-            '</button>' +
-            '<div class="sw-rows" data-rows="' + cat.key + '">' +
-              items.map(function (it) { return rowHTML(state.get(it.id)); }).join('') +
-            '</div>' +
-          '</div>';
-      }).join('');
-
-      ITEMS.forEach(function (it) { attachSwipe(it.id); });
-      body.querySelectorAll('[data-toggle]').forEach(function (btn) {
-        btn.addEventListener('click', function () { toggleSection(btn.getAttribute('data-toggle')); });
-      });
-      body.querySelectorAll('[data-advance]').forEach(function (btn) {
-        btn.addEventListener('click', function () { advance(btn.getAttribute('data-advance')); });
-      });
-    }
-
-    // Matches the app exactly: expanded uses 'chevron-down', collapsed uses
-    // 'chevron-forward' — two distinct icons, not one rotated glyph.
-    var CHEVRON_DOWN = String.fromCodePoint(0xf232);
-    var CHEVRON_FORWARD = String.fromCodePoint(0xf23b);
-    function toggleSection(key) {
-      var rows = body.querySelector('[data-rows="' + key + '"]');
-      var chevron = body.querySelector('[data-toggle="' + key + '"] .sw-chevron');
-      if (collapsed.has(key)) {
-        collapsed.delete(key);
-        rows.classList.remove('is-collapsed');
-        chevron.textContent = CHEVRON_DOWN;
-      } else {
-        collapsed.add(key);
-        rows.classList.add('is-collapsed');
-        chevron.textContent = CHEVRON_FORWARD;
-      }
-    }
-
-    function updateSectionCount(key) {
-      var countEl = body.querySelector('[data-count="' + key + '"]');
-      var sectionEl = body.querySelector('[data-section="' + key + '"]');
-      var n = sectionCount(key);
-      if (countEl) countEl.textContent = String(n);
-      if (sectionEl) sectionEl.classList.toggle('is-empty', n === 0);
-    }
-
-    function updateRow(id) {
-      var item = state.get(id);
-      var inner = body.querySelector('[data-inner="' + id + '"]');
-      if (inner) inner.innerHTML = rowInnerHTML(item);
-      var btn = body.querySelector('[data-advance="' + id + '"]');
-      if (btn) btn.addEventListener('click', function () { advance(id); });
-    }
-
-    function removeRow(id) {
-      var item = state.get(id);
-      item.removed = true;
-      var rowEl = body.querySelector('[data-row="' + id + '"]');
-      if (rowEl) rowEl.classList.add('is-removing');
-      updateSectionCount(item.section);
-    }
-
-    function restoreRow(id) {
-      var item = state.get(id);
-      item.removed = false;
-      var rowEl = body.querySelector('[data-row="' + id + '"]');
-      if (rowEl) rowEl.classList.remove('is-removing');
-      updateRow(id);
-      updateSectionCount(item.section);
-    }
-
-    function advance(id) {
-      var item = state.get(id);
-      var prevDone = item.done;
-      if (item.ongoing) {
-        item.done += 1;
-        updateRow(id);
-        showToast(item.title + ' &middot; Volume ' + item.done);
-        return;
-      }
-      if (item.binary) {
-        removeRow(id);
-        showToast(item.title + ' finished &middot; moved to Done', function () { restoreRow(id); });
-        return;
-      }
-      var total = totalUnits(item);
-      item.done = Math.min(total, item.done + 1);
-      if (item.done >= total) {
-        removeRow(id);
-        showToast(item.title + ' finished &middot; moved to Done', function () {
-          item.done = prevDone;
-          restoreRow(id);
+        body.querySelectorAll('[data-advance]').forEach((btn) => {
+          btn.addEventListener('click', () => advance(btn.getAttribute('data-advance')));
         });
-      } else {
-        updateRow(id);
-        showToast(item.title + ' updated');
       }
-    }
 
-    function pauseItem(id) {
-      var item = state.get(id);
-      removeRow(id);
-      showToast(item.title + ' paused', function () { restoreRow(id); });
-    }
-
-    // Toast (snackbar)
-    var toastEl = document.getElementById('swToast');
-    var toastMsg = document.getElementById('swToastMsg');
-    var toastAction = document.getElementById('swToastAction');
-    var toastTimer = null;
-    function showToast(html, onUndo) {
-      clearTimeout(toastTimer);
-      toastMsg.innerHTML = html;
-      if (onUndo) {
-        toastAction.hidden = false;
-        toastAction.onclick = function () { hideToast(); onUndo(); };
-      } else {
-        toastAction.hidden = true;
-        toastAction.onclick = null;
-      }
-      toastEl.classList.add('is-visible');
-      toastTimer = setTimeout(hideToast, 3200);
-    }
-    function hideToast() { toastEl.classList.remove('is-visible'); }
-
-    // Delete confirmation dialog
-    var deleteBackdrop = document.getElementById('swDeleteBackdrop');
-    var deleteTitle = document.getElementById('swDeleteTitle');
-    var deleteBody = document.getElementById('swDeleteBody');
-    var pendingDeleteId = null;
-    function openDelete(id) {
-      var item = state.get(id);
-      pendingDeleteId = id;
-      deleteTitle.textContent = 'Delete ' + item.title + '?';
-      deleteBody.textContent = (item.segmented || item.ongoing)
-        ? 'This removes the track and every episode or volume under it. It cannot be undone.'
-        : 'This removes the track. It cannot be undone.';
-      deleteBackdrop.classList.add('is-visible');
-    }
-    function closeDelete() {
-      deleteBackdrop.classList.remove('is-visible');
-      pendingDeleteId = null;
-    }
-    document.getElementById('swDeleteCancel').addEventListener('click', closeDelete);
-    document.getElementById('swDeleteConfirm').addEventListener('click', function () {
-      var id = pendingDeleteId;
-      closeDelete();
-      if (!id) return;
-      var item = state.get(id);
-      removeRow(id);
-      showToast(item.title + ' deleted', function () { restoreRow(id); });
-    });
-
-    // Edit-position dialog (simplified ProgressEditor)
-    var editBackdrop = document.getElementById('swEditBackdrop');
-    var editSubtitle = document.getElementById('swEditSubtitle');
-    var editValue = document.getElementById('swEditValue');
-    var pendingEditId = null;
-    var editDraft = 1;
-    function openEdit(id) {
-      var item = state.get(id);
-      pendingEditId = id;
-      editDraft = item.done;
-      editSubtitle.textContent = item.title;
-      editValue.textContent = String(editDraft);
-      editBackdrop.classList.add('is-visible');
-    }
-    function closeEdit() {
-      editBackdrop.classList.remove('is-visible');
-      pendingEditId = null;
-    }
-    document.getElementById('swEditMinus').addEventListener('click', function () {
-      editDraft = Math.max(1, editDraft - 1);
-      editValue.textContent = String(editDraft);
-    });
-    document.getElementById('swEditPlus').addEventListener('click', function () {
-      var item = state.get(pendingEditId);
-      var max = item.ongoing ? editDraft + 1 : totalUnits(item);
-      editDraft = Math.min(max, editDraft + 1);
-      editValue.textContent = String(editDraft);
-    });
-    document.getElementById('swEditCancel').addEventListener('click', closeEdit);
-    document.getElementById('swEditSave').addEventListener('click', function () {
-      var id = pendingEditId;
-      if (id) {
-        var item = state.get(id);
-        item.done = editDraft;
-        updateRow(id);
-      }
-      closeEdit();
-    });
-
-    // Swipe gesture — thresholds ported from SwipeableTrackRow.tsx (LATCH=50,
-    // DELETE_THRESHOLD=280, MAX_SWIPE_RIGHT=360 on a ~390pt row), scaled down
-    // for this ~300px-wide demo frame.
-    var LATCH = 34;
-    var DELETE_THRESHOLD = 168;
-    var MAX_RIGHT = 220;
-
-    function attachSwipe(id) {
-      var item = state.get(id);
-      var surface = body.querySelector('[data-surface="' + id + '"]');
-      if (!surface) return;
-      var row = surface.closest('.sw-row');
-      var pauseLayer = row.querySelector('[data-layer="pause"]');
-      var deleteLayer = row.querySelector('[data-layer="delete"]');
-      var editLayer = row.querySelector('.sw-action-right');
-      var maxLeft = item.canEdit ? 90 : 0;
-
-      var startX = 0, startY = 0, current = 0, axis = null, dragging = false;
-
-      function setTransform(x) {
-        current = x;
-        surface.style.transform = 'translateX(' + x + 'px)';
-        if (x >= 0) {
-          var t = Math.max(0, Math.min(1, (x - 130) / (DELETE_THRESHOLD - 130)));
-          pauseLayer.style.opacity = x <= 0 ? '0' : String(1 - t);
-          deleteLayer.style.opacity = String(t);
-          if (editLayer) editLayer.style.opacity = '0';
+      // Matches the app exactly: expanded uses 'chevron-down' (),
+      // collapsed uses 'chevron-forward' () — two distinct icons,
+      // not one rotated glyph.
+      function toggleSection(key) {
+        const rows = body.querySelector(`[data-rows="${key}"]`);
+        const chevron = body.querySelector(`[data-toggle="${key}"] .sw-chevron`);
+        if (collapsed.has(key)) {
+          collapsed.delete(key);
+          rows.classList.remove('is-collapsed');
+          chevron.textContent = '';
         } else {
-          pauseLayer.style.opacity = '0';
-          deleteLayer.style.opacity = '0';
-          if (editLayer) editLayer.style.opacity = String(Math.min(1, -x / LATCH));
+          collapsed.add(key);
+          rows.classList.add('is-collapsed');
+          chevron.textContent = '';
         }
       }
 
-      function settle(to) {
-        surface.style.transition = 'transform 0.2s ease';
-        setTransform(to);
-        setTimeout(function () { surface.style.transition = ''; }, 200);
+      function updateSectionCount(key) {
+        const countEl = body.querySelector(`[data-count="${key}"]`);
+        const sectionEl = body.querySelector(`[data-section="${key}"]`);
+        const n = sectionCount(key);
+        if (countEl) countEl.textContent = String(n);
+        if (sectionEl) sectionEl.classList.toggle('is-empty', n === 0);
       }
 
-      surface.addEventListener('pointerdown', function (e) {
-        startX = e.clientX;
-        startY = e.clientY;
-        axis = null;
-        dragging = true;
-        surface.style.transition = '';
+      function updateRow(id) {
+        const item = state.get(id);
+        const inner = body.querySelector(`[data-inner="${id}"]`);
+        if (inner) inner.innerHTML = rowInnerHTML(item);
+        const btn = body.querySelector(`[data-advance="${id}"]`);
+        if (btn) btn.addEventListener('click', () => advance(id));
+      }
+
+      function removeRow(id) {
+        const item = state.get(id);
+        item.removed = true;
+        const rowEl = body.querySelector(`[data-row="${id}"]`);
+        if (rowEl) rowEl.classList.add('is-removing');
+        updateSectionCount(item.section);
+      }
+
+      function restoreRow(id) {
+        const item = state.get(id);
+        item.removed = false;
+        const rowEl = body.querySelector(`[data-row="${id}"]`);
+        if (rowEl) rowEl.classList.remove('is-removing');
+        updateRow(id);
+        updateSectionCount(item.section);
+      }
+
+      function advance(id) {
+        const item = state.get(id);
+        const prevDone = item.done;
+        if (item.ongoing) {
+          item.done += 1;
+          updateRow(id);
+          showToast(`${item.title} &middot; Volume ${item.done}`);
+          return;
+        }
+        if (item.binary) {
+          removeRow(id);
+          showToast(`${item.title} finished &middot; moved to Done`, () => restoreRow(id));
+          return;
+        }
+        const total = totalUnits(item);
+        item.done = Math.min(total, item.done + 1);
+        if (item.done >= total) {
+          removeRow(id);
+          showToast(`${item.title} finished &middot; moved to Done`, () => {
+            item.done = prevDone;
+            restoreRow(id);
+          });
+        } else {
+          updateRow(id);
+          showToast(`${item.title} updated`);
+        }
+      }
+
+      function pauseItem(id) {
+        const item = state.get(id);
+        removeRow(id);
+        showToast(`${item.title} paused`, () => restoreRow(id));
+      }
+
+      // Toast (snackbar)
+      const toastEl = document.getElementById('swToast');
+      const toastMsg = document.getElementById('swToastMsg');
+      const toastAction = document.getElementById('swToastAction');
+      let toastTimer = null;
+      function showToast(html, onUndo) {
+        clearTimeout(toastTimer);
+        toastMsg.innerHTML = html;
+        if (onUndo) {
+          toastAction.hidden = false;
+          toastAction.onclick = () => { hideToast(); onUndo(); };
+        } else {
+          toastAction.hidden = true;
+          toastAction.onclick = null;
+        }
+        toastEl.classList.add('is-visible');
+        toastTimer = setTimeout(hideToast, 3200);
+      }
+      function hideToast() {
+        toastEl.classList.remove('is-visible');
+      }
+
+      // Delete confirmation dialog
+      const deleteBackdrop = document.getElementById('swDeleteBackdrop');
+      const deleteTitle = document.getElementById('swDeleteTitle');
+      const deleteBody = document.getElementById('swDeleteBody');
+      let pendingDeleteId = null;
+      function openDelete(id) {
+        const item = state.get(id);
+        pendingDeleteId = id;
+        deleteTitle.textContent = `Delete ${item.title}?`;
+        deleteBody.textContent = (item.segmented || item.ongoing)
+          ? 'This removes the track and every episode or volume under it. It cannot be undone.'
+          : 'This removes the track. It cannot be undone.';
+        deleteBackdrop.classList.add('is-visible');
+      }
+      function closeDelete() {
+        deleteBackdrop.classList.remove('is-visible');
+        pendingDeleteId = null;
+      }
+      document.getElementById('swDeleteCancel').addEventListener('click', closeDelete);
+      document.getElementById('swDeleteConfirm').addEventListener('click', () => {
+        const id = pendingDeleteId;
+        closeDelete();
+        if (!id) return;
+        const item = state.get(id);
+        removeRow(id);
+        showToast(`${item.title} deleted`, () => restoreRow(id));
       });
 
-      surface.addEventListener('pointermove', function (e) {
-        if (!dragging) return;
-        var dx = e.clientX - startX;
-        var dy = e.clientY - startY;
-        if (axis === null) {
-          if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-            axis = 'x';
-            try { surface.setPointerCapture(e.pointerId); } catch (err) {}
-          } else if (Math.abs(dy) > 8) { axis = 'y'; dragging = false; return; }
-          else return;
+      // Edit-position dialog (simplified ProgressEditor)
+      const editBackdrop = document.getElementById('swEditBackdrop');
+      const editSubtitle = document.getElementById('swEditSubtitle');
+      const editValue = document.getElementById('swEditValue');
+      let pendingEditId = null;
+      let editDraft = 1;
+      function openEdit(id) {
+        const item = state.get(id);
+        pendingEditId = id;
+        editDraft = item.done;
+        editSubtitle.textContent = item.title;
+        editValue.textContent = String(editDraft);
+        editBackdrop.classList.add('is-visible');
+      }
+      function closeEdit() {
+        editBackdrop.classList.remove('is-visible');
+        pendingEditId = null;
+      }
+      document.getElementById('swEditMinus').addEventListener('click', () => {
+        editDraft = Math.max(1, editDraft - 1);
+        editValue.textContent = String(editDraft);
+      });
+      document.getElementById('swEditPlus').addEventListener('click', () => {
+        const item = state.get(pendingEditId);
+        const max = item.ongoing ? editDraft + 1 : totalUnits(item);
+        editDraft = Math.min(max, editDraft + 1);
+        editValue.textContent = String(editDraft);
+      });
+      document.getElementById('swEditCancel').addEventListener('click', closeEdit);
+      document.getElementById('swEditSave').addEventListener('click', () => {
+        const id = pendingEditId;
+        if (id) {
+          const item = state.get(id);
+          item.done = editDraft;
+          updateRow(id);
         }
-        if (axis !== 'x') return;
-        e.preventDefault();
-        setTransform(Math.max(-maxLeft, Math.min(MAX_RIGHT, dx)));
+        closeEdit();
       });
 
-      function release() {
-        if (!dragging) return;
-        dragging = false;
-        var wasX = axis === 'x';
-        axis = null;
-        if (!wasX) return;
-        var value = current;
-        if (value >= DELETE_THRESHOLD) {
-          settle(0);
-          openDelete(id);
-        } else if (value >= LATCH) {
-          settle(0);
-          pauseItem(id);
-        } else if (item.canEdit && value <= -LATCH) {
-          settle(0);
-          openEdit(id);
-        } else {
-          settle(0);
+      // Swipe gesture — thresholds ported from SwipeableTrackRow.tsx (LATCH=50,
+      // DELETE_THRESHOLD=280, MAX_SWIPE_RIGHT=360 on a ~390pt row), scaled down
+      // for this ~300px-wide demo frame.
+      const LATCH = 34;
+      const DELETE_THRESHOLD = 168;
+      const MAX_RIGHT = 220;
+
+      function attachSwipe(id) {
+        const item = state.get(id);
+        const surface = body.querySelector(`[data-surface="${id}"]`);
+        if (!surface) return;
+        const row = surface.closest('.sw-row');
+        const pauseLayer = row.querySelector('[data-layer="pause"]');
+        const deleteLayer = row.querySelector('[data-layer="delete"]');
+        const editLayer = row.querySelector('.sw-action-right');
+        const maxLeft = item.canEdit ? 90 : 0;
+
+        let startX = 0, startY = 0, current = 0, axis = null, dragging = false;
+
+        function setTransform(x) {
+          current = x;
+          surface.style.transform = `translateX(${x}px)`;
+          if (x >= 0) {
+            const t = Math.max(0, Math.min(1, (x - 130) / (DELETE_THRESHOLD - 130)));
+            pauseLayer.style.opacity = x <= 0 ? '0' : String(1 - t);
+            deleteLayer.style.opacity = String(t);
+            if (editLayer) editLayer.style.opacity = '0';
+          } else {
+            pauseLayer.style.opacity = '0';
+            deleteLayer.style.opacity = '0';
+            if (editLayer) editLayer.style.opacity = String(Math.min(1, -x / LATCH));
+          }
         }
+
+        function settle(to) {
+          surface.style.transition = 'transform 0.2s ease';
+          setTransform(to);
+          setTimeout(() => { surface.style.transition = ''; }, 200);
+        }
+
+        surface.addEventListener('pointerdown', (e) => {
+          startX = e.clientX;
+          startY = e.clientY;
+          axis = null;
+          dragging = true;
+          surface.style.transition = '';
+        });
+
+        surface.addEventListener('pointermove', (e) => {
+          if (!dragging) return;
+          const dx = e.clientX - startX;
+          const dy = e.clientY - startY;
+          if (axis === null) {
+            if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+              axis = 'x';
+              // Captured only once a real horizontal drag is confirmed — capturing
+              // on every pointerdown would retarget the click on a plain tap (e.g.
+              // the Done button) to this surface, silently swallowing it.
+              try { surface.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+            } else if (Math.abs(dy) > 8) { axis = 'y'; dragging = false; return; }
+            else return;
+          }
+          if (axis !== 'x') return;
+          e.preventDefault();
+          setTransform(Math.max(-maxLeft, Math.min(MAX_RIGHT, dx)));
+        });
+
+        function release() {
+          if (!dragging) return;
+          dragging = false;
+          const wasX = axis === 'x';
+          axis = null;
+          if (!wasX) return;
+          const value = current;
+          if (value >= DELETE_THRESHOLD) {
+            settle(0);
+            openDelete(id);
+          } else if (value >= LATCH) {
+            settle(0);
+            pauseItem(id);
+          } else if (item.canEdit && value <= -LATCH) {
+            settle(0);
+            openEdit(id);
+          } else {
+            settle(0);
+          }
+        }
+
+        surface.addEventListener('pointerup', release);
+        surface.addEventListener('pointercancel', release);
       }
 
-      surface.addEventListener('pointerup', release);
-      surface.addEventListener('pointercancel', release);
-    }
+      document.getElementById('swAddBtn').addEventListener('click', () => {
+        showToast('Adding is three taps: category, title, count.');
+      });
 
-    document.getElementById('swAddBtn').addEventListener('click', function () {
-      showToast('Adding is three taps: category, title, count.');
-    });
-
-    buildBody();
-  })();
-</script>
-
+      buildBody();
+    })();
+  </script>
 </body>
 </html>
