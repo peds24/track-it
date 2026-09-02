@@ -9,6 +9,20 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%230B57D0'/%3E%3Cpath d='M26 52 42 68 75 33' fill='none' stroke='%23FFFFFF' stroke-width='10' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 
 <style>
+  /* Ionicons, subset to the glyphs used below (tv/book/library outline,
+     play-circle, bookmark, checkmark-circle-outline, pause, trash, create,
+     chevron-down/forward), pulled from the exact font file the app ships
+     (node_modules/@expo/vector-icons/.../Fonts/Ionicons.ttf) via `pyftsubset` —
+     so the interactive demo's icons are the app's real icons. */
+  @font-face {
+    font-family: 'Ionicons';
+    src: url(data:font/woff2;base64,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) format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: block;
+  }
+  .ionicon { font-family: 'Ionicons'; font-style: normal; line-height: 1; -webkit-font-smoothing: antialiased; }
+
   :root {
     --md-primary: #0B57D0;
     --md-on-primary: #FFFFFF;
@@ -320,6 +334,85 @@
   }
   .anno b { display: block; color: var(--md-on-surface); font-weight: 700; font-size: 14px; margin-bottom: 2px; }
 
+  /* ---------- interactive demo (reproduction, not a screenshot) ---------- */
+  .demo-layout { display: grid; grid-template-columns: minmax(260px, 320px) 1fr; gap: var(--sp-4); align-items: start; margin-top: var(--sp-4); }
+  @media (max-width: 760px) { .demo-layout { grid-template-columns: 1fr; justify-items: center; } }
+  .demo-frame {
+    width: 100%;
+    max-width: 300px;
+    height: 660px;
+    margin: 0 auto;
+    background: var(--md-surface-container-lowest);
+    border: 8px solid var(--md-outline-variant);
+    border-radius: 30px;
+    box-shadow: 0 16px 36px rgba(0,0,0,0.16);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .sw-header { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: var(--sp-4) var(--sp-3) var(--sp-2); }
+  .sw-header h2 { margin: 0; font-size: 22px; font-weight: 800; text-transform: none; letter-spacing: 0; color: var(--md-on-surface); }
+  .sw-add-btn { background: var(--md-primary); color: var(--md-on-primary); border: none; padding: 7px 14px; border-radius: var(--radius-full); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .sw-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-bottom: var(--sp-1); }
+  .sw-section { max-height: 800px; transition: max-height 0.25s ease, opacity 0.2s ease; overflow: hidden; }
+  .sw-section.is-empty { max-height: 0 !important; opacity: 0; }
+  .sw-section-header { display: flex; align-items: center; gap: 7px; width: 100%; padding: var(--sp-3) var(--sp-3) var(--sp-1); background: none; border: none; font-family: inherit; text-align: left; cursor: pointer; }
+  .sw-section-icon { flex-shrink: 0; width: 22px; height: 22px; border-radius: var(--radius-xs); background: var(--md-surface-container-high); display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--md-primary); }
+  .sw-section-title { font-size: 14.5px; font-weight: 700; color: var(--md-on-surface); text-transform: none; letter-spacing: 0; }
+  .sw-section-count { font-size: 10px; font-weight: 700; background: var(--md-surface-container-high); color: var(--md-on-surface-variant); padding: 2px 6px; border-radius: var(--radius-full); }
+  .sw-spacer { flex: 1; }
+  .sw-chevron { font-size: 13px; color: var(--md-on-surface-variant); display: inline-block; }
+  .sw-rows { overflow: hidden; max-height: 600px; opacity: 1; transition: max-height 0.25s ease, opacity 0.2s ease; }
+  .sw-rows.is-collapsed { max-height: 0; opacity: 0; }
+  .sw-row { position: relative; overflow: hidden; border-top: 1px solid var(--md-outline-variant); transition: max-height 0.25s ease, opacity 0.2s ease; max-height: 180px; }
+  .sw-row.is-removing { max-height: 0; opacity: 0; border-top-color: transparent; }
+  .sw-actions { position: absolute; inset: 0; }
+  .sw-action { position: absolute; inset: 0; display: flex; align-items: center; gap: 9px; }
+  .sw-action-left { justify-content: flex-start; padding-left: var(--sp-3); }
+  .sw-action-right { justify-content: flex-end; padding-right: var(--sp-3); background: var(--md-primary-container); }
+  .sw-badge { flex-shrink: 0; width: 28px; height: 28px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .sw-badge.badge-pause { background: var(--md-secondary, #535F70); color: #fff; }
+  .sw-badge.badge-delete { background: var(--md-error); color: #fff; }
+  .sw-badge.badge-edit { background: var(--md-primary); color: var(--md-on-primary); }
+  .sw-action-text { font-size: 12px; font-weight: 700; }
+  .sw-surface { position: relative; background: var(--md-surface-container-lowest); touch-action: pan-y; }
+  .sw-row-inner { display: flex; align-items: center; gap: var(--sp-3); padding: 11px var(--sp-3); }
+  .sw-row-text { flex: 1; min-width: 0; }
+  .sw-row-title { font-size: 14.5px; font-weight: 700; color: var(--md-on-surface); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sw-row-meta { display: flex; align-items: center; gap: 5px; margin-top: 3px; font-size: 11.5px; color: var(--md-on-surface-variant); flex-wrap: wrap; }
+  .sw-kind { background: var(--md-surface-container-high); color: var(--md-primary); font-size: 9.5px; font-weight: 800; letter-spacing: 0.03em; padding: 2px 5px; border-radius: 4px; }
+  .sw-dot { color: var(--md-outline); }
+  .sw-count { font-weight: 700; color: var(--md-on-surface); font-variant-numeric: tabular-nums; }
+  .sw-progress-track { height: 4px; margin-top: 8px; border-radius: var(--radius-full); background: var(--md-surface-container-highest); overflow: hidden; }
+  .sw-progress-fill { height: 100%; background: var(--md-primary); border-radius: var(--radius-full); transition: width 0.25s ease; }
+  .sw-progress-segmented { display: flex; gap: 3px; background: none; }
+  .sw-segment { flex: 1; height: 100%; border-radius: var(--radius-full); background: var(--md-surface-container-highest); overflow: hidden; }
+  .sw-segment-fill { height: 100%; background: var(--md-primary); }
+  .sw-advance { flex-shrink: 0; min-width: 60px; height: 30px; display: flex; align-items: center; justify-content: center; border: 1.5px solid var(--md-primary); border-radius: var(--radius-full); background: transparent; color: var(--md-primary); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; transition: background 0.15s, color 0.15s; }
+  .sw-advance:active { background: var(--md-primary-container); color: var(--md-on-primary-container); }
+  .sw-toast { position: absolute; left: 12px; right: 12px; bottom: 14px; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #2F3033; color: #fff; padding: 10px 13px; border-radius: var(--radius-md); font-size: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.25); transform: translateY(10px); opacity: 0; pointer-events: none; transition: transform 0.2s ease, opacity 0.2s ease; }
+  .sw-toast.is-visible { transform: translateY(0); opacity: 1; pointer-events: auto; }
+  .sw-toast button { background: none; border: none; color: #9ECAFF; font-weight: 700; font-size: 12px; cursor: pointer; font-family: inherit; }
+  .sw-dialog-backdrop { position: absolute; inset: 0; z-index: 30; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; padding: var(--sp-4); opacity: 0; pointer-events: none; transition: opacity 0.15s ease; }
+  .sw-dialog-backdrop.is-visible { opacity: 1; pointer-events: auto; }
+  .sw-dialog-card { width: 100%; max-width: 240px; background: var(--md-surface-container-high); border-radius: var(--radius-lg); padding: var(--sp-4) var(--sp-3); transform: scale(0.95); transition: transform 0.15s ease; }
+  .sw-dialog-backdrop.is-visible .sw-dialog-card { transform: scale(1); }
+  .sw-dialog-title { font-size: 15px; font-weight: 800; margin-bottom: 6px; color: var(--md-on-surface); }
+  .sw-dialog-body { font-size: 12.5px; color: var(--md-on-surface-variant); line-height: 1.5; margin-bottom: var(--sp-3); }
+  .sw-dialog-actions { display: flex; justify-content: flex-end; gap: 4px; }
+  .sw-dialog-btn { border: none; background: none; font-family: inherit; font-size: 12px; font-weight: 700; color: var(--md-primary); padding: 7px 10px; border-radius: var(--radius-full); cursor: pointer; }
+  .sw-dialog-btn.is-destructive { color: var(--md-error); }
+  .sw-stepper { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: var(--sp-3); }
+  .sw-stepper-btn { width: 34px; height: 34px; border-radius: 17px; border: 1.5px solid var(--md-outline-variant); background: var(--md-surface-container-lowest); color: var(--md-on-surface); font-family: inherit; font-size: 16px; font-weight: 800; cursor: pointer; }
+  .sw-stepper-value { min-width: 56px; text-align: center; font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .sw-tabbar { flex-shrink: 0; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--md-outline-variant); padding: 9px 0; }
+  .sw-tab { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; font-weight: 700; color: var(--md-on-surface-variant); }
+  .sw-tab.active { color: var(--md-on-surface); }
+  .sw-tab-pill { width: 46px; height: 24px; border-radius: var(--radius-full); background: var(--md-secondary-container); display: flex; align-items: center; justify-content: center; color: var(--md-on-secondary-container); font-size: 12px; }
+  .demo-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--md-on-surface-variant); margin-bottom: var(--sp-2); }
+  .demo-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--md-primary); }
+
   /* ---------- feature / principle grids ---------- */
   .grid-3, .principles {
     display: grid;
@@ -567,6 +660,82 @@
   </ul>
 </section>
 
+<section id="try-it">
+  <h2>Try it</h2>
+  <div class="demo-badge">Interactive reproduction &mdash; not a screenshot</div>
+  <p class="lede">
+    Built from the app's own pieces, not redrawn from memory: the exact Ionicons font the app
+    ships, the same Material 3 color tokens, and the same swipe thresholds as
+    <code>SwipeableTrackRow.tsx</code>. Swipe a row right to pause, past the line to delete, or
+    left to jump to any episode or volume &mdash; or just tap Done.
+  </p>
+
+  <div class="demo-layout">
+    <div class="demo-frame" id="swPhone">
+      <div class="sw-header">
+        <h2>Currently</h2>
+        <button type="button" class="sw-add-btn" id="swAddBtn">+ Add</button>
+      </div>
+
+      <div class="sw-body" id="swBody"></div>
+
+      <div class="sw-tabbar">
+        <div class="sw-tab active">
+          <div class="sw-tab-pill ionicon">&#62669;</div>
+          <span>Currently</span>
+        </div>
+        <div class="sw-tab">
+          <span class="ionicon" style="font-size: 16px;">&#61865;</span>
+          <span>Backlog</span>
+        </div>
+        <div class="sw-tab">
+          <span class="ionicon" style="font-size: 16px;">&#61983;</span>
+          <span>Done</span>
+        </div>
+      </div>
+
+      <div class="sw-toast" id="swToast">
+        <span id="swToastMsg"></span>
+        <button type="button" id="swToastAction" hidden>Undo</button>
+      </div>
+
+      <div class="sw-dialog-backdrop" id="swDeleteBackdrop">
+        <div class="sw-dialog-card">
+          <div class="sw-dialog-title" id="swDeleteTitle">Delete?</div>
+          <div class="sw-dialog-body" id="swDeleteBody"></div>
+          <div class="sw-dialog-actions">
+            <button type="button" class="sw-dialog-btn" id="swDeleteCancel">Cancel</button>
+            <button type="button" class="sw-dialog-btn is-destructive" id="swDeleteConfirm">Delete</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sw-dialog-backdrop" id="swEditBackdrop">
+        <div class="sw-dialog-card">
+          <div class="sw-dialog-title">Edit position</div>
+          <div class="sw-dialog-body" id="swEditSubtitle"></div>
+          <div class="sw-stepper">
+            <button type="button" class="sw-stepper-btn" id="swEditMinus" aria-label="Decrease">&minus;</button>
+            <div class="sw-stepper-value" id="swEditValue">1</div>
+            <button type="button" class="sw-stepper-btn" id="swEditPlus" aria-label="Increase">+</button>
+          </div>
+          <div class="sw-dialog-actions">
+            <button type="button" class="sw-dialog-btn" id="swEditCancel">Cancel</button>
+            <button type="button" class="sw-dialog-btn" id="swEditSave">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ul class="anno">
+      <li><b>Real icons</b> The category, tab and swipe-action icons are the app's actual Ionicons font, subset to just these glyphs and embedded &mdash; not redrawn.</li>
+      <li><b>Real gesture thresholds</b> Swipe distances and the pause/delete crossover point match <code>SwipeableTrackRow.tsx</code>'s <code>LATCH</code> and <code>DELETE_THRESHOLD</code> constants, scaled to this frame.</li>
+      <li><b>Books have no tracker</b> Dune Messiah shows only Reading/Done &mdash; no unit count, no progress bar &mdash; matching the "standalone books have no bar" rule above.</li>
+      <li><b>What's not real</b> No React, no SQLite, no persistence &mdash; state resets on reload. Sample data only.</li>
+    </ul>
+  </div>
+</section>
+
 <section>
   <h2>Why it is built this way</h2>
   <ul class="principles">
@@ -691,18 +860,44 @@ npm run typecheck</div>
       <p><b>Export and import.</b> The JSON backup format is written and tested — validated payloads, all-or-nothing restore — but it is not surfaced yet and there is no settings screen to reach it from. Until it lands, the app has <b>no backup path at all</b>: the library lives in one place, on one phone, and a lost or wiped device loses it.</p>
     </li>
     <li>
-      <span class="tag-pill tag-no">No</span>
-      <p><b>Cover art or thumbnails.</b> Even with real catalogue matching, artwork is deliberately discarded — a clean list of text beats a grid with missing covers in it.</p>
+      <span class="tag-pill tag-next">Next</span>
+      <p><b>Cover art, on a details screen.</b> Reversed from earlier — v1 discarded artwork on purpose, but a details screen with real cover art and one-tap actions (start, backlog, search again) is planned for v2. The rest of the app — the row-based lists — stays text-only.</p>
+    </li>
+    <li>
+      <span class="tag-pill tag-next">Next</span>
+      <p><b>Stats.</b> What you've finished, how fast you start things, and how often you follow through. Every figure would come from columns that already exist — <code>created_at</code>, <code>started_at</code>, <code>finished_at</code> — so no schema change is anticipated once this gets built.</p>
+    </li>
+    <li>
+      <span class="tag-pill tag-next">Next</span>
+      <p><b>A native iOS build.</b> Today the app only runs from source via Expo Go or a dev build — a real installable build isn't set up yet.</p>
     </li>
     <li>
       <span class="tag-pill tag-no">No</span>
       <p><b>Accounts or sync.</b> The data is small, single-user and of no value to anyone else, and conflict resolution is the expensive half of sync. Export is the intended answer to losing a device — see above for where that stands.</p>
     </li>
-    <li>
-      <span class="tag-pill tag-no">No</span>
-      <p><b>Ratings, streaks or statistics.</b> A stats screen has an agreed shape on paper but nothing built yet — and turning a record of what you are reading into a scoreboard about it is not a goal here regardless.</p>
-    </li>
   </ul>
+
+  <div class="screens" style="margin-top: var(--sp-4)">
+    <div>
+      <div class="screen-label"><span>Cover Art & Quick Actions</span><span>Mockup, not a screenshot</span></div>
+      <div class="phone-frame" style="display:flex;flex-direction:column;">
+        <div style="height:150px;position:relative;display:flex;align-items:flex-end;padding:12px;background:linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.55) 100%), linear-gradient(135deg, #0B57D0 0%, #7C4DFF 100%);color:#fff;">
+          <span style="position:absolute;top:10px;left:12px;font-size:9px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;background:rgba(255,255,255,0.2);padding:3px 7px;border-radius:999px;">Cover Art</span>
+          <h4 style="margin:0;font-size:18px;font-weight:800;color:#fff;">House</h4>
+        </div>
+        <div style="padding:12px 14px 16px;background:var(--md-surface-container-lowest);">
+          <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:11px;color:var(--md-on-surface-variant);margin-bottom:8px;">
+            <span style="background:var(--md-secondary-container);color:var(--md-on-secondary-container);padding:2px 7px;border-radius:999px;font-size:9px;font-weight:800;text-transform:uppercase;">Show</span>
+            <span>2004&ndash;2012 &middot; 8 seasons</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="padding:9px;border-radius:999px;font-size:12px;font-weight:700;text-align:center;background:var(--md-primary);color:var(--md-on-primary);">Start Watching</div>
+            <div style="padding:9px;border-radius:999px;font-size:12px;font-weight:700;text-align:center;background:transparent;border:1.5px solid var(--md-outline);color:var(--md-on-surface);">Add to Backlog</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="history-strip">
     <p>Track It's design has gone through two full passes — an e-ink brutalist read, then this Material 3 rebuild.</p>
@@ -723,8 +918,9 @@ npm run typecheck</div>
     <a href="https://github.com/peds24/track-it/blob/main/docs/superpowers/specs/2026-08-12-track-it-design.md">Design decisions (D1–D17)</a>
   </div>
   <p>
-    Track It · a personal, local-only media tracker. Every screen on this page is a real screenshot
-    of the current build, not a mock-up of one.
+    Track It · a personal, local-only media tracker. Every screenshot on this page is real, taken
+    from the current build. The "Try it" demo above and the "not here yet" mockups are clearly
+    labeled reproductions and previews — not screenshots.
   </p>
 </footer>
 
@@ -734,6 +930,433 @@ npm run typecheck</div>
     var next = current === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', next);
   }
+
+  // Swipeable demo — ported from src/ui/{TrackRow,SwipeableTrackRow,currentlySections}.tsx
+  // on the `web` branch. Same M3 tokens, thresholds and gesture behaviour; reimplemented
+  // in vanilla JS so nothing from the actual app ships to this static page.
+  (function () {
+    // Ionicons glyphs, matching currentlySections.ts's CATEGORY_ORDER exactly:
+    // 'tv-outline' (show), 'book-outline' (book), 'library-outline' (manga).
+    var CATS = [
+      { key: 'show', title: 'Shows', icon: String.fromCodePoint(0xf605) },
+      { key: 'book', title: 'Books', icon: String.fromCodePoint(0xf1a6) },
+      { key: 'manga', title: 'Manga', icon: String.fromCodePoint(0xf3b6) },
+    ];
+
+    var ITEMS = [
+      {
+        id: 'severance', section: 'show', title: 'Severance', kind: 'SHOW',
+        canEdit: true, segmented: true, seasons: [{ n: 1, total: 9 }, { n: 2, total: 10 }],
+        done: 12,
+      },
+      {
+        id: 'bear', section: 'show', title: 'The Bear', kind: 'SHOW',
+        canEdit: true, total: 8, done: 6,
+      },
+      // A book is binary — Reading or Done — so it never reports a unit position.
+      {
+        id: 'dune', section: 'book', title: 'Dune Messiah', kind: 'BOOK',
+        canEdit: false, binary: true,
+      },
+      {
+        id: 'berserk', section: 'manga', title: 'Berserk', kind: 'MANGA',
+        canEdit: true, ongoing: true, done: 5,
+      },
+    ];
+
+    var state = new Map();
+    ITEMS.forEach(function (it) { state.set(it.id, Object.assign({}, it)); });
+
+    function seasonInfo(item) {
+      var remaining = item.done;
+      for (var i = 0; i < item.seasons.length; i++) {
+        var s = item.seasons[i];
+        if (remaining <= s.total) return { season: s.n, ep: remaining, seasonTotal: s.total };
+        remaining -= s.total;
+      }
+      var last = item.seasons[item.seasons.length - 1];
+      return { season: last.n, ep: last.total, seasonTotal: last.total };
+    }
+
+    function totalUnits(item) {
+      return item.segmented ? item.seasons.reduce(function (a, s) { return a + s.total; }, 0) : item.total;
+    }
+
+    function metaText(item) {
+      if (item.segmented) {
+        var info = seasonInfo(item);
+        return 'S' + info.season + ' Ep ' + info.ep + ' of ' + info.seasonTotal;
+      }
+      if (item.ongoing) return 'Reading Volume ' + item.done;
+      if (item.binary) return 'Reading';
+      return 'Watching Episode ' + Math.min(item.done + 1, item.total);
+    }
+
+    function countHTML(item) {
+      if (item.binary) return '';
+      if (item.ongoing) return '<span class="sw-dot">&middot;</span><span class="sw-count">Ongoing</span>';
+      return '<span class="sw-dot">&middot;</span><span class="sw-count">' + item.done + ' of ' + totalUnits(item) + '</span>';
+    }
+
+    function progressHTML(item) {
+      if (item.segmented) {
+        var remaining = item.done;
+        var segs = item.seasons.map(function (s) {
+          var doneInSeg = Math.max(0, Math.min(s.total, remaining));
+          remaining -= s.total;
+          var pct = s.total > 0 ? (doneInSeg / s.total) * 100 : 0;
+          return '<div class="sw-segment"><div class="sw-segment-fill" style="width:' + pct + '%"></div></div>';
+        });
+        return '<div class="sw-progress-track sw-progress-segmented">' + segs.join('') + '</div>';
+      }
+      if (item.ongoing || item.binary) return '';
+      var total = totalUnits(item);
+      var pct = total > 0 ? Math.min(100, (item.done / total) * 100) : 0;
+      return '<div class="sw-progress-track"><div class="sw-progress-fill" style="width:' + pct + '%"></div></div>';
+    }
+
+    function rowInnerHTML(item) {
+      return '' +
+        '<div class="sw-row-text">' +
+          '<div class="sw-row-title">' + item.title + '</div>' +
+          '<div class="sw-row-meta">' +
+            '<span class="sw-kind">' + item.kind + '</span>' +
+            '<span class="sw-dot">&middot;</span>' +
+            '<span>' + metaText(item) + '</span>' +
+            countHTML(item) +
+          '</div>' +
+          progressHTML(item) +
+        '</div>' +
+        '<button type="button" class="sw-advance" data-advance="' + item.id + '">Done</button>';
+    }
+
+    function rowHTML(item) {
+      return '' +
+        '<div class="sw-row" data-row="' + item.id + '">' +
+          '<div class="sw-actions">' +
+            '<div class="sw-action sw-action-left" data-layer="pause" style="background:var(--md-secondary-container)">' +
+              '<div class="sw-badge badge-pause ionicon">&#62611;</div>' +
+              '<span class="sw-action-text" style="color:var(--md-on-secondary-container)">Pause</span>' +
+            '</div>' +
+            '<div class="sw-action sw-action-left" data-layer="delete" style="background:var(--md-error-container); opacity:0;">' +
+              '<div class="sw-badge badge-delete ionicon">&#62962;</div>' +
+              '<span class="sw-action-text" style="color:var(--md-on-error-container)">Delete</span>' +
+            '</div>' +
+            (item.canEdit ? (
+              '<div class="sw-action sw-action-right" style="opacity:0;">' +
+                '<span class="sw-action-text" style="color:var(--md-on-primary-container)">Edit</span>' +
+                '<div class="sw-badge badge-edit ionicon">&#62098;</div>' +
+              '</div>'
+            ) : '') +
+          '</div>' +
+          '<div class="sw-surface" data-surface="' + item.id + '">' +
+            '<div class="sw-row-inner" data-inner="' + item.id + '">' + rowInnerHTML(item) + '</div>' +
+          '</div>' +
+        '</div>';
+    }
+
+    var body = document.getElementById('swBody');
+    var collapsed = new Set();
+
+    function sectionCount(key) {
+      return ITEMS.filter(function (it) { return it.section === key && !state.get(it.id).removed; }).length;
+    }
+
+    function buildBody() {
+      body.innerHTML = CATS.map(function (cat) {
+        var items = ITEMS.filter(function (it) { return it.section === cat.key; });
+        var count = sectionCount(cat.key);
+        return '' +
+          '<div class="sw-section' + (count === 0 ? ' is-empty' : '') + '" data-section="' + cat.key + '">' +
+            '<button type="button" class="sw-section-header" data-toggle="' + cat.key + '">' +
+              '<span class="sw-section-icon ionicon">' + cat.icon + '</span>' +
+              '<span class="sw-section-title">' + cat.title + '</span>' +
+              '<span class="sw-section-count" data-count="' + cat.key + '">' + count + '</span>' +
+              '<span class="sw-spacer"></span>' +
+              '<span class="sw-chevron ionicon">&#62002;</span>' +
+            '</button>' +
+            '<div class="sw-rows" data-rows="' + cat.key + '">' +
+              items.map(function (it) { return rowHTML(state.get(it.id)); }).join('') +
+            '</div>' +
+          '</div>';
+      }).join('');
+
+      ITEMS.forEach(function (it) { attachSwipe(it.id); });
+      body.querySelectorAll('[data-toggle]').forEach(function (btn) {
+        btn.addEventListener('click', function () { toggleSection(btn.getAttribute('data-toggle')); });
+      });
+      body.querySelectorAll('[data-advance]').forEach(function (btn) {
+        btn.addEventListener('click', function () { advance(btn.getAttribute('data-advance')); });
+      });
+    }
+
+    // Matches the app exactly: expanded uses 'chevron-down', collapsed uses
+    // 'chevron-forward' — two distinct icons, not one rotated glyph.
+    var CHEVRON_DOWN = String.fromCodePoint(0xf232);
+    var CHEVRON_FORWARD = String.fromCodePoint(0xf23b);
+    function toggleSection(key) {
+      var rows = body.querySelector('[data-rows="' + key + '"]');
+      var chevron = body.querySelector('[data-toggle="' + key + '"] .sw-chevron');
+      if (collapsed.has(key)) {
+        collapsed.delete(key);
+        rows.classList.remove('is-collapsed');
+        chevron.textContent = CHEVRON_DOWN;
+      } else {
+        collapsed.add(key);
+        rows.classList.add('is-collapsed');
+        chevron.textContent = CHEVRON_FORWARD;
+      }
+    }
+
+    function updateSectionCount(key) {
+      var countEl = body.querySelector('[data-count="' + key + '"]');
+      var sectionEl = body.querySelector('[data-section="' + key + '"]');
+      var n = sectionCount(key);
+      if (countEl) countEl.textContent = String(n);
+      if (sectionEl) sectionEl.classList.toggle('is-empty', n === 0);
+    }
+
+    function updateRow(id) {
+      var item = state.get(id);
+      var inner = body.querySelector('[data-inner="' + id + '"]');
+      if (inner) inner.innerHTML = rowInnerHTML(item);
+      var btn = body.querySelector('[data-advance="' + id + '"]');
+      if (btn) btn.addEventListener('click', function () { advance(id); });
+    }
+
+    function removeRow(id) {
+      var item = state.get(id);
+      item.removed = true;
+      var rowEl = body.querySelector('[data-row="' + id + '"]');
+      if (rowEl) rowEl.classList.add('is-removing');
+      updateSectionCount(item.section);
+    }
+
+    function restoreRow(id) {
+      var item = state.get(id);
+      item.removed = false;
+      var rowEl = body.querySelector('[data-row="' + id + '"]');
+      if (rowEl) rowEl.classList.remove('is-removing');
+      updateRow(id);
+      updateSectionCount(item.section);
+    }
+
+    function advance(id) {
+      var item = state.get(id);
+      var prevDone = item.done;
+      if (item.ongoing) {
+        item.done += 1;
+        updateRow(id);
+        showToast(item.title + ' &middot; Volume ' + item.done);
+        return;
+      }
+      if (item.binary) {
+        removeRow(id);
+        showToast(item.title + ' finished &middot; moved to Done', function () { restoreRow(id); });
+        return;
+      }
+      var total = totalUnits(item);
+      item.done = Math.min(total, item.done + 1);
+      if (item.done >= total) {
+        removeRow(id);
+        showToast(item.title + ' finished &middot; moved to Done', function () {
+          item.done = prevDone;
+          restoreRow(id);
+        });
+      } else {
+        updateRow(id);
+        showToast(item.title + ' updated');
+      }
+    }
+
+    function pauseItem(id) {
+      var item = state.get(id);
+      removeRow(id);
+      showToast(item.title + ' paused', function () { restoreRow(id); });
+    }
+
+    // Toast (snackbar)
+    var toastEl = document.getElementById('swToast');
+    var toastMsg = document.getElementById('swToastMsg');
+    var toastAction = document.getElementById('swToastAction');
+    var toastTimer = null;
+    function showToast(html, onUndo) {
+      clearTimeout(toastTimer);
+      toastMsg.innerHTML = html;
+      if (onUndo) {
+        toastAction.hidden = false;
+        toastAction.onclick = function () { hideToast(); onUndo(); };
+      } else {
+        toastAction.hidden = true;
+        toastAction.onclick = null;
+      }
+      toastEl.classList.add('is-visible');
+      toastTimer = setTimeout(hideToast, 3200);
+    }
+    function hideToast() { toastEl.classList.remove('is-visible'); }
+
+    // Delete confirmation dialog
+    var deleteBackdrop = document.getElementById('swDeleteBackdrop');
+    var deleteTitle = document.getElementById('swDeleteTitle');
+    var deleteBody = document.getElementById('swDeleteBody');
+    var pendingDeleteId = null;
+    function openDelete(id) {
+      var item = state.get(id);
+      pendingDeleteId = id;
+      deleteTitle.textContent = 'Delete ' + item.title + '?';
+      deleteBody.textContent = (item.segmented || item.ongoing)
+        ? 'This removes the track and every episode or volume under it. It cannot be undone.'
+        : 'This removes the track. It cannot be undone.';
+      deleteBackdrop.classList.add('is-visible');
+    }
+    function closeDelete() {
+      deleteBackdrop.classList.remove('is-visible');
+      pendingDeleteId = null;
+    }
+    document.getElementById('swDeleteCancel').addEventListener('click', closeDelete);
+    document.getElementById('swDeleteConfirm').addEventListener('click', function () {
+      var id = pendingDeleteId;
+      closeDelete();
+      if (!id) return;
+      var item = state.get(id);
+      removeRow(id);
+      showToast(item.title + ' deleted', function () { restoreRow(id); });
+    });
+
+    // Edit-position dialog (simplified ProgressEditor)
+    var editBackdrop = document.getElementById('swEditBackdrop');
+    var editSubtitle = document.getElementById('swEditSubtitle');
+    var editValue = document.getElementById('swEditValue');
+    var pendingEditId = null;
+    var editDraft = 1;
+    function openEdit(id) {
+      var item = state.get(id);
+      pendingEditId = id;
+      editDraft = item.done;
+      editSubtitle.textContent = item.title;
+      editValue.textContent = String(editDraft);
+      editBackdrop.classList.add('is-visible');
+    }
+    function closeEdit() {
+      editBackdrop.classList.remove('is-visible');
+      pendingEditId = null;
+    }
+    document.getElementById('swEditMinus').addEventListener('click', function () {
+      editDraft = Math.max(1, editDraft - 1);
+      editValue.textContent = String(editDraft);
+    });
+    document.getElementById('swEditPlus').addEventListener('click', function () {
+      var item = state.get(pendingEditId);
+      var max = item.ongoing ? editDraft + 1 : totalUnits(item);
+      editDraft = Math.min(max, editDraft + 1);
+      editValue.textContent = String(editDraft);
+    });
+    document.getElementById('swEditCancel').addEventListener('click', closeEdit);
+    document.getElementById('swEditSave').addEventListener('click', function () {
+      var id = pendingEditId;
+      if (id) {
+        var item = state.get(id);
+        item.done = editDraft;
+        updateRow(id);
+      }
+      closeEdit();
+    });
+
+    // Swipe gesture — thresholds ported from SwipeableTrackRow.tsx (LATCH=50,
+    // DELETE_THRESHOLD=280, MAX_SWIPE_RIGHT=360 on a ~390pt row), scaled down
+    // for this ~300px-wide demo frame.
+    var LATCH = 34;
+    var DELETE_THRESHOLD = 168;
+    var MAX_RIGHT = 220;
+
+    function attachSwipe(id) {
+      var item = state.get(id);
+      var surface = body.querySelector('[data-surface="' + id + '"]');
+      if (!surface) return;
+      var row = surface.closest('.sw-row');
+      var pauseLayer = row.querySelector('[data-layer="pause"]');
+      var deleteLayer = row.querySelector('[data-layer="delete"]');
+      var editLayer = row.querySelector('.sw-action-right');
+      var maxLeft = item.canEdit ? 90 : 0;
+
+      var startX = 0, startY = 0, current = 0, axis = null, dragging = false;
+
+      function setTransform(x) {
+        current = x;
+        surface.style.transform = 'translateX(' + x + 'px)';
+        if (x >= 0) {
+          var t = Math.max(0, Math.min(1, (x - 130) / (DELETE_THRESHOLD - 130)));
+          pauseLayer.style.opacity = x <= 0 ? '0' : String(1 - t);
+          deleteLayer.style.opacity = String(t);
+          if (editLayer) editLayer.style.opacity = '0';
+        } else {
+          pauseLayer.style.opacity = '0';
+          deleteLayer.style.opacity = '0';
+          if (editLayer) editLayer.style.opacity = String(Math.min(1, -x / LATCH));
+        }
+      }
+
+      function settle(to) {
+        surface.style.transition = 'transform 0.2s ease';
+        setTransform(to);
+        setTimeout(function () { surface.style.transition = ''; }, 200);
+      }
+
+      surface.addEventListener('pointerdown', function (e) {
+        startX = e.clientX;
+        startY = e.clientY;
+        axis = null;
+        dragging = true;
+        surface.style.transition = '';
+      });
+
+      surface.addEventListener('pointermove', function (e) {
+        if (!dragging) return;
+        var dx = e.clientX - startX;
+        var dy = e.clientY - startY;
+        if (axis === null) {
+          if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+            axis = 'x';
+            try { surface.setPointerCapture(e.pointerId); } catch (err) {}
+          } else if (Math.abs(dy) > 8) { axis = 'y'; dragging = false; return; }
+          else return;
+        }
+        if (axis !== 'x') return;
+        e.preventDefault();
+        setTransform(Math.max(-maxLeft, Math.min(MAX_RIGHT, dx)));
+      });
+
+      function release() {
+        if (!dragging) return;
+        dragging = false;
+        var wasX = axis === 'x';
+        axis = null;
+        if (!wasX) return;
+        var value = current;
+        if (value >= DELETE_THRESHOLD) {
+          settle(0);
+          openDelete(id);
+        } else if (value >= LATCH) {
+          settle(0);
+          pauseItem(id);
+        } else if (item.canEdit && value <= -LATCH) {
+          settle(0);
+          openEdit(id);
+        } else {
+          settle(0);
+        }
+      }
+
+      surface.addEventListener('pointerup', release);
+      surface.addEventListener('pointercancel', release);
+    }
+
+    document.getElementById('swAddBtn').addEventListener('click', function () {
+      showToast('Adding is three taps: category, title, count.');
+    });
+
+    buildBody();
+  })();
 </script>
 
 </body>
