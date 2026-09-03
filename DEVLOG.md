@@ -1,5 +1,23 @@
 # DEVLOG
 
+## 2026-09-03 — Feature Roadmap (v1.1.0 – v2.0.0) & Version Release Workflow
+
+### What Happened
+- Defined comprehensive architectural breakdown and roadmap in [`docs/ROADMAP.md`](./docs/ROADMAP.md) and root [`ROADMAP.md`](./ROADMAP.md) covering:
+  - **Milestone v1.1.0**: Status notifications, action feedback (Snackbar/Toast), full undo support across advance/pause/delete, and completion celebrations.
+  - **Milestone v1.2.0**: Individual track detail views, cover artwork persistence, cleaned metadata formatting, and timeline metrics.
+  - **Milestone v1.3.0**: Dedicated stats and reading/watching insights page with shareable graphic cards via `expo-sharing`.
+  - **Milestone v2.0.0**: The "Iris" Evolution (rebranding, modern Apple-inspired glass design system, new aperture mark).
+- Initialized formal [`CHANGELOG.md`](./CHANGELOG.md) adhering to the Keep a Changelog standard and Semantic Versioning.
+- Created `.claude/skills/version-release/SKILL.md` establishing the step-by-step feature implementation, testing, version bumping, changelog recording, and cross-branch synchronization protocol.
+
+### Design Decisions & Trade-offs
+- **Derived Stats vs Aggregation Tables**: Preserved D3/D8 invariant — all statistics and velocity calculations are computed on-the-fly from SQLite timestamps (`started_at`, `finished_at`, `created_at`) rather than maintaining fragile secondary summary tables.
+- **Undo Architecture via State Inversion**: Action feedback allows instant undo by computing inverse state deltas in pure domain logic (`src/domain/undo.ts`) rather than keeping shadow database tables.
+- **Gradual Evolution to Iris (v2.0.0)**: Rather than attempting an immediate disruptive rebrand while core tracking features are still evolving, the Iris transition is scheduled as the v2.0.0 major milestone once feature completeness (detail views and stats) is stabilized.
+
+
+
 ## 2026-08-31 — Material 3 Design System Migration
 
 ### What Changed
