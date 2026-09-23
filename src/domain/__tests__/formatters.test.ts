@@ -38,6 +38,41 @@ describe('cleanDescription', () => {
   test('leaves an unknown entity as written rather than dropping it', () => {
     expect(decodeEntities('a &madeup; b')).toBe('a &madeup; b');
   });
+
+  test('is idempotent: encoded brackets like &lt;PG-13&gt; survive re-encoding', () => {
+    const input = 'Rating: &lt;PG-13&gt; content, also x &lt; y and y &gt; z ok.';
+    const pass1 = cleanDescription(input);
+    expect(pass1).toBe('Rating: <PG-13> content, also x < y and y > z ok.');
+    const pass2 = cleanDescription(pass1);
+    expect(pass2).toBe(pass1);
+  });
+
+  test('unknown bracketed words like <PG-13> survive in raw input', () => {
+    expect(cleanDescription('<PG-13> rated')).toBe('<PG-13> rated');
+    expect(cleanDescription('before <unknown-tag> after')).toBe('before <unknown-tag> after');
+  });
+
+  test('is idempotent over all existing fixtures', () => {
+    const fixtures = [
+      '<p>First <b>bold</b> line.</p><p>Second<br>third</p>',
+      'Tom &amp; Jerry &quot;hi&quot; &#39;yo&#39; &#x2014; ok&hellip;',
+      '  a   b \n\n\n\n c  ',
+    ];
+    for (const input of fixtures) {
+      const pass1 = cleanDescription(input);
+      if (pass1 !== null) {
+        const pass2 = cleanDescription(pass1);
+        expect(pass2).toBe(pass1);
+      }
+    }
+  });
+
+  test('<br> with attributes becomes a line break', () => {
+    expect(cleanDescription('<br class="x"/>')).toBeNull();
+    expect(cleanDescription('line 1<br class="x"/>line 2')).toBe('line 1\nline 2');
+    expect(cleanDescription('line 1<br style="clear:both">line 2')).toBe('line 1\nline 2');
+    expect(cleanDescription('text<BR STYLE="DISPLAY:BLOCK"/>more')).toBe('text\nmore');
+  });
 });
 
 test('yearOf takes the leading four-digit year only', () => {

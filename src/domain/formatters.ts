@@ -51,10 +51,12 @@ export function decodeEntities(text: string): string {
  * AniList) — this is what the detail screen showed raw before A22. */
 export function cleanDescription(raw: string | null | undefined): string | null {
   if (!raw) return null;
+  // Whitelist of real HTML tags (case-insensitive, with attributes allowed)
+  const tagWhitelist = 'a|abbr|b|big|blockquote|br|center|cite|code|dd|del|div|dl|dt|em|font|h[1-6]|hr|i|img|ins|li|ol|p|pre|s|small|span|strike|strong|sub|sup|table|tbody|td|th|thead|tr|u|ul';
   const stripped = raw
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/(p|div|li|h[1-6])\s*>/gi, '\n\n')
-    .replace(/<[^>]*>/g, '');
+    .replace(new RegExp(`<br(?:\\s[^<>]*)?\\s*/?\\s*>`, 'gi'), '\n')
+    .replace(new RegExp(`</(p|div|li|h[1-6])\\s*>`, 'gi'), '\n\n')
+    .replace(new RegExp(`</?(?:${tagWhitelist})(?:\\s[^<>]*)?/?>`, 'gi'), '');
   const text = decodeEntities(stripped)
     .replace(/\r\n?/g, '\n')
     .replace(/[ \t ]+/g, ' ')
