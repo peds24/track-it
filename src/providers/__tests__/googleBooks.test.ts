@@ -146,7 +146,7 @@ test('hydrate records no external id for a hand-typed title with no real match',
 // A17: the confirm screen's data for standalone book/comic-collection
 // matches — a fetch by volume id, never made during search() or hydrate().
 describe('preview (A17, book/comic collection)', () => {
-  test('fetches the volume detail and returns author/year/pages and the description as blurb', async () => {
+  test('fetches the volume detail and returns year/pages and the description as blurb', async () => {
     process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
     const fetchMock = mockFetchOnce({
       volumeInfo: {
@@ -168,10 +168,12 @@ describe('preview (A17, book/comic collection)', () => {
     expect(url).toContain('/volumes/piranesi-id');
     expect(preview).toMatchObject({
       title: 'Piranesi',
-      metaLine: ['Susanna Clarke', '2020', '245 pages'],
+      // The author is carried by metadata.creator (the confirm screen's credit
+      // line), not repeated in the meta line.
+      metaLine: ['2020', '245 pages'],
       blurb: 'A man lives in a House with countless rooms and endless corridors.',
     });
-    expect(preview.metadata?.creator).toBeDefined();
+    expect(preview.metadata?.creator).toBe('Susanna Clarke');
   });
 
   test('missing authors/pageCount/description are simply omitted, not blank entries', async () => {
@@ -288,6 +290,17 @@ describe('A22/A24 metadata', () => {
     process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
     mockFetchOnce({}, false);
     expect(await new GoogleBooksProvider('book').details('v1')).toBeNull();
+  });
+
+  test('details answers with empty metadata when the volume is gone (404), so the backfill stamps it', async () => {
+    process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
+    global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 404, json: async () => ({}) }) as unknown as typeof fetch;
+    expect(await new GoogleBooksProvider('book').details('gone')).toEqual({
+      coverUrl: null,
+      creator: null,
+      description: null,
+      releaseYear: null,
+    });
   });
 
   test('details returns null with no API key configured', async () => {

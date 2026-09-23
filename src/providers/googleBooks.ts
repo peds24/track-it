@@ -107,15 +107,17 @@ export class GoogleBooksProvider implements MetadataProvider {
    * ever returns a title). Never throws, matching `TmdbProvider.preview`'s
    * established pattern: a failed or unconfigured lookup just falls back to
    * the picked title, same as no match at all. `null` means the lookup
-   * failed (or no key), not "found nothing".
+   * failed (or no key), not "found nothing"; `'gone'` means Google answered
+   * 404 — the volume no longer exists, which is an answer, not a failure.
    */
-  private async fetchVolume(volumeId: string): Promise<VolumeInfo | null> {
+  private async fetchVolume(volumeId: string): Promise<VolumeInfo | 'gone' | null> {
     const key = process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY;
     if (!key) return null;
     try {
       const response = await fetch(
         `https://www.googleapis.com/books/v1/volumes/${encodeURIComponent(volumeId)}?key=${encodeURIComponent(key)}`,
       );
+      if (response.status === 404) return 'gone';
       if (!response.ok) return null;
       const body = (await response.json()) as GoogleBooksVolumeDetail;
       return body.volumeInfo ?? {};
@@ -128,19 +130,25 @@ export class GoogleBooksProvider implements MetadataProvider {
     const fallback: MatchPreview = { title: result.title, metaLine: [], blurb: null };
     if (result.id === this.id) return fallback; // hand-typed title, no real match.
     const info = await this.fetchVolume(result.id);
-    if (!info) return fallback;
+    if (!info || info === 'gone') return fallback;
     const metadata = metadataOf(info);
+    // No author here: the confirm screen's credit line already shows
+    // `metadata.creator`, so repeating it in the meta line doubled it.
     const metaLine = [
-      metadata.creator,
       metadata.releaseYear,
       info.pageCount ? `${info.pageCount} pages` : null,
     ].filter((s): s is string => s !== null);
     return { title: result.title, metaLine, blurb: metadata.description, metadata };
   }
 
-  /** A22: the backfill's lookup — same mapping `preview` stores at add time. */
+  /**
+   * A22: the backfill's lookup — same mapping `preview` stores at add time.
+   * A deleted volume (404) answers with empty metadata so the backfill stamps
+   * the row instead of retrying it on every launch; other failures stay null.
+   */
   async details(externalId: string): Promise<TrackMetadata | null> {
     const info = await this.fetchVolume(externalId);
+    if (info === 'gone') return { coverUrl: null, creator: null, description: null, releaseYear: null };
     return info ? metadataOf(info) : null;
   }
 }
