@@ -107,8 +107,19 @@ export function timelineOf(
 
 const DAY_MS = 86_400_000;
 
+/** Midnight of the device-local calendar day an instant falls on. */
+function localMidnight(iso: string): number {
+  const d = new Date(iso);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+
+/**
+ * Whole calendar days between two instants, on the device's own calendar —
+ * 23:30 tonight to 00:30 tomorrow is one day, and nothing west of UTC shifts
+ * an evening into tomorrow. `round` absorbs a DST day being 23 or 25 hours.
+ */
 export function daysBetween(fromIso: string, toIso: string): number {
-  return Math.max(0, Math.floor((Date.parse(toIso) - Date.parse(fromIso)) / DAY_MS));
+  return Math.max(0, Math.round((localMidnight(toIso) - localMidnight(fromIso)) / DAY_MS));
 }
 
 export function formatDuration(days: number): string {
@@ -130,8 +141,9 @@ export function formatRelative(iso: string, nowIso: string): string {
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export function formatDate(iso: string): string {
+  // Local getters: a date is read on the user's calendar, not UTC's.
   const d = new Date(iso);
-  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+  return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 }
 
 const READ_CATEGORIES: readonly Category[] = ['book', 'comic', 'manga'];

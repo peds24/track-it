@@ -4,6 +4,7 @@ import {
   creatorLine,
   decodeEntities,
   formatDate,
+  daysBetween,
   formatDuration,
   formatRelative,
   initialsOf,
@@ -152,6 +153,21 @@ test('formatRelative speaks in days-ago terms', () => {
 
 test('formatDate is a short month-day-year date', () => {
   expect(formatDate('2026-08-12T12:00:00.000Z')).toBe('Aug 12, 2026');
+});
+
+test('formatDate uses the device calendar, so a late-evening add is not tomorrow', () => {
+  expect(formatDate(new Date(2026, 7, 12, 23, 30).toISOString())).toBe('Aug 12, 2026');
+  expect(formatDate(new Date(2026, 7, 13, 0, 15).toISOString())).toBe('Aug 13, 2026');
+});
+
+test('daysBetween counts local calendar days, not 24-hour blocks', () => {
+  const lateTonight = new Date(2026, 7, 12, 23, 30).toISOString();
+  const earlyTomorrow = new Date(2026, 7, 13, 0, 30).toISOString();
+  const laterTonight = new Date(2026, 7, 12, 23, 59).toISOString();
+  expect(daysBetween(lateTonight, earlyTomorrow)).toBe(1);
+  expect(daysBetween(lateTonight, laterTonight)).toBe(0);
+  expect(daysBetween(earlyTomorrow, lateTonight)).toBe(0);
+  expect(formatRelative(lateTonight, earlyTomorrow)).toBe('yesterday');
 });
 
 describe('activityLine', () => {
