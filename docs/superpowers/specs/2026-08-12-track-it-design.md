@@ -1127,7 +1127,11 @@ never a second bespoke fetch.
 `DatabaseProvider` after migration, unawaited, without blocking render. It
 targets only rows with a catalogue match — `external_id IS NOT NULL AND
 metadata_checked_at IS NULL` — and calls `details()` on them sequentially,
-one row at a time, to stay inside Metron's and TMDB's rate limits.
+one row at a time. Sequential alone is not enough: a first launch with many
+matched comics would still burst Metron (~20 requests/min per account, and
+each Metron row costs two requests), so lookups are also **paced per
+source** — a 3.5 s gap before each Metron lookup after the first, 2 s for
+AniList, none for TMDB or Google Books, and no wait for skipped rows.
 **Hand-typed tracks are never backfilled and nothing about their metadata
 is guessed** — confirmed with the user on 2026-09-22: a title with no
 catalogue id gets a placeholder tile and no cover, permanently, rather
@@ -1186,7 +1190,14 @@ shelf (A6) reach Done.
 match, not a stored flag. It is correct for every case
 `appendNextOngoingEntry` actually produces, but it cannot distinguish that
 case from a coincidence where a manually-added trailing unit happens to
-share its predecessor's `finishedAt` to the same tick.
+share its predecessor's `finishedAt` to the same tick. More importantly,
+"never reached" really means "never tapped Done on": the auto-appended
+unit starts in progress, so a user who genuinely read it but did not mark
+it done loses it to the same rule. That is why the rule is never silent —
+`ongoingPlaceholder(children, ongoing)` (the same check, exported) feeds
+`TrackSummary.completionDrops`, and both Complete confirms (row and detail
+screen, one shared `completionMessage`) name the unit that will be removed
+and say to tap Done on it first if it was finished.
 
 **A24 — Search shows who and when; back returns to the search, narrowing
 A17's "Nope, search again."** `SearchResult` gains optional `creator?`,
