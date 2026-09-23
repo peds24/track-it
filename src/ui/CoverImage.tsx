@@ -35,7 +35,10 @@ export function CoverImage({
 }) {
   const c = useTheme();
   const styles = useMemo(() => createStyles(c), [c]);
-  const [failed, setFailed] = useState(false);
+  // Remember *which* uri failed rather than a bare flag, so a later uri (a
+  // failed thumbnail replaced by the full cover) gets its own chance to load.
+  const [failedUri, setFailedUri] = useState<string | null>(null);
+  const failed = !!uri && failedUri === uri;
   const size = { width, height };
 
   if (uri && !failed) {
@@ -45,7 +48,7 @@ export function CoverImage({
         style={[styles.frame, size]}
         resizeMode="cover"
         accessibilityLabel={`${title} cover`}
-        onError={() => setFailed(true)}
+        onError={() => setFailedUri(uri)}
       />
     );
   }

@@ -482,6 +482,24 @@ test('tapping the row text opens the track (A22)', async () => {
   expect(onOpen).toHaveBeenCalledWith(show);
 });
 
+test('an openable row text is announced as a button named after the track', async () => {
+  await render(<TrackRow track={show} onAdvance={() => {}} onResume={() => {}} onRename={() => {}} onOpen={() => {}} />);
+  const opener = screen.getByRole('button', { name: 'Severance' });
+  expect(opener.props.accessible).toBe(true);
+});
+
+test('while renaming, the row text stops being one accessible element so the input stays reachable', async () => {
+  await render(<TrackRow track={show} onAdvance={() => {}} onResume={() => {}} onRename={() => {}} onOpen={() => {}} />);
+  await fireEvent(screen.getByText('Severance'), 'longPress');
+  expect(screen.queryByRole('button', { name: 'Severance' })).toBeNull();
+  expect(screen.getByDisplayValue('Severance')).toBeTruthy();
+});
+
+test('a row without onOpen is not announced as a button', async () => {
+  await render(<TrackRow track={show} onAdvance={() => {}} onResume={() => {}} onRename={() => {}} />);
+  expect(screen.queryByRole('button', { name: 'Severance' })).toBeNull();
+});
+
 test('tapping the advance control does not open the track', async () => {
   const onOpen = jest.fn();
   const onAdvance = jest.fn();

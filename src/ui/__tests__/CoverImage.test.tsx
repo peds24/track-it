@@ -23,3 +23,14 @@ test('a thumbnail-sized placeholder drops the initials', async () => {
   await render(<CoverImage uri={null} title="Dune" category="book" width={40} height={60} />);
   expect(screen.queryByText('D')).toBeNull();
 });
+
+test('a new uri after a failure gets a fresh chance to load', async () => {
+  const view = await render(<CoverImage uri="https://x/thumb.jpg" title="Dune" category="book" width={160} height={240} />);
+  await fireEvent(screen.getByLabelText('Dune cover'), 'error');
+  expect(screen.getByTestId('cover-placeholder')).toBeTruthy();
+
+  await view.rerender(<CoverImage uri="https://x/full.jpg" title="Dune" category="book" width={160} height={240} />);
+
+  expect(screen.getByLabelText('Dune cover')).toBeTruthy();
+  expect(screen.queryByTestId('cover-placeholder')).toBeNull();
+});

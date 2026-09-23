@@ -44,6 +44,10 @@ export default function TrackDetailScreen() {
   const load = useCallback(async () => {
     try {
       setDetail(await getTrackDetail(db, trackKind, id));
+    } catch {
+      // A failed read shows the same "couldn't be found" state rather than
+      // surfacing as an unhandled rejection from the focus effect.
+      setDetail(null);
     } finally {
       setLoading(false);
     }
@@ -126,7 +130,11 @@ export default function TrackDetailScreen() {
   }
 
   function confirmDelete() {
-    Alert.alert(`Delete ${track.title}?`, 'This removes the track. It cannot be undone.', [
+    const body =
+      track.kind === 'series'
+        ? 'This removes the track and every episode, issue or volume under it. It cannot be undone.'
+        : 'This removes the track. It cannot be undone.';
+    Alert.alert(`Delete ${track.title}?`, body, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',

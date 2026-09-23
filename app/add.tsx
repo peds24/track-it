@@ -383,6 +383,7 @@ export default function AddTrackScreen() {
           setResults(await providerForAdd(category, comicMode).search(data));
         }
         setPicked(null);
+        setHydrateFailed(false); // a stale "Couldn't load that match" note shouldn't sit above new scan results
       } catch {
         setScannedOrdinal(null);
         setResults([]);
@@ -399,6 +400,7 @@ export default function AddTrackScreen() {
     try {
       setResults(await provider.searchByUpc(upc, code));
       setPicked(null);
+      setHydrateFailed(false);
     } catch {
       setResults([]);
     }

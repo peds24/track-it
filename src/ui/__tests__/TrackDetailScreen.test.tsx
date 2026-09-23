@@ -96,3 +96,42 @@ test('completing a series uses the same confirm copy as the row', async () => {
     expect.any(Array),
   );
 });
+
+test('deleting a series warns that every unit under it goes too', async () => {
+  const alertSpy = jest.spyOn(Alert, 'alert');
+  await setupWith({ title: 'Berserk', category: 'manga', count: 3 });
+  await waitFor(() => expect(screen.getByText('Delete')).toBeTruthy());
+
+  await fireEvent.press(screen.getByText('Delete'));
+
+  expect(alertSpy).toHaveBeenCalledWith(
+    'Delete Berserk?',
+    'This removes the track and every episode, issue or volume under it. It cannot be undone.',
+    expect.any(Array),
+  );
+});
+
+test('deleting a standalone entry keeps the short warning', async () => {
+  const alertSpy = jest.spyOn(Alert, 'alert');
+  await setup();
+  await waitFor(() => expect(screen.getByText('Delete')).toBeTruthy());
+
+  await fireEvent.press(screen.getByText('Delete'));
+
+  expect(alertSpy).toHaveBeenCalledWith('Delete Dune?', 'This removes the track. It cannot be undone.', expect.any(Array));
+});
+
+test('a failed load shows the not-found state instead of an unhandled rejection', async () => {
+  const db = createMemoryDriver();
+  await migrate(db);
+  jest.spyOn(db, 'all').mockRejectedValue(new Error('disk I/O error'));
+  params.kind = 'entry';
+  params.id = 'whatever';
+  await render(
+    <DatabaseContext.Provider value={db}>
+      <TrackDetailScreen />
+    </DatabaseContext.Provider>,
+  );
+
+  await waitFor(() => expect(screen.getByText(/couldn’t be found/)).toBeTruthy());
+});

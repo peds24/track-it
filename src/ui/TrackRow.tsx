@@ -148,6 +148,11 @@ export function TrackRow({
           setEditingTitle(true);
         }}
         accessibilityHint={onOpen ? 'Opens details. Hold to rename.' : 'Hold to rename.'}
+        accessibilityRole={onOpen ? 'button' : undefined}
+        accessibilityLabel={onOpen ? track.title : undefined}
+        // While renaming, stop grouping the column into one element so the
+        // TextInput inside stays reachable by screen readers.
+        accessible={!editingTitle}
       >
         {editingTitle ? (
           <TextInput
