@@ -26,19 +26,19 @@ jest.mock('expo-router', () => {
 afterEach(() => jest.restoreAllMocks());
 
 async function setup(metadata?: Parameters<typeof addTrack>[1]['metadata']) {
+  return setupWith({
+    title: 'Dune',
+    category: 'book',
+    count: 1,
+    match: metadata ? { id: 'gb1', title: 'Dune', category: 'book', count: 1 } : undefined,
+    metadata,
+  });
+}
+
+async function setupWith(input: Parameters<typeof addTrack>[1]) {
   const db = createMemoryDriver();
   await migrate(db);
-  const created = await addTrack(
-    db,
-    {
-      title: 'Dune',
-      category: 'book',
-      count: 1,
-      match: metadata ? { id: 'gb1', title: 'Dune', category: 'book', count: 1 } : undefined,
-      metadata,
-    },
-    '2026-09-01T12:00:00.000Z',
-  );
+  const created = await addTrack(db, input, '2026-09-01T12:00:00.000Z');
   params.kind = created.kind;
   params.id = created.id;
   await render(
@@ -81,4 +81,18 @@ test('Complete confirms, then the screen reports it finished', async () => {
 test('a long description collapses behind Show more', async () => {
   await setup({ coverUrl: null, creator: null, description: 'word '.repeat(120), releaseYear: null });
   await waitFor(() => expect(screen.getByText('Show more')).toBeTruthy());
+});
+
+test('completing a series uses the same confirm copy as the row', async () => {
+  const alertSpy = jest.spyOn(Alert, 'alert');
+  await setupWith({ title: 'Berserk', category: 'manga', count: 3 });
+  await waitFor(() => expect(screen.getByText('Complete')).toBeTruthy());
+
+  await fireEvent.press(screen.getByText('Complete'));
+
+  expect(alertSpy).toHaveBeenCalledWith(
+    'Mark Berserk complete?',
+    'Every remaining unit is marked done. It moves to Done.',
+    expect.any(Array),
+  );
 });

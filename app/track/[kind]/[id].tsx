@@ -13,6 +13,7 @@ import {
   type TrackSummary,
 } from '@/data/trackRepo';
 import { activityLine, cleanDescription, creatorLine, formatDate, formatRelative } from '@/domain/formatters';
+import { completionMessage } from '@/ui/completionMessage';
 import { CoverImage } from '@/ui/CoverImage';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { ProgressEditor } from '@/ui/ProgressEditor';
@@ -107,7 +108,7 @@ export default function TrackDetailScreen() {
       : `Mark ${track.nextEntryTitle} ${READ.has(track.category) ? 'read' : 'watched'}`;
 
   function confirmComplete() {
-    Alert.alert(`Mark ${track.title} complete?`, 'It moves to Done.', [
+    Alert.alert(`Mark ${track.title} complete?`, completionMessage(track), [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Complete', onPress: () => run('Could not complete', () => completeTrack(db, track, new Date().toISOString())) },
     ]);

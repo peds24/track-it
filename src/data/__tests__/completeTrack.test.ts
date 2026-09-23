@@ -62,6 +62,26 @@ test('an ongoing series drops the auto-appended next unit and stops being ongoin
   expect(done?.progress).toEqual({ done: 2, total: 2 });
 });
 
+test('an ongoing series lists the auto-appended unit completing would drop', async () => {
+  const db = await freshDb();
+  await addTrack(db, { title: 'Saga', category: 'comic', count: 0, ongoing: true }, T0);
+  const next = async () => (await listTracks(db, 'currently'))[0] ?? (await listTracks(db, 'backlog'))[0]!;
+
+  await advanceEntry(db, (await next()).nextEntryId!, '2026-09-02T12:00:00.000Z'); // start #1
+  await advanceEntry(db, (await next()).nextEntryId!, '2026-09-03T12:00:00.000Z'); // finish #1 -> #2 appended
+  await advanceEntry(db, (await next()).nextEntryId!, '2026-09-04T12:00:00.000Z'); // finish #2 -> #3 appended
+
+  expect((await next()).completionDrops).toBe('Issue 3');
+});
+
+test('finite series and standalone entries never drop a unit', async () => {
+  const db = await freshDb();
+  await addTrack(db, { title: 'Berserk', category: 'manga', count: 3 }, T0);
+  await addTrack(db, { title: 'Dune', category: 'book', count: 1 }, T0);
+  const tracks = await listTracks(db, 'backlog');
+  expect(tracks.map((t) => t.completionDrops)).toEqual([null, null]);
+});
+
 test('completing an already-finished track is a harmless no-op', async () => {
   const db = await freshDb();
   const created = await addTrack(db, { title: 'Arrival', category: 'movie', count: 1 }, T0);

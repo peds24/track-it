@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { TrackSummary } from '@/data/trackRepo';
+import { completionMessage } from '@/ui/completionMessage';
 import { font, useTheme, type Palette } from '@/ui/theme';
 import { TrackRow } from '@/ui/TrackRow';
 
@@ -99,15 +100,9 @@ export function SwipeableTrackRow({
   // A23: completing touches every unit (and, for an ongoing series, ends it),
   // so it is confirmed like Delete, never fired by the swipe alone.
   const confirmComplete = useCallback(() => {
-    const body =
-      track.kind === 'entry'
-        ? 'It moves to Done.'
-        : track.ongoing
-          ? 'Everything you have reached is marked done and the series stops growing. It moves to Done.'
-          : 'Every remaining unit is marked done. It moves to Done.';
     Alert.alert(
       `Mark ${track.title} complete?`,
-      body,
+      completionMessage(track),
       [
         { text: 'Cancel', style: 'cancel', onPress: close },
         {

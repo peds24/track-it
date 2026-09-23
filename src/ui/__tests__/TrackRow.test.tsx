@@ -17,6 +17,7 @@ const show: TrackSummary = {
   nextEntryStatus: 'unstarted',
   nextEntryTitle: 'Episode 4',
   lastAdvancedAt: '2026-08-12T11:00:00.000Z',
+  completionDrops: null,
 };
 
 const HOUSE_SEASONS = [

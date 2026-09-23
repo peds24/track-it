@@ -1,4 +1,4 @@
-import { completeUnits } from '@/domain/advance';
+import { completeUnits, ongoingPlaceholder } from '@/domain/advance';
 import type { Entry } from '@/domain/types';
 
 const NOW = '2026-09-22T12:00:00.000Z';
@@ -87,5 +87,34 @@ describe('an ongoing series', () => {
     const { updated, removedIds } = completeUnits([one, two, alreadyDone], true, NOW);
     expect(removedIds).toEqual([]);
     expect(updated).toEqual([]);
+  });
+});
+
+describe('ongoingPlaceholder', () => {
+  const T2 = '2026-09-10T12:00:00.000Z';
+  const one = unit(1, { status: 'done', startedAt: '2026-09-05T12:00:00.000Z', finishedAt: '2026-09-06T12:00:00.000Z' });
+  const two = unit(2, { status: 'done', startedAt: '2026-09-06T12:00:00.000Z', finishedAt: T2, createdAt: '2026-09-06T12:00:00.000Z' });
+  const appended = unit(3, { status: 'in_progress', startedAt: T2, createdAt: T2 });
+
+  test('names the auto-appended unit completeUnits would remove, whatever the input order', () => {
+    expect(ongoingPlaceholder([appended, one, two], true)).toBe(appended);
+  });
+
+  test('is null for a finite series', () => {
+    expect(ongoingPlaceholder([one, two, appended], false)).toBeNull();
+  });
+
+  test('is null when the trailing unit was not created at its predecessor finish', () => {
+    expect(ongoingPlaceholder([one, two, unit(3, { createdAt: '2026-09-01T12:00:00.000Z' })], true)).toBeNull();
+  });
+
+  test('is null when the trailing unit is already done', () => {
+    const done3 = unit(3, { status: 'done', startedAt: T2, finishedAt: '2026-09-11T12:00:00.000Z', createdAt: T2 });
+    expect(ongoingPlaceholder([one, two, done3], true)).toBeNull();
+  });
+
+  test('is null for a lone unit or no units', () => {
+    expect(ongoingPlaceholder([unit(1, { status: 'in_progress' })], true)).toBeNull();
+    expect(ongoingPlaceholder([], true)).toBeNull();
   });
 });

@@ -20,6 +20,7 @@ const show: TrackSummary = {
   nextEntryStatus: 'unstarted',
   nextEntryTitle: 'Episode 2',
   lastAdvancedAt: '2026-08-12T11:00:00.000Z',
+  completionDrops: null,
 };
 
 const noop = { onAdvance: () => {}, onResume: () => {}, onRename: () => {}, onDelete: () => {} };
@@ -166,6 +167,21 @@ describe('A23: complete from the right-hand side', () => {
     const buttons = alertSpy.mock.calls[0]![2] as { text: string; onPress?: () => void }[];
     await act(async () => buttons.find((b) => b.text === 'Complete')!.onPress!());
     expect(onComplete).toHaveBeenCalledWith(show);
+  });
+
+  test('an ongoing series names the unit completing will remove', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert');
+    const saga: TrackSummary = { ...show, title: 'Saga', category: 'comic', ongoing: true, progress: null, completionDrops: 'Issue 13' };
+    await render(<SwipeableTrackRow track={saga} {...noop} onReturnToBacklog={() => {}} onComplete={() => {}} />);
+
+    await fireEvent.press(screen.getByLabelText('Complete Saga'));
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Mark Saga complete?',
+      expect.stringContaining("Issue 13 isn't marked done, so it's removed"),
+      expect.any(Array),
+      expect.any(Object),
+    );
   });
 
   test('a short left swipe still edits when both actions are available', async () => {

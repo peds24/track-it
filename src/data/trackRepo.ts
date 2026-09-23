@@ -1,5 +1,5 @@
 import type { SqlDriver } from '@/db/driver';
-import { advance, completeUnits, setPosition } from '@/domain/advance';
+import { advance, completeUnits, ongoingPlaceholder, setPosition } from '@/domain/advance';
 import { timelineOf, type Timeline } from '@/domain/formatters';
 import { nextEntry, progressFor, shelfForEntry, shelfForSeries } from '@/domain/shelf';
 import type { Category, Entry, SeasonBoundary, Series, Shelf, Status, TrackMetadata, UnitLabel } from '@/domain/types';
@@ -31,6 +31,9 @@ export type TrackSummary = {
   nextEntryTitle: string | null;
   /** When this track last moved forward. Derived at read time (D3), never stored. */
   lastAdvancedAt: string | null;
+  /** A23: the title of the unit completing this track would remove (an ongoing
+   * series' auto-appended next unit), so the confirm can name it. Null otherwise. */
+  completionDrops: string | null;
 };
 
 type SeriesRow = {
@@ -351,6 +354,7 @@ function buildSummaries(seriesRows: SeriesRow[], entries: Entry[]): TrackSummary
       nextEntryId: next?.id ?? null,
       nextEntryTitle: next?.title ?? null,
       lastAdvancedAt: lastAdvanceAcross(children),
+      completionDrops: ongoingPlaceholder(children, row.ongoing === 1)?.title ?? null,
     });
   }
 
@@ -380,6 +384,7 @@ function buildSummaries(seriesRows: SeriesRow[], entries: Entry[]): TrackSummary
       nextEntryId: entry.status === 'done' ? null : entry.id,
       nextEntryTitle: entry.status === 'done' ? null : entry.title,
       lastAdvancedAt: lastAdvanceOf(entry),
+      completionDrops: null,
     });
   }
 

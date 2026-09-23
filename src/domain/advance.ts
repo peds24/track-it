@@ -79,12 +79,28 @@ export function setPosition(
 }
 
 /**
+ * A23: the unit `completeUnits` would remove from an ongoing series (A4), or
+ * null. It is the trailing unit carrying `appendNextOngoingEntry`'s
+ * fingerprint: created at the exact instant its predecessor finished, and not
+ * done since. Exposed on its own so the confirm dialog can name it before the
+ * user commits — the rule also catches a unit the user genuinely reached but
+ * never tapped Done on.
+ */
+export function ongoingPlaceholder(children: readonly Entry[], ongoing: boolean): Entry | null {
+  if (!ongoing || children.length < 2) return null;
+  const ordered = [...children].sort((a, b) => (a.ordinal ?? 0) - (b.ordinal ?? 0));
+  const last = ordered[ordered.length - 1]!;
+  const previous = ordered[ordered.length - 2]!;
+  return last.status !== 'done' && previous.finishedAt !== null && last.createdAt === previous.finishedAt
+    ? last
+    : null;
+}
+
+/**
  * A23: finish a whole track by hand — every unit not yet done becomes done,
  * keeping any timestamp that already happened. For an ongoing series (A4),
- * the trailing unit is removed instead when it carries
- * `appendNextOngoingEntry`'s fingerprint: created at the exact instant its
- * predecessor finished, and not done since — the user never reached it, so
- * completing it would overcount ("13 of 13" for a run that ended at 12).
+ * the `ongoingPlaceholder` is removed instead — the auto-appended next unit,
+ * which completing would overcount ("13 of 13" for a run that ended at 12).
  */
 export function completeUnits(
   children: readonly Entry[],
@@ -92,15 +108,8 @@ export function completeUnits(
   now: string,
 ): { updated: Entry[]; removedIds: string[] } {
   const ordered = [...children].sort((a, b) => (a.ordinal ?? 0) - (b.ordinal ?? 0));
-  const removedIds: string[] = [];
-
-  if (ongoing && ordered.length > 1) {
-    const last = ordered[ordered.length - 1]!;
-    const previous = ordered[ordered.length - 2]!;
-    if (last.status !== 'done' && previous.finishedAt !== null && last.createdAt === previous.finishedAt) {
-      removedIds.push(last.id);
-    }
-  }
+  const placeholder = ongoingPlaceholder(ordered, ongoing);
+  const removedIds: string[] = placeholder ? [placeholder.id] : [];
 
   const updated = ordered
     .filter((c) => c.status !== 'done' && !removedIds.includes(c.id))
