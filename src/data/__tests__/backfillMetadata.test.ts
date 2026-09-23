@@ -103,3 +103,60 @@ test('existing values are never overwritten by the backfill', async () => {
   const [row] = await db.all<{ creator: string }>('SELECT creator FROM entry');
   expect(row?.creator).toBe('Kept');
 });
+
+describe('per-source pacing', () => {
+  async function dbWith(rows: [id: string, source: string][]): Promise<SqlDriver> {
+    const db = createMemoryDriver();
+    await migrate(db);
+    for (const [id, source] of rows) {
+      await db.run(
+        `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)
+         VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)`,
+        [id, id, T0, source, `x-${id}`],
+      );
+    }
+    return db;
+  }
+
+  function recordingSleep() {
+    const gaps: number[] = [];
+    return { gaps, sleep: async (ms: number) => void gaps.push(ms) };
+  }
+
+  const answering = () => fakeProvider(jest.fn().mockResolvedValue(META));
+
+  test('two metron rows wait once, 3500 ms, between the lookups', async () => {
+    const db = await dbWith([['a', 'metron'], ['b', 'metron']]);
+    const { gaps, sleep } = recordingSleep();
+    await backfillMetadata(db, answering, () => LATER, sleep);
+    expect(gaps).toEqual([3500]);
+  });
+
+  test('anilist rows are spaced 2000 ms apart', async () => {
+    const db = await dbWith([['a', 'anilist'], ['b', 'anilist'], ['c', 'anilist']]);
+    const { gaps, sleep } = recordingSleep();
+    await backfillMetadata(db, answering, () => LATER, sleep);
+    expect(gaps).toEqual([2000, 2000]);
+  });
+
+  test('google-books and tmdb are not paced, and a lone row never waits', async () => {
+    const db = await dbWith([['a', 'google-books'], ['b', 'google-books'], ['c', 'tmdb'], ['d', 'tmdb'], ['e', 'metron']]);
+    const { gaps, sleep } = recordingSleep();
+    await backfillMetadata(db, answering, () => LATER, sleep);
+    expect(gaps).toEqual([]);
+  });
+
+  test('the gap is per source: interleaved sources each pace only against themselves', async () => {
+    const db = await dbWith([['a', 'metron'], ['b', 'anilist'], ['c', 'metron'], ['d', 'anilist']]);
+    const { gaps, sleep } = recordingSleep();
+    await backfillMetadata(db, answering, () => LATER, sleep);
+    expect(gaps.sort()).toEqual([2000, 3500]);
+  });
+
+  test('skipped rows (no provider) never sleep', async () => {
+    const db = await dbWith([['a', 'metron'], ['b', 'metron']]);
+    const { gaps, sleep } = recordingSleep();
+    await backfillMetadata(db, () => null, () => LATER, sleep);
+    expect(gaps).toEqual([]);
+  });
+});
