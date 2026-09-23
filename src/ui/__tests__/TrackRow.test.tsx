@@ -473,3 +473,19 @@ test('submitting a blank title does not call onRename', async () => {
 
   expect(onRename).not.toHaveBeenCalled();
 });
+
+test('tapping the row text opens the track (A22)', async () => {
+  const onOpen = jest.fn();
+  await render(<TrackRow track={show} onAdvance={() => {}} onResume={() => {}} onRename={() => {}} onOpen={onOpen} />);
+  await fireEvent.press(screen.getByText('Severance'));
+  expect(onOpen).toHaveBeenCalledWith(show);
+});
+
+test('tapping the advance control does not open the track', async () => {
+  const onOpen = jest.fn();
+  const onAdvance = jest.fn();
+  await render(<TrackRow track={show} onAdvance={onAdvance} onResume={() => {}} onRename={() => {}} onOpen={onOpen} />);
+  await fireEvent.press(screen.getByLabelText('Mark Episode 4 watched'));
+  expect(onAdvance).toHaveBeenCalled();
+  expect(onOpen).not.toHaveBeenCalled();
+});
