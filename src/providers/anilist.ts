@@ -1,7 +1,11 @@
+import { cleanDescription } from '@/domain/formatters';
+import type { TrackMetadata } from '@/domain/types';
 import { generateEntries } from '@/providers/manual';
 import type { MetadataProvider, SearchResult, SeriesDraft } from '@/providers/types';
 
 const ENDPOINT = 'https://graphql.anilist.co';
+
+const STAFF_FIELDS = `staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }`;
 
 const SEARCH_QUERY = `
   query ($search: String) {
@@ -9,6 +13,9 @@ const SEARCH_QUERY = `
       media(search: $search, type: MANGA) {
         id
         title { romaji english }
+        startDate { year }
+        coverImage { medium }
+        ${STAFF_FIELDS}
       }
     }
   }
@@ -23,11 +30,20 @@ const DETAIL_QUERY = `
       description(asHtml: false)
       startDate { year }
       endDate { year }
+      coverImage { large }
+      ${STAFF_FIELDS}
     }
   }
 `;
 
-type AnilistSearchHit = { id: number; title: { romaji?: string; english?: string } };
+type AnilistStaff = { edges?: { role?: string; node?: { name?: { full?: string } } }[] };
+type AnilistSearchHit = {
+  id: number;
+  title: { romaji?: string; english?: string };
+  startDate?: { year?: number | null };
+  coverImage?: { medium?: string | null };
+  staff?: AnilistStaff;
+};
 type AnilistSearchResponse = { data?: { Page?: { media?: AnilistSearchHit[] } } };
 type AnilistDetail = {
   volumes?: number | null;
@@ -36,17 +52,25 @@ type AnilistDetail = {
   description?: string | null;
   startDate?: { year?: number | null };
   endDate?: { year?: number | null };
+  coverImage?: { large?: string | null };
+  staff?: AnilistStaff;
 };
 type AnilistDetailResponse = { data?: { Media?: AnilistDetail } };
 
-/** `asHtml: false` still leaves `<br>` paragraph breaks in AniList's
- * description field (confirmed live) — this is the one place any HTML
- * survives, so it's stripped here rather than trusting the API param alone. */
-function stripHtml(text: string): string {
-  return text
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<[^>]+>/g, '')
-    .trim();
+/** The story credit ("Story", "Story & Art") is the author; else the first credit. */
+function authorOf(staff: AnilistStaff | undefined): string | null {
+  const edges = staff?.edges ?? [];
+  const story = edges.find((e) => /story/i.test(e.role ?? '')) ?? edges[0];
+  return story?.node?.name?.full ?? null;
+}
+
+function metadataOf(media: AnilistDetail): TrackMetadata {
+  return {
+    coverUrl: media.coverImage?.large ?? null,
+    creator: authorOf(media.staff),
+    description: cleanDescription(media.description),
+    releaseYear: media.startDate?.year ? String(media.startDate.year) : null,
+  };
 }
 
 /**
@@ -84,7 +108,15 @@ export class AnilistProvider implements MetadataProvider {
 
     return hits
       .filter((hit): hit is AnilistSearchHit => typeof titleOf(hit) === 'string')
-      .map((hit) => ({ id: String(hit.id), title: titleOf(hit)!, category: 'manga' as const, count: 1 }));
+      .map((hit) => ({
+        id: String(hit.id),
+        title: titleOf(hit)!,
+        category: 'manga' as const,
+        count: 1,
+        creator: authorOf(hit.staff) ?? undefined,
+        year: hit.startDate?.year ? String(hit.startDate.year) : undefined,
+        thumbnailUrl: hit.coverImage?.medium ?? undefined,
+      }));
   }
 
   /**
@@ -131,7 +163,18 @@ export class AnilistProvider implements MetadataProvider {
       externalSource: this.id,
       externalId: result.id,
       metaLine,
-      blurb: media?.description ? stripHtml(media.description) : null,
+      blurb: cleanDescription(media?.description),
+      metadata: media ? metadataOf(media) : undefined,
     };
+  }
+
+  /** A22: the backfill's lookup — never throws, unlike `hydrate`. */
+  async details(externalId: string): Promise<TrackMetadata | null> {
+    try {
+      const body = await this.post<AnilistDetailResponse>(DETAIL_QUERY, { id: Number(externalId) });
+      return body.data?.Media ? metadataOf(body.data.Media) : null;
+    } catch {
+      return null;
+    }
   }
 }
