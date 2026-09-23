@@ -77,3 +77,34 @@ export function setPosition(
 
   return changed;
 }
+
+/**
+ * A23: finish a whole track by hand — every unit not yet done becomes done,
+ * keeping any timestamp that already happened. For an ongoing series (A4),
+ * the trailing unit is removed instead when it carries
+ * `appendNextOngoingEntry`'s fingerprint: created at the exact instant its
+ * predecessor finished, and not done since — the user never reached it, so
+ * completing it would overcount ("13 of 13" for a run that ended at 12).
+ */
+export function completeUnits(
+  children: readonly Entry[],
+  ongoing: boolean,
+  now: string,
+): { updated: Entry[]; removedIds: string[] } {
+  const ordered = [...children].sort((a, b) => (a.ordinal ?? 0) - (b.ordinal ?? 0));
+  const removedIds: string[] = [];
+
+  if (ongoing && ordered.length > 1) {
+    const last = ordered[ordered.length - 1]!;
+    const previous = ordered[ordered.length - 2]!;
+    if (last.status !== 'done' && previous.finishedAt !== null && last.createdAt === previous.finishedAt) {
+      removedIds.push(last.id);
+    }
+  }
+
+  const updated = ordered
+    .filter((c) => c.status !== 'done' && !removedIds.includes(c.id))
+    .map((c) => ({ ...c, status: 'done' as const, startedAt: c.startedAt ?? now, finishedAt: now }));
+
+  return { updated, removedIds };
+}
