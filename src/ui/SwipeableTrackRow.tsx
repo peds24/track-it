@@ -13,7 +13,10 @@ const SLOP = 10;
 const DELETE_THRESHOLD = 175;
 /** Maximum swipe distances. */
 const MAX_SWIPE_RIGHT = 260;
-const MAX_SWIPE_LEFT = 160;
+const MAX_SWIPE_LEFT_SHALLOW = 160;
+/** A23: deep left swipe that moves from Edit to Complete — mirrors DELETE_THRESHOLD. */
+const COMPLETE_THRESHOLD = 175;
+const MAX_SWIPE_LEFT_DEEP = 260;
 
 export function SwipeableTrackRow({
   track,
@@ -23,6 +26,8 @@ export function SwipeableTrackRow({
   onDelete,
   onReturnToBacklog,
   onEditProgress,
+  onComplete,
+  onOpen,
 }: {
   track: TrackSummary;
   onAdvance: (entryId: string) => void;
@@ -31,6 +36,8 @@ export function SwipeableTrackRow({
   onDelete: (track: TrackSummary) => void;
   onReturnToBacklog: (track: TrackSummary) => void;
   onEditProgress?: (track: TrackSummary) => void;
+  onComplete?: (track: TrackSummary) => void;
+  onOpen?: (track: TrackSummary) => void;
 }) {
   const c = useTheme();
   const styles = useMemo(() => createStyles(c), [c]);
@@ -38,6 +45,7 @@ export function SwipeableTrackRow({
   const translateX = useRef(new Animated.Value(0)).current;
   const offset = useRef(0);
   const [isDeepSwipe, setIsDeepSwipe] = useState(false);
+  const [isDeepLeft, setIsDeepLeft] = useState(false);
 
   const settle = useCallback(
     (to: number) => {
@@ -54,6 +62,7 @@ export function SwipeableTrackRow({
 
   const close = useCallback(() => {
     setIsDeepSwipe(false);
+    setIsDeepLeft(false);
     settle(0);
   }, [settle]);
 
@@ -63,6 +72,8 @@ export function SwipeableTrackRow({
     onEditProgress !== undefined &&
     track.progress !== null &&
     track.progress.total > 0;
+  const canComplete = onComplete !== undefined && track.shelf !== 'done';
+  const leftTwoStep = canEdit && canComplete;
 
   const confirmDelete = useCallback(() => {
     Alert.alert(
@@ -84,6 +95,32 @@ export function SwipeableTrackRow({
       { onDismiss: close },
     );
   }, [track, onDelete, close]);
+
+  // A23: completing touches every unit (and, for an ongoing series, ends it),
+  // so it is confirmed like Delete, never fired by the swipe alone.
+  const confirmComplete = useCallback(() => {
+    const body =
+      track.kind === 'entry'
+        ? 'It moves to Done.'
+        : track.ongoing
+          ? 'Everything you have reached is marked done and the series stops growing. It moves to Done.'
+          : 'Every remaining unit is marked done. It moves to Done.';
+    Alert.alert(
+      `Mark ${track.title} complete?`,
+      body,
+      [
+        { text: 'Cancel', style: 'cancel', onPress: close },
+        {
+          text: 'Complete',
+          onPress: () => {
+            close();
+            onComplete?.(track);
+          },
+        },
+      ],
+      { onDismiss: close },
+    );
+  }, [track, onComplete, close]);
 
   const triggerReturn = useCallback(() => {
     if (!resetting) {
@@ -113,6 +150,24 @@ export function SwipeableTrackRow({
     close();
     onEditProgress?.(track);
   }, [close, onEditProgress, track]);
+
+  const rightContainerBg = leftTwoStep
+    ? translateX.interpolate({
+        inputRange: [-180, -150, -100, 0],
+        outputRange: [c.tertiaryContainer, c.tertiaryContainer, c.primaryContainer, c.primaryContainer],
+        extrapolate: 'clamp',
+      })
+    : canComplete
+      ? c.tertiaryContainer
+      : c.primaryContainer;
+
+  const editOpacity = leftTwoStep
+    ? translateX.interpolate({ inputRange: [-160, -130, -30, 0], outputRange: [0, 0.2, 1, 1], extrapolate: 'clamp' })
+    : 1;
+
+  const completeOpacity = leftTwoStep
+    ? translateX.interpolate({ inputRange: [-180, -155, -120, 0], outputRange: [1, 0.85, 0, 0], extrapolate: 'clamp' })
+    : 1;
 
   // Isolate container visibility by swipe direction so background colors never bleed over each other
   const leftActionOpacity = translateX.interpolate({
@@ -168,8 +223,8 @@ export function SwipeableTrackRow({
           Math.abs(g.dx) > SLOP && Math.abs(g.dx) > Math.abs(g.dy) * 1.5,
         onPanResponderMove: (_e, g) => {
           const next = offset.current + g.dx;
-          const minX = canEdit ? -MAX_SWIPE_LEFT : 0;
-          const maxX = canReturn ? MAX_SWIPE_RIGHT : MAX_SWIPE_LEFT;
+          const minX = canComplete ? (leftTwoStep ? -MAX_SWIPE_LEFT_DEEP : -MAX_SWIPE_LEFT_SHALLOW) : canEdit ? -MAX_SWIPE_LEFT_SHALLOW : 0;
+          const maxX = canReturn ? MAX_SWIPE_RIGHT : MAX_SWIPE_LEFT_SHALLOW;
           const clamped = Math.max(minX, Math.min(maxX, next));
           translateX.setValue(clamped);
 
@@ -180,10 +235,13 @@ export function SwipeableTrackRow({
               setIsDeepSwipe(false);
             }
           }
+
+          if (leftTwoStep) setIsDeepLeft(clamped <= -COMPLETE_THRESHOLD);
         },
         onPanResponderRelease: (_e, g) => {
           const next = offset.current + g.dx;
           setIsDeepSwipe(false);
+          setIsDeepLeft(false);
 
           if (next >= DELETE_THRESHOLD) {
             // Longer/deep swipe to the right triggers delete
@@ -197,6 +255,16 @@ export function SwipeableTrackRow({
             // Quick swipe to the right immediately activates pause / backlog
             settle(0);
             triggerReturn();
+          } else if (leftTwoStep && next <= -COMPLETE_THRESHOLD) {
+            // Deep swipe to the left, when Edit is also available, moves past
+            // Edit to Complete.
+            settle(0);
+            confirmComplete();
+          } else if (!canEdit && canComplete && (next <= -LATCH || g.vx < -0.35)) {
+            // Nothing to edit: Complete is the single left-swipe step, the
+            // same way Delete is Backlog's single right-swipe step.
+            settle(0);
+            confirmComplete();
           } else if (canEdit && (next <= -LATCH || g.vx < -0.35)) {
             // Quick swipe to the left immediately activates edit
             settle(0);
@@ -207,10 +275,22 @@ export function SwipeableTrackRow({
         },
         onPanResponderTerminate: () => {
           setIsDeepSwipe(false);
+          setIsDeepLeft(false);
           settle(offset.current);
         },
       }),
-    [canReturn, canEdit, settle, translateX, triggerReturn, confirmDelete, handleEdit],
+    [
+      canReturn,
+      canEdit,
+      canComplete,
+      leftTwoStep,
+      settle,
+      translateX,
+      triggerReturn,
+      confirmDelete,
+      confirmComplete,
+      handleEdit,
+    ],
   );
 
   return (
@@ -287,28 +367,49 @@ export function SwipeableTrackRow({
           </Animated.View>
         )}
 
-        {/* Right Action (revealed on Left Swipe: full length colored background for Edit) */}
-        {canEdit && (
+        {/* Right Action (revealed on Left Swipe: full length colored background for Edit / Complete) */}
+        {(canEdit || canComplete) && (
           <Animated.View
-            style={[
-              styles.rightActionContainer,
-              { opacity: rightActionOpacity },
-            ]}
+            style={[styles.rightActionContainer, { backgroundColor: rightContainerBg, opacity: rightActionOpacity }]}
           >
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Edit ${track.title} progress`}
-              onPress={handleEdit}
-              style={styles.actionPressableRight}
-            >
-              <Text style={[styles.actionText, styles.editText]}>Edit</Text>
-              <Ionicons name="create" size={24} color={c.onPrimaryContainer} />
-            </Pressable>
+            {canEdit && (
+              <Animated.View
+                style={[StyleSheet.absoluteFill, styles.rightActionContent, { opacity: editOpacity }]}
+                pointerEvents={isDeepLeft ? 'none' : 'auto'}
+              >
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Edit ${track.title} progress`}
+                  onPress={handleEdit}
+                  style={styles.actionPressableRight}
+                >
+                  <Text style={[styles.actionText, styles.editText]}>Edit</Text>
+                  <Ionicons name="create" size={24} color={c.onPrimaryContainer} />
+                </Pressable>
+              </Animated.View>
+            )}
+            {canComplete && (
+              <Animated.View
+                style={[StyleSheet.absoluteFill, styles.rightActionContent, { opacity: completeOpacity }]}
+                pointerEvents={leftTwoStep && !isDeepLeft ? 'none' : 'auto'}
+              >
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Complete ${track.title}`}
+                  onPress={confirmComplete}
+                  style={styles.actionPressableRight}
+                >
+                  <Text style={[styles.actionText, styles.completeText]}>Complete</Text>
+                  <Ionicons name="checkmark-done" size={24} color={c.onTertiaryContainer} />
+                </Pressable>
+              </Animated.View>
+            )}
           </Animated.View>
         )}
       </View>
 
       <Animated.View
+        testID="swipeable-surface"
         style={[styles.surface, { transform: [{ translateX }] }]}
         {...pan.panHandlers}
       >
@@ -318,6 +419,7 @@ export function SwipeableTrackRow({
           onResume={onResume}
           onRename={onRename}
           onEditProgress={onEditProgress}
+          onOpen={onOpen}
         />
       </Animated.View>
     </View>
@@ -365,7 +467,10 @@ function createStyles(c: Palette) {
       bottom: 0,
       left: 0,
       right: 0,
-      backgroundColor: c.primaryContainer,
+      justifyContent: 'center',
+      alignItems: 'flex-end',
+    },
+    rightActionContent: {
       justifyContent: 'center',
       alignItems: 'flex-end',
     },
@@ -389,6 +494,9 @@ function createStyles(c: Palette) {
     },
     editText: {
       color: c.onPrimaryContainer,
+    },
+    completeText: {
+      color: c.onTertiaryContainer,
     },
     surface: {
       backgroundColor: c.surface,
