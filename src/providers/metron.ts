@@ -57,7 +57,7 @@ type MetronCredit = { creator?: string; role?: { name?: string }[] };
 type MetronIssueDetail = { id: number; series: MetronSeriesRef; image?: string | null; credits?: MetronCredit[] };
 type MetronSeriesDetail = {
   issue_count?: number;
-  year_begin?: number;
+  year_began?: number;
   year_end?: number | null;
   publisher?: { name?: string };
   desc?: string;
@@ -89,7 +89,7 @@ function metadataOf(issue: MetronIssueDetail, series: MetronSeriesDetail): Track
     coverUrl: issue.image ?? null,
     creator: writersOf(issue.credits),
     description: cleanDescription(series.desc),
-    releaseYear: series.year_begin ? String(series.year_begin) : null,
+    releaseYear: series.year_began ? String(series.year_began) : null,
   };
 }
 
@@ -183,12 +183,12 @@ export class MetronProvider implements MetadataProvider {
 
     // A17: the confirm screen's meta line/blurb — no second fetch, the same
     // series lookup already made for `issue_count`/`year_end`.
-    const yearRange = series.year_begin
+    const yearRange = series.year_began
       ? ongoing
-        ? `${series.year_begin}–present`
-        : series.year_end && series.year_end !== series.year_begin
-          ? `${series.year_begin}–${series.year_end}`
-          : String(series.year_begin)
+        ? `${series.year_began}–present`
+        : series.year_end && series.year_end !== series.year_began
+          ? `${series.year_began}–${series.year_end}`
+          : String(series.year_began)
       : null;
     const metaLine = [
       series.publisher?.name ?? null,

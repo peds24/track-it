@@ -208,7 +208,7 @@ describe('hydrate metaLine/blurb (A17)', () => {
       {
         body: {
           issue_count: 66,
-          year_begin: 2012,
+          year_began: 2012,
           year_end: 2024,
           publisher: { name: 'Image Comics' },
           desc: 'Romeo and Juliet meets Star Wars meets Game of Thrones.',
@@ -234,7 +234,7 @@ describe('hydrate metaLine/blurb (A17)', () => {
       {
         body: {
           issue_count: 72,
-          year_begin: 2012,
+          year_began: 2012,
           year_end: null,
           publisher: { name: 'Image Comics' },
         },
@@ -303,7 +303,7 @@ describe('A22/A24 metadata', () => {
       { creator: 'Fiona Staples', role: [{ name: 'Artist' }, { name: 'Cover' }] },
     ],
   };
-  const SERIES = { issue_count: 54, year_begin: 2012, year_end: null, desc: '<p>Space &amp; war.</p>' };
+  const SERIES = { issue_count: 54, year_began: 2012, year_end: null, desc: '<p>Space &amp; war.</p>' };
 
   test('details reads the issue cover and writer, and the series description and year', async () => {
     mockSequence(ISSUE, SERIES);
