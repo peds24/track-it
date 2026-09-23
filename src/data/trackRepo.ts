@@ -1,5 +1,5 @@
 import type { SqlDriver } from '@/db/driver';
-import { advance, setPosition } from '@/domain/advance';
+import { advance, completeUnits, setPosition } from '@/domain/advance';
 import { nextEntry, progressFor, shelfForEntry, shelfForSeries } from '@/domain/shelf';
 import type { Category, Entry, SeasonBoundary, Series, Shelf, Status } from '@/domain/types';
 import { assertEntryInvariants, assertIsoTimestamp, isStandaloneMediaType } from '@/domain/validate';
@@ -570,5 +570,51 @@ export async function setTrackPosition(
       ]);
     }
     await db.run('UPDATE series SET paused = 0 WHERE id = ?', [seriesId]);
+  });
+}
+
+/**
+ * A23: finish a track by hand — the manual counterpart to tapping Done until
+ * the end, and the only way an ongoing series (A4) ever reaches Done. The
+ * rules live in domain/completeUnits; this persists them in one transaction
+ * so a half-completed series is never observable. Clearing `ongoing` is what
+ * lets the derived shelf (D3) report Done; clearing `paused` keeps a
+ * completed-from-Backlog track from carrying a stale flag (A6).
+ */
+export async function completeTrack(
+  db: SqlDriver,
+  track: { kind: 'series' | 'entry'; id: string },
+  now: string,
+): Promise<void> {
+  const writeUnit = (e: Entry) =>
+    db.run('UPDATE entry SET status = ?, started_at = ?, finished_at = ? WHERE id = ?', [
+      e.status,
+      e.startedAt,
+      e.finishedAt,
+      e.id,
+    ]);
+
+  if (track.kind === 'entry') {
+    const rows = await db.all<EntryRow>('SELECT * FROM entry WHERE id = ?', [track.id]);
+    const row = rows[0];
+    if (!row) throw new Error(`Entry ${track.id} not found`);
+    const { updated } = completeUnits([toEntry(row)], false, now);
+    await db.transaction(async () => {
+      for (const e of updated) await writeUnit(e);
+      await db.run('UPDATE entry SET paused = 0 WHERE id = ?', [track.id]);
+    });
+    return;
+  }
+
+  const seriesRows = await db.all<SeriesRow>('SELECT * FROM series WHERE id = ?', [track.id]);
+  const series = seriesRows[0];
+  if (!series) throw new Error(`Series ${track.id} not found`);
+  const children = await db.all<EntryRow>('SELECT * FROM entry WHERE series_id = ?', [track.id]);
+  const { updated, removedIds } = completeUnits(children.map(toEntry), series.ongoing === 1, now);
+
+  await db.transaction(async () => {
+    for (const e of updated) await writeUnit(e);
+    for (const id of removedIds) await db.run('DELETE FROM entry WHERE id = ?', [id]);
+    await db.run('UPDATE series SET ongoing = 0, paused = 0 WHERE id = ?', [track.id]);
   });
 }

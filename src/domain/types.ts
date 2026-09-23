@@ -68,3 +68,15 @@ export type Entry = {
   externalSource: string | null;
   externalId: string | null;
 };
+
+/**
+ * A22: display-only metadata from a catalogue match — never a source of truth
+ * for progress or shelf (D3). Every field may be null: hand-typed tracks have
+ * none, and catalogues routinely omit one or another.
+ */
+export type TrackMetadata = {
+  coverUrl: string | null;
+  creator: string | null;
+  description: string | null;
+  releaseYear: string | null;
+};

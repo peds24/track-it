@@ -83,6 +83,13 @@ test('a pre-A16 row (book/movie/episode/issue/volume) survives the table recreat
     paused: 1,
     external_source: 'google-books',
     external_id: 'abc123',
+    // A22: added after this test was written — every pre-existing row gets
+    // these as null via ALTER TABLE, same as any other nullable column.
+    cover_url: null,
+    creator: null,
+    description: null,
+    release_year: null,
+    metadata_checked_at: null,
   });
 });
 
@@ -158,4 +165,15 @@ test('the series table has a seasons_json column, nullable for a pre-existing ro
     ['s1'],
   );
   expect(JSON.parse(updated[0]!.seasons_json!)).toEqual([{ number: 1, episodeCount: 22 }]);
+});
+
+test('series and entry both carry the A22 metadata columns', async () => {
+  const db = createMemoryDriver();
+  await migrate(db);
+  for (const table of ['series', 'entry']) {
+    const cols = (await db.all<{ name: string }>(`PRAGMA table_info(${table})`)).map((c) => c.name);
+    expect(cols).toEqual(
+      expect.arrayContaining(['cover_url', 'creator', 'description', 'release_year', 'metadata_checked_at']),
+    );
+  }
 });

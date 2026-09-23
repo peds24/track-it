@@ -97,6 +97,24 @@ const MIGRATIONS: readonly string[] = [
   CREATE INDEX IF NOT EXISTS idx_entry_series ON entry(series_id);
   CREATE INDEX IF NOT EXISTS idx_entry_status ON entry(status);
   `,
+  // A22: display metadata for the track detail screen — cover, creator,
+  // cleaned description, release year. Display-only (D3 still holds). A
+  // series child's own columns stay unused; its series row holds them, same
+  // as external_source and paused. `metadata_checked_at` records that the
+  // one-time backfill has run for a row (even if it found nothing), so a
+  // catalogue that genuinely has no cover is not re-queried every launch.
+  `
+  ALTER TABLE series ADD COLUMN cover_url TEXT;
+  ALTER TABLE series ADD COLUMN creator TEXT;
+  ALTER TABLE series ADD COLUMN description TEXT;
+  ALTER TABLE series ADD COLUMN release_year TEXT;
+  ALTER TABLE series ADD COLUMN metadata_checked_at TEXT;
+  ALTER TABLE entry ADD COLUMN cover_url TEXT;
+  ALTER TABLE entry ADD COLUMN creator TEXT;
+  ALTER TABLE entry ADD COLUMN description TEXT;
+  ALTER TABLE entry ADD COLUMN release_year TEXT;
+  ALTER TABLE entry ADD COLUMN metadata_checked_at TEXT;
+  `,
 ];
 
 /**
