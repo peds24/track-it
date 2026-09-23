@@ -72,4 +72,20 @@ describe('an ongoing series', () => {
     const { removedIds } = completeUnits([one, two, appended], false, NOW);
     expect(removedIds).toEqual([]);
   });
+
+  test('sorts children by ordinal before processing', () => {
+    const three = unit(3);
+    const done = unit(1, { status: 'done', startedAt: '2026-09-02T12:00:00.000Z', finishedAt: '2026-09-03T12:00:00.000Z' });
+    const two = unit(2, { status: 'in_progress', startedAt: '2026-09-04T12:00:00.000Z' });
+    const { updated, removedIds } = completeUnits([three, done, two], false, NOW);
+    expect(removedIds).toEqual([]);
+    expect(updated.map((u) => u.id)).toEqual(['e2', 'e3']);
+  });
+
+  test('does not remove a trailing done unit even with matching fingerprint', () => {
+    const alreadyDone = unit(3, { status: 'done', startedAt: T2, finishedAt: '2026-09-11T12:00:00.000Z', createdAt: T2 });
+    const { updated, removedIds } = completeUnits([one, two, alreadyDone], true, NOW);
+    expect(removedIds).toEqual([]);
+    expect(updated).toEqual([]);
+  });
 });
