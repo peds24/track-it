@@ -270,3 +270,60 @@ describe('hydrate metaLine/blurb (A17)', () => {
     expect(draft.blurb).toBeNull();
   });
 });
+
+describe('A22/A24 metadata', () => {
+  function mockSequence(...bodies: unknown[]): jest.Mock {
+    const fn = jest.fn();
+    for (const body of bodies) fn.mockResolvedValueOnce({ ok: true, status: 200, json: async () => body });
+    global.fetch = fn as unknown as typeof fetch;
+    return fn;
+  }
+
+  beforeEach(() => {
+    process.env.EXPO_PUBLIC_METRON_USERNAME = 'u';
+    process.env.EXPO_PUBLIC_METRON_PASSWORD = 'p';
+  });
+
+  test('search hits carry cover date year and cover image', async () => {
+    mockSequence({
+      results: [
+        { id: 7, issue: 'Saga (2012) #1', series: { id: 3, name: 'Saga' }, cover_date: '2012-03-01', image: 'https://static.metron.cloud/1.jpg' },
+      ],
+    });
+    const [hit] = await new MetronProvider().search('Saga');
+    expect(hit).toMatchObject({ year: '2012', thumbnailUrl: 'https://static.metron.cloud/1.jpg' });
+  });
+
+  const ISSUE = {
+    id: 7,
+    series: { id: 3, name: 'Saga' },
+    image: 'https://static.metron.cloud/1.jpg',
+    credits: [
+      { creator: 'Brian K. Vaughan', role: [{ name: 'Writer' }] },
+      { creator: 'Fiona Staples', role: [{ name: 'Artist' }, { name: 'Cover' }] },
+    ],
+  };
+  const SERIES = { issue_count: 54, year_begin: 2012, year_end: null, desc: '<p>Space &amp; war.</p>' };
+
+  test('details reads the issue cover and writer, and the series description and year', async () => {
+    mockSequence(ISSUE, SERIES);
+    expect(await new MetronProvider().details('7')).toEqual({
+      coverUrl: 'https://static.metron.cloud/1.jpg',
+      creator: 'Brian K. Vaughan',
+      description: 'Space & war.',
+      releaseYear: '2012',
+    });
+  });
+
+  test('hydrate carries the same metadata and a cleaned blurb', async () => {
+    mockSequence(ISSUE, SERIES);
+    const draft = await new MetronProvider().hydrate({ id: '7', title: 'Saga (2012) #1', category: 'comic', count: 1 });
+    expect(draft.metadata?.creator).toBe('Brian K. Vaughan');
+    expect(draft.blurb).toBe('Space & war.');
+  });
+
+  test('details returns null when credentials are missing', async () => {
+    delete process.env.EXPO_PUBLIC_METRON_USERNAME;
+    expect(await new MetronProvider().details('7')).toBeNull();
+  });
+});

@@ -1,3 +1,5 @@
+import { cleanDescription, yearOf } from '@/domain/formatters';
+import type { TrackMetadata } from '@/domain/types';
 import { generateEntries } from '@/providers/manual';
 import type { MetadataProvider, SearchResult, SeriesDraft } from '@/providers/types';
 
@@ -43,9 +45,16 @@ function utf8Bytes(input: string): number[] {
 }
 
 type MetronSeriesRef = { id: number; name: string };
-type MetronIssueListItem = { id: number; issue: string; series: MetronSeriesRef };
+type MetronIssueListItem = {
+  id: number;
+  issue: string;
+  series: MetronSeriesRef;
+  cover_date?: string;
+  image?: string | null;
+};
 type MetronIssueListResponse = { results?: MetronIssueListItem[] };
-type MetronIssueDetail = { id: number; series: MetronSeriesRef };
+type MetronCredit = { creator?: string; role?: { name?: string }[] };
+type MetronIssueDetail = { id: number; series: MetronSeriesRef; image?: string | null; credits?: MetronCredit[] };
 type MetronSeriesDetail = {
   issue_count?: number;
   year_begin?: number;
@@ -61,7 +70,27 @@ function toResults(body: MetronIssueListResponse): SearchResult[] {
     title: item.issue,
     category: 'comic',
     count: 1,
+    year: yearOf(item.cover_date) ?? undefined,
+    thumbnailUrl: item.image ?? undefined,
   }));
+}
+
+/** Writer credits first; a story-only credit ("Story") counts as writing. */
+function writersOf(credits: MetronCredit[] | undefined): string | null {
+  const names = (credits ?? [])
+    .filter((c) => (c.role ?? []).some((r) => /writer|story/i.test(r.name ?? '')))
+    .map((c) => c.creator)
+    .filter((n): n is string => !!n);
+  return names.length > 0 ? [...new Set(names)].join(', ') : null;
+}
+
+function metadataOf(issue: MetronIssueDetail, series: MetronSeriesDetail): TrackMetadata {
+  return {
+    coverUrl: issue.image ?? null,
+    creator: writersOf(issue.credits),
+    description: cleanDescription(series.desc),
+    releaseYear: series.year_begin ? String(series.year_begin) : null,
+  };
 }
 
 /**
@@ -173,7 +202,23 @@ export class MetronProvider implements MetadataProvider {
       externalSource: this.id,
       externalId: result.id,
       metaLine,
-      blurb: series.desc ?? null,
+      blurb: cleanDescription(series.desc),
+      metadata: metadataOf(issue, series),
     };
+  }
+
+  /**
+   * A22: the backfill's lookup. `externalId` is the matched issue's id (what
+   * `hydrate` records), so this is the same two hops `hydrate` makes. `get()`
+   * throws on missing credentials or HTTP errors; `details` never does.
+   */
+  async details(externalId: string): Promise<TrackMetadata | null> {
+    try {
+      const issue = await this.get<MetronIssueDetail>(`/issue/${encodeURIComponent(externalId)}/`);
+      const series = await this.get<MetronSeriesDetail>(`/series/${encodeURIComponent(String(issue.series.id))}/`);
+      return metadataOf(issue, series);
+    } catch {
+      return null;
+    }
   }
 }
