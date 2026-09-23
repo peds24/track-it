@@ -1,4 +1,4 @@
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,6 +19,7 @@ import { useTracks } from '@/ui/useTracks';
 
 export default function DoneScreen() {
   const db = useDatabase();
+  const router = useRouter();
   const palette = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [category, setCategory] = useState<Category | null>(null);
@@ -101,6 +102,11 @@ export default function DoneScreen() {
     })();
   }
 
+  // A22: a row's text opens the track's own screen.
+  function handleOpen(track: TrackSummary): void {
+    router.push(`/track/${track.kind}/${track.id}`);
+  }
+
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
@@ -129,6 +135,7 @@ export default function DoneScreen() {
             onRename={handleRename}
             onDelete={handleDelete}
             onReturnToBacklog={handleReturnToBacklog}
+            onOpen={handleOpen}
           />
         )}
         ListEmptyComponent={
