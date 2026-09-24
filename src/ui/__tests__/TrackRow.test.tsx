@@ -17,6 +17,7 @@ const show: TrackSummary = {
   nextEntryStatus: 'unstarted',
   nextEntryTitle: 'Episode 4',
   lastAdvancedAt: '2026-08-12T11:00:00.000Z',
+  completionDrops: null,
 };
 
 const HOUSE_SEASONS = [
@@ -472,4 +473,38 @@ test('submitting a blank title does not call onRename', async () => {
   await fireEvent(input, 'submitEditing');
 
   expect(onRename).not.toHaveBeenCalled();
+});
+
+test('tapping the row text opens the track (A22)', async () => {
+  const onOpen = jest.fn();
+  await render(<TrackRow track={show} onAdvance={() => {}} onResume={() => {}} onRename={() => {}} onOpen={onOpen} />);
+  await fireEvent.press(screen.getByText('Severance'));
+  expect(onOpen).toHaveBeenCalledWith(show);
+});
+
+test('an openable row text is announced as a button named after the track', async () => {
+  await render(<TrackRow track={show} onAdvance={() => {}} onResume={() => {}} onRename={() => {}} onOpen={() => {}} />);
+  const opener = screen.getByRole('button', { name: 'Severance' });
+  expect(opener.props.accessible).toBe(true);
+});
+
+test('while renaming, the row text stops being one accessible element so the input stays reachable', async () => {
+  await render(<TrackRow track={show} onAdvance={() => {}} onResume={() => {}} onRename={() => {}} onOpen={() => {}} />);
+  await fireEvent(screen.getByText('Severance'), 'longPress');
+  expect(screen.queryByRole('button', { name: 'Severance' })).toBeNull();
+  expect(screen.getByDisplayValue('Severance')).toBeTruthy();
+});
+
+test('a row without onOpen is not announced as a button', async () => {
+  await render(<TrackRow track={show} onAdvance={() => {}} onResume={() => {}} onRename={() => {}} />);
+  expect(screen.queryByRole('button', { name: 'Severance' })).toBeNull();
+});
+
+test('tapping the advance control does not open the track', async () => {
+  const onOpen = jest.fn();
+  const onAdvance = jest.fn();
+  await render(<TrackRow track={show} onAdvance={onAdvance} onResume={() => {}} onRename={() => {}} onOpen={onOpen} />);
+  await fireEvent.press(screen.getByLabelText('Mark Episode 4 watched'));
+  expect(onAdvance).toHaveBeenCalled();
+  expect(onOpen).not.toHaveBeenCalled();
 });

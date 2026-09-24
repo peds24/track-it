@@ -1,13 +1,55 @@
 # Track It — session handoff
 
-**Last updated:** 14 August 2026
+**Last updated:** 23 September 2026
 
 Where the project stands, what is unmerged, and what bit us — so the next
-session does not rediscover any of it. This replaces the previous handoff
-doc, which never actually made it onto this branch's history — treat this
-one as the sole source of truth going forward.
+session does not rediscover any of it. Newest section is at the top; older
+sections below are left as written, and may describe a branch layout
+(`main`, PRs) that predates the `android`/`web`/`gh-pages` pipeline
+(CLAUDE.md §6) — read them as history, not current state.
 
-## Branch state
+## v1.2.0 (2026-09-23)
+
+Feature branch `worktree-v1.2.0-track-detail` (`.claude/worktrees/
+v1.2.0-track-detail`) implements the full v1.2.0 milestone — track detail
+screen, persistent cover/creator/description metadata (migration 7),
+first-launch backfill, manual completion, and search disambiguation. All
+15 implementation tasks plus this docs/version-bump task are committed on
+the branch; `npm run typecheck` and `npm test` are green as of the final
+commit. **Not yet merged into `android`** — that merge is held for the
+user's explicit go-ahead (see task-16-brief.md's controller ruling: docs
+and version bump only, no merge). **Not yet ported to `web`** — that is
+the next milestone's job, via `.claude/skills/porting-android-changes-to-
+web/SKILL.md`, once this lands on `android`.
+
+**Backfill behavior, worth restating precisely:** on first launch after
+the migration, every existing `series`/standalone `entry` row with a
+catalogue `external_id` and no `metadata_checked_at` gets a one-time,
+sequential `details()` call to fetch its cover/creator/description/year.
+**Hand-typed tracks (no `external_id`) are never touched and nothing about
+them is guessed** — this was an explicit user decision on 2026-09-22, not
+an oversight: a hand-typed title showing someone else's catalogue cover by
+best-effort match would be worse than showing none. A row whose lookup
+fails (network, missing key) is retried on the next launch; a row whose
+lookup succeeds but simply has no cover is stamped and left alone.
+
+**Toolchain gotcha found this session:** on this machine, plain `source
+~/.nvm/nvm.sh && nvm use 22` (as the version-release skill and the older
+gotcha list below both say) now **exits 3** — a broken default alias
+somewhere in this profile's nvm setup. Use `source ~/.nvm/nvm.sh --no-use;
+nvm use 22` instead (load nvm without its own auto-`use`, then `use 22`
+explicitly). Worth fixing in the skill/scripts once confirmed reproducible
+outside this worktree.
+
+**Also worth knowing before the next on-device pass:** Expo Go on the
+Pixel_10 emulator overlays a floating dev-menu button in the top-right
+corner of the screen — it sits directly on top of the app's own "+ Add"
+control on the tab screens that put one there, so a tap meant for "+ Add"
+can hit the dev-menu button instead. Not a code bug; just something to
+route around (or dismiss the dev-menu bubble first) when driving the
+emulator by hand or via a screenshot script.
+
+## Branch state (pre-v1.2.0 — see above for current)
 
 `main` is current through **PR #6** (`84f5616`) — it holds the full v1 app,
 EAS Build/Update setup, and everything from PR #5 (ongoing series, one-tap

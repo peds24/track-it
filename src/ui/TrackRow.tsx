@@ -12,7 +12,7 @@ function verbFor(category: Category): string {
   return READ_CATEGORIES.includes(category) ? 'read' : 'watched';
 }
 
-const KIND_LABEL: Record<Category, string> = {
+export const KIND_LABEL: Record<Category, string> = {
   show: 'SHOW',
   movie: 'MOVIE',
   book: 'BOOK',
@@ -91,12 +91,14 @@ export function TrackRow({
   onResume,
   onRename,
   onEditProgress,
+  onOpen,
 }: {
   track: TrackSummary;
   onAdvance: (entryId: string) => void;
   onResume: (track: TrackSummary) => void;
   onRename: (track: TrackSummary, title: string) => void;
   onEditProgress?: (track: TrackSummary) => void;
+  onOpen?: (track: TrackSummary) => void;
 }) {
   const palette = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
@@ -134,7 +136,24 @@ export function TrackRow({
 
   return (
     <View style={styles.row}>
-      <View style={styles.text}>
+      {/* A22: tapping a row's text opens its detail screen; holding it still
+          renames in place (A15). The advance button is a sibling, not a
+          child, so it never opens. */}
+      <Pressable
+        style={styles.text}
+        disabled={editingTitle}
+        onPress={onOpen ? () => onOpen(track) : undefined}
+        onLongPress={() => {
+          setTitleDraft(track.title);
+          setEditingTitle(true);
+        }}
+        accessibilityHint={onOpen ? 'Opens details. Hold to rename.' : 'Hold to rename.'}
+        accessibilityRole={onOpen ? 'button' : undefined}
+        accessibilityLabel={onOpen ? track.title : undefined}
+        // While renaming, stop grouping the column into one element so the
+        // TextInput inside stays reachable by screen readers.
+        accessible={!editingTitle}
+      >
         {editingTitle ? (
           <TextInput
             style={styles.titleInput}
@@ -149,14 +168,7 @@ export function TrackRow({
             underlineColorAndroid="transparent"
           />
         ) : (
-          <Text
-            style={styles.title}
-            numberOfLines={1}
-            onLongPress={() => {
-              setTitleDraft(track.title);
-              setEditingTitle(true);
-            }}
-          >
+          <Text style={styles.title} numberOfLines={1}>
             {track.title}
           </Text>
         )}
@@ -204,7 +216,7 @@ export function TrackRow({
             )}
           </View>
         )}
-      </View>
+      </Pressable>
 
       {nextEntryId && nextEntryTitle && (
         <Pressable

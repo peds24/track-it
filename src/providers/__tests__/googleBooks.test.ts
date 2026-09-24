@@ -70,9 +70,12 @@ test('maps results to SearchResult, tagged with the category this instance was b
 
   // count defaults to 1 — a hit only ever confirms a title (D5), it cannot
   // tell a manga series has 34 volumes from a single-book lookup.
-  expect(results).toEqual([{ id: 'abc123', title: 'Berserk, Vol. 1', category: 'manga', count: 1 }]);
-  // No cover art is load-bearing (design-language.html) — the thumbnail must
-  // not survive into the mapped result.
+  // A22 reverses the earlier "no cover art" rule: a thumbnail now survives
+  // into the mapped result as `thumbnailUrl`, for disambiguation (A24) — but
+  // only under that name, never the raw `thumbnail`/`imageLinks` shape.
+  expect(results).toEqual([
+    { id: 'abc123', title: 'Berserk, Vol. 1', category: 'manga', count: 1, thumbnailUrl: 'https://example.com/cover.jpg' },
+  ]);
   expect(results[0]).not.toHaveProperty('thumbnail');
   expect(results[0]).not.toHaveProperty('imageLinks');
 });
@@ -143,7 +146,7 @@ test('hydrate records no external id for a hand-typed title with no real match',
 // A17: the confirm screen's data for standalone book/comic-collection
 // matches — a fetch by volume id, never made during search() or hydrate().
 describe('preview (A17, book/comic collection)', () => {
-  test('fetches the volume detail and returns author/year/pages and the description as blurb', async () => {
+  test('fetches the volume detail and returns year/pages and the description as blurb', async () => {
     process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
     const fetchMock = mockFetchOnce({
       volumeInfo: {
@@ -163,11 +166,14 @@ describe('preview (A17, book/comic collection)', () => {
 
     const url = fetchMock.mock.calls[0]![0] as string;
     expect(url).toContain('/volumes/piranesi-id');
-    expect(preview).toEqual({
+    expect(preview).toMatchObject({
       title: 'Piranesi',
-      metaLine: ['Susanna Clarke', '2020', '245 pages'],
+      // The author is carried by metadata.creator (the confirm screen's credit
+      // line), not repeated in the meta line.
+      metaLine: ['2020', '245 pages'],
       blurb: 'A man lives in a House with countless rooms and endless corridors.',
     });
+    expect(preview.metadata?.creator).toBe('Susanna Clarke');
   });
 
   test('missing authors/pageCount/description are simply omitted, not blank entries', async () => {
@@ -181,7 +187,12 @@ describe('preview (A17, book/comic collection)', () => {
       count: 1,
     });
 
-    expect(preview).toEqual({ title: 'Saga, Volume 1', metaLine: ['2018'], blurb: null });
+    expect(preview).toEqual({
+      title: 'Saga, Volume 1',
+      metaLine: ['2018'],
+      blurb: null,
+      metadata: { coverUrl: null, creator: null, description: null, releaseYear: '2018' },
+    });
   });
 
   test('falls back to just the title when the fetch fails, never throws', async () => {
@@ -227,5 +238,73 @@ describe('preview (A17, book/comic collection)', () => {
 
     expect(preview).toEqual({ title: 'Some Book', metaLine: [], blurb: null });
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('A22/A24 metadata', () => {
+  test('search hits carry authors, year, and an https thumbnail', async () => {
+    process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
+    mockFetchOnce({
+      items: [
+        {
+          id: 'v1',
+          volumeInfo: {
+            title: 'Dune',
+            authors: ['Frank Herbert'],
+            publishedDate: '1965-08-01',
+            imageLinks: { smallThumbnail: 'http://books.google.com/s.jpg', thumbnail: 'http://books.google.com/t.jpg' },
+          },
+        },
+      ],
+    });
+
+    const [hit] = await new GoogleBooksProvider('book').search('Dune');
+
+    expect(hit).toMatchObject({
+      creator: 'Frank Herbert',
+      year: '1965',
+      thumbnailUrl: 'https://books.google.com/s.jpg',
+    });
+  });
+
+  test('details maps the volume to cleaned metadata', async () => {
+    process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
+    mockFetchOnce({
+      volumeInfo: {
+        authors: ['Frank Herbert', 'Brian Herbert'],
+        publishedDate: '1965',
+        description: '<p>Spice &amp; <i>sand</i>.</p>',
+        imageLinks: { thumbnail: 'http://books.google.com/t.jpg' },
+      },
+    });
+
+    expect(await new GoogleBooksProvider('book').details('v1')).toEqual({
+      coverUrl: 'https://books.google.com/t.jpg',
+      creator: 'Frank Herbert, Brian Herbert',
+      description: 'Spice & sand.',
+      releaseYear: '1965',
+    });
+  });
+
+  test('details returns null when the lookup fails, so the backfill retries', async () => {
+    process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
+    mockFetchOnce({}, false);
+    expect(await new GoogleBooksProvider('book').details('v1')).toBeNull();
+  });
+
+  test('details answers with empty metadata when the volume is gone (404), so the backfill stamps it', async () => {
+    process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
+    global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 404, json: async () => ({}) }) as unknown as typeof fetch;
+    expect(await new GoogleBooksProvider('book').details('gone')).toEqual({
+      coverUrl: null,
+      creator: null,
+      description: null,
+      releaseYear: null,
+    });
+  });
+
+  test('details returns null with no API key configured', async () => {
+    delete process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY;
+    expect(await new GoogleBooksProvider('book').details('v1')).toBeNull();
   });
 });

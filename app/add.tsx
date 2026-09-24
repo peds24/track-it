@@ -2,9 +2,10 @@ import { CameraView, useCameraPermissions, type BarcodeType } from 'expo-camera'
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { addTrack } from '@/data/addTrack';
 import { advanceEntry, firstEntryOf } from '@/data/trackRepo';
+import { cleanDescription, creatorLine } from '@/domain/formatters';
 import { parseSeriesTitle, stripBareTrailingNumber } from '@/domain/seriesTitle';
 import type { Category } from '@/domain/types';
 import { GoogleBooksProvider } from '@/providers/googleBooks';
@@ -12,8 +13,10 @@ import { MetronProvider } from '@/providers/metron';
 import { unitLabelFor } from '@/providers/manual';
 import { providerFor } from '@/providers/registry';
 import type { MatchPreview, SearchResult, SeriesDraft } from '@/providers/types';
+import { CoverImage } from '@/ui/CoverImage';
 import { useDatabase } from '@/ui/DatabaseProvider';
-import { elevation, font, layout, radius, space, underline, useTheme, type Palette } from '@/ui/theme';
+import { SearchResultRow } from '@/ui/SearchResultRow';
+import { elevation, font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
 
 /** book/manga are ISBN barcodes (EAN-13). A single-issue comic is UPC-A
  * (A9); a comic collection (A14) is ISBN-barcoded like a book — Metron
@@ -109,10 +112,15 @@ export default function AddTrackScreen() {
   // A11: a manga barcode resolves through Google Books first, whose title
   // carries the scanned volume's number bare ("Attack on Titan 30") — held
   // here between the scan resolving and the user picking a result, then
-  // folded into `title` as a "#N" suffix `pick()` already knows how to
-  // hand off to `parseSeriesTitle` at save time (A10), the same mechanism
-  // a typed "Saga #12" already uses to start partway through a series.
+  // carried with the pick (`pickedOrdinal`, A24) and appended as a "#N"
+  // suffix `parseSeriesTitle` reads back out at save time (A10), the same
+  // mechanism a typed "Saga #12" already uses to start partway through a
+  // series.
   const [scannedOrdinal, setScannedOrdinal] = useState<number | null>(null);
+  // A24: the ordinal a manga scan stripped off (A11), carried with the pick
+  // rather than written into the search box — the box keeps what was typed,
+  // so backing out of the confirm screen lands exactly where the search was.
+  const [pickedOrdinal, setPickedOrdinal] = useState<number | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const scanHandled = useRef(false);
   const allowLeave = useRef(false);
@@ -126,8 +134,9 @@ export default function AddTrackScreen() {
   const isCollectionComic = category === 'comic' && comicMode === 'collection';
   const isSeries = category !== null && unitLabelFor(category) !== null && !isCollectionComic;
   // A11: manual fields render only when there's no confirmed match to trust
-  // instead — a hand-typed title, or a match whose hydrate() failed.
-  const showManualFields = isSeries && (!picked || hydrateFailed);
+  // instead — a hand-typed title, or a match whose hydrate() failed (which
+  // drops the pick and continues as a hand-typed title, A24).
+  const showManualFields = isSeries && !picked;
   const needsCount = showManualFields && !ongoing;
   const unit = category ? unitLabelFor(category) : null;
   // A17: the confirm screen's data, however it was fetched — `hydrate()`'s
@@ -136,7 +145,12 @@ export default function AddTrackScreen() {
   // resolved yet (see `hydrating`/`previewing`) or failed outright.
   const matchSummary: MatchPreview | null = isSeries
     ? confirmedDraft
-      ? { title: confirmedDraft.title, metaLine: confirmedDraft.metaLine ?? [], blurb: confirmedDraft.blurb ?? null }
+      ? {
+          title: confirmedDraft.title,
+          metaLine: confirmedDraft.metaLine ?? [],
+          blurb: confirmedDraft.blurb ?? null,
+          metadata: confirmedDraft.metadata,
+        }
       : null
     : previewData;
   const checkingMatch = picked !== null && matchSummary === null && (isSeries ? hydrating : previewing);
@@ -152,15 +166,12 @@ export default function AddTrackScreen() {
         : undefined;
 
   useEffect(() => {
-    if (!category || picked) {
+    if (!category) {
       setResults([]);
       return;
     }
     const query = title.trim();
-    if (query.length === 0) {
-      setResults([]);
-      return;
-    }
+    if (query.length === 0) return; // A24: keeps scan results; typing clears via onChangeText
     let cancelled = false;
     const handle = setTimeout(() => {
       void (async () => {
@@ -176,13 +187,16 @@ export default function AddTrackScreen() {
       cancelled = true;
       clearTimeout(handle);
     };
-  }, [title, category, picked, comicMode]);
+  }, [title, category, comicMode]);
 
   useEffect(() => {
+    // Not resetting `hydrateFailed` here: the failure path below drops the
+    // pick itself, which re-runs this effect — clearing the flag then would
+    // erase the note before it ever renders. pick(), typing and unwinding
+    // back to the category picker are what clear it.
     if (!category || !picked || !isSeries) {
       setConfirmedDraft(null);
       setHydrating(false);
-      setHydrateFailed(false);
       return;
     }
     let cancelled = false;
@@ -194,7 +208,14 @@ export default function AddTrackScreen() {
         const draft = await providerForAdd(category, comicMode).hydrate(picked);
         if (!cancelled) setConfirmedDraft(draft);
       } catch {
-        if (!cancelled) setHydrateFailed(true);
+        // The match couldn't be confirmed — continue as a hand-typed title so
+        // the manual count fields apply, instead of re-trying a dead match at save.
+        if (!cancelled) {
+          setTitle(pickedOrdinal !== null ? `${picked.title} #${pickedOrdinal}` : picked.title);
+          setPicked(null);
+          setPickedOrdinal(null);
+          setHydrateFailed(true);
+        }
       } finally {
         if (!cancelled) setHydrating(false);
       }
@@ -202,7 +223,9 @@ export default function AddTrackScreen() {
     return () => {
       cancelled = true;
     };
-  }, [category, picked, isSeries, comicMode]);
+    // `pickedOrdinal` only ever changes in the same batch as `picked` (pick(),
+    // back-from-confirm, this catch, the unwind), so it adds no extra runs.
+  }, [category, picked, pickedOrdinal, isSeries, comicMode]);
 
   // A17: the confirm screen's data source for a standalone match (book,
   // movie, a comic collection) — `preview()`'s counterpart to the hydrate
@@ -246,6 +269,20 @@ export default function AddTrackScreen() {
   // "Single issue or Collection?" first, not straight past it.
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      // A24: the confirm screen is state inside this one route, so the header,
+      // hardware and gesture back all arrive here. From confirm, back returns
+      // to the search with the typed query and its results intact — this is
+      // what replaced "Nope, search again".
+      if (picked !== null && !allowLeave.current) {
+        e.preventDefault();
+        setPicked(null);
+        setPickedOrdinal(null);
+        setConfirmedDraft(null);
+        setHydrating(false);
+        setPreviewData(null);
+        setPreviewing(false);
+        return;
+      }
       if (category === null || allowLeave.current) return;
       e.preventDefault();
       if (category === 'comic' && comicMode !== null) {
@@ -262,6 +299,7 @@ export default function AddTrackScreen() {
       setPendingUpc(null);
       setEan5('');
       setScannedOrdinal(null);
+      setPickedOrdinal(null);
       setConfirmedDraft(null);
       setHydrating(false);
       setHydrateFailed(false);
@@ -269,18 +307,24 @@ export default function AddTrackScreen() {
       setPreviewing(false);
     });
     return unsubscribe;
-  }, [navigation, category, comicMode]);
+  }, [navigation, category, comicMode, picked]);
 
   function pick(result: SearchResult): void {
-    // A10's own "#N" pattern reads this back out at save time — reusing it
-    // here means startAtOrdinal needs no separate plumbing through
-    // addTrack/createSeriesTrack for the scan case.
-    setTitle(scannedOrdinal !== null ? `${result.title} #${scannedOrdinal}` : result.title);
     setPicked(result);
-    setScannedOrdinal(null);
+    setPickedOrdinal(scannedOrdinal);
     setHydrateFailed(false);
-    setResults([]);
   }
+
+  /** What gets saved: the picked match's own title (plus A10's "#N" when a
+   * scan carried one), or whatever was typed when nothing was picked. A10's
+   * own "#N" pattern reads the ordinal back out at save time — reusing it
+   * means startAtOrdinal needs no separate plumbing through
+   * addTrack/createSeriesTrack for the scan case. */
+  const saveTitle = picked
+    ? pickedOrdinal !== null
+      ? `${picked.title} #${pickedOrdinal}`
+      : picked.title
+    : title;
 
   async function handleScanPress(): Promise<void> {
     if (!category) return;
@@ -339,6 +383,7 @@ export default function AddTrackScreen() {
           setResults(await providerForAdd(category, comicMode).search(data));
         }
         setPicked(null);
+        setHydrateFailed(false); // a stale "Couldn't load that match" note shouldn't sit above new scan results
       } catch {
         setScannedOrdinal(null);
         setResults([]);
@@ -355,6 +400,7 @@ export default function AddTrackScreen() {
     try {
       setResults(await provider.searchByUpc(upc, code));
       setPicked(null);
+      setHydrateFailed(false);
     } catch {
       setResults([]);
     }
@@ -379,13 +425,13 @@ export default function AddTrackScreen() {
       // entry instead of always at 1. Applies to whatever the final title
       // string is, regardless of whether it was typed, picked from a search
       // result, or filled in by a barcode scan — all three converge on
-      // `title` by this point. A16: a comic collection has no series to
+      // `saveTitle` by this point. A16: a comic collection has no series to
       // start partway through — its title (e.g. "Saga, Volume 1") keeps
       // its number, the same as a book's title always has.
       const { title: finalTitle, ordinal } =
         (category === 'comic' && !isCollectionComic) || category === 'manga'
-          ? parseSeriesTitle(title)
-          : { title: title.trim(), ordinal: null };
+          ? parseSeriesTitle(saveTitle)
+          : { title: saveTitle.trim(), ordinal: null };
 
       // A11: a confirmed match is passed straight through as a ready draft —
       // no second hydrate, no manual count to validate. Only reached once
@@ -409,6 +455,10 @@ export default function AddTrackScreen() {
           // recorded explicitly rather than picking up Metron's id.
           standalone: isCollectionComic || undefined,
           externalSource: isCollectionComic ? googleBooksComic.id : undefined,
+          // A22: a standalone match's metadata was already fetched by the
+          // confirm screen's preview() — stored now, no second request. A
+          // series carries its own on `draft.metadata`.
+          metadata: !isSeries ? (previewData?.metadata ?? undefined) : undefined,
         },
         now,
       );
@@ -532,17 +582,29 @@ export default function AddTrackScreen() {
   // through to the manual title/count fields below instead, same as a
   // hand-typed title with no match at all.
   if (picked && (matchSummary || checkingMatch)) {
+    const credit = matchSummary ? creatorLine(category, matchSummary.metadata?.creator ?? picked.creator ?? null) : null;
+    const blurb = cleanDescription(matchSummary?.blurb);
     return (
-      <View style={styles.screen}>
+      <ScrollView style={styles.screen} contentContainerStyle={styles.confirmScroll}>
+        <View style={styles.confirmCover}>
+          <CoverImage
+            uri={matchSummary?.metadata?.coverUrl ?? picked.thumbnailUrl}
+            title={picked.title}
+            category={category}
+            width={120}
+            height={180}
+          />
+        </View>
         <View style={styles.header}>
           <Text style={styles.confirmTitle}>{matchSummary ? matchSummary.title : 'Checking…'}</Text>
+          {credit && <Text style={styles.confirmCredit}>{credit}</Text>}
         </View>
         {matchSummary && matchSummary.metaLine.length > 0 && (
           <Text style={styles.metaLine}>{matchSummary.metaLine.join(' · ')}</Text>
         )}
-        {matchSummary?.blurb && (
-          <Text style={styles.blurb} numberOfLines={4}>
-            {matchSummary.blurb}
+        {blurb && (
+          <Text style={styles.blurb} numberOfLines={6}>
+            {blurb}
           </Text>
         )}
         {matchSummary && (
@@ -563,16 +625,9 @@ export default function AddTrackScreen() {
             >
               <Text style={styles.saveSecondaryText}>Add to backlog</Text>
             </Pressable>
-            <Pressable
-              onPress={() => setPicked(null)}
-              accessibilityRole="button"
-              style={styles.reject}
-            >
-              <Text style={[styles.rejectText, underline]}>Nope, search again</Text>
-            </Pressable>
           </View>
         )}
-      </View>
+      </ScrollView>
     );
   }
 
@@ -590,6 +645,7 @@ export default function AddTrackScreen() {
         value={title}
         onChangeText={(t) => {
           setTitle(t);
+          if (t.trim().length === 0) setResults([]);
           setPicked(null);
           setScannedOrdinal(null);
           setHydrateFailed(false);
@@ -599,17 +655,14 @@ export default function AddTrackScreen() {
         selectionColor={palette.primaryContainer}
         underlineColorAndroid="transparent"
       />
+      {hydrateFailed && <Text style={styles.note}>Couldn’t load that match — enter the count yourself.</Text>}
 
       {results.length > 0 && (
-        <View style={styles.results}>
-          {results.slice(0, 8).map((r) => (
-            <Pressable key={r.id} style={styles.resultRow} onPress={() => pick(r)}>
-              <Text style={styles.resultText} numberOfLines={1}>
-                {r.title}
-              </Text>
-            </Pressable>
+        <ScrollView style={styles.results} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
+          {results.slice(0, 20).map((r) => (
+            <SearchResultRow key={r.id} result={r} onPress={pick} />
           ))}
-        </View>
+        </ScrollView>
       )}
 
       {barcodeTypes && (
@@ -846,11 +899,9 @@ function createStyles(c: Palette) {
       marginBottom: 24,
       lineHeight: 22,
     },
-    reject: { alignSelf: 'center', paddingVertical: 6 },
-    rejectText: {
-      ...font.labelLarge,
-      color: c.onSurfaceVariant,
-    },
+    confirmScroll: { paddingBottom: space.xl },
+    confirmCover: { alignItems: 'center', paddingTop: space.lg },
+    confirmCredit: { ...font.titleMedium, color: c.onSurfaceVariant, marginTop: 4 },
     buttonGroup: {
       marginTop: 8,
       gap: 10,
@@ -898,17 +949,9 @@ function createStyles(c: Palette) {
       borderColor: c.outlineVariant,
       borderRadius: radius.md,
       overflow: 'hidden',
+      maxHeight: 360,
+      flexGrow: 0,
       ...elevation.level1,
-    },
-    resultRow: {
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: c.outlineVariant,
-    },
-    resultText: {
-      ...font.bodyMedium,
-      color: c.onSurface,
     },
     scanButton: {
       flexDirection: 'row',

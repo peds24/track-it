@@ -1,7 +1,8 @@
 import type { SqlDriver } from '@/db/driver';
-import { advance, setPosition } from '@/domain/advance';
+import { advance, completeUnits, ongoingPlaceholder, setPosition } from '@/domain/advance';
+import { timelineOf, type Timeline } from '@/domain/formatters';
 import { nextEntry, progressFor, shelfForEntry, shelfForSeries } from '@/domain/shelf';
-import type { Category, Entry, SeasonBoundary, Series, Shelf, Status } from '@/domain/types';
+import type { Category, Entry, SeasonBoundary, Series, Shelf, Status, TrackMetadata, UnitLabel } from '@/domain/types';
 import { assertEntryInvariants, assertIsoTimestamp, isStandaloneMediaType } from '@/domain/validate';
 import type { SeriesDraft } from '@/providers/types';
 
@@ -30,6 +31,9 @@ export type TrackSummary = {
   nextEntryTitle: string | null;
   /** When this track last moved forward. Derived at read time (D3), never stored. */
   lastAdvancedAt: string | null;
+  /** A23: the title of the unit completing this track would remove (an ongoing
+   * series' auto-appended next unit), so the confirm can name it. Null otherwise. */
+  completionDrops: string | null;
 };
 
 type SeriesRow = {
@@ -43,6 +47,10 @@ type SeriesRow = {
   external_source: string | null;
   external_id: string | null;
   seasons_json: string | null;
+  cover_url?: string | null;
+  creator?: string | null;
+  description?: string | null;
+  release_year?: string | null;
 };
 
 type EntryRow = {
@@ -58,6 +66,10 @@ type EntryRow = {
   paused: number;
   external_source: string | null;
   external_id: string | null;
+  cover_url?: string | null;
+  creator?: string | null;
+  description?: string | null;
+  release_year?: string | null;
 };
 
 export function toEntry(row: EntryRow): Entry {
@@ -79,6 +91,32 @@ export function toEntry(row: EntryRow): Entry {
 
 function newId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function metadataOf(row: {
+  cover_url?: string | null;
+  creator?: string | null;
+  description?: string | null;
+  release_year?: string | null;
+}): TrackMetadata {
+  return {
+    coverUrl: row.cover_url ?? null,
+    creator: row.creator ?? null,
+    description: row.description ?? null,
+    releaseYear: row.release_year ?? null,
+  };
+}
+
+/** Column values for an INSERT — `checked` is stamped only when metadata came
+ * with the add, so the backfill (A22) still fills a match whose lookup failed. */
+function metadataColumns(metadata: TrackMetadata | undefined, now: string): unknown[] {
+  return [
+    metadata?.coverUrl ?? null,
+    metadata?.creator ?? null,
+    metadata?.description ?? null,
+    metadata?.releaseYear ?? null,
+    metadata ? now : null,
+  ];
 }
 
 export async function createSeriesTrack(
@@ -133,8 +171,9 @@ export async function createSeriesTrack(
 
   await db.transaction(async () => {
     await db.run(
-      `INSERT INTO series (id, title, media_type, unit_label, created_at, ongoing, external_source, external_id, seasons_json)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO series (id, title, media_type, unit_label, created_at, ongoing, external_source, external_id, seasons_json,
+                           cover_url, creator, description, release_year, metadata_checked_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         seriesId,
         draft.title,
@@ -145,6 +184,7 @@ export async function createSeriesTrack(
         draft.externalSource ?? null,
         draft.externalId ?? null,
         draft.seasons ? JSON.stringify(draft.seasons) : null,
+        ...metadataColumns(draft.metadata, now),
       ],
     );
 
@@ -191,6 +231,9 @@ export async function createStandaloneTrack(
      * than being typed by hand — a search hit or a barcode scan. */
     externalSource?: string;
     externalId?: string;
+    /** A22: display metadata fetched alongside the match, stored with the
+     * entry at creation — no second fetch later. */
+    metadata?: TrackMetadata;
   },
   now: string,
 ): Promise<string> {
@@ -202,9 +245,10 @@ export async function createStandaloneTrack(
     createdAt: now,
   });
   await db.run(
-    `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)
-     VALUES (?, NULL, ?, NULL, ?, 'unstarted', ?, ?, ?)`,
-    [id, input.title, input.category, now, input.externalSource ?? null, input.externalId ?? null],
+    `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id,
+                        cover_url, creator, description, release_year, metadata_checked_at)
+     VALUES (?, NULL, ?, NULL, ?, 'unstarted', ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, input.title, input.category, now, input.externalSource ?? null, input.externalId ?? null, ...metadataColumns(input.metadata, now)],
   );
   return id;
 }
@@ -285,16 +329,9 @@ function byMostRecentlyAdvanced(a: TrackSummary, b: TrackSummary): number {
   return byDateAdded(a, b);
 }
 
-/** Shelf is computed in domain/, never queried for directly (D3). */
-export async function listTracks(
-  db: SqlDriver,
-  shelf: Shelf,
-  category?: Category,
-): Promise<TrackSummary[]> {
-  const seriesRows = await db.all<SeriesRow>('SELECT * FROM series');
-  const entryRows = await db.all<EntryRow>('SELECT * FROM entry');
-  const entries = entryRows.map(toEntry);
-
+/** Shared by `listTracks` and `getTrackDetail` — same row-to-summary mapping
+ * either way, so a detail screen never drifts from what the list already shows. */
+function buildSummaries(seriesRows: SeriesRow[], entries: Entry[]): TrackSummary[] {
   const summaries: TrackSummary[] = [];
 
   for (const row of seriesRows) {
@@ -317,6 +354,7 @@ export async function listTracks(
       nextEntryId: next?.id ?? null,
       nextEntryTitle: next?.title ?? null,
       lastAdvancedAt: lastAdvanceAcross(children),
+      completionDrops: ongoingPlaceholder(children, row.ongoing === 1)?.title ?? null,
     });
   }
 
@@ -346,13 +384,53 @@ export async function listTracks(
       nextEntryId: entry.status === 'done' ? null : entry.id,
       nextEntryTitle: entry.status === 'done' ? null : entry.title,
       lastAdvancedAt: lastAdvanceOf(entry),
+      completionDrops: null,
     });
   }
 
-  return summaries
+  return summaries;
+}
+
+/** Shelf is computed in domain/, never queried for directly (D3). */
+export async function listTracks(db: SqlDriver, shelf: Shelf, category?: Category): Promise<TrackSummary[]> {
+  const seriesRows = await db.all<SeriesRow>('SELECT * FROM series');
+  const entries = (await db.all<EntryRow>('SELECT * FROM entry')).map(toEntry);
+  return buildSummaries(seriesRows, entries)
     .filter((t) => t.shelf === shelf)
     .filter((t) => category === undefined || t.category === category)
     .sort(shelf === 'currently' ? byMostRecentlyAdvanced : byDateAdded);
+}
+
+/** A22: everything the track detail screen shows, in one read. */
+export type TrackDetail = {
+  summary: TrackSummary;
+  metadata: TrackMetadata;
+  timeline: Timeline;
+  /** `null` for a standalone track (book, movie, comic collection). */
+  unitLabel: UnitLabel | null;
+};
+
+export async function getTrackDetail(
+  db: SqlDriver,
+  kind: 'series' | 'entry',
+  id: string,
+): Promise<TrackDetail | null> {
+  if (kind === 'series') {
+    const seriesRows = await db.all<SeriesRow>('SELECT * FROM series WHERE id = ?', [id]);
+    const row = seriesRows[0];
+    if (!row) return null;
+    const children = (await db.all<EntryRow>('SELECT * FROM entry WHERE series_id = ?', [id])).map(toEntry);
+    const summary = buildSummaries([row], children)[0]!;
+    return { summary, metadata: metadataOf(row), timeline: timelineOf(row.created_at, children), unitLabel: row.unit_label };
+  }
+
+  const rows = await db.all<EntryRow>('SELECT * FROM entry WHERE id = ? AND series_id IS NULL', [id]);
+  const row = rows[0];
+  if (!row) return null;
+  const entry = toEntry(row);
+  const summary = buildSummaries([], [entry])[0];
+  if (!summary) return null; // a row with a media type outside the standalone union
+  return { summary, metadata: metadataOf(row), timeline: timelineOf(entry.createdAt, [entry]), unitLabel: null };
 }
 
 /** Transition rules live in domain/advance; this only persists the result (D8). */
@@ -570,5 +648,51 @@ export async function setTrackPosition(
       ]);
     }
     await db.run('UPDATE series SET paused = 0 WHERE id = ?', [seriesId]);
+  });
+}
+
+/**
+ * A23: finish a track by hand — the manual counterpart to tapping Done until
+ * the end, and the only way an ongoing series (A4) ever reaches Done. The
+ * rules live in domain/completeUnits; this persists them in one transaction
+ * so a half-completed series is never observable. Clearing `ongoing` is what
+ * lets the derived shelf (D3) report Done; clearing `paused` keeps a
+ * completed-from-Backlog track from carrying a stale flag (A6).
+ */
+export async function completeTrack(
+  db: SqlDriver,
+  track: { kind: 'series' | 'entry'; id: string },
+  now: string,
+): Promise<void> {
+  const writeUnit = (e: Entry) =>
+    db.run('UPDATE entry SET status = ?, started_at = ?, finished_at = ? WHERE id = ?', [
+      e.status,
+      e.startedAt,
+      e.finishedAt,
+      e.id,
+    ]);
+
+  if (track.kind === 'entry') {
+    const rows = await db.all<EntryRow>('SELECT * FROM entry WHERE id = ?', [track.id]);
+    const row = rows[0];
+    if (!row) throw new Error(`Entry ${track.id} not found`);
+    const { updated } = completeUnits([toEntry(row)], false, now);
+    await db.transaction(async () => {
+      for (const e of updated) await writeUnit(e);
+      await db.run('UPDATE entry SET paused = 0 WHERE id = ?', [track.id]);
+    });
+    return;
+  }
+
+  const seriesRows = await db.all<SeriesRow>('SELECT * FROM series WHERE id = ?', [track.id]);
+  const series = seriesRows[0];
+  if (!series) throw new Error(`Series ${track.id} not found`);
+  const children = await db.all<EntryRow>('SELECT * FROM entry WHERE series_id = ?', [track.id]);
+  const { updated, removedIds } = completeUnits(children.map(toEntry), series.ongoing === 1, now);
+
+  await db.transaction(async () => {
+    for (const e of updated) await writeUnit(e);
+    for (const id of removedIds) await db.run('DELETE FROM entry WHERE id = ?', [id]);
+    await db.run('UPDATE series SET ongoing = 0, paused = 0 WHERE id = ?', [track.id]);
   });
 }

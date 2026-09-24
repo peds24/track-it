@@ -13,13 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Added**: Floating action feedback notification (Snackbar/Toast) across Currently, Backlog, and Done screens.
 - **Added**: Instant Undo capability for advance, pause, and delete operations.
 - **Added**: Confetti and emoji celebration overlay when a track is completed.
-
-### Planned for v1.2.0 (Track Detail & Artwork)
-- **Added**: Dedicated individual track detail view (`app/track/[id].tsx`).
-- **Added**: Persistent cover artwork from Google Books, TMDB, Metron, and AniList.
-- **Added**: Rich creator/author attribution and cleaned synopsis formatting.
-- **Added**: Track timeline statistics (date added, date started, time active, completion velocity).
-- **Added**: In-place controls for editing total count, jumping positions, pausing, and deleting.
+- **Note**: still pending — v1.2.0 shipped ahead of it (see below).
 
 ### Planned for v1.3.0 (Insights & Stats)
 - **Added**: Dedicated Stats & Insights tab (`app/(tabs)/stats.tsx`).
@@ -30,6 +24,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Changed**: Rebranding from "Track-it" to "Iris".
 - **Added**: Modern Apple-inspired glass design system (`expo-blur`, translucent surfaces, refined typography).
 - **Added**: New aperture/iris logo and updated native application icons across iOS and Android.
+
+---
+
+## [1.2.0] - 2026-09-23
+
+### Added
+- Dedicated individual track detail screen (`app/track/[kind]/[id].tsx`), modelled on Longbox's comic detail layout: cover art, creator line, meta line, progress, timeline stats, description, and the row's actions.
+- Persistent cover artwork, creator/author, description, and release year stored on `series` and `entry` (migration 7), sourced from Google Books, TMDB, Metron, and AniList via a new `details()` provider method.
+- One-time first-launch metadata backfill for existing catalogue-matched tracks — hand-typed tracks are never backfilled and nothing about them is guessed.
+- Search-result disambiguation: thumbnail, creator, and year shown per result, sourced from the search call itself (TMDB search has no credits, so no creator there).
+- Back-to-search: the confirm screen's back button now returns to the search screen with the typed query and results intact, replacing "Nope, search again".
+- Manual completion via a two-step left swipe (Edit, then a deep-swipe Complete), including for an ongoing series — completing one drops its auto-appended placeholder unit so it reads "12 of 12", not "13 of 13".
+
+### Changed
+- Comic/manga/AniList description cleaning now goes through a single whitelist-based `cleanDescription` (`src/domain/formatters.ts`), retiring AniList's local `stripHtml`.
+- RN's built-in `Image` is used for cover art instead of `expo-image`, to avoid a native rebuild and keep parity with `web`.
+
+### Fixed
+- Descriptions no longer render raw HTML tags or entities (`<br>`, `&amp;`, `&#39;`, …) — cleaned at the provider boundary and again at render.
+- Backups could not restore comic collections; `backup.ts` now round-trips the new metadata columns and comic-collection entries correctly.
 
 ---
 

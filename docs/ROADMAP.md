@@ -10,9 +10,9 @@
 
 This roadmap establishes the technical implementation plan for the four major evolutions of `track-it`:
 
-1. **Status Notifications, Action Feedback & Undo Stack**: Reliable undo mechanisms for advance, pause, and delete operations across all shelves, paired with celebration moments on completing media.
+1. **Status Notifications, Action Feedback & Undo Stack**: Reliable undo mechanisms for advance, pause, and delete operations across all shelves, paired with celebration moments on completing media. **Still pending** as of 2026-09-23 — v1.2.0 (below) shipped ahead of it.
 2. **Reading & Watching Insights (Stats Engine)**: Automated completion metrics, averages, category distributions, velocity metrics, and shareable graphic cards built on top of existing database timestamps.
-3. **Individual Track Details & Formatted Metadata**: Rich detail view for every item displaying full synopses, creator/author credits, persistent cover artwork, time-in-progress statistics, and inline action controls.
+3. **Individual Track Details & Formatted Metadata**: Rich detail view for every item displaying full synopses, creator/author credits, persistent cover artwork, time-in-progress statistics, and inline action controls. **Shipped as v1.2.0, 2026-09-23** — see `CHANGELOG.md` and amendments A22–A24 in `docs/superpowers/specs/2026-08-12-track-it-design.md`.
 4. **The "Iris" Evolution (Rebrand & Modern Glass UI)**: Transitioning from the current Material 3 theme to **Iris** — a refined, Apple-inspired human interface characterized by clean simplicity, subtle translucency (`expo-blur`), purposeful micro-animations, and a new camera/aperture brand identity.
 
 ---
@@ -98,7 +98,14 @@ All new features must strictly conform to existing architectural invariants:
 
 ---
 
-### Milestone v1.2.0: Individual Track Pages, Cover Art & Formatted Metadata
+### Milestone v1.2.0: Individual Track Pages, Cover Art & Formatted Metadata — Shipped 2026-09-23
+
+> Landed as designed below, plus two additions agreed alongside it: search-result
+> disambiguation and manual completion (including for an ongoing series). See
+> `CHANGELOG.md`'s `[1.2.0]` entry and amendments A22–A24 in
+> `docs/superpowers/specs/2026-08-12-track-it-design.md` for what actually shipped,
+> including the places implementation diverged from this plan (`app/track/[kind]/[id].tsx`
+> rather than `app/track/[id].tsx`; RN's built-in `Image` rather than `expo-image`).
 
 #### User Goals
 * Tapping a track row anywhere brings up a dedicated **Individual Track Page** (or interactive sheet) mirroring and expanding upon the Add confirmation view.
@@ -344,9 +351,9 @@ Work in this repository follows the strict 3-branch pipeline:
 
 ## 5. Summary of Milestones & Releases
 
-| Version | Milestone Name | Key Highlights | Database Migration? |
-| :--- | :--- | :--- | :---: |
-| **v1.1.0** | **Action Feedback & Undo** | Toast notifications, Undo for Advance/Pause/Delete, Finish celebrations | No |
-| **v1.2.0** | **Track Detail & Artwork** | Individual track pages, cover art, formatted details, time elapsed | **Yes** (cover_url, creator, blurb) |
-| **v1.3.0** | **Stats & Visual Insights** | Stats tab, velocity/averages, shareable graphic cards via `expo-sharing` | No |
-| **v2.0.0** | **Iris Rebrand & Glass UI** | Name change, aperture logo, glass design system (`expo-blur`), modern UI | No |
+| Version | Milestone Name | Key Highlights | Database Migration? | Status |
+| :--- | :--- | :--- | :---: | :--- |
+| **v1.1.0** | **Action Feedback & Undo** | Toast notifications, Undo for Advance/Pause/Delete, Finish celebrations | No | Pending |
+| **v1.2.0** | **Track Detail & Artwork** | Individual track pages, cover art, formatted details, time elapsed | **Yes** (cover_url, creator, blurb) | **Shipped 2026-09-23** |
+| **v1.3.0** | **Stats & Visual Insights** | Stats tab, velocity/averages, shareable graphic cards via `expo-sharing` | No | Pending |
+| **v2.0.0** | **Iris Rebrand & Glass UI** | Name change, aperture logo, glass design system (`expo-blur`), modern UI | No | Pending |
