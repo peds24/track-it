@@ -77,4 +77,14 @@ export interface MetadataProvider {
    * should be retried later, as opposed to a found record with empty fields.
    */
   details?(externalId: string): Promise<TrackMetadata | null>;
+  /**
+   * A25: the catalogue record for unit `ordinal` of the same series as
+   * `externalId` — Longbox's next-issue lookup, used to move a comic's cover
+   * and issue number along as it is read. Only Metron has per-issue records;
+   * `null` means no such unit (yet) or a failed lookup. Never throws.
+   */
+  unitAt?(externalId: string, ordinal: number): Promise<UnitRecord | null>;
 }
+
+/** A25: one unit of a catalogued series — a single comic issue. */
+export type UnitRecord = { externalId: string; number: string; coverUrl: string | null };

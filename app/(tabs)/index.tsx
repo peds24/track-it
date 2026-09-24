@@ -13,6 +13,7 @@ import {
   setTrackPosition,
   type TrackSummary,
 } from '@/data/trackRepo';
+import { syncSeriesUnit, syncUnitForEntry } from '@/data/syncSeriesUnit';
 import type { Category } from '@/domain/types';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { elevation, font, googleSans, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
@@ -74,6 +75,8 @@ export default function CurrentlyScreen() {
         Alert.alert('Could not update', e instanceof Error ? e.message : String(e));
       }
       await reloadSafely();
+      // A25: a catalogued comic moves its cover and issue number along.
+      if (await syncUnitForEntry(db, entryId).catch(() => false)) await reloadSafely();
     })();
   }
 
@@ -125,6 +128,7 @@ export default function CurrentlyScreen() {
         Alert.alert('Could not update', e instanceof Error ? e.message : String(e));
       }
       await reloadSafely();
+      if (await syncSeriesUnit(db, track.id).catch(() => false)) await reloadSafely();
     })();
   }
 
