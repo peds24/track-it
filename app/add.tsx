@@ -86,9 +86,7 @@ export default function AddTrackScreen() {
   // Irrelevant, and left null, for every other category.
   const [comicMode, setComicMode] = useState<ComicMode | null>(null);
   const [title, setTitle] = useState('');
-  const [count, setCount] = useState('');
   const [saving, setSaving] = useState(false);
-  const [ongoing, setOngoing] = useState(false);
 
   const [results, setResults] = useState<SearchResult[]>([]);
   const [picked, setPicked] = useState<SearchResult | null>(null);
@@ -133,12 +131,6 @@ export default function AddTrackScreen() {
   // entirely: there is no confirm step to skip once this is false.
   const isCollectionComic = category === 'comic' && comicMode === 'collection';
   const isSeries = category !== null && unitLabelFor(category) !== null && !isCollectionComic;
-  // A11: manual fields render only when there's no confirmed match to trust
-  // instead — a hand-typed title, or a match whose hydrate() failed (which
-  // drops the pick and continues as a hand-typed title, A24).
-  const showManualFields = isSeries && !picked;
-  const needsCount = showManualFields && !ongoing;
-  const unit = category ? unitLabelFor(category) : null;
   // A17: the confirm screen's data, however it was fetched — `hydrate()`'s
   // own metaLine/blurb for a series match, `preview()`'s for a standalone
   // one. `null` means either there's no picked match, or its lookup hasn't
@@ -209,7 +201,7 @@ export default function AddTrackScreen() {
         if (!cancelled) setConfirmedDraft(draft);
       } catch {
         // The match couldn't be confirmed — continue as a hand-typed title so
-        // the manual count fields apply, instead of re-trying a dead match at save.
+        // it is tracked as you go (A25), instead of re-trying a dead match at save.
         if (!cancelled) {
           setTitle(pickedOrdinal !== null ? `${picked.title} #${pickedOrdinal}` : picked.title);
           setPicked(null);
@@ -291,8 +283,6 @@ export default function AddTrackScreen() {
         setCategory(null);
       }
       setTitle('');
-      setCount('');
-      setOngoing(false);
       setPicked(null);
       setResults([]);
       setScanning(false);
@@ -410,12 +400,6 @@ export default function AddTrackScreen() {
     if (!category) return;
     if (saving) return;
 
-    const parsedCount = /^\d+$/.test(count.trim()) ? Number.parseInt(count.trim(), 10) : Number.NaN;
-    if (needsCount && !Number.isInteger(parsedCount)) {
-      Alert.alert('Could not add track', `Enter how many ${unit}s as a whole number`);
-      return;
-    }
-
     setSaving(true);
     try {
       const now = new Date().toISOString();
@@ -444,8 +428,12 @@ export default function AddTrackScreen() {
         {
           title: finalTitle,
           category,
-          count: parsedCount,
-          ongoing: isSeries && ongoing,
+          // A25: no count to type any more. A hand-typed series (or one whose
+          // match failed to load) is tracked as ongoing (A4) — it grows a unit
+          // at a time as you go, and Complete (A23) finishes it. A confirmed
+          // match brings its real count on `draft` and ignores both.
+          count: 1,
+          ongoing: isSeries,
           match: picked ?? undefined,
           startAtOrdinal: ordinal ?? undefined,
           draft,
@@ -579,7 +567,7 @@ export default function AddTrackScreen() {
   // A17: a real match — series or standalone — is confirmed here before
   // it's saved, rather than applied straight off the search result. A
   // failed match (hydrateFailed) never reaches this screen; it falls
-  // through to the manual title/count fields below instead, same as a
+  // through to the manual title field below instead, same as a
   // hand-typed title with no match at all.
   if (picked && (matchSummary || checkingMatch)) {
     const credit = matchSummary ? creatorLine(category, matchSummary.metadata?.creator ?? picked.creator ?? null) : null;
@@ -655,7 +643,7 @@ export default function AddTrackScreen() {
         selectionColor={palette.primaryContainer}
         underlineColorAndroid="transparent"
       />
-      {hydrateFailed && <Text style={styles.note}>Couldn’t load that match — enter the count yourself.</Text>}
+      {hydrateFailed && <Text style={styles.note}>Couldn’t load that match — it’ll be tracked as you go.</Text>}
 
       {results.length > 0 && (
         <ScrollView style={styles.results} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
@@ -679,41 +667,6 @@ export default function AddTrackScreen() {
             style={{ marginRight: 6 }}
           />
           <Text style={styles.scanButtonText}>Scan barcode</Text>
-        </Pressable>
-      )}
-
-      {showManualFields && needsCount && (
-        <TextInput
-          style={styles.input}
-          placeholder={`How many ${unit}s?`}
-          placeholderTextColor={palette.onSurfaceVariant}
-          accessibilityLabel="Count"
-          value={count}
-          onChangeText={setCount}
-          keyboardType="number-pad"
-          cursorColor={palette.primary}
-          selectionColor={palette.primaryContainer}
-          underlineColorAndroid="transparent"
-        />
-      )}
-
-      {showManualFields && (
-        <Pressable
-          accessibilityRole="checkbox"
-          accessibilityState={{ checked: ongoing }}
-          accessibilityLabel="Ongoing series"
-          onPress={() => setOngoing((v) => !v)}
-          style={[styles.toggle, ongoing && styles.toggleOn]}
-        >
-          <Ionicons
-            name={ongoing ? 'checkmark-circle' : 'add-circle-outline'}
-            size={18}
-            color={ongoing ? palette.onSecondaryContainer : palette.onSurfaceVariant}
-            style={{ marginRight: 6 }}
-          />
-          <Text style={[styles.toggleText, ongoing && styles.toggleTextOn]}>
-            Ongoing series
-          </Text>
         </Pressable>
       )}
 
@@ -852,31 +805,6 @@ function createStyles(c: Palette) {
       borderWidth: 1,
       borderColor: c.outline,
       borderRadius: radius.sm,
-    },
-    toggle: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      alignSelf: 'flex-start',
-      marginHorizontal: layout.inset,
-      marginBottom: 16,
-      paddingVertical: 8,
-      paddingHorizontal: 14,
-      borderRadius: radius.sm,
-      backgroundColor: c.surfaceContainerLow,
-      borderWidth: 1,
-      borderColor: c.outlineVariant,
-    },
-    toggleOn: {
-      backgroundColor: c.secondaryContainer,
-      borderColor: c.secondaryContainer,
-    },
-    toggleText: {
-      ...font.labelLarge,
-      color: c.onSurfaceVariant,
-    },
-    toggleTextOn: {
-      color: c.onSecondaryContainer,
-      fontWeight: '600',
     },
     // A17: the confirm screen's own title — smaller than `prompt`'s category
     // label (headlineMedium is sized for a short static word, not a real,
