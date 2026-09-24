@@ -1,5 +1,64 @@
 # DEVLOG
 
+## 2026-09-24 — v1.3.0: Polish from v1.2.0 Feedback
+
+### What Changed
+- **Sharper covers**: `sharpCoverUrl` / `googleBooksImage` in
+  `src/providers/images.ts`. Providers store TMDB `w780`, AniList
+  `extraLarge`, Google Books `fife=w600`; `trackRepo.metadataOf` applies
+  the same rewrite on read, so rows stored at the old sizes sharpen too.
+- **Book search** (`googleBooks.ts`): `intitle:` query with a plain-query
+  fallback, `printType=books`, ISBN-only results, knock-off titles
+  dropped, cover+author ranked first, same title+author deduped.
+- **Comic advance** ported from Longbox: `MetadataProvider.unitAt`
+  (Metron only) and `src/data/syncSeriesUnit.ts`, called after
+  advance/set-position on Currently, Backlog, Done and the detail screen.
+- **Add screen**: count field and ongoing toggle removed; hand-typed
+  series are always ongoing.
+- **Feedback**: Done header button, compose sheet, `mailto:` draft to
+  the developer (`src/ui/feedback.ts`).
+- Decision record: **A25**. Planned Insights & Stats moved to v1.4.0.
+
+### Design Decisions & Trade-offs
+- **Rewrite on read, not a migration.** Upgrading stored cover URLs by
+  pattern costs nothing and needs no network. A backfill re-run was
+  the alternative, but the backfill `COALESCE`s (fills gaps only), so
+  it would not have replaced existing covers without changing its
+  contract.
+- **`fife` over `zoom` for Google Books.** Measured against the live
+  image server: `zoom=3` gives 575px for modern volumes but a 575×92
+  "image not available" strip for scanned ones; `fife=w600` gives the
+  largest real scan (600px modern, 300px scanned) and never the strip.
+- **ISBN as the "real book" signal.** `printType=books` changed nothing
+  in live results. Every journal/report/proceedings hit had no ISBN
+  (or only an `OTHER` identifier); every real edition had one. It will
+  also drop an occasional genuine ISBN-less record (some very old
+  books) — accepted, since those are rarely what someone is tracking.
+- **Comic sync outside `advanceEntry`.** Keeping the network hop out of
+  the data write means an advance is instant and can't fail offline;
+  the cover catches up a second later. `external_id` moves with the
+  issue, so the A22 backfill and the next sync start from the current
+  issue rather than the originally matched one.
+- **One filtered Metron request instead of Longbox's full issue list.**
+  `/issue/?series_id=&number=` is exact and paging-free; Longbox read
+  only the first page of `issue_list`, which silently broke for series
+  over 100 issues.
+- **Always-ongoing for hand-typed series** rather than keeping a hidden
+  default count. A guessed total produced wrong progress ("3 of 12");
+  ongoing plus Complete (A23) covers finite runs without asking.
+- **`mailto:` feedback.** No backend exists (D6), and a form service
+  would need a third-party account and key shipped in the app. Cost:
+  the user must have a mail app and press send themselves.
+
+### Architecture State
+- New optional provider method `unitAt`; new data module
+  `syncSeriesUnit`; `UNIT_TITLE` exported from `trackRepo`.
+- No schema migration. No new native modules (no rebuild needed).
+- Verified on the Pixel_10 emulator (Expo Go): Metron comic cover moved
+  #1 → #2 → #3 across row and detail advances; book search showed only
+  real editions; hand-typed show added as ongoing with no count field;
+  Feedback sheet opened Gmail.
+
 ## 2026-09-23 — v1.2.0: Track Detail, Cover Art, Better Search & Manual Complete
 
 ### What Changed

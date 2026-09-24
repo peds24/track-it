@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Added**: Confetti and emoji celebration overlay when a track is completed.
 - **Note**: still pending — v1.2.0 shipped ahead of it (see below).
 
-### Planned for v1.3.0 (Insights & Stats)
+### Planned for v1.4.0 (Insights & Stats)
 - **Added**: Dedicated Stats & Insights tab (`app/(tabs)/stats.tsx`).
 - **Added**: Calculation engine for completion averages, backlog incubation time, and category balance.
 - **Added**: One-tap shareable stats graphic card using `expo-sharing`.
@@ -24,6 +24,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Changed**: Rebranding from "Track-it" to "Iris".
 - **Added**: Modern Apple-inspired glass design system (`expo-blur`, translucent surfaces, refined typography).
 - **Added**: New aperture/iris logo and updated native application icons across iOS and Android.
+
+---
+
+## [1.3.0] - 2026-09-24
+
+### Added
+- **Feedback button** on the Done tab: write a message and it opens in your mail app, addressed to the developer, with the app version attached.
+- **Comics advance like Longbox**: a Metron-matched comic's cover and issue number now follow the issue you are reading, after each advance or position edit.
+
+### Changed
+- **Sharper covers** on the track detail screen and in search results: TMDB `w780`, AniList `extraLarge`, Google Books `fife=w600`. Covers saved before this update sharpen too, with nothing refetched.
+- **Better book search**: matches by title first, keeps only real books (ISBN-bearing, so no journals, reports or conference proceedings), drops summaries and study guides, lists results with a cover and author first, and collapses duplicate printings.
+- **No more "How many episodes?"** on the Add screen, anywhere: a catalogue match brings its real count, and a hand-typed series is tracked as you go, finished with Complete.
 
 ---
 

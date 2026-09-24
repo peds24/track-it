@@ -1,12 +1,37 @@
 # Track It — session handoff
 
-**Last updated:** 23 September 2026
+**Last updated:** 24 September 2026
 
 Where the project stands, what is unmerged, and what bit us — so the next
 session does not rediscover any of it. Newest section is at the top; older
 sections below are left as written, and may describe a branch layout
 (`main`, PRs) that predates the `android`/`web`/`gh-pages` pipeline
 (CLAUDE.md §6) — read them as history, not current state.
+
+## v1.3.0 (2026-09-24)
+
+Five fixes from v1.2.0 feedback, on `worktree-v1.3.0-polish` (merged into
+`android`; **not yet pushed or ported to `web`**). Decision record: **A25**.
+
+- Covers are fetched and shown at detail-screen resolution; old stored URLs
+  are rewritten on read (`sharpCoverUrl`), so no migration was needed.
+- Google Books search keeps ISBN-bearing books only, title-first.
+- Metron comics move their cover, issue number and `external_id` to the issue
+  being read after each advance or position edit (`syncSeriesUnit`), ported
+  from Longbox (`../comic-track`).
+- Add no longer asks for a count; hand-typed series are always ongoing.
+- Done has a Feedback button that opens a `mailto:` draft to the developer.
+
+**Roadmap renumbering:** the planned Insights & Stats milestone is now
+**v1.4.0** (it was v1.3.0). The next decision amendment is **A26**.
+
+**Web port notes:** `syncSeriesUnit` calls Metron, which is CORS-blocked in
+the browser, so on web it will fail quietly (it never throws). The rest ports
+as-is.
+
+**Emulator gotcha:** Expo Go was killed mid-session because a background
+WebView update was being installed (`stop com.google.android.webview due to
+installPackageLI` in logcat). It looks like a crash but isn't one. Relaunch.
 
 ## v1.2.0 (2026-09-23)
 
