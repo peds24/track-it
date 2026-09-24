@@ -345,6 +345,7 @@ describe('A25 search filtering', () => {
         book('s2', 'SUMMARY and REVIEW'),
         book('s3', 'Study Guide: Project Hail Mary'),
         book('s4', 'Book Club Kit'),
+        book('s5', 'PROJECT HAIL MARY MOVIE REVIEW'),
       ],
     });
 

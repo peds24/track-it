@@ -22,8 +22,8 @@ type GoogleBooksVolume = {
 };
 type TitledVolume = GoogleBooksVolume & { volumeInfo: { title: string } };
 
-/** A25: third-party summaries and study aids of the book being searched for. */
-const KNOCKOFF_RE = /^(summary|study guide|workbook)\b|\bsummary (and|&) analysis\b|\bstudy guide\b|\bbook club (kit|in a box)\b/i;
+/** A25: third-party summaries, study aids and reviews of the book being searched for. */
+const KNOCKOFF_RE = /^(summary|study guide|workbook)\b|\bsummary (and|&) analysis\b|\bstudy guide\b|\bbook club (kit|in a box)\b|\b(movie|book) review$/i;
 
 /**
  * A25: keep only what a person would shelve. Every junk hit seen against the
