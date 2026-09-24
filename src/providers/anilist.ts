@@ -14,7 +14,7 @@ const SEARCH_QUERY = `
         id
         title { romaji english }
         startDate { year }
-        coverImage { medium }
+        coverImage { large }
         ${STAFF_FIELDS}
       }
     }
@@ -30,7 +30,7 @@ const DETAIL_QUERY = `
       description(asHtml: false)
       startDate { year }
       endDate { year }
-      coverImage { large }
+      coverImage { extraLarge large }
       ${STAFF_FIELDS}
     }
   }
@@ -41,7 +41,7 @@ type AnilistSearchHit = {
   id: number;
   title: { romaji?: string; english?: string };
   startDate?: { year?: number | null };
-  coverImage?: { medium?: string | null };
+  coverImage?: { large?: string | null };
   staff?: AnilistStaff;
 };
 type AnilistSearchResponse = { data?: { Page?: { media?: AnilistSearchHit[] } } };
@@ -52,7 +52,7 @@ type AnilistDetail = {
   description?: string | null;
   startDate?: { year?: number | null };
   endDate?: { year?: number | null };
-  coverImage?: { large?: string | null };
+  coverImage?: { extraLarge?: string | null; large?: string | null };
   staff?: AnilistStaff;
 };
 type AnilistDetailResponse = { data?: { Media?: AnilistDetail } };
@@ -66,7 +66,8 @@ function authorOf(staff: AnilistStaff | undefined): string | null {
 
 function metadataOf(media: AnilistDetail): TrackMetadata {
   return {
-    coverUrl: media.coverImage?.large ?? null,
+    // A25: `extraLarge` — AniList's `large` is its medium size, blurry on the detail screen.
+    coverUrl: media.coverImage?.extraLarge ?? media.coverImage?.large ?? null,
     creator: authorOf(media.staff),
     description: cleanDescription(media.description),
     releaseYear: media.startDate?.year ? String(media.startDate.year) : null,
@@ -115,7 +116,7 @@ export class AnilistProvider implements MetadataProvider {
         count: 1,
         creator: authorOf(hit.staff) ?? undefined,
         year: hit.startDate?.year ? String(hit.startDate.year) : undefined,
-        thumbnailUrl: hit.coverImage?.medium ?? undefined,
+        thumbnailUrl: hit.coverImage?.large ?? undefined,
       }));
   }
 

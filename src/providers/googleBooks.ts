@@ -1,7 +1,7 @@
 import { cleanDescription, yearOf } from '@/domain/formatters';
 import type { Category, TrackMetadata } from '@/domain/types';
 import { generateEntries } from '@/providers/manual';
-import { httpsUrl } from '@/providers/images';
+import { googleBooksImage, sharpCoverUrl } from '@/providers/images';
 import type { MatchPreview, MetadataProvider, SearchResult, SeriesDraft } from '@/providers/types';
 
 /** A scanned barcode's payload: an all-digit 10 or 13 character string is an
@@ -32,7 +32,7 @@ function authorsOf(authors: string[] | undefined): string | null {
 
 function metadataOf(info: VolumeInfo): TrackMetadata {
   return {
-    coverUrl: httpsUrl(info.imageLinks?.thumbnail ?? info.imageLinks?.smallThumbnail),
+    coverUrl: sharpCoverUrl(info.imageLinks?.thumbnail ?? info.imageLinks?.smallThumbnail),
     creator: authorsOf(info.authors),
     description: cleanDescription(info.description),
     releaseYear: yearOf(info.publishedDate),
@@ -84,7 +84,7 @@ export class GoogleBooksProvider implements MetadataProvider {
         count: 1,
         creator: authorsOf(item.volumeInfo.authors) ?? undefined,
         year: yearOf(item.volumeInfo.publishedDate) ?? undefined,
-        thumbnailUrl: httpsUrl(item.volumeInfo.imageLinks?.smallThumbnail ?? item.volumeInfo.imageLinks?.thumbnail) ?? undefined,
+        thumbnailUrl: googleBooksImage(item.volumeInfo.imageLinks?.thumbnail ?? item.volumeInfo.imageLinks?.smallThumbnail, 200) ?? undefined,
       }));
   }
 
