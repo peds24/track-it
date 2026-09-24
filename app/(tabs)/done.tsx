@@ -10,6 +10,7 @@ import {
   returnTrackToBacklog,
   type TrackSummary,
 } from '@/data/trackRepo';
+import { syncUnitForEntry } from '@/data/syncSeriesUnit';
 import type { Category } from '@/domain/types';
 import { showAlert } from '@/ui/alert';
 import { useDatabase } from '@/ui/DatabaseProvider';
@@ -49,6 +50,8 @@ export default function DoneScreen() {
         showAlert('Could not update', e instanceof Error ? e.message : String(e));
       }
       await reloadSafely();
+      // A25: a catalogued comic moves its cover and issue number along.
+      if (await syncUnitForEntry(db, entryId).catch(() => false)) await reloadSafely();
     })();
   }
 

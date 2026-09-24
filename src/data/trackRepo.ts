@@ -535,7 +535,7 @@ async function startNextInSeries(db: SqlDriver, finished: Entry, now: string): P
 }
 
 /** Matches the titles ManualProvider generates, so both paths read alike. */
-const UNIT_TITLE: Record<Series['unitLabel'], string> = {
+export const UNIT_TITLE: Record<Series['unitLabel'], string> = {
   episode: 'Episode',
   issue: 'Issue',
   volume: 'Volume',
