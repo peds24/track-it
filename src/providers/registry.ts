@@ -29,3 +29,27 @@ const REGISTRY: Partial<Record<Category, MetadataProvider>> = {
 export function providerFor(category: Category): MetadataProvider {
   return REGISTRY[category] ?? manual;
 }
+
+const googleBooksAny = new GoogleBooksProvider('book');
+
+/**
+ * A22: the provider that produced a stored `external_source`, for the
+ * metadata backfill. Keyed by source, not category, because a comic
+ * collection's source is Google Books while `comic`'s registry entry stays
+ * Metron (A14/A16). TMDB still needs the category — show and movie details
+ * are different endpoints. `null` for a source no longer registered.
+ */
+export function providerForSource(source: string, category: Category): MetadataProvider | null {
+  switch (source) {
+    case 'google-books':
+      return googleBooksAny;
+    case 'tmdb':
+      return category === 'movie' ? REGISTRY.movie! : REGISTRY.show!;
+    case 'metron':
+      return REGISTRY.comic!;
+    case 'anilist':
+      return REGISTRY.manga!;
+    default:
+      return null;
+  }
+}

@@ -343,3 +343,60 @@ test('bad startedAt, finishedAt and series createdAt are all rejected', async ()
     /series.createdAt/,
   );
 });
+
+describe('A22 metadata in backups', () => {
+  const T0 = '2026-09-01T12:00:00.000Z';
+
+  test('metadata survives an export/import round trip', async () => {
+    const source = createMemoryDriver();
+    await migrate(source);
+    await addTrack(
+      source,
+      {
+        title: 'Saga, Volume 1',
+        category: 'comic',
+        count: 1,
+        standalone: true,
+        externalSource: 'google-books',
+        match: { id: 'gb9', title: 'Saga, Volume 1', category: 'comic', count: 1 },
+        metadata: { coverUrl: 'https://x/saga.jpg', creator: 'Brian K. Vaughan', description: 'Space opera.', releaseYear: '2012' },
+      },
+      T0,
+    );
+
+    const json = await exportLibrary(source);
+    const target = createMemoryDriver();
+    await migrate(target);
+    await importLibrary(target, json);
+
+    const [row] = await target.all<Record<string, unknown>>('SELECT * FROM entry');
+    expect(row).toMatchObject({
+      media_type: 'comic',
+      cover_url: 'https://x/saga.jpg',
+      creator: 'Brian K. Vaughan',
+      description: 'Space opera.',
+      release_year: '2012',
+      metadata_checked_at: T0,
+    });
+  });
+
+  test('a backup from before A22 imports with empty metadata', async () => {
+    const target = createMemoryDriver();
+    await migrate(target);
+    const legacy = JSON.stringify({
+      version: 1,
+      series: [],
+      entries: [
+        {
+          id: 'e1', seriesId: null, title: 'Dune', ordinal: null, mediaType: 'book', status: 'unstarted',
+          startedAt: null, finishedAt: null, createdAt: T0,
+        },
+      ],
+    });
+
+    await importLibrary(target, legacy);
+
+    const [row] = await target.all<Record<string, unknown>>('SELECT * FROM entry');
+    expect(row).toMatchObject({ cover_url: null, creator: null, metadata_checked_at: null });
+  });
+});

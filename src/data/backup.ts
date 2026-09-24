@@ -13,17 +13,33 @@
  */
 import type { SqlDriver } from '@/db/driver';
 import { isStatusValid } from '@/domain/mode';
-import type { Entry, EntryMediaType, SeasonBoundary, Series, Status } from '@/domain/types';
+import type { Entry, EntryMediaType, SeasonBoundary, Series, Status, TrackMetadata } from '@/domain/types';
 import { assertEntryInvariants, assertIsoTimestamp } from '@/domain/validate';
 
 const VERSION = 1;
 
-type Backup = { version: number; series: Series[]; entries: Entry[] };
+/** A22: optional on both record kinds — absent in backups that predate it. */
+type MetadataFields = Partial<TrackMetadata> & { metadataCheckedAt?: string | null };
+type SeriesRecord = Series & MetadataFields;
+type EntryRecord = Entry & MetadataFields;
 
-const ENTRY_MEDIA_TYPES: readonly EntryMediaType[] = ['episode', 'issue', 'volume', 'book', 'movie'];
+type Backup = { version: number; series: SeriesRecord[]; entries: EntryRecord[] };
+
+const ENTRY_MEDIA_TYPES: readonly EntryMediaType[] = ['episode', 'issue', 'volume', 'book', 'movie', 'comic'];
 const STATUSES: readonly Status[] = ['unstarted', 'in_progress', 'done'];
 const SERIES_MEDIA_TYPES: readonly Series['mediaType'][] = ['show', 'comic', 'manga'];
 const UNIT_LABELS: readonly Series['unitLabel'][] = ['episode', 'issue', 'volume'];
+
+/** Exported only when set, matching how `seasons` already round-trips. */
+function exportMetadata(r: Record<string, unknown>): MetadataFields {
+  const out: MetadataFields = {};
+  if (r.cover_url) out.coverUrl = r.cover_url as string;
+  if (r.creator) out.creator = r.creator as string;
+  if (r.description) out.description = r.description as string;
+  if (r.release_year) out.releaseYear = r.release_year as string;
+  if (r.metadata_checked_at) out.metadataCheckedAt = r.metadata_checked_at as string;
+  return out;
+}
 
 export async function exportLibrary(db: SqlDriver): Promise<string> {
   const seriesRows = await db.all<Record<string, unknown>>('SELECT * FROM series');
@@ -46,6 +62,7 @@ export async function exportLibrary(db: SqlDriver): Promise<string> {
       // than exporting an explicit null (matches how every other optional
       // field here already round-trips).
       seasons: r.seasons_json ? (JSON.parse(r.seasons_json as string) as SeasonBoundary[]) : undefined,
+      ...exportMetadata(r),
     })),
     entries: entryRows.map((r) => ({
       id: String(r.id),
@@ -60,6 +77,7 @@ export async function exportLibrary(db: SqlDriver): Promise<string> {
       paused: r.paused === 1,
       externalSource: (r.external_source as string | null) ?? null,
       externalId: (r.external_id as string | null) ?? null,
+      ...exportMetadata(r),
     })),
   };
 
@@ -96,7 +114,21 @@ function requireOptionalSeasons(value: unknown, field: string): readonly SeasonB
   });
 }
 
-function parseSeries(value: unknown): Series {
+function parseMetadata(value: Record<string, unknown>, kind: string): Required<MetadataFields> {
+  return {
+    coverUrl: requireNullableString(value.coverUrl, `${kind}.coverUrl`),
+    creator: requireNullableString(value.creator, `${kind}.creator`),
+    description: requireNullableString(value.description, `${kind}.description`),
+    releaseYear: requireNullableString(value.releaseYear, `${kind}.releaseYear`),
+    metadataCheckedAt: requireNullableString(value.metadataCheckedAt, `${kind}.metadataCheckedAt`),
+  };
+}
+
+function metadataParams(m: MetadataFields): unknown[] {
+  return [m.coverUrl ?? null, m.creator ?? null, m.description ?? null, m.releaseYear ?? null, m.metadataCheckedAt ?? null];
+}
+
+function parseSeries(value: unknown): SeriesRecord {
   if (!isRecord(value)) throw new Error('A series in the backup is not an object');
 
   const mediaType = requireString(value.mediaType, 'series.mediaType');
@@ -125,10 +157,11 @@ function parseSeries(value: unknown): Series {
     externalSource: requireNullableString(value.externalSource, 'series.externalSource'),
     externalId: requireNullableString(value.externalId, 'series.externalId'),
     seasons: requireOptionalSeasons(value.seasons, 'series.seasons'),
+    ...parseMetadata(value, 'series'),
   };
 }
 
-function parseEntry(value: unknown, unitLabelBySeriesId: ReadonlyMap<string, Series['unitLabel']>): Entry {
+function parseEntry(value: unknown, unitLabelBySeriesId: ReadonlyMap<string, Series['unitLabel']>): EntryRecord {
   if (!isRecord(value)) throw new Error('An entry in the backup is not an object');
 
   const id = requireString(value.id, 'entry.id');
@@ -190,6 +223,7 @@ function parseEntry(value: unknown, unitLabelBySeriesId: ReadonlyMap<string, Ser
     // A9. Absent in backups older than provider-sourced tracks — nothing to record.
     externalSource: requireNullableString(value.externalSource, 'entry.externalSource'),
     externalId: requireNullableString(value.externalId, 'entry.externalId'),
+    ...parseMetadata(value, 'entry'),
   };
 }
 
@@ -225,8 +259,8 @@ export async function importLibrary(db: SqlDriver, json: string): Promise<void> 
 
     for (const s of backup.series) {
       await db.run(
-        `INSERT INTO series (id, title, media_type, unit_label, created_at, ongoing, paused, external_source, external_id, seasons_json)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO series (id, title, media_type, unit_label, created_at, ongoing, paused, external_source, external_id, seasons_json, cover_url, creator, description, release_year, metadata_checked_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           s.id,
           s.title,
@@ -238,14 +272,15 @@ export async function importLibrary(db: SqlDriver, json: string): Promise<void> 
           s.externalSource,
           s.externalId,
           s.seasons ? JSON.stringify(s.seasons) : null,
+          ...metadataParams(s),
         ],
       );
     }
 
     for (const e of backup.entries) {
       await db.run(
-        `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, started_at, finished_at, created_at, paused, external_source, external_id)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, started_at, finished_at, created_at, paused, external_source, external_id, cover_url, creator, description, release_year, metadata_checked_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           e.id,
           e.seriesId,
@@ -259,6 +294,7 @@ export async function importLibrary(db: SqlDriver, json: string): Promise<void> 
           e.paused ? 1 : 0,
           e.externalSource,
           e.externalId,
+          ...metadataParams(e),
         ],
       );
     }

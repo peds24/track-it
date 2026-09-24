@@ -1,6 +1,6 @@
 import { createSeriesTrack, createStandaloneTrack } from '@/data/trackRepo';
 import type { SqlDriver } from '@/db/driver';
-import type { Category } from '@/domain/types';
+import type { Category, TrackMetadata } from '@/domain/types';
 import { unitLabelFor } from '@/providers/manual';
 import { providerFor } from '@/providers/registry';
 import type { SearchResult, SeriesDraft } from '@/providers/types';
@@ -55,6 +55,12 @@ export async function addTrack(
      * entry stays Metron, the single-issue default (A9/A14).
      */
     externalSource?: string;
+    /**
+     * A22: display metadata the confirm screen already fetched for a
+     * standalone match (`preview()`), stored with the new entry. A series
+     * carries its own on `draft.metadata` instead.
+     */
+    metadata?: TrackMetadata;
   },
   now: string,
 ): Promise<CreatedTrack> {
@@ -79,6 +85,7 @@ export async function addTrack(
         category: input.category as 'book' | 'movie' | 'comic',
         externalSource: matched ? (input.externalSource ?? provider.id) : undefined,
         externalId: matched ? input.match!.id : undefined,
+        metadata: matched ? input.metadata : undefined,
       },
       now,
     );

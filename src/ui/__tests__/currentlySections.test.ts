@@ -20,6 +20,7 @@ function track(category: Category, id: string): TrackSummary {
     nextEntryStatus: 'unstarted',
     nextEntryTitle: 'Episode 1',
     lastAdvancedAt: null,
+    completionDrops: null,
   };
 }
 

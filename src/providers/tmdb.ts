@@ -1,8 +1,17 @@
-import type { Category, SeasonBoundary } from '@/domain/types';
+import { cleanDescription, yearOf } from '@/domain/formatters';
+import type { Category, SeasonBoundary, TrackMetadata } from '@/domain/types';
+import { tmdbImage } from '@/providers/images';
 import { generateEntries } from '@/providers/manual';
 import type { MatchPreview, MetadataProvider, SearchResult, SeriesDraft } from '@/providers/types';
 
-type TmdbSearchHit = { id: number; title?: string; name?: string };
+type TmdbSearchHit = {
+  id: number;
+  title?: string;
+  name?: string;
+  release_date?: string;
+  first_air_date?: string;
+  poster_path?: string | null;
+};
 type TmdbSearchResponse = { results?: TmdbSearchHit[] };
 type TmdbSeason = { season_number: number; episode_count?: number };
 type TmdbShowDetail = {
@@ -11,12 +20,19 @@ type TmdbShowDetail = {
   overview?: string;
   first_air_date?: string;
   last_air_date?: string;
+  poster_path?: string | null;
+  created_by?: { name?: string }[];
 };
-type TmdbMovieDetail = { overview?: string; release_date?: string };
+type TmdbMovieDetail = {
+  overview?: string;
+  release_date?: string;
+  poster_path?: string | null;
+  credits?: { crew?: { job?: string; name?: string }[] };
+};
 
-/** "2026-08-16" -> "2026". `undefined`/too-short is not a year worth showing. */
-function yearOf(date: string | undefined): string | null {
-  return date && date.length >= 4 ? date.slice(0, 4) : null;
+function namesOf(people: { name?: string }[] | undefined): string | null {
+  const names = (people ?? []).map((p) => p.name).filter((n): n is string => !!n);
+  return names.length > 0 ? names.join(', ') : null;
 }
 
 /**
@@ -79,6 +95,8 @@ export class TmdbProvider implements MetadataProvider {
         title: titleOf(hit)!,
         category: this.category,
         count: 1,
+        year: yearOf(this.category === 'show' ? hit.first_air_date : hit.release_date) ?? undefined,
+        thumbnailUrl: tmdbImage(hit.poster_path, 'w92') ?? undefined,
       }));
   }
 
@@ -107,7 +125,7 @@ export class TmdbProvider implements MetadataProvider {
     // A17: the confirm screen's meta line/blurb ride along on the exact
     // same fetch — never a second round trip for data already in hand.
     const withPreview = detail
-      ? { ...withSeasons, metaLine: detail.metaLine, blurb: detail.blurb }
+      ? { ...withSeasons, metaLine: detail.metaLine, blurb: detail.blurb, metadata: detail.metadata }
       : withSeasons;
     return { ...withPreview, externalSource: this.id, externalId: result.id };
   }
@@ -119,21 +137,49 @@ export class TmdbProvider implements MetadataProvider {
    * Never throws, matching this file's own established pattern for a
    * failed/unconfigured lookup: fall back to just the picked title.
    */
-  async preview(result: SearchResult): Promise<MatchPreview> {
-    const fallback: MatchPreview = { title: result.title, metaLine: [], blurb: null };
+  /** Never throws — `null` means the lookup failed or no key is configured. */
+  private async fetchMovieDetail(movieId: string): Promise<TmdbMovieDetail | null> {
     const key = process.env.EXPO_PUBLIC_TMDB_API_KEY;
-    if (!key) return fallback;
+    if (!key) return null;
     try {
       const response = await fetch(
-        `https://api.themoviedb.org/3/movie/${encodeURIComponent(result.id)}?api_key=${encodeURIComponent(key)}`,
+        `https://api.themoviedb.org/3/movie/${encodeURIComponent(movieId)}?api_key=${encodeURIComponent(key)}&append_to_response=credits`,
       );
-      if (!response.ok) return fallback;
-      const body = (await response.json()) as TmdbMovieDetail;
-      const year = yearOf(body.release_date);
-      return { title: result.title, metaLine: year ? [year] : [], blurb: body.overview ?? null };
+      if (!response.ok) return null;
+      return (await response.json()) as TmdbMovieDetail;
     } catch {
-      return fallback;
+      return null;
     }
+  }
+
+  private static movieMetadata(body: TmdbMovieDetail): TrackMetadata {
+    const directors = (body.credits?.crew ?? []).filter((c) => c.job === 'Director');
+    return {
+      coverUrl: tmdbImage(body.poster_path, 'w342'),
+      creator: namesOf(directors),
+      description: cleanDescription(body.overview),
+      releaseYear: yearOf(body.release_date),
+    };
+  }
+
+  async preview(result: SearchResult): Promise<MatchPreview> {
+    const fallback: MatchPreview = { title: result.title, metaLine: [], blurb: null };
+    const body = await this.fetchMovieDetail(result.id);
+    if (!body) return fallback;
+    const metadata = TmdbProvider.movieMetadata(body);
+    return {
+      title: result.title,
+      metaLine: metadata.releaseYear ? [metadata.releaseYear] : [],
+      blurb: metadata.description,
+      metadata,
+    };
+  }
+
+  /** A22: the backfill's lookup, per category. */
+  async details(externalId: string): Promise<TrackMetadata | null> {
+    if (this.category === 'show') return (await this.fetchShowDetail(externalId))?.metadata ?? null;
+    const body = await this.fetchMovieDetail(externalId);
+    return body ? TmdbProvider.movieMetadata(body) : null;
   }
 
   /** Never throws — a failed or unconfigured lookup just falls back to the
@@ -144,6 +190,7 @@ export class TmdbProvider implements MetadataProvider {
     seasons: SeasonBoundary[];
     metaLine: string[];
     blurb: string | null;
+    metadata: TrackMetadata;
   } | null> {
     const key = process.env.EXPO_PUBLIC_TMDB_API_KEY;
     if (!key) return null;
@@ -180,7 +227,13 @@ export class TmdbProvider implements MetadataProvider {
         ongoing,
         seasons: breakdown,
         metaLine,
-        blurb: body.overview ?? null,
+        blurb: cleanDescription(body.overview),
+        metadata: {
+          coverUrl: tmdbImage(body.poster_path, 'w342'),
+          creator: namesOf(body.created_by),
+          description: cleanDescription(body.overview),
+          releaseYear: startYear,
+        },
       };
     } catch {
       return null;
