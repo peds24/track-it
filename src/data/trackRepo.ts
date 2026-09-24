@@ -4,6 +4,7 @@ import { timelineOf, type Timeline } from '@/domain/formatters';
 import { nextEntry, progressFor, shelfForEntry, shelfForSeries } from '@/domain/shelf';
 import type { Category, Entry, SeasonBoundary, Series, Shelf, Status, TrackMetadata, UnitLabel } from '@/domain/types';
 import { assertEntryInvariants, assertIsoTimestamp, isStandaloneMediaType } from '@/domain/validate';
+import { sharpCoverUrl } from '@/providers/images';
 import type { SeriesDraft } from '@/providers/types';
 
 export type TrackSummary = {
@@ -100,7 +101,8 @@ function metadataOf(row: {
   release_year?: string | null;
 }): TrackMetadata {
   return {
-    coverUrl: row.cover_url ?? null,
+    // A25: a cover stored before covers were fetched larger sharpens on read.
+    coverUrl: sharpCoverUrl(row.cover_url),
     creator: row.creator ?? null,
     description: row.description ?? null,
     releaseYear: row.release_year ?? null,
@@ -515,7 +517,7 @@ async function startNextInSeries(db: SqlDriver, finished: Entry, now: string): P
 }
 
 /** Matches the titles ManualProvider generates, so both paths read alike. */
-const UNIT_TITLE: Record<Series['unitLabel'], string> = {
+export const UNIT_TITLE: Record<Series['unitLabel'], string> = {
   episode: 'Episode',
   issue: 'Issue',
   volume: 'Volume',

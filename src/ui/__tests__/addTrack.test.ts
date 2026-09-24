@@ -224,3 +224,23 @@ test('a pre-hydrated draft passed in is used directly, without a second hydrate 
   );
   expect(rows).toEqual([{ external_source: 'tmdb', external_id: '1408' }]);
 });
+
+// A25: the Add screen no longer asks for a count. A hand-typed series is sent
+// as `count: 1, ongoing: true` — tracked as you go, finished with Complete.
+test('a hand-typed series, as the Add screen now sends it, is ongoing and grows as you go', async () => {
+  const db = await freshDb();
+  await addTrack(db, { title: 'Some Obscure Show', category: 'show', count: 1, ongoing: true }, NOW);
+
+  const [track] = await listTracks(db, 'backlog');
+  expect(track!.ongoing).toBe(true);
+  expect(track!.progress).toBeNull();
+  expect(track!.nextEntryTitle).toBe('Episode 1');
+});
+
+test('a hand-typed comic with an issue number starts there, with no count asked', async () => {
+  const db = await freshDb();
+  await addTrack(db, { title: 'Saga', category: 'comic', count: 1, ongoing: true, startAtOrdinal: 12 }, NOW);
+
+  const [track] = await listTracks(db, 'currently');
+  expect(track!.nextEntryTitle).toBe('Issue 12');
+});

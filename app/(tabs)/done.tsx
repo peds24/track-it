@@ -1,6 +1,7 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, Linking, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   advanceEntry,
@@ -10,12 +11,15 @@ import {
   returnTrackToBacklog,
   type TrackSummary,
 } from '@/data/trackRepo';
+import { syncUnitForEntry } from '@/data/syncSeriesUnit';
 import type { Category } from '@/domain/types';
 import { useDatabase } from '@/ui/DatabaseProvider';
+import { FEEDBACK_EMAIL, feedbackMailto } from '@/ui/feedback';
 import { FilterBar } from '@/ui/FilterBar';
 import { elevation, font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
 import { SwipeableTrackRow } from '@/ui/SwipeableTrackRow';
 import { useTracks } from '@/ui/useTracks';
+import appConfig from '../../app.json';
 
 export default function DoneScreen() {
   const db = useDatabase();
@@ -24,6 +28,8 @@ export default function DoneScreen() {
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [category, setCategory] = useState<Category | null>(null);
   const [attributionOpen, setAttributionOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedback, setFeedback] = useState('');
   const { tracks, reload } = useTracks('done', category ?? undefined);
 
   const reloadSafely = useCallback(async () => {
@@ -48,6 +54,8 @@ export default function DoneScreen() {
         Alert.alert('Could not update', e instanceof Error ? e.message : String(e));
       }
       await reloadSafely();
+      // A25: a catalogued comic moves its cover and issue number along.
+      if (await syncUnitForEntry(db, entryId).catch(() => false)) await reloadSafely();
     })();
   }
 
@@ -102,6 +110,21 @@ export default function DoneScreen() {
     })();
   }
 
+  // A25: hand the message to the user's mail app, pre-addressed — there is
+  // no server to post it to. Kept open with the text intact if that fails.
+  function handleSendFeedback(): void {
+    const url = feedbackMailto(feedback, { version: appConfig.expo.version, platform: Platform.OS });
+    void (async () => {
+      try {
+        await Linking.openURL(url);
+        setFeedback('');
+        setFeedbackOpen(false);
+      } catch {
+        Alert.alert('No mail app found', `You can email your feedback to ${FEEDBACK_EMAIL}.`);
+      }
+    })();
+  }
+
   // A22: a row's text opens the track's own screen.
   function handleOpen(track: TrackSummary): void {
     router.push(`/track/${track.kind}/${track.id}`);
@@ -111,15 +134,27 @@ export default function DoneScreen() {
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>Done</Text>
-        <Pressable
-          onPress={() => setAttributionOpen(true)}
-          accessibilityRole="button"
-          accessibilityLabel="About the data on this screen"
-          style={styles.attributionButton}
-          android_ripple={{ color: palette.surfaceContainerHighest, borderless: true }}
-        >
-          <Text style={styles.attributionButtonText}>?</Text>
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable
+            onPress={() => setFeedbackOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Send feedback"
+            style={styles.feedbackButton}
+            android_ripple={{ color: palette.surfaceContainerHighest, borderless: true }}
+          >
+            <Ionicons name="chatbubble-ellipses-outline" size={18} color={palette.onSurface} />
+            <Text style={styles.feedbackButtonText}>Feedback</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setAttributionOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel="About the data on this screen"
+            style={styles.attributionButton}
+            android_ripple={{ color: palette.surfaceContainerHighest, borderless: true }}
+          >
+            <Text style={styles.attributionButtonText}>?</Text>
+          </Pressable>
+        </View>
       </View>
 
       <FilterBar category={category} onCategoryChange={setCategory} />
@@ -150,6 +185,53 @@ export default function DoneScreen() {
           ) : null
         }
       />
+
+      <Modal
+        visible={feedbackOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setFeedbackOpen(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Send feedback</Text>
+            <Text style={styles.modalBody}>
+              Something broken, missing, or great? It opens in your mail app, addressed to the developer.
+            </Text>
+            <TextInput
+              style={styles.feedbackInput}
+              value={feedback}
+              onChangeText={setFeedback}
+              placeholder="Your feedback"
+              placeholderTextColor={palette.onSurfaceVariant}
+              accessibilityLabel="Your feedback"
+              multiline
+              textAlignVertical="top"
+              autoFocus
+              cursorColor={palette.primary}
+              selectionColor={palette.primaryContainer}
+            />
+            <View style={styles.modalActions}>
+              <Pressable
+                onPress={() => setFeedbackOpen(false)}
+                accessibilityRole="button"
+                style={styles.modalCancel}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                onPress={handleSendFeedback}
+                disabled={feedback.trim().length === 0}
+                accessibilityRole="button"
+                accessibilityState={{ disabled: feedback.trim().length === 0 }}
+                style={[styles.modalClose, feedback.trim().length === 0 && styles.disabled]}
+              >
+                <Text style={styles.modalCloseText}>Send</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <Modal
         visible={attributionOpen}
@@ -197,6 +279,33 @@ function createStyles(c: Palette) {
       color: c.onSurface,
       fontWeight: '700',
     },
+    headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    feedbackButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      height: 36,
+      paddingHorizontal: 14,
+      borderRadius: radius.full,
+      backgroundColor: c.surfaceContainerHigh,
+    },
+    feedbackButtonText: { ...font.labelLarge, color: c.onSurface, fontWeight: '600' },
+    feedbackInput: {
+      ...font.bodyLarge,
+      color: c.onSurface,
+      minHeight: 120,
+      maxHeight: 240,
+      padding: 12,
+      marginBottom: 8,
+      borderWidth: 1,
+      borderColor: c.outline,
+      borderRadius: radius.sm,
+      backgroundColor: c.surfaceContainerLowest,
+    },
+    modalActions: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 8 },
+    modalCancel: { marginTop: 8, paddingVertical: 10, paddingHorizontal: 16 },
+    modalCancelText: { ...font.labelLarge, color: c.primary, fontWeight: '600' },
+    disabled: { opacity: 0.4 },
     attributionButton: {
       width: 36,
       height: 36,

@@ -1223,6 +1223,52 @@ removing the cost A17 didn't anticipate: re-typing and re-searching a
 query the app already had, for the ordinary case of picking the wrong
 result among several near-identical hits.
 
+**A25 — v1.3.0 polish: sharper covers, real books, comics that advance,
+no typed count, a way to send feedback.** Five changes, each from direct
+user feedback on v1.2.0:
+
+1. **Covers at display resolution.** The detail screen draws a cover at
+   160×240dp (~420px), but stored covers were Google Books' 128px
+   `thumbnail`, TMDB `w342` and AniList's `large` (its medium size). Now
+   TMDB `w780`, AniList `extraLarge`, and Google Books `fife=w600`.
+   `sharpCoverUrl` applies the same rewrite when a cover is *read*, so
+   rows stored before A25 sharpen with no migration or refetch. Google
+   Books uses `fife` rather than a higher `zoom` because, tested live,
+   `zoom≥2` returns an "image not available" strip for older scanned
+   volumes while `fife` returns the largest real scan up to the width.
+2. **Book search keeps shelvable books.** Typed text queries `intitle:`
+   (falling back to the plain query when no title matches, e.g. an author
+   search), with `printType=books`. Only volumes carrying an ISBN are
+   kept — against the live API, every junk hit (journals, government
+   reports, proceedings) lacked one and every real book had one.
+   Summaries, study guides and book-club kits are dropped by title;
+   results with a cover and author rank first; duplicate printings (same
+   title, same first author) collapse to one.
+3. **Comics advance like Longbox.** A Metron-matched comic's cover now
+   follows the issue being read. After an advance or position edit,
+   `MetadataProvider.unitAt(externalId, ordinal)` finds the stored
+   issue's series and then the issue with that number
+   (`/issue/?series_id=&number=`, one request where Longbox paged and
+   sorted the whole issue list). The series' `cover_url` and
+   `external_id` move to that issue, so the A22 backfill and the next
+   sync start from the current issue, and the unit takes Metron's own
+   number ("Issue 1.1"). It runs after the move, outside `advanceEntry`,
+   so an advance never waits on or fails with the network. Hand-typed
+   series are never looked up (A22's rule). Only Metron implements
+   `unitAt`: TMDB, AniList and Google Books have no per-unit covers.
+4. **No typed count on Add.** The "How many?" field and "Ongoing series"
+   toggle are removed. A catalogue match already brings its real count;
+   a hand-typed series (or one whose match failed to load) is now always
+   ongoing (A4), growing a unit at a time, and Complete (A23) finishes
+   it. A typed number in the title still starts there (A10). Existing
+   finite hand-typed series are unchanged.
+5. **Feedback.** Done's header gains a Feedback button next to the
+   attribution `?`. It opens a sheet to write a message; Send opens the
+   user's mail app with a draft to the developer, with version and
+   platform appended. `mailto:` rather than a service because the app is
+   local-only (D6) with no backend, and `Linking` needs no new native
+   module.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:

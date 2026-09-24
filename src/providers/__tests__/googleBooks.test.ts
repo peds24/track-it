@@ -6,6 +6,8 @@ function mockFetchOnce(body: unknown, ok = true): jest.Mock {
   return fn;
 }
 
+const ISBN = [{ type: 'ISBN_13', identifier: '9780000000000' }];
+
 const ORIGINAL_KEY = process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY;
 
 afterEach(() => {
@@ -13,14 +15,15 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-test('search builds a plain text query for a typed title', async () => {
+test('search matches a typed title against book titles, books only', async () => {
   process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
   const fetchMock = mockFetchOnce({ items: [] });
 
   await new GoogleBooksProvider('book').search('Dune');
 
   const url = fetchMock.mock.calls[0]![0] as string;
-  expect(url).toContain('q=Dune');
+  expect(url).toContain(`q=${encodeURIComponent('intitle:Dune')}`);
+  expect(url).toContain('printType=books');
   expect(url).not.toContain('isbn%3A');
   expect(url).toContain('key=test-key');
 });
@@ -61,7 +64,7 @@ test('maps results to SearchResult, tagged with the category this instance was b
     items: [
       {
         id: 'abc123',
-        volumeInfo: { title: 'Berserk, Vol. 1', imageLinks: { thumbnail: 'https://example.com/cover.jpg' } },
+        volumeInfo: { title: 'Berserk, Vol. 1', imageLinks: { thumbnail: 'https://example.com/cover.jpg' }, industryIdentifiers: ISBN },
       },
     ],
   });
@@ -85,7 +88,7 @@ test('maps results to SearchResult, tagged with the category this instance was b
 test('a comic-tagged instance searches and tags results comic, same as book/manga', async () => {
   process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
   mockFetchOnce({
-    items: [{ id: 'saga-tpb-1', volumeInfo: { title: 'Saga, Volume 1' } }],
+    items: [{ id: 'saga-tpb-1', volumeInfo: { title: 'Saga, Volume 1', industryIdentifiers: ISBN } }],
   });
 
   const results = await new GoogleBooksProvider('comic').search('Saga');
@@ -253,6 +256,7 @@ describe('A22/A24 metadata', () => {
             authors: ['Frank Herbert'],
             publishedDate: '1965-08-01',
             imageLinks: { smallThumbnail: 'http://books.google.com/s.jpg', thumbnail: 'http://books.google.com/t.jpg' },
+            industryIdentifiers: ISBN,
           },
         },
       ],
@@ -263,7 +267,7 @@ describe('A22/A24 metadata', () => {
     expect(hit).toMatchObject({
       creator: 'Frank Herbert',
       year: '1965',
-      thumbnailUrl: 'https://books.google.com/s.jpg',
+      thumbnailUrl: 'https://books.google.com/t.jpg',
     });
   });
 
@@ -306,5 +310,98 @@ describe('A22/A24 metadata', () => {
   test('details returns null with no API key configured', async () => {
     delete process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY;
     expect(await new GoogleBooksProvider('book').details('v1')).toBeNull();
+  });
+});
+
+// A25: book search returned journals, government reports and conference
+// proceedings alongside real books. Every junk row seen against the live
+// API lacked an ISBN; the real books all had one.
+describe('A25 search filtering', () => {
+  const book = (id: string, title: string, extra: Record<string, unknown> = {}) => ({
+    id,
+    volumeInfo: { title, industryIdentifiers: ISBN, ...extra },
+  });
+
+  test('drops volumes with no ISBN — journals, reports, proceedings', async () => {
+    process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
+    mockFetchOnce({
+      items: [
+        book('real', 'The Name of the Wind'),
+        { id: 'journal', volumeInfo: { title: 'Proceedings of the British Academy' } },
+        { id: 'report', volumeInfo: { title: 'Merchant Vessels', industryIdentifiers: [{ type: 'OTHER', identifier: 'UOM:39015' }] } },
+      ],
+    });
+
+    const results = await new GoogleBooksProvider('book').search('the name of the wind');
+    expect(results.map((r) => r.id)).toEqual(['real']);
+  });
+
+  test('drops summaries, study guides and book-club kits of the real book', async () => {
+    process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
+    mockFetchOnce({
+      items: [
+        book('real', 'Project Hail Mary'),
+        book('s1', 'Summary and Analysis of Project Hail Mary'),
+        book('s2', 'SUMMARY and REVIEW'),
+        book('s3', 'Study Guide: Project Hail Mary'),
+        book('s4', 'Book Club Kit'),
+        book('s5', 'PROJECT HAIL MARY MOVIE REVIEW'),
+      ],
+    });
+
+    const results = await new GoogleBooksProvider('book').search('project hail mary');
+    expect(results.map((r) => r.id)).toEqual(['real']);
+  });
+
+  test('lists results with a cover and an author ahead of bare records', async () => {
+    process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
+    mockFetchOnce({
+      items: [
+        book('bare', 'Dune'),
+        book('full', 'Dune Messiah', { authors: ['Frank Herbert'], imageLinks: { thumbnail: 'https://x/t.jpg' } }),
+        book('author-only', 'Dune: House Atreides', { authors: ['Brian Herbert'] }),
+      ],
+    });
+
+    const results = await new GoogleBooksProvider('book').search('dune');
+    expect(results.map((r) => r.id)).toEqual(['full', 'author-only', 'bare']);
+  });
+
+  test('collapses the same title by the same author to one result', async () => {
+    process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
+    mockFetchOnce({
+      items: [
+        book('a', 'The Name of the Wind', { authors: ['Patrick Rothfuss'], imageLinks: { thumbnail: 'https://x/a.jpg' } }),
+        book('b', 'The Name of the Wind', { authors: ['Patrick Rothfuss'], imageLinks: { thumbnail: 'https://x/b.jpg' } }),
+        book('c', 'The Wise Man’s Fear', { authors: ['Patrick Rothfuss'], imageLinks: { thumbnail: 'https://x/c.jpg' } }),
+      ],
+    });
+
+    const results = await new GoogleBooksProvider('book').search('rothfuss');
+    expect(results.map((r) => r.id)).toEqual(['a', 'c']);
+  });
+
+  test('falls back to a plain query when nothing matches by title', async () => {
+    process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ items: [] }) })
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ items: [book('x', 'Dune')] }) });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const results = await new GoogleBooksProvider('book').search('frank herbert');
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[1]![0] as string).toContain(`q=${encodeURIComponent('frank herbert')}`);
+    expect(results.map((r) => r.id)).toEqual(['x']);
+  });
+
+  test('a scanned ISBN is looked up as-is, with no title fallback', async () => {
+    process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
+    const fetchMock = mockFetchOnce({ items: [] });
+
+    await new GoogleBooksProvider('book').search('9780143127741');
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });

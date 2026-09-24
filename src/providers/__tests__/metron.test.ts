@@ -327,3 +327,33 @@ describe('A22/A24 metadata', () => {
     expect(await new MetronProvider().details('7')).toBeNull();
   });
 });
+
+// A25: Longbox's next-issue logic — find the matched issue's series, then
+// the issue in it carrying the number being read.
+describe('A25 unitAt', () => {
+  test('looks up the series from the stored issue, then the issue by number', async () => {
+    setCreds();
+    const fetchMock = mockFetchSequence(
+      { body: { id: 7, series: { id: 3, name: 'Saga' } } },
+      { body: { results: [{ id: 12, number: '5', image: 'https://static.metron.cloud/5.jpg', series: { id: 3, name: 'Saga' } }] } },
+    );
+
+    const unit = await new MetronProvider().unitAt('7', 5);
+
+    expect(fetchMock.mock.calls[0]![0]).toBe('https://metron.cloud/api/issue/7/');
+    expect(fetchMock.mock.calls[1]![0]).toBe('https://metron.cloud/api/issue/?series_id=3&number=5');
+    expect(unit).toEqual({ externalId: '12', number: '5', coverUrl: 'https://static.metron.cloud/5.jpg' });
+  });
+
+  test('null when the series has no issue with that number yet', async () => {
+    setCreds();
+    mockFetchSequence({ body: { id: 7, series: { id: 3, name: 'Saga' } } }, { body: { results: [] } });
+    expect(await new MetronProvider().unitAt('7', 99)).toBeNull();
+  });
+
+  test('null rather than throwing when the lookup fails', async () => {
+    setCreds();
+    mockFetchSequence({ body: {}, ok: false });
+    expect(await new MetronProvider().unitAt('7', 5)).toBeNull();
+  });
+});

@@ -96,7 +96,7 @@ export class TmdbProvider implements MetadataProvider {
         category: this.category,
         count: 1,
         year: yearOf(this.category === 'show' ? hit.first_air_date : hit.release_date) ?? undefined,
-        thumbnailUrl: tmdbImage(hit.poster_path, 'w92') ?? undefined,
+        thumbnailUrl: tmdbImage(hit.poster_path, 'w185') ?? undefined,
       }));
   }
 
@@ -155,7 +155,7 @@ export class TmdbProvider implements MetadataProvider {
   private static movieMetadata(body: TmdbMovieDetail): TrackMetadata {
     const directors = (body.credits?.crew ?? []).filter((c) => c.job === 'Director');
     return {
-      coverUrl: tmdbImage(body.poster_path, 'w342'),
+      coverUrl: tmdbImage(body.poster_path, 'w780'),
       creator: namesOf(directors),
       description: cleanDescription(body.overview),
       releaseYear: yearOf(body.release_date),
@@ -229,7 +229,7 @@ export class TmdbProvider implements MetadataProvider {
         metaLine,
         blurb: cleanDescription(body.overview),
         metadata: {
-          coverUrl: tmdbImage(body.poster_path, 'w342'),
+          coverUrl: tmdbImage(body.poster_path, 'w780'),
           creator: namesOf(body.created_by),
           description: cleanDescription(body.overview),
           releaseYear: startYear,
