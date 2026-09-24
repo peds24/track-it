@@ -1297,6 +1297,172 @@ and filtering) sitting inside otherwise-untested screen code.
 `toggleSection` handler; `renderSectionHeader` becomes a `Pressable` with
 `accessibilityRole="button"` and `accessibilityState={{ expanded }}`.
 
+**A22 — Tracks store display metadata; a detail screen shows it, reversing
+"Text is the artwork."** (A22–A24 were decided on `android`, whose record
+skips A18–A21 because those numbers belong to `web`'s amendments above; the
+sequence stays unique across both branches per CLAUDE.md §5. They reached
+`web` through the v1.2.0 port — see the web note after A24.)
+
+This reverses the no-cover-art stance A9 recorded as a deliberate judgment
+call — "no cover art is fetched or stored, ever ... 'Text is the artwork'
+(design-language.html) is a stated principle, not an oversight to fix once
+real data exists." The user reversed that principle for the landing page
+on 2026-09-01; only `docs/index.html` reflected the reversal until now.
+This amendment brings the app itself into line with the same call.
+
+*Schema (migration 7).* The same five nullable columns go on both `series`
+and `entry`: `cover_url`, `creator`, `description`, `release_year` TEXT,
+plus `metadata_checked_at` TEXT. All five are display-only — D3 still
+holds, since nothing here ever drives progress or shelf classification. A
+series child's own columns stay unused; its series row holds them, the
+same rule `external_source`/`paused` already follow. `metadata_checked_at`
+exists so the once-only backfill below doesn't re-fetch a row whose
+catalogue genuinely has no cover on every launch; it is stamped even when
+the lookup found nothing, but **not** stamped when the lookup itself
+failed (network down, missing key), so that row retries next launch.
+`backup.ts` exports and imports all five columns; an older backup that
+lacks them still imports, with the columns NULL.
+
+*Provider contract.* `MetadataProvider.details?(externalId): Promise<TrackMetadata
+| null>` never throws — `null` means only "the lookup failed, retry later."
+This is the one place each provider maps its own API response to display
+metadata; the confirm screen (A17) and the backfill both go through it,
+never a second bespoke fetch.
+
+*First-launch backfill (`src/data/backfillMetadata.ts`).* Fires from
+`DatabaseProvider` after migration, unawaited, without blocking render. It
+targets only rows with a catalogue match — `external_id IS NOT NULL AND
+metadata_checked_at IS NULL` — and calls `details()` on them sequentially,
+one row at a time. Sequential alone is not enough: a first launch with many
+matched comics would still burst Metron (~20 requests/min per account, and
+each Metron row costs two requests), so lookups are also **paced per
+source** — a 3.5 s gap before each Metron lookup after the first, 2 s for
+AniList, none for TMDB or Google Books, and no wait for skipped rows.
+**Hand-typed tracks are never backfilled and nothing about their metadata
+is guessed** — confirmed with the user on 2026-09-22: a title with no
+catalogue id gets a placeholder tile and no cover, permanently, rather
+than a best-effort match that could attach the wrong series' artwork to a
+row that was typed by hand on purpose.
+
+*Cleaning (`src/domain/formatters.ts`, pure).* `cleanDescription(raw)` is a
+whitelist tag strip: it converts `<br>`/`</p>` to line breaks, strips every
+other tag, decodes named and numeric HTML entities, collapses whitespace,
+and returns `null` for an empty result. It is idempotent by construction
+(a whitelist strip run twice is the same as run once — a decode-then-strip
+ordering bug that broke this was caught in review before it shipped, see
+DEVLOG 2026-09-23) and is applied both at the provider boundary and again
+at render, as a defence for confirm-screen blurbs and any row written by
+an older build. AniList's local `stripHtml` (A17) is retired in its favor.
+
+*Detail screen (`app/track/[kind]/[id].tsx`).* Modelled directly on
+Longbox (`comic-track`)'s `comic/[id].tsx` layout: cover (or a
+category-icon/initials placeholder), title, creator line, a
+`KIND · year · Ongoing` meta line, the existing progress bar/label,
+timeline stats derived from existing timestamps (D3, no new columns),
+a collapsible description, and the row's own primary/secondary/destructive
+actions. Rows open it by tapping the text area; long-press still renames
+(A15) and is unchanged.
+
+**Rejected:** `expo-image`. RN's built-in `Image` needs no native rebuild
+and works on `web` unmodified, which matters more here than `expo-image`'s
+caching, since this milestone has to land on both platforms from one pass.
+
+**A23 — Manual complete: the left swipe becomes two-step, and an ongoing
+series can be closed out by hand.** The left-swipe (right-side) action now
+mirrors the existing right-swipe Pause → Delete: a short swipe still does
+**Edit** as today, a deep swipe does **Complete** (colour moves from
+`primaryContainer` to `tertiary`), and a track with nothing to edit
+(standalone, ongoing, or backlog-unstarted) gets Complete as its single
+step — matching how Backlog's right swipe is already Delete-only. Complete
+is unavailable on Done, and always confirmed ("Mark *X* complete?"),
+because it touches every unit and a quick swipe should not be enough to
+trigger that alone.
+
+*Domain: `completeUnits(children, ongoing, now)`* (pure, `advance.ts`).
+Every unit not yet done becomes done, with `startedAt ?? now` and
+`finishedAt = now` — existing timestamps are never rewritten. For an
+ongoing series specifically, the trailing unit is **removed** rather than
+completed when it is not done, its ordinal is greater than 1, and its
+`createdAt` equals its predecessor's `finishedAt` — the exact fingerprint
+`appendNextOngoingEntry` (A4) leaves on a unit the user never reached,
+since it was created at the instant its predecessor finished. This is a
+direct user decision from 2026-09-22: completing an ongoing series should
+read "12 of 12", not "13 of 13" counting a placeholder unit nobody read.
+`completeTrack(db, track, now)` runs the removal and the writes in one
+transaction and clears `ongoing`/`paused`, which is what lets the derived
+shelf (A6) reach Done.
+
+**Known limit** (see DEVLOG 2026-09-23): the fingerprint is a timestamp
+match, not a stored flag. It is correct for every case
+`appendNextOngoingEntry` actually produces, but it cannot distinguish that
+case from a coincidence where a manually-added trailing unit happens to
+share its predecessor's `finishedAt` to the same tick. More importantly,
+"never reached" really means "never tapped Done on": the auto-appended
+unit starts in progress, so a user who genuinely read it but did not mark
+it done loses it to the same rule. That is why the rule is never silent —
+`ongoingPlaceholder(children, ongoing)` (the same check, exported) feeds
+`TrackSummary.completionDrops`, and both Complete confirms (row and detail
+screen, one shared `completionMessage`) name the unit that will be removed
+and say to tap Done on it first if it was finished.
+
+**A24 — Search shows who and when; back returns to the search, narrowing
+A17's "Nope, search again."** `SearchResult` gains optional `creator?`,
+`year?`, `thumbnailUrl?`, filled only from data the search call already
+returns — no per-hit follow-up fetch: Google Books (authors, year,
+thumbnail) and AniList (staff, year, cover, added to the same GraphQL
+query) carry a creator; **TMDB does not**, because its search endpoint
+returns no credits at all, only `hydrate`'s later `/tv` or `/movie` fetch
+does. Metron supplies cover date and image. Result rows become a 40×60
+thumbnail, then a 2-line title, then `creator · year` — and the list now
+scrolls instead of being capped at 8 in a non-scrolling `View`. The
+confirm screen (A17) gains the same cover component, the creator line, and
+a cleaned blurb via A22's `cleanDescription`.
+
+A17's confirm-screen "Nope, search again" button is removed. In its place,
+the header/hardware/gesture back button on the confirm screen returns to
+the search screen with the **typed query and its results intact** — the
+query is now its own piece of state, and picking a result no longer
+overwrites it. Back from the search screen still unwinds to the comic-mode
+step and then the category picker, unchanged from A14. This keeps A17's
+underlying decision (reject a wrong match rather than hand-edit it) while
+removing the cost A17 didn't anticipate: re-typing and re-searching a
+query the app already had, for the ordinary case of picking the wrong
+result among several near-identical hits.
+
+**Web note on A22–A24 (v1.2.0 port).** The three amendments apply to `web`
+as written, with these platform differences:
+
+- *Confirmations go through `showAlert` (`src/ui/alert.ts`).*
+  `Alert.alert` is a no-op on react-native-web, so the detail screen's
+  Complete / Move-to-backlog / Delete confirms, the row's Complete confirm,
+  and every new error alert use the web bridge (`window.confirm` /
+  `window.alert` in the browser, `Alert.alert` natively).
+- *A23's thresholds are scaled to web's larger gestures.* `web` already
+  widened its swipe distances (LATCH 50, DELETE_THRESHOLD 280, MAX_SWIPE_LEFT
+  140) for mouse and touch-screen browsers, so the deep left step sits at
+  COMPLETE_THRESHOLD 200 with MAX_SWIPE_LEFT_DEEP 280; the shallow Edit
+  step keeps web's 140. The single-step Complete (nothing to edit) uses
+  web's LATCH/velocity rule. "Nothing to edit" follows web's own gate
+  (`canEditPosition`, A18–A20), so an ongoing series with real progress
+  gets the two-step swipe on `web`, not Complete-only.
+- *A swipe does not also click the row.* The row moves with the pointer, so
+  a mouse drag that starts and ends on the row's text lands mouseup on the
+  same element and the browser fires a click. With A22's tap-to-open that
+  click opened the detail screen right after the swipe did its own thing;
+  `SwipeableTrackRow` now drops a row tap (open, advance, resume) that
+  arrives within 350 ms of a swipe ending.
+- *A detail URL can be opened directly.* A bookmark or reload of
+  `/track/<kind>/<id>` has no history, so the header gets a "Go to your
+  tracks" arrow in place of back, and Delete lands on the tabs instead of a
+  dead `back()`.
+- *Known gaps.* A24's back-to-search works from the header back arrow; the
+  browser's own back button still leaves the Add screen entirely (React
+  Navigation's `beforeRemove` cannot hold a browser history pop). Metron
+  blocks browser requests (no CORS headers), so single-issue comic search
+  returns nothing on `web` and those comics are added by hand; Google Books,
+  TMDB and AniList search, covers and details all work from the browser.
+  Barcode scanning (`expo-camera`) has no web implementation, unchanged.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:

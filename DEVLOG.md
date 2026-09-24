@@ -1,5 +1,126 @@
 # DEVLOG
 
+## 2026-09-24 — v1.2.0 ported to web
+
+### What Changed
+- Ported the v1.2.0 feature branch (`worktree-v1.2.0-track-detail`, entry
+  below) onto `web` on `worktree-v1.2.0-port-to-web`, file by file per the
+  android→web port skill: providers, schema/migration 7, backup, backfill,
+  formatters and the new UI pieces went across as-is; `advance.ts`,
+  `trackRepo.ts`, `TrackRow`, `SwipeableTrackRow`, the three tab screens
+  and `add.tsx` were hand-merged into web's own versions.
+- All new confirmations and error alerts go through `showAlert`, since
+  `Alert.alert` is a no-op on react-native-web.
+- `SwipeableTrackRow`'s two-step left swipe uses web's scale: Edit stays
+  the shallow step (max 140), Complete sits past 200 (max 280).
+- Two web-only fixes found by driving the real screens in headless Chrome:
+  a swipe's trailing click no longer opens the row (or advances it), and a
+  directly opened detail URL offers a way back to the tabs.
+
+### Trade-offs
+- **Swallowing the swipe's trailing click by time (350 ms), not by
+  distance.** The row translates with the pointer, so the browser sees
+  mousedown and mouseup on the same element and fires a click no matter
+  how far the drag went; react-native-web's Pressable honours that click.
+  Tracking the drag distance inside `TrackRow` would have meant a second
+  gesture model beside the PanResponder; stamping the swipe's end in
+  `SwipeableTrackRow` and dropping a row tap right after it keeps the fix
+  in the one component that owns the gesture. A real tap never starts a
+  pan (SLOP 12), so it is never affected.
+- **Deep-left thresholds scaled, not copied.** Android's 175/260 would sit
+  inside web's widened right-swipe geometry (Delete at 280), making the
+  two sides feel lopsided; 200/280 mirrors web's own Pause→Delete spacing.
+- **Metron left failing in the browser rather than faked.** It sends no
+  CORS headers; the fix is the planned Vercel proxy (HANDOFF), not a
+  client-side workaround.
+
+### Architecture State After
+- `web` carries the same data model and migration 7 as `android` v1.2.0;
+  the detail route, cover tile and search row are shared code. Web-only
+  divergence stays confined to `SwipeableTrackRow` geometry/click guard,
+  the detail screen's direct-load header, and the `showAlert` bridge.
+
+## 2026-09-23 — v1.2.0: Track Detail, Cover Art, Better Search & Manual Complete
+
+### What Changed
+- New detail screen `app/track/[kind]/[id].tsx`, modelled on Longbox's
+  `comic/[id].tsx`: cover, creator, meta line, progress, timeline stats,
+  collapsible description, and the row's own actions. Rows now open it on
+  tap; long-press still renames (A15).
+- Migration 7 adds `cover_url`, `creator`, `description`, `release_year`,
+  and `metadata_checked_at` to both `series` and `entry` — display-only,
+  D3 untouched. `backup.ts` round-trips all five.
+- Every provider (Google Books, TMDB, Metron, AniList) gained a
+  `details(externalId)` method used both at add time and by a one-time
+  first-launch backfill (`src/data/backfillMetadata.ts`) for existing
+  catalogue-matched rows. Hand-typed rows are never touched.
+- `cleanDescription` (`src/domain/formatters.ts`) replaces AniList's local
+  `stripHtml` with one whitelist-based tag strip + entity decode used
+  everywhere descriptions render.
+- Manual completion: a deep left-swipe (`completeUnits` in `advance.ts`)
+  marks every remaining unit done, confirmed first. For an ongoing series
+  it drops the trailing auto-appended placeholder unit instead of
+  completing it.
+- Search results and the confirm screen show a thumbnail, creator, and
+  year pulled from the search response itself. The confirm screen's back
+  button now returns to the search screen with the query and results
+  intact, replacing "Nope, search again" (A17).
+- Full amendment record: A22 (metadata/detail screen, reverses "Text is
+  the artwork"), A23 (manual complete), A24 (search disambiguation,
+  back-to-search) in `docs/superpowers/specs/2026-08-12-track-it-design.md`.
+
+### Design Decisions & Trade-offs
+- **RN `Image` over `expo-image`.** `expo-image`'s caching would have been
+  nice, but it needs a native rebuild, and this milestone has to land on
+  `web` too (CLAUDE.md §6). RN's built-in `Image` needs neither and works
+  on both platforms from the same pass — the right trade for a first cut;
+  revisit if cover-heavy screens end up needing real caching.
+- **`metadata_checked_at` stamp vs. re-querying every launch.** A stored
+  "have we asked" flag is a second source of truth in the abstract, but
+  the alternative — hitting Metron/TMDB for every row on every cold start
+  — would burn rate limit for data that essentially never changes once a
+  catalogue match exists. The stamp is intentionally *not* set on a
+  failed lookup (network down, missing key), so a row only in a bad state
+  transiently gets retried instead of permanently stuck coverless.
+- **The ongoing-completion fingerprint (`createdAt === predecessor's
+  finishedAt`) has a known limit.** It is correct for every unit
+  `appendNextOngoingEntry` (A4) actually produces, but it's a timestamp
+  match, not a stored flag — a manually-added trailing unit that happens
+  to land on the exact same tick as its predecessor's finish would be
+  misread as the placeholder and dropped instead of completed. Accepted
+  as a real but vanishingly unlikely edge case rather than adding a
+  column to disambiguate a scenario that has never actually occurred.
+- **Why TMDB search shows no creator.** Confirmed against the live API:
+  TMDB's `/search/tv` and `/search/movie` responses carry no credits at
+  all — only the per-item `/tv/{id}` / `/movie/{id}` fetch `hydrate()`
+  already makes does. Rather than firing a credits lookup per search
+  result (a real cost, and against A9's "search is progressive
+  enhancement, not a blocking requirement" precedent), TMDB rows simply
+  show no creator subtitle; Google Books and AniList do, since both
+  return author/staff in the search response itself.
+- **Whitelist-based `cleanDescription`, and an idempotency bug caught in
+  review.** An early version decoded entities *then* stripped tags, which
+  meant a decoded `&lt;b&gt;` became a literal `<b>` that a second pass
+  through the same function would then strip as if it had been real
+  markup all along — harmless on a fresh fetch, but wrong the moment the
+  render-time defensive pass (applied again for older rows/blurbs) ran on
+  already-cleaned text. Fixed by stripping tags first, decoding entities
+  second, so a second call on already-clean text is a no-op
+  (`fix(domain): make cleanDescription idempotent on decoded brackets`,
+  `7c80c9a`).
+
+### Verification
+- **Done on-device:** Pixel_10 emulator via Expo Go — detail screen with
+  and without a cover, the search result list with thumbnails, confirm →
+  back → search (query/results preserved), and the swipe-to-Complete
+  gesture on both a finite and an ongoing series.
+- **Could not verify:** barcode scan → back navigation. Expo Go's camera
+  module works on the emulator, but the emulator has no way to present a
+  real barcode to scan, so that specific path (scan → result → back to
+  search) is unverified beyond typecheck/tests and code review.
+- `npm run typecheck` and `npm test` both green before this commit (see
+  commit message for counts).
+
 ## 2026-08-31 — Material 3 Design System Migration
 
 ### What Changed
