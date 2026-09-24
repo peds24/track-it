@@ -28,7 +28,7 @@ async function setupDb() {
 
 test('Currently screen renders empty state when no tracks exist', async () => {
   const db = await setupDb();
-  render(
+  await render(
     <DatabaseContext.Provider value={db}>
       <CurrentlyScreen />
     </DatabaseContext.Provider>,
@@ -56,7 +56,7 @@ test('Currently screen groups active tracks by category in the Add page order', 
     }
   }
 
-  render(
+  await render(
     <DatabaseContext.Provider value={db}>
       <CurrentlyScreen />
     </DatabaseContext.Provider>,
@@ -108,7 +108,7 @@ test('tapping a row opens its detail screen (A22)', async () => {
   const [t] = await listTracks(db, 'backlog');
   await advanceEntry(db, t!.nextEntryId!, now);
 
-  render(
+  await render(
     <DatabaseContext.Provider value={db}>
       <CurrentlyScreen />
     </DatabaseContext.Provider>,
