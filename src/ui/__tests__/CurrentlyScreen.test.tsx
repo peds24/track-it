@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react-native';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import CurrentlyScreen from '../../../app/(tabs)/index';
 import { addTrack } from '@/data/addTrack';
 import { advanceEntry, listTracks } from '@/data/trackRepo';
@@ -6,10 +6,12 @@ import { migrate } from '@/db/schema';
 import { DatabaseContext } from '@/ui/DatabaseProvider';
 import { createMemoryDriver } from '../../../test/memoryDriver';
 
+const mockPush = jest.fn();
+
 jest.mock('expo-router', () => {
   const React = require('react');
   return {
-    useRouter: () => ({ push: jest.fn(), back: jest.fn() }),
+    useRouter: () => ({ push: mockPush, back: jest.fn() }),
     useFocusEffect: (cb: () => void) => {
       React.useEffect(() => {
         cb();
@@ -97,5 +99,23 @@ test('advancing a track moves it to the top within its category group', async ()
   // Now Severance is first within Shows
   const afterAdvance = await listTracks(db, 'currently', 'show');
   expect(afterAdvance.map((t) => t.title)).toEqual(['Severance', 'Silo']);
+});
+
+test('tapping a row opens its detail screen (A22)', async () => {
+  const db = await setupDb();
+  const now = '2026-08-12T10:00:00.000Z';
+  const created = await addTrack(db, { title: 'Dune', category: 'book', count: 1 }, now);
+  const [t] = await listTracks(db, 'backlog');
+  await advanceEntry(db, t!.nextEntryId!, now);
+
+  render(
+    <DatabaseContext.Provider value={db}>
+      <CurrentlyScreen />
+    </DatabaseContext.Provider>,
+  );
+  await waitFor(() => expect(screen.getByText('Dune')).toBeTruthy());
+  fireEvent.press(screen.getByText('Dune'));
+
+  expect(mockPush).toHaveBeenCalledWith(`/track/entry/${created.id}`);
 });
 

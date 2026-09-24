@@ -1,9 +1,10 @@
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   advanceEntry,
+  completeTrack,
   deleteTrack,
   renameTrack,
   resumeTrack,
@@ -22,6 +23,7 @@ import { useTracks } from '@/ui/useTracks';
 
 export default function BacklogScreen() {
   const db = useDatabase();
+  const router = useRouter();
   const palette = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [category, setCategory] = useState<Category | null>(null);
@@ -118,6 +120,24 @@ export default function BacklogScreen() {
     })();
   }
 
+  // A22: a row's text opens the track's own screen.
+  function handleOpen(track: TrackSummary): void {
+    router.push(`/track/${track.kind}/${track.id}`);
+  }
+
+  // A23: finish a track by hand — confirmation happens in the row itself.
+  function handleComplete(track: TrackSummary): void {
+    void (async () => {
+      try {
+        await completeTrack(db, track, new Date().toISOString());
+      } catch (e: unknown) {
+        showAlert('Could not complete', e instanceof Error ? e.message : String(e));
+      } finally {
+        await reload();
+      }
+    })();
+  }
+
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
@@ -138,6 +158,8 @@ export default function BacklogScreen() {
             onDelete={handleDelete}
             onReturnToBacklog={handleReturnToBacklog}
             onEditProgress={setEditing}
+            onOpen={handleOpen}
+            onComplete={handleComplete}
           />
         )}
         ListEmptyComponent={

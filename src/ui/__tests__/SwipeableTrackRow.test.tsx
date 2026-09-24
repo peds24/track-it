@@ -20,9 +20,12 @@ const show: TrackSummary = {
   nextEntryStatus: 'unstarted',
   nextEntryTitle: 'Episode 2',
   lastAdvancedAt: '2026-08-12T11:00:00.000Z',
+  completionDrops: null,
 };
 
 const noop = { onAdvance: () => {}, onResume: () => {}, onRename: () => {}, onDelete: () => {} };
+
+afterEach(() => jest.restoreAllMocks());
 
 let touchTime = 1000;
 function makeTouchEvent(dx: number, dy: number) {
@@ -385,4 +388,173 @@ test('deliberate right drag >= 50dp triggers pause / move to backlog', async () 
   expect(onReturnToBacklog).toHaveBeenCalledWith(show);
 });
 
+async function releaseAt(dx: number) {
+  const surface = screen.getByTestId('swipeable-surface');
+  const event = makeTouchEvent(dx, 0);
+  surface.props.onMoveShouldSetResponderCapture(event);
+  await act(async () => {
+    surface.props.onResponderRelease(event);
+  });
+}
 
+// A23, scaled to web's larger pointer gestures: Edit stays the shallow left
+// step (LATCH 50, capped at 140), Complete sits past COMPLETE_THRESHOLD (200).
+describe('A23: complete from the right-hand side', () => {
+  test('pressing Complete confirms first, then completes', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert');
+    const onComplete = jest.fn();
+    await render(<SwipeableTrackRow track={show} {...noop} onReturnToBacklog={() => {}} onComplete={onComplete} />);
+
+    await fireEvent.press(screen.getByLabelText('Complete Severance'));
+
+    expect(alertSpy).toHaveBeenCalledWith('Mark Severance complete?', expect.any(String), expect.any(Array), expect.any(Object));
+    expect(onComplete).not.toHaveBeenCalled();
+    const buttons = alertSpy.mock.calls[0]![2] as { text: string; onPress?: () => void }[];
+    await act(async () => buttons.find((b) => b.text === 'Complete')!.onPress!());
+    expect(onComplete).toHaveBeenCalledWith(show);
+  });
+
+  test('an ongoing series names the unit completing will remove', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert');
+    const saga: TrackSummary = { ...show, title: 'Saga', category: 'comic', ongoing: true, progress: null, completionDrops: 'Issue 13' };
+    await render(<SwipeableTrackRow track={saga} {...noop} onReturnToBacklog={() => {}} onComplete={() => {}} />);
+
+    await fireEvent.press(screen.getByLabelText('Complete Saga'));
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Mark Saga complete?',
+      expect.stringContaining("Issue 13 isn't marked done, so it's removed"),
+      expect.any(Array),
+      expect.any(Object),
+    );
+  });
+
+  test('a short left swipe still edits when both actions are available', async () => {
+    const onEditProgress = jest.fn();
+    const alertSpy = jest.spyOn(Alert, 'alert');
+    await render(
+      <SwipeableTrackRow track={show} {...noop} onReturnToBacklog={() => {}} onEditProgress={onEditProgress} onComplete={() => {}} />,
+    );
+    await releaseAt(-60);
+    expect(onEditProgress).toHaveBeenCalledWith(show);
+    expect(alertSpy).not.toHaveBeenCalled();
+  });
+
+  test('a left swipe short of the deep threshold still edits', async () => {
+    const onEditProgress = jest.fn();
+    const alertSpy = jest.spyOn(Alert, 'alert');
+    await render(
+      <SwipeableTrackRow track={show} {...noop} onReturnToBacklog={() => {}} onEditProgress={onEditProgress} onComplete={() => {}} />,
+    );
+    await releaseAt(-140);
+    expect(onEditProgress).toHaveBeenCalledWith(show);
+    expect(alertSpy).not.toHaveBeenCalled();
+  });
+
+  test('a deep left swipe asks to complete instead of editing', async () => {
+    const onEditProgress = jest.fn();
+    const alertSpy = jest.spyOn(Alert, 'alert');
+    await render(
+      <SwipeableTrackRow track={show} {...noop} onReturnToBacklog={() => {}} onEditProgress={onEditProgress} onComplete={() => {}} />,
+    );
+    await releaseAt(-220);
+    expect(onEditProgress).not.toHaveBeenCalled();
+    expect(alertSpy).toHaveBeenCalledWith('Mark Severance complete?', expect.any(String), expect.any(Array), expect.any(Object));
+  });
+
+  test('a deep left swipe terminated by the OS still asks to complete', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert');
+    await render(
+      <SwipeableTrackRow track={show} {...noop} onReturnToBacklog={() => {}} onEditProgress={() => {}} onComplete={() => {}} />,
+    );
+    const surface = screen.getByTestId('swipeable-surface');
+    const event = makeTouchEvent(-220, 0);
+    surface.props.onMoveShouldSetResponderCapture(event);
+    await act(async () => {
+      surface.props.onResponderTerminate(event);
+    });
+    expect(alertSpy).toHaveBeenCalledWith('Mark Severance complete?', expect.any(String), expect.any(Array), expect.any(Object));
+  });
+
+  test('with nothing to edit, a short left swipe goes straight to complete', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert');
+    const movie: TrackSummary = { ...show, kind: 'entry', title: 'Arrival', category: 'movie', progress: null, nextEntryTitle: 'Arrival' };
+    await render(<SwipeableTrackRow track={movie} {...noop} onReturnToBacklog={() => {}} onComplete={() => {}} />);
+    expect(screen.queryByLabelText(/Edit .* progress/)).toBeNull();
+    await releaseAt(-60);
+    expect(alertSpy).toHaveBeenCalledWith('Mark Arrival complete?', expect.any(String), expect.any(Array), expect.any(Object));
+  });
+
+  test('a finished track offers no Complete action', async () => {
+    const finished: TrackSummary = { ...show, shelf: 'done', nextEntryId: null, nextEntryTitle: null };
+    await render(<SwipeableTrackRow track={finished} {...noop} onReturnToBacklog={() => {}} onComplete={() => {}} />);
+    expect(screen.queryByLabelText('Complete Severance')).toBeNull();
+  });
+
+  test('on web, a deep left swipe confirms through window.confirm and completes when accepted', async () => {
+    const originalPlatform = Platform.OS;
+    Platform.OS = 'web';
+    if (typeof window === 'undefined') {
+      (global as any).window = {};
+    }
+    const confirmSpy = jest.fn().mockReturnValue(true);
+    (window as any).confirm = confirmSpy;
+    const onComplete = jest.fn();
+    try {
+      await render(
+        <SwipeableTrackRow track={show} {...noop} onReturnToBacklog={() => {}} onEditProgress={() => {}} onComplete={onComplete} />,
+      );
+      await releaseAt(-220);
+      expect(confirmSpy).toHaveBeenCalledWith(expect.stringContaining('Mark Severance complete?'));
+      expect(onComplete).toHaveBeenCalledWith(show);
+    } finally {
+      Platform.OS = originalPlatform;
+    }
+  });
+});
+
+// Web: the row moves with the pointer, so a mouse drag that starts and ends on
+// the row's text (or its advance button) lands mouseup on the same element and
+// the browser fires a click — which would open the detail screen, or mark a
+// unit done, right after the swipe did its own thing. A click that closes a
+// swipe is swallowed; a plain tap still goes through.
+describe('web: a swipe does not also click the row', () => {
+  test('releasing a swipe swallows the click that follows it', async () => {
+    const onOpen = jest.fn();
+    const onAdvance = jest.fn();
+    await render(
+      <SwipeableTrackRow
+        track={show}
+        {...noop}
+        onAdvance={onAdvance}
+        onReturnToBacklog={() => {}}
+        onEditProgress={() => {}}
+        onOpen={onOpen}
+      />,
+    );
+    await releaseAt(-60);
+    await fireEvent.press(screen.getByLabelText('Severance'));
+    await fireEvent.press(screen.getByText('Done'));
+    expect(onOpen).not.toHaveBeenCalled();
+    expect(onAdvance).not.toHaveBeenCalled();
+  });
+
+  test('a tap well after a swipe opens the track as usual', async () => {
+    const onOpen = jest.fn();
+    const now = jest.spyOn(Date, 'now').mockReturnValue(10_000);
+    await render(
+      <SwipeableTrackRow track={show} {...noop} onReturnToBacklog={() => {}} onEditProgress={() => {}} onOpen={onOpen} />,
+    );
+    await releaseAt(-60);
+    now.mockReturnValue(11_000);
+    await fireEvent.press(screen.getByLabelText('Severance'));
+    expect(onOpen).toHaveBeenCalledWith(show);
+  });
+
+  test('a plain tap with no swipe opens the track', async () => {
+    const onOpen = jest.fn();
+    await render(<SwipeableTrackRow track={show} {...noop} onReturnToBacklog={() => {}} onOpen={onOpen} />);
+    await fireEvent.press(screen.getByLabelText('Severance'));
+    expect(onOpen).toHaveBeenCalledWith(show);
+  });
+});
