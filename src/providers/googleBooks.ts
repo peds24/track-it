@@ -1,36 +1,42 @@
-import type { Category } from '@/domain/types';
+import { cleanDescription, yearOf } from '@/domain/formatters';
+import type { Category, TrackMetadata } from '@/domain/types';
 import { generateEntries } from '@/providers/manual';
+import { httpsUrl } from '@/providers/images';
 import type { MatchPreview, MetadataProvider, SearchResult, SeriesDraft } from '@/providers/types';
 
 /** A scanned barcode's payload: an all-digit 10 or 13 character string is an
  * unambiguous ISBN, never a title someone would type (D5/A9). */
 const ISBN_RE = /^\d{10}(\d{3})?$/;
 
+type ImageLinks = { thumbnail?: string; smallThumbnail?: string };
+
 type GoogleBooksVolume = {
   id: string;
-  volumeInfo?: {
-    title?: string;
-    // Pulled off the wire and ignored — no cover art is a load-bearing design
-    // principle (design-language.html, "Text is the artwork"), not an oversight.
-    imageLinks?: { thumbnail?: string };
-  };
+  volumeInfo?: { title?: string; authors?: string[]; publishedDate?: string; imageLinks?: ImageLinks };
 };
 
 type GoogleBooksResponse = { items?: GoogleBooksVolume[] };
 
-type GoogleBooksVolumeDetail = {
-  volumeInfo?: {
-    authors?: string[];
-    publishedDate?: string;
-    pageCount?: number;
-    description?: string;
-  };
+type VolumeInfo = {
+  authors?: string[];
+  publishedDate?: string;
+  pageCount?: number;
+  description?: string;
+  imageLinks?: ImageLinks;
 };
+type GoogleBooksVolumeDetail = { volumeInfo?: VolumeInfo };
 
-/** "2020-09-15" or a bare "2018" -> "2020"/"2018". `undefined`/too-short is
- * not a year worth showing. */
-function yearOf(date: string | undefined): string | null {
-  return date && date.length >= 4 ? date.slice(0, 4) : null;
+function authorsOf(authors: string[] | undefined): string | null {
+  return authors && authors.length > 0 ? authors.join(', ') : null;
+}
+
+function metadataOf(info: VolumeInfo): TrackMetadata {
+  return {
+    coverUrl: httpsUrl(info.imageLinks?.thumbnail ?? info.imageLinks?.smallThumbnail),
+    creator: authorsOf(info.authors),
+    description: cleanDescription(info.description),
+    releaseYear: yearOf(info.publishedDate),
+  };
 }
 
 /**
@@ -76,6 +82,9 @@ export class GoogleBooksProvider implements MetadataProvider {
         // manga series has 34 volumes from a single-book lookup, so this is a
         // placeholder the Add screen's own count field still supplies.
         count: 1,
+        creator: authorsOf(item.volumeInfo.authors) ?? undefined,
+        year: yearOf(item.volumeInfo.publishedDate) ?? undefined,
+        thumbnailUrl: httpsUrl(item.volumeInfo.imageLinks?.smallThumbnail ?? item.volumeInfo.imageLinks?.thumbnail) ?? undefined,
       }));
   }
 
@@ -97,29 +106,49 @@ export class GoogleBooksProvider implements MetadataProvider {
    * — a fetch by volume id, the one lookup `search()` never makes (it only
    * ever returns a title). Never throws, matching `TmdbProvider.preview`'s
    * established pattern: a failed or unconfigured lookup just falls back to
-   * the picked title, same as no match at all.
+   * the picked title, same as no match at all. `null` means the lookup
+   * failed (or no key), not "found nothing"; `'gone'` means Google answered
+   * 404 — the volume no longer exists, which is an answer, not a failure.
    */
+  private async fetchVolume(volumeId: string): Promise<VolumeInfo | 'gone' | null> {
+    const key = process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY;
+    if (!key) return null;
+    try {
+      const response = await fetch(
+        `https://www.googleapis.com/books/v1/volumes/${encodeURIComponent(volumeId)}?key=${encodeURIComponent(key)}`,
+      );
+      if (response.status === 404) return 'gone';
+      if (!response.ok) return null;
+      const body = (await response.json()) as GoogleBooksVolumeDetail;
+      return body.volumeInfo ?? {};
+    } catch {
+      return null;
+    }
+  }
+
   async preview(result: SearchResult): Promise<MatchPreview> {
     const fallback: MatchPreview = { title: result.title, metaLine: [], blurb: null };
     if (result.id === this.id) return fallback; // hand-typed title, no real match.
+    const info = await this.fetchVolume(result.id);
+    if (!info || info === 'gone') return fallback;
+    const metadata = metadataOf(info);
+    // No author here: the confirm screen's credit line already shows
+    // `metadata.creator`, so repeating it in the meta line doubled it.
+    const metaLine = [
+      metadata.releaseYear,
+      info.pageCount ? `${info.pageCount} pages` : null,
+    ].filter((s): s is string => s !== null);
+    return { title: result.title, metaLine, blurb: metadata.description, metadata };
+  }
 
-    const key = process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY;
-    if (!key) return fallback;
-    try {
-      const response = await fetch(
-        `https://www.googleapis.com/books/v1/volumes/${encodeURIComponent(result.id)}?key=${encodeURIComponent(key)}`,
-      );
-      if (!response.ok) return fallback;
-      const body = (await response.json()) as GoogleBooksVolumeDetail;
-      const info = body.volumeInfo;
-      const metaLine = [
-        info?.authors && info.authors.length > 0 ? info.authors.join(', ') : null,
-        yearOf(info?.publishedDate),
-        info?.pageCount ? `${info.pageCount} pages` : null,
-      ].filter((s): s is string => s !== null);
-      return { title: result.title, metaLine, blurb: info?.description ?? null };
-    } catch {
-      return fallback;
-    }
+  /**
+   * A22: the backfill's lookup — same mapping `preview` stores at add time.
+   * A deleted volume (404) answers with empty metadata so the backfill stamps
+   * the row instead of retrying it on every launch; other failures stay null.
+   */
+  async details(externalId: string): Promise<TrackMetadata | null> {
+    const info = await this.fetchVolume(externalId);
+    if (info === 'gone') return { coverUrl: null, creator: null, description: null, releaseYear: null };
+    return info ? metadataOf(info) : null;
   }
 }

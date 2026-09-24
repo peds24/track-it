@@ -5,6 +5,7 @@ import { Pressable, SectionList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   advanceEntry,
+  completeTrack,
   deleteTrack,
   renameTrack,
   resumeTrack,
@@ -135,6 +136,24 @@ export default function CurrentlyScreen() {
     })();
   }
 
+  // A22: a row's text opens the track's own screen.
+  function handleOpen(track: TrackSummary): void {
+    router.push(`/track/${track.kind}/${track.id}`);
+  }
+
+  // A23: finish a track by hand — confirmation happens in the row itself.
+  function handleComplete(track: TrackSummary): void {
+    void (async () => {
+      try {
+        await completeTrack(db, track, new Date().toISOString());
+      } catch (e: unknown) {
+        showAlert('Could not complete', e instanceof Error ? e.message : String(e));
+      } finally {
+        await reload();
+      }
+    })();
+  }
+
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
@@ -186,6 +205,8 @@ export default function CurrentlyScreen() {
             onDelete={handleDelete}
             onReturnToBacklog={handleReturnToBacklog}
             onEditProgress={setEditing}
+            onOpen={handleOpen}
+            onComplete={handleComplete}
           />
         )}
         ListEmptyComponent={

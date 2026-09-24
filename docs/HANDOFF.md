@@ -1,13 +1,62 @@
 # Track It — session handoff
 
-**Last updated:** 31 August 2026
+**Last updated:** 24 September 2026
 
 Where the project stands, what is unmerged, and what bit us — so the next
-session does not rediscover any of it. Everything below the previous
-"14 August 2026" version was superseded by a lot happening since: a full
-Material 3 redesign landed on `main`, diverged hard from a parallel feature
-branch, and the two were reconciled this session. Treat this version as the
-sole source of truth going forward.
+session does not rediscover any of it. Newest section is at the top; older
+sections below are left as written (the 31 August 2026 one still describes a
+`main` branch that predates the `android`/`web`/`gh-pages` pipeline in
+CLAUDE.md §6 — read it as history, not current state).
+
+## v1.2.0 on web (2026-09-24)
+
+`web` received v1.2.0 — track detail screen, persistent cover/creator/
+description metadata (migration 7) with a one-time launch backfill, manual
+Complete (two-step left swipe + detail action), and richer search results
+with back-to-search — **via a port from `android`'s feature branch
+`worktree-v1.2.0-track-detail`**, following
+`.claude/skills/porting-android-changes-to-web/SKILL.md`. The port lives on
+`worktree-v1.2.0-port-to-web` (`.claude/worktrees/v1.2.0-web`), branched
+from `web` at `c0c452a`; **not yet merged into `web`** — held for the
+user's go-ahead, like the android side.
+
+- **Ported as-is** (identical on both branches before the change): all of
+  `src/providers/*`, `src/db/schema.ts`, `src/data/{addTrack,backup,
+  backfillMetadata}.ts`, `src/domain/{types,formatters}.ts`, the new
+  `CoverImage`/`SearchResultRow`/`completionMessage` UI pieces, and the
+  detail route `app/track/[kind]/[id].tsx`.
+- **Hand-merged into web's versions:** `src/domain/advance.ts`,
+  `src/data/trackRepo.ts` (web's A20 `entryCount`/`nextEntryOrdinal` kept
+  and computed in the extracted `buildSummaries`), `TrackRow`,
+  `SwipeableTrackRow` (web's thresholds, velocity rules, termination
+  handling and badge styling kept; Complete scaled to COMPLETE_THRESHOLD
+  200 / MAX_SWIPE_LEFT_DEEP 280), the three tab screens, and `app/add.tsx`.
+  Every new confirm/error alert goes through `showAlert`.
+- **Web-only fixes found by driving the real screens in headless Chrome:**
+  a mouse swipe that ended on the row's text also fired a click that
+  opened the detail screen (now swallowed for 350 ms after a swipe ends —
+  also covers the advance button); a directly loaded detail URL had no
+  way back (header now offers "Go to your tracks", and Delete lands on the
+  tabs instead of a dead `back()`). Both recorded in the design spec's web
+  note after A24.
+- **Known web gaps:** Metron has no CORS headers, so single-issue comic
+  search returns nothing in the browser (collections via Google Books are
+  fine; the Vercel proxy plan below would fix it). Browser back from the
+  Add confirm screen leaves Add entirely — the header back arrow does
+  return to the search with query and results intact (A24). Barcode
+  scanning still has no web implementation.
+- `package.json`/`app.json` are now 1.2.0 on `web` too, matching
+  `android` (v1.1.0 is still only planned — v1.2.0 shipped ahead of it).
+  `CHANGELOG.md`, `ROADMAP.md` and `docs/ROADMAP.md` now exist on `web`
+  as well, copied from the feature branch so the version-release skill
+  finds them on every branch.
+
+**Toolchain gotchas carried over from the android v1.2.0 session:** load
+nvm with `source ~/.nvm/nvm.sh --no-use; nvm use 22` — plain `source
+~/.nvm/nvm.sh` exits 3 on this machine. And, new on web: Metro's file
+watcher in a `.claude/worktrees/` checkout sometimes misses edits made
+while `expo start --web` is running (the served bundle stayed stale); if a
+change doesn't show up, restart with `npx expo start --web --clear`.
 
 ## Branch state
 

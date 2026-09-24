@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
+import { backfillMetadata } from '@/data/backfillMetadata';
 import type { SqlDriver } from '@/db/driver';
 import { openExpoDatabase } from '@/db/expoDriver';
 import { migrate } from '@/db/schema';
@@ -23,6 +24,9 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       .then(async (driver) => {
         await migrate(driver);
         setDb(driver);
+        // A22: fire-and-forget — never blocks the first render, and a failure
+        // (offline, no keys) only means the next launch tries again.
+        void backfillMetadata(driver).catch(() => {});
       })
       .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)));
   }, []);

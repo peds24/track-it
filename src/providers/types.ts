@@ -1,4 +1,4 @@
-import type { Category, SeasonBoundary, SeriesMediaType, UnitLabel } from '@/domain/types';
+import type { Category, SeasonBoundary, SeriesMediaType, TrackMetadata, UnitLabel } from '@/domain/types';
 
 export type EntryDraft = { ordinal: number; title: string };
 
@@ -10,6 +10,11 @@ export type SearchResult = {
   count: number;
   /** When true, `count` is ignored and one entry is generated. */
   ongoing?: boolean;
+  /** A24: disambiguation shown under the title in search results — filled
+   * only from what the search call itself returns, never a per-hit fetch. */
+  creator?: string;
+  year?: string;
+  thumbnailUrl?: string;
 };
 
 export type SeriesDraft = {
@@ -31,6 +36,8 @@ export type SeriesDraft = {
    */
   metaLine?: readonly string[];
   blurb?: string | null;
+  /** A22: stored on the series row at save time — no second fetch. */
+  metadata?: TrackMetadata;
 };
 
 /**
@@ -46,6 +53,8 @@ export type MatchPreview = {
   title: string;
   metaLine: readonly string[];
   blurb: string | null;
+  /** A22: stored on the standalone entry at save time. Absent on a fallback. */
+  metadata?: TrackMetadata;
 };
 
 export interface MetadataProvider {
@@ -61,4 +70,11 @@ export interface MetadataProvider {
    * already has.
    */
   preview?(result: SearchResult): Promise<MatchPreview>;
+  /**
+   * A22: display metadata for a known catalogue id — what the first-launch
+   * backfill calls for a track added before metadata was stored. Never
+   * throws; `null` means the lookup itself failed (network, missing key) and
+   * should be retried later, as opposed to a found record with empty fields.
+   */
+  details?(externalId: string): Promise<TrackMetadata | null>;
 }

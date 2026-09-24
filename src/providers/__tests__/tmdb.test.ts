@@ -256,7 +256,7 @@ describe('preview (A17, movie only)', () => {
 
     const url = fetchMock.mock.calls[0]![0] as string;
     expect(url).toContain('/movie/273481');
-    expect(preview).toEqual({
+    expect(preview).toMatchObject({
       title: 'Sicario',
       metaLine: ['2015'],
       blurb: 'An FBI agent joins the war on drugs.',
@@ -291,5 +291,77 @@ describe('preview (A17, movie only)', () => {
 
     expect(preview).toEqual({ title: 'Sicario', metaLine: [], blurb: null });
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+function mockFetchJson(body: unknown, ok = true): jest.Mock {
+  const fn = jest.fn().mockResolvedValue({ ok, status: ok ? 200 : 500, json: async () => body });
+  global.fetch = fn as unknown as typeof fetch;
+  return fn;
+}
+
+describe('A22/A24 metadata', () => {
+  beforeEach(() => {
+    process.env.EXPO_PUBLIC_TMDB_API_KEY = 'k';
+  });
+
+  test('movie search hits carry year and a small poster', async () => {
+    mockFetchJson({ results: [{ id: 1, title: 'Dune', release_date: '2021-09-15', poster_path: '/p.jpg' }] });
+    const [hit] = await new TmdbProvider('movie').search('Dune');
+    expect(hit).toMatchObject({ year: '2021', thumbnailUrl: 'https://image.tmdb.org/t/p/w92/p.jpg' });
+    expect(hit?.creator).toBeUndefined();
+  });
+
+  test('show search hits take their year from first_air_date', async () => {
+    mockFetchJson({ results: [{ id: 2, name: 'Severance', first_air_date: '2022-02-18' }] });
+    const [hit] = await new TmdbProvider('show').search('Severance');
+    expect(hit?.year).toBe('2022');
+    expect(hit?.thumbnailUrl).toBeUndefined();
+  });
+
+  test('movie details asks for credits and names the director', async () => {
+    const fetchMock = mockFetchJson({
+      overview: 'Spice.',
+      release_date: '2021-09-15',
+      poster_path: '/p.jpg',
+      credits: { crew: [{ job: 'Producer', name: 'X' }, { job: 'Director', name: 'Denis Villeneuve' }] },
+    });
+
+    expect(await new TmdbProvider('movie').details('1')).toEqual({
+      coverUrl: 'https://image.tmdb.org/t/p/w342/p.jpg',
+      creator: 'Denis Villeneuve',
+      description: 'Spice.',
+      releaseYear: '2021',
+    });
+    expect(fetchMock.mock.calls[0]![0]).toContain('append_to_response=credits');
+  });
+
+  test('show details names the creators', async () => {
+    mockFetchJson({
+      overview: 'Work.',
+      first_air_date: '2022-02-18',
+      status: 'Returning Series',
+      poster_path: '/s.jpg',
+      created_by: [{ name: 'Dan Erickson' }],
+      seasons: [{ season_number: 1, episode_count: 9 }],
+    });
+    const meta = await new TmdbProvider('show').details('2');
+    expect(meta).toEqual({
+      coverUrl: 'https://image.tmdb.org/t/p/w342/s.jpg',
+      creator: 'Dan Erickson',
+      description: 'Work.',
+      releaseYear: '2022',
+    });
+  });
+
+  test('a matched show hydrate carries the same metadata', async () => {
+    mockFetchJson({ overview: 'Work.', first_air_date: '2022-02-18', poster_path: '/s.jpg', created_by: [{ name: 'Dan Erickson' }], seasons: [] });
+    const draft = await new TmdbProvider('show').hydrate({ id: '2', title: 'Severance', category: 'show', count: 1 });
+    expect(draft.metadata?.creator).toBe('Dan Erickson');
+  });
+
+  test('details returns null on a failed lookup', async () => {
+    mockFetchJson({}, false);
+    expect(await new TmdbProvider('movie').details('1')).toBeNull();
   });
 });

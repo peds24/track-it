@@ -176,3 +176,57 @@ describe('hydrate metaLine/blurb (A17)', () => {
     expect(draft.metaLine).toEqual(['42 chapters', 'Completed']);
   });
 });
+
+describe('A22/A24 metadata', () => {
+  function mockJson(body: unknown, ok = true): jest.Mock {
+    const fn = jest.fn().mockResolvedValue({ ok, status: ok ? 200 : 500, json: async () => body });
+    global.fetch = fn as unknown as typeof fetch;
+    return fn;
+  }
+
+  const STAFF = {
+    edges: [
+      { role: 'Art', node: { name: { full: 'Someone Else' } } },
+      { role: 'Story & Art', node: { name: { full: 'Kentaro Miura' } } },
+    ],
+  };
+
+  test('search hits carry the story author, start year and cover', async () => {
+    const fetchMock = mockJson({
+      data: {
+        Page: {
+          media: [
+            { id: 1, title: { english: 'Berserk' }, startDate: { year: 1989 }, coverImage: { medium: 'https://a/m.jpg' }, staff: STAFF },
+          ],
+        },
+      },
+    });
+    const [hit] = await new AnilistProvider().search('Berserk');
+    expect(hit).toMatchObject({ creator: 'Kentaro Miura', year: '1989', thumbnailUrl: 'https://a/m.jpg' });
+    expect(JSON.parse(fetchMock.mock.calls[0]![1].body).query).toContain('coverImage');
+  });
+
+  test('details maps cover, author, cleaned description, and year', async () => {
+    mockJson({
+      data: {
+        Media: {
+          description: 'Guts.<br><br>Griffith &amp; the Band.',
+          startDate: { year: 1989 },
+          coverImage: { large: 'https://a/l.jpg' },
+          staff: STAFF,
+        },
+      },
+    });
+    expect(await new AnilistProvider().details('1')).toEqual({
+      coverUrl: 'https://a/l.jpg',
+      creator: 'Kentaro Miura',
+      description: 'Guts.\n\nGriffith & the Band.',
+      releaseYear: '1989',
+    });
+  });
+
+  test('details returns null on a failed request', async () => {
+    mockJson({}, false);
+    expect(await new AnilistProvider().details('1')).toBeNull();
+  });
+});

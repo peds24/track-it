@@ -1,7 +1,7 @@
 import { AnilistProvider } from '@/providers/anilist';
 import { GoogleBooksProvider } from '@/providers/googleBooks';
 import { MetronProvider } from '@/providers/metron';
-import { providerFor } from '@/providers/registry';
+import { providerFor, providerForSource } from '@/providers/registry';
 import { TmdbProvider } from '@/providers/tmdb';
 
 // A9 fulfils D5: one real provider per category, resolved per category (D10),
@@ -30,4 +30,12 @@ test('registering a category does not change what any other category resolves to
   // (GoogleBooksProvider/TmdbProvider each fix their category at construction).
   expect(providerFor('book')).not.toBe(providerFor('manga'));
   expect(providerFor('show')).not.toBe(providerFor('movie'));
+});
+
+test('providerForSource resolves each stored external_source', () => {
+  expect(providerForSource('google-books', 'comic')?.id).toBe('google-books');
+  expect(providerForSource('tmdb', 'movie')?.id).toBe('tmdb');
+  expect(providerForSource('metron', 'comic')?.id).toBe('metron');
+  expect(providerForSource('anilist', 'manga')?.id).toBe('anilist');
+  expect(providerForSource('something-else', 'book')).toBeNull();
 });
