@@ -12,8 +12,47 @@ type ImageLinks = { thumbnail?: string; smallThumbnail?: string };
 
 type GoogleBooksVolume = {
   id: string;
-  volumeInfo?: { title?: string; authors?: string[]; publishedDate?: string; imageLinks?: ImageLinks };
+  volumeInfo?: {
+    title?: string;
+    authors?: string[];
+    publishedDate?: string;
+    imageLinks?: ImageLinks;
+    industryIdentifiers?: { type?: string; identifier?: string }[];
+  };
 };
+type TitledVolume = GoogleBooksVolume & { volumeInfo: { title: string } };
+
+/** A25: third-party summaries and study aids of the book being searched for. */
+const KNOCKOFF_RE = /^(summary|study guide|workbook)\b|\bsummary (and|&) analysis\b|\bstudy guide\b|\bbook club (kit|in a box)\b/i;
+
+/**
+ * A25: keep only what a person would shelve. Every junk hit seen against the
+ * live API — journals, government reports, conference proceedings, scanned
+ * academic series — had no ISBN, and every real book had one. Knock-off
+ * summaries do carry ISBNs, so they are dropped by title instead.
+ */
+function isShelfBook(item: GoogleBooksVolume): item is TitledVolume {
+  const info = item.volumeInfo;
+  if (typeof info?.title !== 'string') return false;
+  const hasIsbn = (info.industryIdentifiers ?? []).some((id) => /^ISBN_(10|13)$/.test(id.type ?? ''));
+  return hasIsbn && !KNOCKOFF_RE.test(info.title);
+}
+
+/** A25: a cover and an author first — the records a person can recognise. */
+function completeness(item: TitledVolume): number {
+  return (item.volumeInfo.imageLinks ? 2 : 0) + (item.volumeInfo.authors?.length ? 1 : 0);
+}
+
+/** A25: the same book in several printings lists once — the first, best-ranked one. */
+function dedupe(items: TitledVolume[]): TitledVolume[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const key = `${item.volumeInfo.title.trim().toLowerCase()}|${(item.volumeInfo.authors?.[0] ?? '').toLowerCase()}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
 
 type GoogleBooksResponse = { items?: GoogleBooksVolume[] };
 
@@ -63,17 +102,31 @@ export class GoogleBooksProvider implements MetadataProvider {
 
     // A scanned code is routed to the isbn: form — the standard, reliable
     // lookup for a barcode — rather than treated as free text (D5/A9).
-    const q = ISBN_RE.test(trimmed) ? `isbn:${trimmed}` : trimmed;
-    const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&key=${encodeURIComponent(key)}`;
+    // A25: typed text is matched against titles first (`intitle:`), which is
+    // what a person searching for a book is typing; an author or keyword
+    // search that finds no title falls back to the plain query.
+    const fetchShelf = async (q: string): Promise<TitledVolume[]> => {
+      const url =
+        `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}` +
+        `&printType=books&maxResults=40&key=${encodeURIComponent(key)}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Google Books search failed: ${response.status}`);
+      const body = (await response.json()) as GoogleBooksResponse;
+      return (body.items ?? []).filter(isShelfBook);
+    };
 
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`Google Books search failed: ${response.status}`);
-    const body = (await response.json()) as GoogleBooksResponse;
+    let items: TitledVolume[];
+    if (ISBN_RE.test(trimmed)) {
+      items = await fetchShelf(`isbn:${trimmed}`);
+    } else {
+      items = await fetchShelf(`intitle:${trimmed}`);
+      if (items.length === 0) items = await fetchShelf(trimmed);
+    }
 
-    return (body.items ?? [])
-      .filter((item): item is GoogleBooksVolume & { volumeInfo: { title: string } } =>
-        typeof item.volumeInfo?.title === 'string',
-      )
+    // Array.prototype.sort is stable, so equal ranks keep Google's relevance order.
+    const ranked = [...items].sort((a, b) => completeness(b) - completeness(a));
+
+    return dedupe(ranked)
       .map((item) => ({
         id: item.id,
         title: item.volumeInfo.title,
