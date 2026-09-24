@@ -263,7 +263,7 @@ describe('A22/A24 metadata', () => {
     expect(hit).toMatchObject({
       creator: 'Frank Herbert',
       year: '1965',
-      thumbnailUrl: 'https://books.google.com/s.jpg',
+      thumbnailUrl: 'https://books.google.com/t.jpg',
     });
   });
 

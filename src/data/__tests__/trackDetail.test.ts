@@ -70,6 +70,8 @@ test('a series stores draft metadata on the series row and reports a timeline', 
   const detail = await getTrackDetail(db, 'series', id);
 
   expect(detail?.metadata.creator).toBe('Dan Erickson');
+  // A25: a poster stored at w342 before covers were fetched larger is read back sharp.
+  expect(detail?.metadata.coverUrl).toBe('https://image.tmdb.org/t/p/w780/x.jpg');
   expect(detail?.unitLabel).toBe('episode');
   expect(detail?.summary.shelf).toBe('currently');
   expect(detail?.timeline).toEqual({ addedAt: T0, startedAt: '2026-09-03T12:00:00.000Z', finishedAt: null });
