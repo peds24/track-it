@@ -196,7 +196,7 @@ describe('A22/A24 metadata', () => {
       data: {
         Page: {
           media: [
-            { id: 1, title: { english: 'Berserk' }, startDate: { year: 1989 }, coverImage: { medium: 'https://a/m.jpg' }, staff: STAFF },
+            { id: 1, title: { english: 'Berserk' }, startDate: { year: 1989 }, coverImage: { large: 'https://a/m.jpg' }, staff: STAFF },
           ],
         },
       },

@@ -8,6 +8,15 @@ sections below are left as written (the 31 August 2026 one still describes a
 `main` branch that predates the `android`/`web`/`gh-pages` pipeline in
 CLAUDE.md §6 — read it as history, not current state).
 
+## v1.3.0 on web (2026-09-24)
+
+`worktree-v1.3.0-port-to-web` ports android's v1.3.0 (A25): sharper covers,
+Google Books ISBN-only search, Longbox-style comic unit sync, no typed count
+on Add, and Done's Feedback button. Only `app/add.tsx` and
+`app/(tabs)/done.tsx` needed hand-merging (web's `showAlert` bridge). The
+comic sync does nothing on web because Metron is CORS-blocked. Planned Stats
+is now **v1.4.0**; the next amendment is **A26**.
+
 ## v1.2.0 on web (2026-09-24)
 
 `web` received v1.2.0 — track detail screen, persistent cover/creator/

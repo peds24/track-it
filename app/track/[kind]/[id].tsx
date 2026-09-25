@@ -13,6 +13,7 @@ import {
   type TrackDetail,
   type TrackSummary,
 } from '@/data/trackRepo';
+import { syncSeriesUnit } from '@/data/syncSeriesUnit';
 import { activityLine, cleanDescription, creatorLine, formatDate, formatRelative } from '@/domain/formatters';
 import { showAlert } from '@/ui/alert';
 import { completionMessage } from '@/ui/completionMessage';
@@ -79,7 +80,7 @@ export default function TrackDetailScreen() {
   );
 
   const run = useCallback(
-    (label: string, action: () => Promise<void>) => {
+    (label: string, action: () => Promise<void>, moved = false) => {
       void (async () => {
         try {
           await action();
@@ -87,9 +88,11 @@ export default function TrackDetailScreen() {
           showAlert(label, e instanceof Error ? e.message : String(e));
         }
         await load();
+        // A25: after a move, a catalogued comic's cover and issue number follow.
+        if (moved && trackKind === 'series' && (await syncSeriesUnit(db, id).catch(() => false))) await load();
       })();
     },
-    [load],
+    [db, trackKind, id, load],
   );
 
   if (loading) {
@@ -234,7 +237,7 @@ export default function TrackDetailScreen() {
               onPress={() =>
                 resuming
                   ? run('Could not resume', () => resumeTrack(db, track))
-                  : run('Could not update', () => advanceEntry(db, track.nextEntryId!, new Date().toISOString()))
+                  : run('Could not update', () => advanceEntry(db, track.nextEntryId!, new Date().toISOString()), true)
               }
             >
               <Text style={styles.primaryText}>{primaryLabel}</Text>
@@ -268,7 +271,7 @@ export default function TrackDetailScreen() {
         onCancel={() => setEditing(null)}
         onSubmit={(t, ordinal) => {
           setEditing(null);
-          run('Could not update', () => setTrackPosition(db, t.id, ordinal, new Date().toISOString()));
+          run('Could not update', () => setTrackPosition(db, t.id, ordinal, new Date().toISOString()), true);
         }}
       />
     </View>

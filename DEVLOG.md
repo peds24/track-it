@@ -1,5 +1,28 @@
 # DEVLOG
 
+## 2026-09-24 — v1.3.0 ported to web
+
+### What Changed
+- Cherry-picked android's six v1.3.0 feature commits (covers, book search,
+  comic unit sync, no typed count, feedback button, review filter). All
+  provider and data files were byte-identical between the branches and
+  applied cleanly.
+- Two hand-resolved conflicts, both from web's `showAlert` bridge
+  (RN Web's `Alert.alert` is an empty stub): the removed count-validation
+  alert in `app/add.tsx`, and the feedback sheet's "no mail app" alert in
+  `app/(tabs)/done.tsx`, now `showAlert` like the rest of web.
+- Version 1.3.0; A25 copied from android's decision record.
+
+### Design Decisions & Trade-offs
+- **Comic unit sync ships inert on web** rather than being stubbed out:
+  `syncSeriesUnit` calls Metron, which is CORS-blocked in the browser (as
+  Metron search already is), so `unitAt` fails, returns null, and nothing
+  changes. Keeping the call means web picks it up for free if a proxy
+  ever fixes Metron on web.
+- **`mailto:` on web** opens the browser's default mail handler through
+  `Linking.openURL`; checked in headless Chrome that the sheet renders
+  and fills.
+
 ## 2026-09-24 — v1.2.0 ported to web
 
 ### What Changed

@@ -308,7 +308,7 @@ describe('A22/A24 metadata', () => {
   test('movie search hits carry year and a small poster', async () => {
     mockFetchJson({ results: [{ id: 1, title: 'Dune', release_date: '2021-09-15', poster_path: '/p.jpg' }] });
     const [hit] = await new TmdbProvider('movie').search('Dune');
-    expect(hit).toMatchObject({ year: '2021', thumbnailUrl: 'https://image.tmdb.org/t/p/w92/p.jpg' });
+    expect(hit).toMatchObject({ year: '2021', thumbnailUrl: 'https://image.tmdb.org/t/p/w185/p.jpg' });
     expect(hit?.creator).toBeUndefined();
   });
 
@@ -328,7 +328,7 @@ describe('A22/A24 metadata', () => {
     });
 
     expect(await new TmdbProvider('movie').details('1')).toEqual({
-      coverUrl: 'https://image.tmdb.org/t/p/w342/p.jpg',
+      coverUrl: 'https://image.tmdb.org/t/p/w780/p.jpg',
       creator: 'Denis Villeneuve',
       description: 'Spice.',
       releaseYear: '2021',
@@ -347,7 +347,7 @@ describe('A22/A24 metadata', () => {
     });
     const meta = await new TmdbProvider('show').details('2');
     expect(meta).toEqual({
-      coverUrl: 'https://image.tmdb.org/t/p/w342/s.jpg',
+      coverUrl: 'https://image.tmdb.org/t/p/w780/s.jpg',
       creator: 'Dan Erickson',
       description: 'Work.',
       releaseYear: '2022',

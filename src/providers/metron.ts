@@ -1,7 +1,7 @@
 import { cleanDescription, yearOf } from '@/domain/formatters';
 import type { TrackMetadata } from '@/domain/types';
 import { generateEntries } from '@/providers/manual';
-import type { MetadataProvider, SearchResult, SeriesDraft } from '@/providers/types';
+import type { MetadataProvider, SearchResult, SeriesDraft, UnitRecord } from '@/providers/types';
 
 const BASE_URL = 'https://metron.cloud/api';
 
@@ -53,6 +53,7 @@ type MetronIssueListItem = {
   image?: string | null;
 };
 type MetronIssueListResponse = { results?: MetronIssueListItem[] };
+type MetronIssueNumberHit = { id: number; number: string; image?: string | null };
 type MetronCredit = { creator?: string; role?: { name?: string }[] };
 type MetronIssueDetail = { id: number; series: MetronSeriesRef; image?: string | null; credits?: MetronCredit[] };
 type MetronSeriesDetail = {
@@ -217,6 +218,27 @@ export class MetronProvider implements MetadataProvider {
       const issue = await this.get<MetronIssueDetail>(`/issue/${encodeURIComponent(externalId)}/`);
       const series = await this.get<MetronSeriesDetail>(`/series/${encodeURIComponent(String(issue.series.id))}/`);
       return metadataOf(issue, series);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * A25: ported from Longbox's `getNextIssue`. The stored issue names its
+   * series; `series_id` + `number` then pins the issue being read in one
+   * request, where Longbox paged the whole issue list and sorted it.
+   * Entries are numbered "Issue 1".."Issue N" against Metron's own count,
+   * so the ordinal is the issue number. Two requests, well inside Metron's
+   * ~20/min limit for one tap.
+   */
+  async unitAt(externalId: string, ordinal: number): Promise<UnitRecord | null> {
+    try {
+      const issue = await this.get<MetronIssueDetail>(`/issue/${encodeURIComponent(externalId)}/`);
+      const body = await this.get<{ results?: MetronIssueNumberHit[] }>(
+        `/issue/?series_id=${encodeURIComponent(String(issue.series.id))}&number=${encodeURIComponent(String(ordinal))}`,
+      );
+      const hit = body.results?.[0];
+      return hit ? { externalId: String(hit.id), number: hit.number, coverUrl: hit.image ?? null } : null;
     } catch {
       return null;
     }
