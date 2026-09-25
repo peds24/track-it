@@ -184,7 +184,7 @@ All new features must strictly conform to existing architectural invariants:
 
 ---
 
-### Milestone v1.3.0: Stats Page, Analytics Engine & Shareable Visuals
+### Milestone v1.4.0 (was v1.3.0): Stats Page, Analytics Engine & Shareable Visuals
 
 #### User Goals
 * Dedicated **Stats** tab in the main navigation.
@@ -355,5 +355,6 @@ Work in this repository follows the strict 3-branch pipeline:
 | :--- | :--- | :--- | :---: | :--- |
 | **v1.1.0** | **Action Feedback & Undo** | Toast notifications, Undo for Advance/Pause/Delete, Finish celebrations | No | Pending |
 | **v1.2.0** | **Track Detail & Artwork** | Individual track pages, cover art, formatted details, time elapsed | **Yes** (cover_url, creator, blurb) | **Shipped 2026-09-23** |
-| **v1.3.0** | **Stats & Visual Insights** | Stats tab, velocity/averages, shareable graphic cards via `expo-sharing` | No | Pending |
+| **v1.3.0** | **v1.2.0 Feedback Polish** | Sharper covers, book search filtering, comic cover/issue advance, no typed count, feedback button | No | **Shipped 2026-09-24** |
+| **v1.4.0** | **Stats & Visual Insights** | Stats tab, velocity/averages, shareable graphic cards via `expo-sharing` | No | Pending |
 | **v2.0.0** | **Iris Rebrand & Glass UI** | Name change, aperture logo, glass design system (`expo-blur`), modern UI | No | Pending |
