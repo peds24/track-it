@@ -444,6 +444,62 @@
         -2
       ],
       "throws": "ordinal must be a non-negative whole number, got: -2"
+    },
+    {
+      "name": "Swift parity: assertOrdinal prints the number the way JS's String(n) does: -100000000000000000000",
+      "fn": "assertOrdinal",
+      "args": [
+        -100000000000000000000
+      ],
+      "throws": "ordinal must be a non-negative whole number, got: -100000000000000000000"
+    },
+    {
+      "name": "Swift parity: assertOrdinal prints the number the way JS's String(n) does: -1e+21",
+      "fn": "assertOrdinal",
+      "args": [
+        -1e+21
+      ],
+      "throws": "ordinal must be a non-negative whole number, got: -1e+21"
+    },
+    {
+      "name": "Swift parity: assertOrdinal prints the number the way JS's String(n) does: -2.5",
+      "fn": "assertOrdinal",
+      "args": [
+        -2.5
+      ],
+      "throws": "ordinal must be a non-negative whole number, got: -2.5"
+    },
+    {
+      "name": "Swift parity: assertOrdinal prints the number the way JS's String(n) does: -0.00001",
+      "fn": "assertOrdinal",
+      "args": [
+        -0.00001
+      ],
+      "throws": "ordinal must be a non-negative whole number, got: -0.00001"
+    },
+    {
+      "name": "Swift parity: assertOrdinal prints the number the way JS's String(n) does: -1.5e-7",
+      "fn": "assertOrdinal",
+      "args": [
+        -1.5e-7
+      ],
+      "throws": "ordinal must be a non-negative whole number, got: -1.5e-7"
+    },
+    {
+      "name": "Swift parity: assertOrdinal prints the number the way JS's String(n) does: -1.5e+300",
+      "fn": "assertOrdinal",
+      "args": [
+        -1.5e+300
+      ],
+      "throws": "ordinal must be a non-negative whole number, got: -1.5e+300"
+    },
+    {
+      "name": "Swift parity: assertOrdinal prints the number the way JS's String(n) does: -123456.789",
+      "fn": "assertOrdinal",
+      "args": [
+        -123456.789
+      ],
+      "throws": "ordinal must be a non-negative whole number, got: -123456.789"
     }
   ]
 }

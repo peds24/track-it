@@ -34,13 +34,31 @@ private func jsTrimStart(_ s: String) -> String {
     return String(String.UnicodeScalarView(s.unicodeScalars.drop { ws.contains($0) }))
 }
 
-/// `String(n)` for the numbers that reach error messages: whole numbers print
-/// without a decimal point (2, not 2.0); others use the shortest round-trip form.
+/// `String(n)` (ECMAScript Number::toString): the shortest round-trip digits,
+/// laid out the JS way — plain from 1e-6 up to 1e21 ("100000000000000000000",
+/// "0.00001"), exponent form outside it ("1e+21", "1.5e-7"). Swift's own
+/// description prints "1e+20" and "1e-05", and Int64 traps past 2^63.
 func jsNumberString(_ x: Double) -> String {
     if x.isNaN { return "NaN" }
     if x.isInfinite { return x < 0 ? "-Infinity" : "Infinity" }
-    if x == x.rounded(), abs(x) < 1e21 { return String(Int64(x)) }
-    return "\(x)"
+    if x == 0 { return "0" }
+    let sign = x < 0 ? "-" : ""
+    // Swift's description already holds the shortest round-trip digits.
+    let parts = "\(abs(x))".lowercased().split(separator: "e")
+    let mantissa = parts[0].split(separator: ".", omittingEmptySubsequences: false)
+    let intPart = String(mantissa[0])
+    let fracPart = mantissa.count > 1 ? String(mantissa[1]) : ""
+    var digits = intPart + fracPart
+    var point = intPart.count + (parts.count > 1 ? Int(parts[1])! : 0)
+    while digits.hasPrefix("0"), digits.count > 1 { digits.removeFirst(); point -= 1 }
+    while digits.hasSuffix("0"), digits.count > 1 { digits.removeLast() }
+    let k = digits.count, n = point
+    if k <= n && n <= 21 { return sign + digits + String(repeating: "0", count: n - k) }
+    if 0 < n && n <= 21 { return sign + digits.prefix(n) + "." + digits.dropFirst(n) }
+    if -6 < n && n <= 0 { return sign + "0." + String(repeating: "0", count: -n) + digits }
+    let exponent = n - 1
+    let head = k == 1 ? digits : digits.prefix(1) + "." + digits.dropFirst()
+    return sign + head + "e" + (exponent < 0 ? "-" : "+") + String(abs(exponent))
 }
 
 /// `Number.prototype.toFixed(1)`: rounds the *exact* binary value, ties up —

@@ -33,7 +33,7 @@ domain modules and `shared/schema/schema.sql` the schema after migration
 10 (see `shared/README.md`). After an intentional domain change, run
 `npm run fixtures:record` and commit the JSON diff. **I3 done** — all of
 `src/domain` is ported to `apple/IrisCore/Sources/IrisCore/Domain/` (one
-file per TS file) and `swift test` replays all 371 fixture cases, 49 of
+file per TS file) and `swift test` replays all 380 fixture cases, 58 of
 them "Swift parity" cases pinning JS quirks: V8's lenient `Date.parse`
 (Feb 31, 24:00), `toFixed`'s tie-up rounding, ASCII `\d`/`\b`, UTF-16
 indexing. Those live in `JSCompat.swift`/`ISODate.swift`. Local-day

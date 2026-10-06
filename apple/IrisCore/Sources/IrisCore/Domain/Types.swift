@@ -30,6 +30,16 @@ public struct Series: Codable, Equatable, Sendable {
     public var externalId: String?
     /// A11: TMDB only.
     public var seasons: [SeasonBoundary]?
+
+    public init(
+        id: String, title: String, mediaType: SeriesMediaType, unitLabel: UnitLabel, createdAt: String,
+        ongoing: Bool = false, paused: Bool = false, externalSource: String? = nil, externalId: String? = nil,
+        seasons: [SeasonBoundary]? = nil
+    ) {
+        self.id = id; self.title = title; self.mediaType = mediaType; self.unitLabel = unitLabel
+        self.createdAt = createdAt; self.ongoing = ongoing; self.paused = paused
+        self.externalSource = externalSource; self.externalId = externalId; self.seasons = seasons
+    }
 }
 
 public struct Entry: Codable, Equatable, Sendable {
@@ -67,6 +77,14 @@ public struct TrackMetadata: Codable, Equatable, Sendable {
     public var releaseYear: String?
     /// A26: absent when the catalogue gave none.
     public var genres: [String]?
+
+    public init(
+        coverUrl: String? = nil, creator: String? = nil, description: String? = nil,
+        releaseYear: String? = nil, genres: [String]? = nil
+    ) {
+        self.coverUrl = coverUrl; self.creator = creator; self.description = description
+        self.releaseYear = releaseYear; self.genres = genres
+    }
 }
 
 /// A domain rule refused an input. `message` is the TS message, verbatim.

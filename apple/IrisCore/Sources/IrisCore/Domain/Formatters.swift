@@ -77,6 +77,10 @@ public struct UnitTimes: Codable, Equatable, Sendable {
     public var status: Status
     public var startedAt: String?
     public var finishedAt: String?
+
+    public init(status: Status, startedAt: String? = nil, finishedAt: String? = nil) {
+        self.status = status; self.startedAt = startedAt; self.finishedAt = finishedAt
+    }
 }
 
 extension Entry {
@@ -87,6 +91,10 @@ public struct Timeline: Codable, Equatable, Sendable {
     public var addedAt: String
     public var startedAt: String?
     public var finishedAt: String?
+
+    public init(addedAt: String, startedAt: String? = nil, finishedAt: String? = nil) {
+        self.addedAt = addedAt; self.startedAt = startedAt; self.finishedAt = finishedAt
+    }
 }
 
 /// Derived from unit timestamps at read time (D3).
@@ -126,11 +134,16 @@ public func formatRelative(_ iso: String, now nowIso: String, calendar: Calendar
     return "\(formatDuration(days)) ago"
 }
 
-/// "Aug 12, 2026" on `calendar`'s day. Unparseable input is out of contract → "".
+/// "Aug 12, 2026" on the day in `calendar`'s time zone. Always the Gregorian
+/// calendar, as JS's Date getters are — a device set to the Hebrew, Buddhist
+/// or Japanese calendar still reads "2026" (I3 review: Hebrew month 13 used
+/// to index past the month names). Unparseable input is out of contract → "".
 public func formatDate(_ iso: String, calendar: Calendar = .current) -> String {
     guard let date = isoDate(iso, calendar: calendar) else { return "" }
     let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-    let c = calendar.dateComponents([.year, .month, .day], from: date)
+    var gregorian = Calendar(identifier: .gregorian)
+    gregorian.timeZone = calendar.timeZone
+    let c = gregorian.dateComponents([.year, .month, .day], from: date)
     return "\(months[c.month! - 1]) \(c.day!), \(c.year!)"
 }
 

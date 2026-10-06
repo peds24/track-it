@@ -48,6 +48,14 @@ public struct EntryInvariants: Codable, Equatable, Sendable {
     public var createdAt: String?
     public var startedAt: String?
     public var finishedAt: String?
+
+    public init(
+        label: String? = nil, mediaType: EntryMediaType, parentUnitLabel: UnitLabel?, ordinal: Double? = nil,
+        createdAt: String? = nil, startedAt: String? = nil, finishedAt: String? = nil
+    ) {
+        self.label = label; self.mediaType = mediaType; self.parentUnitLabel = parentUnitLabel; self.ordinal = ordinal
+        self.createdAt = createdAt; self.startedAt = startedAt; self.finishedAt = finishedAt
+    }
 }
 
 /// Every entry invariant in one call, so no write path can enforce a subset.

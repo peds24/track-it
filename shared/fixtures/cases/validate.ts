@@ -42,4 +42,9 @@ export const cases: FixtureCase[] = [
     '2026-08-12T10:00+2400', '2026-08-12T10:00+24:00', '0000-01-01', '２０２６-08-12', '٢٠٢٦-08-12',
   ].map((v) => ({ name: `Swift parity: isIsoTimestamp ${v}`, fn: 'isIsoTimestamp', args: [v] })),
   { name: 'Swift parity: assertOrdinal prints a whole number without a decimal', fn: 'assertOrdinal', args: [-2] },
+  ...[-1e20, -1e21, -2.5, -0.00001, -1.5e-7, -1.5e300, -123456.789].map((v) => ({
+    name: `Swift parity: assertOrdinal prints the number the way JS's String(n) does: ${v}`,
+    fn: 'assertOrdinal',
+    args: [v],
+  })),
 ];

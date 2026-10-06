@@ -41,17 +41,15 @@ func isoParts(_ s: String) -> ISOParts? {
 /// are local (the calendar's zone), and out-of-range fields roll over.
 func isoDate(_ s: String, calendar: Calendar) -> Date? {
     guard let p = isoParts(s) else { return nil }
+    // An explicit offset is applied by arithmetic, not as a TimeZone: V8
+    // accepts offsets up to ±23:59, TimeZone(secondsFromGMT:) only ±18h
+    // (I3 review: +19:00 used to trap).
     var cal = Calendar(identifier: .gregorian)
-    if let offset = p.offsetSeconds {
-        cal.timeZone = TimeZone(secondsFromGMT: offset)!
-    } else if !p.hasTime {
-        cal.timeZone = TimeZone(identifier: "UTC")!
-    } else {
-        cal.timeZone = calendar.timeZone
-    }
+    cal.timeZone = p.offsetSeconds != nil || !p.hasTime ? TimeZone(identifier: "UTC")! : calendar.timeZone
     let comps = DateComponents(
         year: p.year, month: p.month, day: p.day, hour: p.hour, minute: p.minute, second: p.second,
         nanosecond: p.millisecond * 1_000_000
     )
-    return cal.date(from: comps)
+    guard let wall = cal.date(from: comps) else { return nil }
+    return wall.addingTimeInterval(-Double(p.offsetSeconds ?? 0))
 }

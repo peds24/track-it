@@ -687,6 +687,23 @@
         "２０２６-01-01"
       ],
       "expect": null
+    },
+    {
+      "name": "Swift parity: formatDate with an offset beyond ±18h",
+      "fn": "formatDate",
+      "args": [
+        "2026-01-01T10:00+19:00"
+      ],
+      "expect": "Dec 31, 2025"
+    },
+    {
+      "name": "Swift parity: daysBetween across extreme offsets",
+      "fn": "daysBetween",
+      "args": [
+        "2026-01-01T10:00+19:00",
+        "2026-01-01T10:00-23:59"
+      ],
+      "expect": 2
     }
   ]
 }

@@ -20,6 +20,10 @@ public struct RatingProfile: Codable, Equatable, Sendable {
     public var creator: String?
     public var genres: [String]
     public var releaseYear: String?
+
+    public init(key: String, creator: String? = nil, genres: [String] = [], releaseYear: String? = nil) {
+        self.key = key; self.creator = creator; self.genres = genres; self.releaseYear = releaseYear
+    }
 }
 
 /// One rated track, in a category's best-first order.
@@ -29,6 +33,12 @@ public struct RankedItem: Codable, Equatable, Sendable {
     public var genres: [String]
     public var releaseYear: String?
     public var sentiment: Sentiment
+
+    public init(key: String, creator: String? = nil, genres: [String] = [], releaseYear: String? = nil, sentiment: Sentiment) {
+        self.key = key; self.creator = creator; self.genres = genres; self.releaseYear = releaseYear
+        self.sentiment = sentiment
+    }
+
     public var profile: RatingProfile { RatingProfile(key: key, creator: creator, genres: genres, releaseYear: releaseYear) }
 }
 
@@ -36,6 +46,8 @@ public struct RankedItem: Codable, Equatable, Sendable {
 public struct KeyedSentiment: Codable, Equatable, Sendable {
     public var key: String
     public var sentiment: Sentiment
+
+    public init(key: String, sentiment: Sentiment) { self.key = key; self.sentiment = sentiment }
 }
 
 public func scoreAt(_ sentiment: Sentiment, index: Int, size: Int) -> Double {
@@ -109,6 +121,11 @@ public struct RankingSession: Codable, Equatable, Sendable {
     /// Index into `bucket` of the track to compare against; nil once placed.
     public var opponent: Int?
     public var comparisons: Int
+
+    public init(candidate: RatingProfile, sentiment: Sentiment, bucket: [RankedItem], lo: Int, hi: Int, opponent: Int?, comparisons: Int) {
+        self.candidate = candidate; self.sentiment = sentiment; self.bucket = bucket
+        self.lo = lo; self.hi = hi; self.opponent = opponent; self.comparisons = comparisons
+    }
 }
 
 /// The most similar track in the middle half of [lo, hi), ties to the midpoint.
@@ -179,6 +196,10 @@ public struct RatingSummary: Codable, Equatable, Sendable {
     public var rank: Int
     public var outOf: Int
     public var category: Category
+
+    public init(sentiment: Sentiment, score: Double, rank: Int, outOf: Int, category: Category) {
+        self.sentiment = sentiment; self.score = score; self.rank = rank; self.outOf = outOf; self.category = category
+    }
 }
 
 /// "8.4" — always one decimal, rounded the way JS's toFixed(1) rounds.

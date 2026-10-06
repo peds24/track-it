@@ -76,4 +76,6 @@ export const cases: FixtureCase[] = ([
   ['Swift parity: cleanDescription treats \\r\\n and \\r as line breaks', 'cleanDescription', 'a\r\nb\rc'],
   ['Swift parity: cleanDescription decodes nbsp to a plain space and collapses it', 'cleanDescription', 'x&nbsp;&nbsp;y'],
   ['Swift parity: yearOf needs ASCII digits', 'yearOf', '２０２６-01-01'],
+  ['Swift parity: formatDate with an offset beyond ±18h', 'formatDate', '2026-01-01T10:00+19:00'],
+  ['Swift parity: daysBetween across extreme offsets', 'daysBetween', '2026-01-01T10:00+19:00', '2026-01-01T10:00-23:59'],
 ] as Case[]).map(c);
