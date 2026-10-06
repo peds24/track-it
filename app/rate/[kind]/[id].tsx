@@ -254,7 +254,7 @@ function createStyles(c: Palette) {
     centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: space.lg, backgroundColor: c.surface },
     scroll: { padding: layout.inset, paddingBottom: space.xxl, gap: 14 },
     resultScroll: { padding: layout.inset, paddingTop: space.lg, paddingBottom: space.xxl, gap: 14, alignItems: 'center' },
-    coverWrap: { alignItems: 'center', ...elevation.level1 },
+    coverWrap: { alignItems: 'center' },
     title: { ...font.headlineSmall, color: c.onSurface, fontWeight: '700', textAlign: 'center' },
     prompt: { ...font.titleLarge, color: c.onSurface, fontWeight: '700', textAlign: 'center' },
     reason: { ...font.labelLarge, color: c.primary, textAlign: 'center', marginTop: -6 },
