@@ -542,7 +542,11 @@ export async function deleteTrack(
   track: { kind: 'series' | 'entry'; id: string },
 ): Promise<void> {
   const table = track.kind === 'series' ? 'series' : 'entry';
-  await db.run(`DELETE FROM ${table} WHERE id = ?`, [track.id]);
+  await db.transaction(async () => {
+    await db.run(`DELETE FROM ${table} WHERE id = ?`, [track.id]);
+    // A26: a rating points at a series or an entry, so no cascade reaches it.
+    await db.run('DELETE FROM rating WHERE track_kind = ? AND track_id = ?', [track.kind, track.id]);
+  });
 }
 
 /**
