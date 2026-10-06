@@ -90,6 +90,8 @@ test('a pre-A16 row (book/movie/episode/issue/volume) survives the table recreat
     description: null,
     release_year: null,
     metadata_checked_at: null,
+    // A26: likewise.
+    genres_json: null,
   });
 });
 

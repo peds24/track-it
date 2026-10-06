@@ -1,5 +1,56 @@
 # DEVLOG
 
+## 2026-10-06 — v1.4.0: Ratings & Rankings release
+
+- Version bumped to **1.4.0** (`package.json`, `app.json`). The planned
+  Insights & Stats milestone moves to **v1.5.0**.
+- **A27**: what's-new on first launch (`src/domain/whatsNew.ts`,
+  `src/data/whatsNew.ts`, `src/ui/WhatsNew.tsx`, `src/ui/releaseNotes.ts`,
+  migration 10 `app_meta`) and the version line in Done's ? sheet.
+- **Why a table, not AsyncStorage**: the app already owns one SQLite
+  database and its migration runner; adding a native storage module for
+  one string would mean a new native dependency and a rebuild for no gain.
+- **Why skip fresh installs**: "What's new" only means something relative
+  to a previous version. An empty library with no stored version is a new
+  user; one with tracks is an upgrade from a pre-A27 build.
+
+## 2026-10-06 — Beli-style ratings; expandable descriptions
+
+### What Changed
+- `src/domain/rating.ts`: sentiment bands, `scoreAt`/`scoresFor`,
+  `similarity`, `pickOpponent`, ranking session (`startRanking`/`answer`),
+  `placeInRanking`, `matchupReason`. Pure, fully unit-tested, including an
+  oracle test that every insertion slot is reachable.
+- `src/data/ratingRepo.ts` + migration 9 (`rating` table); `deleteTrack`
+  and backups updated.
+- Genres: `TrackMetadata.genres`, `src/domain/genres.ts`, all four
+  providers, migration 8 (`genres_json`), backfill revisit.
+- UI: Rate modal, Rankings screen, detail-screen rating card, Done-row
+  score/Rate, finish prompt on Currently/Backlog/detail.
+- `src/ui/ExpandableText.tsx` on Add confirm + detail screen.
+- Decision record: **A26**.
+
+### Design Decisions & Trade-offs
+- **Store order, derive scores.** A rating's score depends on everything
+  ranked around it; storing it would mean rewriting a category's scores on
+  every insert and risking drift. Positions are rewritten per insert
+  (small lists, one transaction); scores never are.
+- **Middle-half opponent choice.** Pure similarity-picking would let the
+  search stall on one end of the list; pure midpoint ignores the "tough
+  matchup" goal. Choosing the most similar track inside the middle half
+  of the window keeps ≥25% shrink per answer (≈log₄⁄₃ n worst case —
+  ≤12 questions for 30 tracks in tests) while still pairing same-creator
+  and same-genre tracks.
+- **Mid-slice scoring.** Anchoring the top at 10.0 made the second rating
+  jump the first from 8.5 to 10.0; spacing each track at the middle of
+  its slice keeps scores stable as a list grows.
+- **Prompt, don't force.** Beli routes straight into ranking after a
+  visit; here finishing is often a one-tap row action, so an alert with
+  Later is less disruptive, and the Rate button stays on the Done row.
+- **Genres via the existing backfill.** Revisiting A22-stamped rows once
+  (NULL `genres_json`) reuses the paced, failure-tolerant path rather
+  than adding a second one.
+
 ## 2026-09-24 — v1.3.0: Polish from v1.2.0 Feedback
 
 ### What Changed

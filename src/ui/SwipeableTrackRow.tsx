@@ -29,6 +29,8 @@ export function SwipeableTrackRow({
   onEditProgress,
   onComplete,
   onOpen,
+  score,
+  onRate,
 }: {
   track: TrackSummary;
   onAdvance: (entryId: string) => void;
@@ -39,6 +41,8 @@ export function SwipeableTrackRow({
   onEditProgress?: (track: TrackSummary) => void;
   onComplete?: (track: TrackSummary) => void;
   onOpen?: (track: TrackSummary) => void;
+  score?: number | null;
+  onRate?: (track: TrackSummary) => void;
 }) {
   const c = useTheme();
   const styles = useMemo(() => createStyles(c), [c]);
@@ -415,6 +419,8 @@ export function SwipeableTrackRow({
           onRename={onRename}
           onEditProgress={onEditProgress}
           onOpen={onOpen}
+          score={score}
+          onRate={onRate}
         />
       </Animated.View>
     </View>

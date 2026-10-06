@@ -13,22 +13,38 @@
  */
 import type { SqlDriver } from '@/db/driver';
 import { isStatusValid } from '@/domain/mode';
-import type { Entry, EntryMediaType, SeasonBoundary, Series, Status, TrackMetadata } from '@/domain/types';
+import { SENTIMENTS, type Sentiment } from '@/domain/rating';
+import type { Category, Entry, EntryMediaType, SeasonBoundary, Series, Status, TrackMetadata } from '@/domain/types';
 import { assertEntryInvariants, assertIsoTimestamp } from '@/domain/validate';
 
 const VERSION = 1;
 
 /** A22: optional on both record kinds — absent in backups that predate it. */
-type MetadataFields = Partial<TrackMetadata> & { metadataCheckedAt?: string | null };
+type MetadataFields = Partial<Omit<TrackMetadata, 'genres'>> & {
+  metadataCheckedAt?: string | null;
+  /** A26: `null` (or absent) means never fetched — the backfill's cue. */
+  genres?: readonly string[] | null;
+};
 type SeriesRecord = Series & MetadataFields;
 type EntryRecord = Entry & MetadataFields;
 
-type Backup = { version: number; series: SeriesRecord[]; entries: EntryRecord[] };
+/** A26: a category's order is carried as `position`; scores are re-derived. */
+type RatingRecord = {
+  trackKind: 'series' | 'entry';
+  trackId: string;
+  category: Category;
+  sentiment: Sentiment;
+  position: number;
+  ratedAt: string;
+};
+
+type Backup = { version: number; series: SeriesRecord[]; entries: EntryRecord[]; ratings?: RatingRecord[] };
 
 const ENTRY_MEDIA_TYPES: readonly EntryMediaType[] = ['episode', 'issue', 'volume', 'book', 'movie', 'comic'];
 const STATUSES: readonly Status[] = ['unstarted', 'in_progress', 'done'];
 const SERIES_MEDIA_TYPES: readonly Series['mediaType'][] = ['show', 'comic', 'manga'];
 const UNIT_LABELS: readonly Series['unitLabel'][] = ['episode', 'issue', 'volume'];
+const CATEGORIES: readonly Category[] = ['show', 'movie', 'book', 'comic', 'manga'];
 
 /** Exported only when set, matching how `seasons` already round-trips. */
 function exportMetadata(r: Record<string, unknown>): MetadataFields {
@@ -38,12 +54,14 @@ function exportMetadata(r: Record<string, unknown>): MetadataFields {
   if (r.description) out.description = r.description as string;
   if (r.release_year) out.releaseYear = r.release_year as string;
   if (r.metadata_checked_at) out.metadataCheckedAt = r.metadata_checked_at as string;
+  if (typeof r.genres_json === 'string') out.genres = JSON.parse(r.genres_json) as string[];
   return out;
 }
 
 export async function exportLibrary(db: SqlDriver): Promise<string> {
   const seriesRows = await db.all<Record<string, unknown>>('SELECT * FROM series');
   const entryRows = await db.all<Record<string, unknown>>('SELECT * FROM entry');
+  const ratingRows = await db.all<Record<string, unknown>>('SELECT * FROM rating ORDER BY category, position');
 
   const payload: Backup = {
     version: VERSION,
@@ -78,6 +96,14 @@ export async function exportLibrary(db: SqlDriver): Promise<string> {
       externalSource: (r.external_source as string | null) ?? null,
       externalId: (r.external_id as string | null) ?? null,
       ...exportMetadata(r),
+    })),
+    ratings: ratingRows.map((r) => ({
+      trackKind: r.track_kind as RatingRecord['trackKind'],
+      trackId: String(r.track_id),
+      category: r.category as Category,
+      sentiment: r.sentiment as Sentiment,
+      position: Number(r.position),
+      ratedAt: String(r.rated_at),
     })),
   };
 
@@ -121,11 +147,28 @@ function parseMetadata(value: Record<string, unknown>, kind: string): Required<M
     description: requireNullableString(value.description, `${kind}.description`),
     releaseYear: requireNullableString(value.releaseYear, `${kind}.releaseYear`),
     metadataCheckedAt: requireNullableString(value.metadataCheckedAt, `${kind}.metadataCheckedAt`),
+    genres: requireOptionalStrings(value.genres, `${kind}.genres`),
   };
 }
 
+/** A26: absent in a backup that predates genres. */
+function requireOptionalStrings(value: unknown, field: string): readonly string[] | null {
+  if (value === null || value === undefined) return null;
+  if (!Array.isArray(value) || value.some((v) => typeof v !== 'string')) {
+    throw new Error(`Backup field ${field} must be a list of text`);
+  }
+  return value as string[];
+}
+
 function metadataParams(m: MetadataFields): unknown[] {
-  return [m.coverUrl ?? null, m.creator ?? null, m.description ?? null, m.releaseYear ?? null, m.metadataCheckedAt ?? null];
+  return [
+    m.coverUrl ?? null,
+    m.creator ?? null,
+    m.description ?? null,
+    m.releaseYear ?? null,
+    m.metadataCheckedAt ?? null,
+    m.genres ? JSON.stringify(m.genres) : null,
+  ];
 }
 
 function parseSeries(value: unknown): SeriesRecord {
@@ -227,6 +270,24 @@ function parseEntry(value: unknown, unitLabelBySeriesId: ReadonlyMap<string, Ser
   };
 }
 
+function parseRating(value: unknown, exists: (kind: 'series' | 'entry', id: string) => boolean): RatingRecord {
+  if (!isRecord(value)) throw new Error('A rating in the backup is not an object');
+  const trackKind = requireString(value.trackKind, 'rating.trackKind');
+  if (trackKind !== 'series' && trackKind !== 'entry') throw new Error(`Unknown rating track kind: ${trackKind}`);
+  const trackId = requireString(value.trackId, 'rating.trackId');
+  if (!exists(trackKind, trackId)) throw new Error(`Rating for missing ${trackKind} ${trackId}`);
+  const category = requireString(value.category, 'rating.category');
+  if (!CATEGORIES.includes(category as Category)) throw new Error(`Unknown rating category: ${category}`);
+  const sentiment = requireString(value.sentiment, 'rating.sentiment');
+  if (!SENTIMENTS.includes(sentiment as Sentiment)) throw new Error(`Unknown rating sentiment: ${sentiment}`);
+  if (typeof value.position !== 'number' || !Number.isInteger(value.position)) {
+    throw new Error('Backup field rating.position must be a whole number');
+  }
+  const ratedAt = requireString(value.ratedAt, 'rating.ratedAt');
+  assertIsoTimestamp(ratedAt, 'rating.ratedAt');
+  return { trackKind, trackId, category: category as Category, sentiment: sentiment as Sentiment, position: value.position, ratedAt };
+}
+
 /** Validate everything first: a half-imported library reads as corruption. */
 function parseBackup(json: string): Backup {
   const raw: unknown = JSON.parse(json);
@@ -247,20 +308,30 @@ function parseBackup(json: string): Backup {
   const entryIds = new Set(entries.map((e) => e.id));
   if (entryIds.size !== entries.length) throw new Error('Backup contains duplicate entry ids');
 
-  return { version: VERSION, series, entries };
+  // A26: absent in backups that predate ratings.
+  if (raw.ratings !== undefined && !Array.isArray(raw.ratings)) throw new Error('Backup ratings must be a list');
+  const ratings = ((raw.ratings as unknown[] | undefined) ?? []).map((r) =>
+    parseRating(r, (kind, id) => (kind === 'series' ? unitLabelBySeriesId.has(id) : entryIds.has(id))),
+  );
+  if (new Set(ratings.map((r) => `${r.trackKind}:${r.trackId}`)).size !== ratings.length) {
+    throw new Error('Backup rates the same track twice');
+  }
+
+  return { version: VERSION, series, entries, ratings };
 }
 
 export async function importLibrary(db: SqlDriver, json: string): Promise<void> {
   const backup = parseBackup(json);
 
   await db.transaction(async () => {
+    await db.run('DELETE FROM rating');
     await db.run('DELETE FROM entry');
     await db.run('DELETE FROM series');
 
     for (const s of backup.series) {
       await db.run(
-        `INSERT INTO series (id, title, media_type, unit_label, created_at, ongoing, paused, external_source, external_id, seasons_json, cover_url, creator, description, release_year, metadata_checked_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO series (id, title, media_type, unit_label, created_at, ongoing, paused, external_source, external_id, seasons_json, cover_url, creator, description, release_year, metadata_checked_at, genres_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           s.id,
           s.title,
@@ -279,8 +350,8 @@ export async function importLibrary(db: SqlDriver, json: string): Promise<void> 
 
     for (const e of backup.entries) {
       await db.run(
-        `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, started_at, finished_at, created_at, paused, external_source, external_id, cover_url, creator, description, release_year, metadata_checked_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, started_at, finished_at, created_at, paused, external_source, external_id, cover_url, creator, description, release_year, metadata_checked_at, genres_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           e.id,
           e.seriesId,
@@ -296,6 +367,13 @@ export async function importLibrary(db: SqlDriver, json: string): Promise<void> 
           e.externalId,
           ...metadataParams(e),
         ],
+      );
+    }
+
+    for (const r of backup.ratings ?? []) {
+      await db.run(
+        'INSERT INTO rating (track_kind, track_id, category, sentiment, position, rated_at) VALUES (?, ?, ?, ?, ?, ?)',
+        [r.trackKind, r.trackId, r.category, r.sentiment, r.position, r.ratedAt],
       );
     }
   });

@@ -36,6 +36,24 @@ test('fills and stamps a matched row', async () => {
   expect(result).toEqual({ filled: 1, skipped: 0, failed: 0 });
   const [row] = await db.all<Record<string, unknown>>('SELECT * FROM entry');
   expect(row).toMatchObject({ cover_url: 'https://c/1.jpg', creator: 'Author', release_year: '2001', metadata_checked_at: LATER });
+  expect(row?.genres_json).toBe('[]');
+});
+
+test('A26: a row A22 already filled is revisited once for its genres, keeping everything else', async () => {
+  const db = await dbWithMatchedBook();
+  await db.run(`UPDATE entry SET creator = 'Frank Herbert', metadata_checked_at = ?`, [T0]);
+  const details = jest.fn().mockResolvedValue({ ...META, genres: ['Science Fiction', 'Space Opera'] });
+
+  await backfillMetadata(db, () => fakeProvider(details), () => LATER);
+  await backfillMetadata(db, () => fakeProvider(details), () => LATER);
+
+  expect(details).toHaveBeenCalledTimes(1);
+  const [row] = await db.all<Record<string, unknown>>('SELECT * FROM entry');
+  expect(row).toMatchObject({
+    creator: 'Frank Herbert',
+    metadata_checked_at: T0,
+    genres_json: '["Science Fiction","Space Opera"]',
+  });
 });
 
 test('a failed lookup leaves the row unstamped so it retries next launch', async () => {
@@ -68,8 +86,8 @@ test('hand-typed tracks, series children, and already-checked rows are never que
   await addTrack(db, { title: 'Notes', category: 'book', count: 1 }, T0); // hand-typed
   await addTrack(db, { title: 'Berserk', category: 'manga', count: 2 }, T0); // hand-typed series
   await db.run(
-    `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id, metadata_checked_at)
-     VALUES ('done1', NULL, 'Known', NULL, 'book', 'unstarted', ?, 'google-books', 'gb2', ?)`,
+    `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id, metadata_checked_at, genres_json)
+     VALUES ('done1', NULL, 'Known', NULL, 'book', 'unstarted', ?, 'google-books', 'gb2', ?, '[]')`,
     [T0, T0],
   );
   const details = jest.fn().mockResolvedValue(META);

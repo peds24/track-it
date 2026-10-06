@@ -109,6 +109,11 @@ function metadataOf(row: {
   };
 }
 
+/** A26: '[]' once a catalogue answered, NULL while it never has (the backfill's cue). */
+function genresColumn(metadata: TrackMetadata | undefined): string | null {
+  return metadata ? JSON.stringify(metadata.genres ?? []) : null;
+}
+
 /** Column values for an INSERT — `checked` is stamped only when metadata came
  * with the add, so the backfill (A22) still fills a match whose lookup failed. */
 function metadataColumns(metadata: TrackMetadata | undefined, now: string): unknown[] {
@@ -118,6 +123,7 @@ function metadataColumns(metadata: TrackMetadata | undefined, now: string): unkn
     metadata?.description ?? null,
     metadata?.releaseYear ?? null,
     metadata ? now : null,
+    genresColumn(metadata),
   ];
 }
 
@@ -174,8 +180,8 @@ export async function createSeriesTrack(
   await db.transaction(async () => {
     await db.run(
       `INSERT INTO series (id, title, media_type, unit_label, created_at, ongoing, external_source, external_id, seasons_json,
-                           cover_url, creator, description, release_year, metadata_checked_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                           cover_url, creator, description, release_year, metadata_checked_at, genres_json)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         seriesId,
         draft.title,
@@ -248,8 +254,8 @@ export async function createStandaloneTrack(
   });
   await db.run(
     `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id,
-                        cover_url, creator, description, release_year, metadata_checked_at)
-     VALUES (?, NULL, ?, NULL, ?, 'unstarted', ?, ?, ?, ?, ?, ?, ?, ?)`,
+                        cover_url, creator, description, release_year, metadata_checked_at, genres_json)
+     VALUES (?, NULL, ?, NULL, ?, 'unstarted', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [id, input.title, input.category, now, input.externalSource ?? null, input.externalId ?? null, ...metadataColumns(input.metadata, now)],
   );
   return id;
@@ -536,7 +542,11 @@ export async function deleteTrack(
   track: { kind: 'series' | 'entry'; id: string },
 ): Promise<void> {
   const table = track.kind === 'series' ? 'series' : 'entry';
-  await db.run(`DELETE FROM ${table} WHERE id = ?`, [track.id]);
+  await db.transaction(async () => {
+    await db.run(`DELETE FROM ${table} WHERE id = ?`, [track.id]);
+    // A26: a rating points at a series or an entry, so no cascade reaches it.
+    await db.run('DELETE FROM rating WHERE track_kind = ? AND track_id = ?', [track.kind, track.id]);
+  });
 }
 
 /**

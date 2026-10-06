@@ -29,7 +29,8 @@ This project strictly adheres to [Semantic Versioning](https://semver.org/):
   * **v1.1.0**: Action Feedback, Undo Engine & Finish Celebrations
   * **v1.2.0**: Individual Track Details, Cover Artwork & Formatted Metadata
   * **v1.3.0**: v1.2.0 feedback polish (covers, search, comic advance, no typed count, feedback button)
-  * **v1.4.0**: Insights & Stats Page with Shareable Visuals
+  * **v1.4.0**: Beli-style ratings & rankings, what's-new on first launch, version in the ? sheet
+  * **v1.5.0**: Insights & Stats Page with Shareable Visuals
 * **MAJOR (`2.0.0`)**: Fundamental paradigm shifts, breaking changes, or major rebrands (e.g., **Iris Evolution**).
 
 ---

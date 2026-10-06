@@ -359,7 +359,13 @@ describe('A22 metadata in backups', () => {
         standalone: true,
         externalSource: 'google-books',
         match: { id: 'gb9', title: 'Saga, Volume 1', category: 'comic', count: 1 },
-        metadata: { coverUrl: 'https://x/saga.jpg', creator: 'Brian K. Vaughan', description: 'Space opera.', releaseYear: '2012' },
+        metadata: {
+          coverUrl: 'https://x/saga.jpg',
+          creator: 'Brian K. Vaughan',
+          description: 'Space opera.',
+          releaseYear: '2012',
+          genres: ['Science Fiction'],
+        },
       },
       T0,
     );
@@ -377,6 +383,7 @@ describe('A22 metadata in backups', () => {
       description: 'Space opera.',
       release_year: '2012',
       metadata_checked_at: T0,
+      genres_json: '["Science Fiction"]',
     });
   });
 
@@ -397,6 +404,6 @@ describe('A22 metadata in backups', () => {
     await importLibrary(target, legacy);
 
     const [row] = await target.all<Record<string, unknown>>('SELECT * FROM entry');
-    expect(row).toMatchObject({ cover_url: null, creator: null, metadata_checked_at: null });
+    expect(row).toMatchObject({ cover_url: null, creator: null, metadata_checked_at: null, genres_json: null });
   });
 });

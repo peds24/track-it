@@ -1,4 +1,5 @@
 import { cleanDescription, yearOf } from '@/domain/formatters';
+import { withGenres } from '@/domain/genres';
 import type { Category, TrackMetadata } from '@/domain/types';
 import { generateEntries } from '@/providers/manual';
 import { googleBooksImage, sharpCoverUrl } from '@/providers/images';
@@ -62,6 +63,7 @@ type VolumeInfo = {
   pageCount?: number;
   description?: string;
   imageLinks?: ImageLinks;
+  categories?: string[];
 };
 type GoogleBooksVolumeDetail = { volumeInfo?: VolumeInfo };
 
@@ -70,12 +72,15 @@ function authorsOf(authors: string[] | undefined): string | null {
 }
 
 function metadataOf(info: VolumeInfo): TrackMetadata {
-  return {
-    coverUrl: sharpCoverUrl(info.imageLinks?.thumbnail ?? info.imageLinks?.smallThumbnail),
-    creator: authorsOf(info.authors),
-    description: cleanDescription(info.description),
-    releaseYear: yearOf(info.publishedDate),
-  };
+  return withGenres(
+    {
+      coverUrl: sharpCoverUrl(info.imageLinks?.thumbnail ?? info.imageLinks?.smallThumbnail),
+      creator: authorsOf(info.authors),
+      description: cleanDescription(info.description),
+      releaseYear: yearOf(info.publishedDate),
+    },
+    info.categories,
+  );
 }
 
 /**

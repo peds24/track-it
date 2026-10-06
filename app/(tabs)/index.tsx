@@ -16,6 +16,7 @@ import {
 import { syncSeriesUnit, syncUnitForEntry } from '@/data/syncSeriesUnit';
 import type { Category } from '@/domain/types';
 import { useDatabase } from '@/ui/DatabaseProvider';
+import { offerRatingIfFinished } from '@/ui/rating';
 import { elevation, font, googleSans, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
 import { ProgressEditor } from '@/ui/ProgressEditor';
 import { SwipeableTrackRow } from '@/ui/SwipeableTrackRow';
@@ -68,6 +69,7 @@ export default function CurrentlyScreen() {
   );
 
   function handleAdvance(entryId: string): void {
+    const track = tracks.find((t) => t.nextEntryId === entryId);
     void (async () => {
       try {
         await advanceEntry(db, entryId, new Date().toISOString());
@@ -75,6 +77,8 @@ export default function CurrentlyScreen() {
         Alert.alert('Could not update', e instanceof Error ? e.message : String(e));
       }
       await reloadSafely();
+      // A26: finishing the last unit asks for a rating.
+      if (track) await offerRatingIfFinished(db, track, (href) => router.push(href));
       // A25: a catalogued comic moves its cover and issue number along.
       if (await syncUnitForEntry(db, entryId).catch(() => false)) await reloadSafely();
     })();
@@ -159,6 +163,7 @@ export default function CurrentlyScreen() {
       } finally {
         await reload();
       }
+      await offerRatingIfFinished(db, track, (href) => router.push(href));
     })();
   }
 
