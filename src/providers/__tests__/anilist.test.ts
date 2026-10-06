@@ -225,6 +225,12 @@ describe('A22/A24 metadata', () => {
     });
   });
 
+  test('A26: details asks for and carries genres', async () => {
+    const fetchMock = mockJson({ data: { Media: { genres: ['Action', 'Drama', 'Fantasy'] } } });
+    expect((await new AnilistProvider().details('1'))?.genres).toEqual(['Action', 'Drama', 'Fantasy']);
+    expect(JSON.parse(fetchMock.mock.calls[0]![1].body).query).toContain('genres');
+  });
+
   test('details returns null on a failed request', async () => {
     mockJson({}, false);
     expect(await new AnilistProvider().details('1')).toBeNull();

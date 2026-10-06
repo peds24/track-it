@@ -24,6 +24,11 @@ const realSleep = (ms: number) => new Promise<void>((resolve) => setTimeout(reso
  * `metadata_checked_at` whenever the lookup *answered* (even with nothing),
  * and left unstamped when it failed, so an offline launch retries next time.
  * COALESCE keeps anything already stored — the backfill only fills gaps.
+ *
+ * A26: a row with no `genres_json` is revisited even if A22 already stamped
+ * it, once, so tracks rated before genres were collected still get tough
+ * matchups. That is one extra paced lookup per catalogued track, after
+ * which `genres_json` is '[]' or better and the row is never queried again.
  */
 export async function backfillMetadata(
   db: SqlDriver,
@@ -33,11 +38,13 @@ export async function backfillMetadata(
 ): Promise<{ filled: number; skipped: number; failed: number }> {
   const series = await db.all<PendingRow>(
     `SELECT id, media_type, external_source, external_id FROM series
-     WHERE external_source IS NOT NULL AND external_id IS NOT NULL AND metadata_checked_at IS NULL`,
+     WHERE external_source IS NOT NULL AND external_id IS NOT NULL
+       AND (metadata_checked_at IS NULL OR genres_json IS NULL)`,
   );
   const entries = await db.all<PendingRow>(
     `SELECT id, media_type, external_source, external_id FROM entry
-     WHERE series_id IS NULL AND external_source IS NOT NULL AND external_id IS NOT NULL AND metadata_checked_at IS NULL`,
+     WHERE series_id IS NULL AND external_source IS NOT NULL AND external_id IS NOT NULL
+       AND (metadata_checked_at IS NULL OR genres_json IS NULL)`,
   );
 
   const result = { filled: 0, skipped: 0, failed: 0 };
@@ -50,7 +57,10 @@ export async function backfillMetadata(
   for (const { table, row } of pending) {
     const provider = resolve(row.external_source, row.media_type);
     if (!provider?.details) {
-      await db.run(`UPDATE ${table} SET metadata_checked_at = ? WHERE id = ?`, [now(), row.id]);
+      await db.run(
+        `UPDATE ${table} SET metadata_checked_at = COALESCE(metadata_checked_at, ?), genres_json = COALESCE(genres_json, '[]') WHERE id = ?`,
+        [now(), row.id],
+      );
       result.skipped += 1;
       continue;
     }
@@ -76,9 +86,18 @@ export async function backfillMetadata(
          creator = COALESCE(creator, ?),
          description = COALESCE(description, ?),
          release_year = COALESCE(release_year, ?),
-         metadata_checked_at = ?
+         metadata_checked_at = COALESCE(metadata_checked_at, ?),
+         genres_json = COALESCE(genres_json, ?)
        WHERE id = ?`,
-      [metadata.coverUrl, metadata.creator, metadata.description, metadata.releaseYear, now(), row.id],
+      [
+        metadata.coverUrl,
+        metadata.creator,
+        metadata.description,
+        metadata.releaseYear,
+        now(),
+        JSON.stringify(metadata.genres ?? []),
+        row.id,
+      ],
     );
     result.filled += 1;
   }

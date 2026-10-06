@@ -1,6 +1,6 @@
 # Track It — session handoff
 
-**Last updated:** 24 September 2026
+**Last updated:** 6 October 2026
 
 Where the project stands, what is unmerged, and what bit us — so the next
 session does not rediscover any of it. Newest section is at the top; older
@@ -8,7 +8,27 @@ sections below are left as written (the 31 August 2026 one still describes a
 `main` branch that predates the `android`/`web`/`gh-pages` pipeline in
 CLAUDE.md §6 — read it as history, not current state).
 
-## v1.3.0 on web (2026-09-24)
+## v1.4.0 on web (2026-10-06)
+
+Ported from `android` (merge `2ec0841`) on `claude/v1.4.0-port-to-web`,
+merged into `web`. Decision records **A26** (ratings, genres, expandable
+text) and **A27** (what's new on first launch, version in the ? sheet).
+Next amendment is **A28**; Insights & Stats is now **v1.5.0**.
+
+- **Ported as-is:** `src/domain/*` (rating, genres, whatsNew),
+  `src/data/*` (ratingRepo, whatsNew, backfill, backup, schema migrations
+  8–10), providers, `ExpandableText`, `WhatsNew`, the Rate and Rankings
+  screens, `app/_layout.tsx`.
+- **Hand-merged:** the tab screens, Add, the detail screen, `TrackRow`,
+  `SwipeableTrackRow` (the new `onRate` goes through web's
+  `unlessJustSwiped` like the other row handlers), and their tests.
+- **Web-specific:** the rate prompt and the rate screen's save error use
+  `showAlert` (the browser `window.confirm` bridge) instead of
+  `Alert.alert`, which is a no-op on react-native-web. With two buttons
+  the browser shows OK/Cancel: OK = Rate it, Cancel = Later.
+- `ExpandableText` gets no `onTextLayout` on web, so it falls back to its
+  character-count estimate for when to offer Show more.
+
 
 `worktree-v1.3.0-port-to-web` ports android's v1.3.0 (A25): sharper covers,
 Google Books ISBN-only search, Longbox-style comic unit sync, no typed count

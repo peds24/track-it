@@ -290,6 +290,13 @@ describe('A22/A24 metadata', () => {
     });
   });
 
+  test('A26: details flattens BISAC category paths into genres', async () => {
+    process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
+    mockFetchOnce({ volumeInfo: { categories: ['Fiction / Science Fiction / Space Opera', 'Fiction / General'] } });
+
+    expect((await new GoogleBooksProvider('book').details('v1'))?.genres).toEqual(['Fiction', 'Science Fiction', 'Space Opera']);
+  });
+
   test('details returns null when the lookup fails, so the backfill retries', async () => {
     process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY = 'test-key';
     mockFetchOnce({}, false);

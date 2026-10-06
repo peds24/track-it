@@ -115,6 +115,44 @@ const MIGRATIONS: readonly string[] = [
   ALTER TABLE entry ADD COLUMN release_year TEXT;
   ALTER TABLE entry ADD COLUMN metadata_checked_at TEXT;
   `,
+  // A26: catalogue genres, as a JSON array — what the rating flow uses
+  // (with creator) to pick a tough matchup. NULL means "never fetched", so
+  // the backfill revisits rows A22 already stamped; '[]' means the
+  // catalogue answered with none. Display-only, like the rest of A22.
+  `
+  ALTER TABLE series ADD COLUMN genres_json TEXT;
+  ALTER TABLE entry ADD COLUMN genres_json TEXT;
+  `,
+  // A26: Beli-style ranking. One row per rated track, ordered within its
+  // category only — a movie is never ranked against a book. `position`
+  // orders a category best-first; a rating rewrites its category's
+  // positions in one transaction, and a removal just leaves a gap (only the
+  // order matters). The 1–10 score is not stored: it is derived from order
+  // and sentiment at read time (D3's rule), since a new favourite shifts
+  // every score below it. No foreign key — a row points at either a series
+  // or a standalone entry — so deleteTrack removes it explicitly.
+  `
+  CREATE TABLE IF NOT EXISTS rating (
+    track_kind TEXT NOT NULL CHECK (track_kind IN ('series','entry')),
+    track_id   TEXT NOT NULL,
+    category   TEXT NOT NULL CHECK (category IN ('show','movie','book','comic','manga')),
+    sentiment  TEXT NOT NULL CHECK (sentiment IN ('liked','fine','disliked')),
+    position   INTEGER NOT NULL,
+    rated_at   TEXT NOT NULL,
+    PRIMARY KEY (track_kind, track_id)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_rating_category ON rating(category, position);
+  `,
+  // A27: small app-level facts that are not library data — today only the
+  // last version whose "What's new" the user has seen, so an update can
+  // announce itself once on first launch.
+  `
+  CREATE TABLE IF NOT EXISTS app_meta (
+    key   TEXT PRIMARY KEY NOT NULL,
+    value TEXT NOT NULL
+  );
+  `,
 ];
 
 /**

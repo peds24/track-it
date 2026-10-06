@@ -79,4 +79,8 @@ export type TrackMetadata = {
   creator: string | null;
   description: string | null;
   releaseYear: string | null;
+  /** A26: catalogue genres (see `genresFrom`), used to pick tough rating
+   * matchups. Absent when the catalogue gave none — and on every record
+   * fetched before genres were collected. */
+  genres?: readonly string[];
 };

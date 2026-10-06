@@ -17,6 +17,7 @@ import type { Category } from '@/domain/types';
 import { showAlert } from '@/ui/alert';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { FilterBar } from '@/ui/FilterBar';
+import { offerRatingIfFinished } from '@/ui/rating';
 import { font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
 import { ProgressEditor } from '@/ui/ProgressEditor';
 import { SwipeableTrackRow } from '@/ui/SwipeableTrackRow';
@@ -46,6 +47,7 @@ export default function BacklogScreen() {
   );
 
   function handleAdvance(entryId: string): void {
+    const track = tracks.find((t) => t.nextEntryId === entryId);
     void (async () => {
       try {
         await advanceEntry(db, entryId, new Date().toISOString());
@@ -53,6 +55,8 @@ export default function BacklogScreen() {
         showAlert('Could not update', e instanceof Error ? e.message : String(e));
       }
       await reloadSafely();
+      // A26: a movie marked Watched from here is finished in one tap.
+      if (track) await offerRatingIfFinished(db, track, (href) => router.push(href));
       // A25: a catalogued comic moves its cover and issue number along.
       if (await syncUnitForEntry(db, entryId).catch(() => false)) await reloadSafely();
     })();
@@ -138,6 +142,7 @@ export default function BacklogScreen() {
       } finally {
         await reload();
       }
+      await offerRatingIfFinished(db, track, (href) => router.push(href));
     })();
   }
 

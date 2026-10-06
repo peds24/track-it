@@ -1509,6 +1509,80 @@ user feedback on v1.2.0:
    local-only (D6) with no backend, and `Linking` needs no new native
    module.
 
+**A26 — Beli-style ratings, per category; descriptions expand on Add.**
+Reverses "ratings and reviews" being out of scope (see *Out of scope for
+v1*). Requested directly: rank finished tracks against similar ones, the
+way Beli ranks restaurants, scored 1–10, never across categories.
+
+*How it works.* Rating a finished track asks one question first — *I liked
+it / It was fine / I didn't like it* — then a run of "which did you
+prefer?" against tracks of the **same category** already rated with the
+**same sentiment**, as a binary insertion. Each sentiment owns a band of
+the scale (liked 7–10, fine 4–7, disliked 1–4), so a liked track always
+outscores a fine one. Within a band the bucket's tracks are spaced evenly,
+each at the middle of its slice (`scoreAt`): one liked track is 8.5, two
+are 9.3 and 7.8. *Too tough to call* places the track just below the
+opponent and ends the session. Nothing is written until the track is
+placed; backing out leaves any earlier rating untouched. Re-rating
+replaces the old rating.
+
+*Tough matchups.* The opponent is not simply the midpoint. It is the most
+similar track (`similarity`: shared creator ≫ shared genres, up to three ≫
+release within five years) anywhere in the **middle half** of the open
+window, ties going to the midpoint. Restricting the choice to the middle
+half keeps each answer cutting at least a quarter of the window, so the
+search stays logarithmic; picking within it is what makes a Villeneuve
+film meet another Villeneuve film. The screen says why when it can
+("Both by Denis Villeneuve", "Both Crime & Thriller"). Hand-typed tracks
+have no metadata and get a plain binary search.
+
+*Genres.* A22 stored creator but not genres. Every provider's detail call
+already returned them (Google Books `categories`, TMDB `genres`, AniList
+`genres` — added to the GraphQL query — and Metron series `genres`), so
+`TrackMetadata` gains optional `genres`, flattened by `genresFrom` (BISAC
+paths split per segment, "General" dropped). Migration 8 adds
+`genres_json` (NULL = never fetched, '[]' = none). The A22 backfill now
+also picks up rows with NULL `genres_json`, once, filling only that gap.
+
+*Storage.* Migration 9 adds `rating(track_kind, track_id, category,
+sentiment, position, rated_at)`. Only the order is stored; scores are
+derived at read time (D3's rule), because one new favourite shifts every
+score below it. No foreign key is possible (a row points at a series or
+an entry), so `deleteTrack` deletes the rating in the same transaction.
+Backups carry `ratings` and reject one that names a missing track.
+Returning a finished track to the backlog keeps its rating — you still
+watched it.
+
+*Where it shows.* Finishing a track (Currently, Backlog, the detail
+screen, or adding a movie straight to Watched from Add) asks "Rank it against the other movies you've rated?" — Beli asks
+right after a visit; here it is an alert, not a forced detour. The Done
+row shows the score (or a Rate button); the detail screen has a rating
+card ("#3 of 12 movies", Re-rank, Rankings); the Rankings screen, from
+Done's header, lists one category at a time with no "All", since scores
+from different categories were never compared.
+
+*Also:* the Add confirm screen's blurb was clamped to six lines with no
+way to read the rest. `ExpandableText` replaces it there and on the detail
+screen, measuring real line count (a hidden unclamped copy's
+`onTextLayout`) instead of the detail screen's old 280-character guess,
+which missed text that wrapped past six lines.
+
+**A27 — An update says what's new, once; the ? sheet names the build.**
+Shipped with A26 as v1.4.0, so a feature as large as ratings does not go
+unnoticed. Migration 10 adds `app_meta(key, value)`, a home for app-level
+facts that are not library data (D6 still holds: nothing leaves the
+device). `last_announced_version` is the only key. On launch,
+`announcementFor` (pure) shows the running version's note from
+`src/ui/releaseNotes.ts` when the stored version differs — **except on a
+fresh install** (no stored version and an empty library), which records
+the version silently: a new user has nothing to compare against. An
+upgrade from a build that predates A27 has no stored version but does
+have tracks, so it is announced. "Got it" records the version; a test
+fails if the running version has no notes, so a release cannot ship
+silently by accident. The Done tab's ? sheet ends with
+`Track It v<version> · <platform>`, read from `app.json`, so a report
+from the Android build and one from the web build can be told apart.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:
@@ -1550,7 +1624,8 @@ The schema accommodates it via the nullable `external_*` columns.
 
 Named explicitly so planning does not absorb them: cover art, sync and
 accounts (D6), ratings and reviews, social features, and the activity log
-rejected in D8. Catalogue API integrations (D5) shipped as A9 and reading
+rejected in D8. (Ratings shipped as A26 — comparative ranking, not
+written reviews, which remain out.) Catalogue API integrations (D5) shipped as A9 and reading
 statistics moved to "Next up" below — both were on this list originally,
 neither still belongs here.
 

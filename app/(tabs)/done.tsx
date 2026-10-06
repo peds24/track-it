@@ -11,16 +11,21 @@ import {
   returnTrackToBacklog,
   type TrackSummary,
 } from '@/data/trackRepo';
+import { allScores, ratingKey } from '@/data/ratingRepo';
 import { syncUnitForEntry } from '@/data/syncSeriesUnit';
 import type { Category } from '@/domain/types';
 import { showAlert } from '@/ui/alert';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { FEEDBACK_EMAIL, feedbackMailto } from '@/ui/feedback';
 import { FilterBar } from '@/ui/FilterBar';
+import { rateHref } from '@/ui/rating';
 import { elevation, font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
 import { SwipeableTrackRow } from '@/ui/SwipeableTrackRow';
 import { useTracks } from '@/ui/useTracks';
 import appConfig from '../../app.json';
+
+/** A27: which build this is, in the ? sheet. */
+const PLATFORM_LABEL: Partial<Record<typeof Platform.OS, string>> = { android: 'Android', ios: 'iOS', web: 'Web' };
 
 export default function DoneScreen() {
   const db = useDatabase();
@@ -31,7 +36,14 @@ export default function DoneScreen() {
   const [attributionOpen, setAttributionOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedback, setFeedback] = useState('');
-  const { tracks, reload } = useTracks('done', category ?? undefined);
+  const { tracks, reload: reloadTracks } = useTracks('done', category ?? undefined);
+  // A26: each row's score, re-derived whenever the list is.
+  const [scores, setScores] = useState<Map<string, number>>(new Map());
+
+  const reload = useCallback(async () => {
+    await reloadTracks();
+    setScores(await allScores(db));
+  }, [db, reloadTracks]);
 
   const reloadSafely = useCallback(async () => {
     try {
@@ -137,6 +149,15 @@ export default function DoneScreen() {
         <Text style={styles.title}>Done</Text>
         <View style={styles.headerActions}>
           <Pressable
+            onPress={() => router.push(`/rankings${category ? `?category=${category}` : ''}`)}
+            accessibilityRole="button"
+            accessibilityLabel="Rankings"
+            style={styles.attributionButton}
+            android_ripple={{ color: palette.surfaceContainerHighest, borderless: true }}
+          >
+            <Ionicons name="podium-outline" size={18} color={palette.onSurface} />
+          </Pressable>
+          <Pressable
             onPress={() => setFeedbackOpen(true)}
             accessibilityRole="button"
             accessibilityLabel="Send feedback"
@@ -172,6 +193,8 @@ export default function DoneScreen() {
             onDelete={handleDelete}
             onReturnToBacklog={handleReturnToBacklog}
             onOpen={handleOpen}
+            score={scores.get(ratingKey(item)) ?? null}
+            onRate={(t) => router.push(rateHref(t))}
           />
         )}
         ListEmptyComponent={
@@ -182,7 +205,7 @@ export default function DoneScreen() {
         }
         ListFooterComponent={
           tracks.length > 0 ? (
-            <Text style={styles.note}>Nothing here can be advanced, so no control is drawn.</Text>
+            <Text style={styles.note}>Rate what you finish to rank it against the rest of its kind.</Text>
           ) : null
         }
       />
@@ -249,6 +272,7 @@ export default function DoneScreen() {
             <Text style={styles.modalBody}>
               Book and manga data from Google Books. Comic data from Metron.
             </Text>
+            <Text style={styles.version}>{`Track It v${appConfig.expo.version} · ${PLATFORM_LABEL[Platform.OS] ?? Platform.OS}`}</Text>
             <Pressable
               onPress={() => setAttributionOpen(false)}
               accessibilityRole="button"
@@ -373,6 +397,12 @@ function createStyles(c: Palette) {
       color: c.onSurfaceVariant,
       marginBottom: 12,
       lineHeight: 20,
+    },
+    version: {
+      ...font.labelMedium,
+      color: c.onSurfaceVariant,
+      marginTop: 4,
+      fontVariant: ['tabular-nums'],
     },
     modalClose: {
       alignSelf: 'flex-end',

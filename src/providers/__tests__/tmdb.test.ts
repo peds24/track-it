@@ -360,6 +360,13 @@ describe('A22/A24 metadata', () => {
     expect(draft.metadata?.creator).toBe('Dan Erickson');
   });
 
+  test('A26: movie and show details carry TMDB genres', async () => {
+    mockFetchJson({ genres: [{ id: 878, name: 'Science Fiction' }, { id: 12, name: 'Adventure' }] });
+    expect((await new TmdbProvider('movie').details('1'))?.genres).toEqual(['Science Fiction', 'Adventure']);
+    mockFetchJson({ genres: [{ id: 18, name: 'Drama' }], seasons: [] });
+    expect((await new TmdbProvider('show').details('2'))?.genres).toEqual(['Drama']);
+  });
+
   test('details returns null on a failed lookup', async () => {
     mockFetchJson({}, false);
     expect(await new TmdbProvider('movie').details('1')).toBeNull();
