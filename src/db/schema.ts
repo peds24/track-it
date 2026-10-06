@@ -115,6 +115,14 @@ const MIGRATIONS: readonly string[] = [
   ALTER TABLE entry ADD COLUMN release_year TEXT;
   ALTER TABLE entry ADD COLUMN metadata_checked_at TEXT;
   `,
+  // A26: catalogue genres, as a JSON array — what the rating flow uses
+  // (with creator) to pick a tough matchup. NULL means "never fetched", so
+  // the backfill revisits rows A22 already stamped; '[]' means the
+  // catalogue answered with none. Display-only, like the rest of A22.
+  `
+  ALTER TABLE series ADD COLUMN genres_json TEXT;
+  ALTER TABLE entry ADD COLUMN genres_json TEXT;
+  `,
 ];
 
 /**

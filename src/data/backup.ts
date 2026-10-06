@@ -19,7 +19,11 @@ import { assertEntryInvariants, assertIsoTimestamp } from '@/domain/validate';
 const VERSION = 1;
 
 /** A22: optional on both record kinds — absent in backups that predate it. */
-type MetadataFields = Partial<TrackMetadata> & { metadataCheckedAt?: string | null };
+type MetadataFields = Partial<Omit<TrackMetadata, 'genres'>> & {
+  metadataCheckedAt?: string | null;
+  /** A26: `null` (or absent) means never fetched — the backfill's cue. */
+  genres?: readonly string[] | null;
+};
 type SeriesRecord = Series & MetadataFields;
 type EntryRecord = Entry & MetadataFields;
 
@@ -38,6 +42,7 @@ function exportMetadata(r: Record<string, unknown>): MetadataFields {
   if (r.description) out.description = r.description as string;
   if (r.release_year) out.releaseYear = r.release_year as string;
   if (r.metadata_checked_at) out.metadataCheckedAt = r.metadata_checked_at as string;
+  if (typeof r.genres_json === 'string') out.genres = JSON.parse(r.genres_json) as string[];
   return out;
 }
 
@@ -121,11 +126,28 @@ function parseMetadata(value: Record<string, unknown>, kind: string): Required<M
     description: requireNullableString(value.description, `${kind}.description`),
     releaseYear: requireNullableString(value.releaseYear, `${kind}.releaseYear`),
     metadataCheckedAt: requireNullableString(value.metadataCheckedAt, `${kind}.metadataCheckedAt`),
+    genres: requireOptionalStrings(value.genres, `${kind}.genres`),
   };
 }
 
+/** A26: absent in a backup that predates genres. */
+function requireOptionalStrings(value: unknown, field: string): readonly string[] | null {
+  if (value === null || value === undefined) return null;
+  if (!Array.isArray(value) || value.some((v) => typeof v !== 'string')) {
+    throw new Error(`Backup field ${field} must be a list of text`);
+  }
+  return value as string[];
+}
+
 function metadataParams(m: MetadataFields): unknown[] {
-  return [m.coverUrl ?? null, m.creator ?? null, m.description ?? null, m.releaseYear ?? null, m.metadataCheckedAt ?? null];
+  return [
+    m.coverUrl ?? null,
+    m.creator ?? null,
+    m.description ?? null,
+    m.releaseYear ?? null,
+    m.metadataCheckedAt ?? null,
+    m.genres ? JSON.stringify(m.genres) : null,
+  ];
 }
 
 function parseSeries(value: unknown): SeriesRecord {
@@ -259,8 +281,8 @@ export async function importLibrary(db: SqlDriver, json: string): Promise<void> 
 
     for (const s of backup.series) {
       await db.run(
-        `INSERT INTO series (id, title, media_type, unit_label, created_at, ongoing, paused, external_source, external_id, seasons_json, cover_url, creator, description, release_year, metadata_checked_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO series (id, title, media_type, unit_label, created_at, ongoing, paused, external_source, external_id, seasons_json, cover_url, creator, description, release_year, metadata_checked_at, genres_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           s.id,
           s.title,
@@ -279,8 +301,8 @@ export async function importLibrary(db: SqlDriver, json: string): Promise<void> 
 
     for (const e of backup.entries) {
       await db.run(
-        `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, started_at, finished_at, created_at, paused, external_source, external_id, cover_url, creator, description, release_year, metadata_checked_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO entry (id, series_id, title, ordinal, media_type, status, started_at, finished_at, created_at, paused, external_source, external_id, cover_url, creator, description, release_year, metadata_checked_at, genres_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           e.id,
           e.seriesId,

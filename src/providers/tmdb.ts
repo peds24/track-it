@@ -1,4 +1,5 @@
 import { cleanDescription, yearOf } from '@/domain/formatters';
+import { withGenres } from '@/domain/genres';
 import type { Category, SeasonBoundary, TrackMetadata } from '@/domain/types';
 import { tmdbImage } from '@/providers/images';
 import { generateEntries } from '@/providers/manual';
@@ -22,12 +23,14 @@ type TmdbShowDetail = {
   last_air_date?: string;
   poster_path?: string | null;
   created_by?: { name?: string }[];
+  genres?: { name?: string }[];
 };
 type TmdbMovieDetail = {
   overview?: string;
   release_date?: string;
   poster_path?: string | null;
   credits?: { crew?: { job?: string; name?: string }[] };
+  genres?: { name?: string }[];
 };
 
 function namesOf(people: { name?: string }[] | undefined): string | null {
@@ -154,12 +157,15 @@ export class TmdbProvider implements MetadataProvider {
 
   private static movieMetadata(body: TmdbMovieDetail): TrackMetadata {
     const directors = (body.credits?.crew ?? []).filter((c) => c.job === 'Director');
-    return {
-      coverUrl: tmdbImage(body.poster_path, 'w780'),
-      creator: namesOf(directors),
-      description: cleanDescription(body.overview),
-      releaseYear: yearOf(body.release_date),
-    };
+    return withGenres(
+      {
+        coverUrl: tmdbImage(body.poster_path, 'w780'),
+        creator: namesOf(directors),
+        description: cleanDescription(body.overview),
+        releaseYear: yearOf(body.release_date),
+      },
+      body.genres?.map((g) => g.name),
+    );
   }
 
   async preview(result: SearchResult): Promise<MatchPreview> {
@@ -228,12 +234,15 @@ export class TmdbProvider implements MetadataProvider {
         seasons: breakdown,
         metaLine,
         blurb: cleanDescription(body.overview),
-        metadata: {
-          coverUrl: tmdbImage(body.poster_path, 'w780'),
-          creator: namesOf(body.created_by),
-          description: cleanDescription(body.overview),
-          releaseYear: startYear,
-        },
+        metadata: withGenres(
+          {
+            coverUrl: tmdbImage(body.poster_path, 'w780'),
+            creator: namesOf(body.created_by),
+            description: cleanDescription(body.overview),
+            releaseYear: startYear,
+          },
+          body.genres?.map((g) => g.name),
+        ),
       };
     } catch {
       return null;
