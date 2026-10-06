@@ -97,4 +97,7 @@ export const cases: FixtureCase[] = [
   c('matchupReason otherwise names up to two shared genres', 'matchupReason',
     { ...blank('a'), genres: ['Drama', 'Crime', 'Thriller'] }, { ...blank('b'), genres: ['thriller', 'crime', 'drama'] }),
   c('matchupReason: null when nothing is shared', 'matchupReason', blank('a'), blank('b')),
+  ...[8.25, 1.25, 0.25, 2.35, 0.35, 0.15, 0.05, 9.95].map((s) => c(`Swift parity: formatScore rounds the exact binary value, ties up: ${s}`, 'formatScore', s)),
+  c('Swift parity: similarity ignores a release year parseInt cannot read', 'similarity', { ...blank('a'), releaseYear: 'c. 1999' }, { ...blank('b'), releaseYear: '1999' }),
+  c('Swift parity: similarity reads a release year with leading spaces', 'similarity', { ...blank('a'), releaseYear: ' 1999' }, { ...blank('b'), releaseYear: '1999' }),
 ];

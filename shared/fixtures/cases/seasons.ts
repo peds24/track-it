@@ -40,4 +40,5 @@ export const cases: FixtureCase[] = [
   ...boundaryOrdinals.map((o) => c(`positionIn round-trips every ordinal in the series: ${o}`, 'positionIn', HOUSE, o)),
   c('positionIn: an ordinal past the series total has no position', 'positionIn', HOUSE, 177),
   c('positionIn: an ordinal below 1 has no position', 'positionIn', HOUSE, 0),
+  c('Swift parity: seasonSegments with a negative done-count is all empty', 'seasonSegments', HOUSE, -5),
 ];

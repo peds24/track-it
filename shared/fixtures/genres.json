@@ -82,6 +82,21 @@
       "expect": {
         "a": 1
       }
+    },
+    {
+      "name": "Swift parity: filler, padding and case duplicates",
+      "fn": "genresFrom",
+      "args": [
+        [
+          "Sci-Fi / General / Other",
+          " Drama ",
+          "DRAMA"
+        ]
+      ],
+      "expect": [
+        "Sci-Fi",
+        "Drama"
+      ]
     }
   ]
 }

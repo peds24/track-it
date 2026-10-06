@@ -31,11 +31,15 @@ tests run on the iPhone 17 simulator (`apple/scripts/test.sh`). I2 done
 too — `shared/fixtures/*.json` holds 322 behaviour vectors for all ten pure
 domain modules and `shared/schema/schema.sql` the schema after migration
 10 (see `shared/README.md`). After an intentional domain change, run
-`npm run fixtures:record` and commit the JSON diff. Next is I3: port
-`src/domain` to `IrisCore/Domain` until every vector passes in XCTest.
-Carry over verbatim, quirks included: e.g. `assertMediaTypeMatchesParent`
-still says "must be book or movie" though comics are standalone too.
-Plans go in `docs/superpowers/plans/`. Toolchain on this Mac: Xcode 27.0, Swift 6.4,
+`npm run fixtures:record` and commit the JSON diff. **I3 done** — all of
+`src/domain` is ported to `apple/IrisCore/Sources/IrisCore/Domain/` (one
+file per TS file) and `swift test` replays all 380 fixture cases, 58 of
+them "Swift parity" cases pinning JS quirks: V8's lenient `Date.parse`
+(Feb 31, 24:00), `toFixed`'s tie-up rounding, ASCII `\d`/`\b`, UTF-16
+indexing. Those live in `JSCompat.swift`/`ISODate.swift`. Local-day
+formatters take `calendar:` (default `.current`). Next is I4: persistence
+(GRDB; replay `src/db/schema.ts`'s migration SQL verbatim, in order, so
+`shared/schema/schema.sql` matches byte for byte). Plans go in `docs/superpowers/plans/`. Toolchain on this Mac: Xcode 27.0, Swift 6.4,
 `xcodegen` at `/opt/homebrew/bin`.
 
 ## v1.4.0 — Ratings & Rankings (2026-10-06)

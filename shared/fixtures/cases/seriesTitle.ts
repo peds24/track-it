@@ -19,4 +19,7 @@ export const cases: FixtureCase[] = [
   bare('stripBareTrailingNumber: no trailing number leaves the title untouched', 'Attack on Titan'),
   bare('stripBareTrailingNumber: does not strip when doing so would empty the title', '30'),
   bare('stripBareTrailingNumber: trims incidental whitespace even with no match', '  Attack on Titan  '),
+  parse('Swift parity: only ASCII digits are ordinals', 'Saga #١٢'),
+  parse('Swift parity: vol must start a word', 'Avol 5'),
+  bare('Swift parity: a no-break space counts as whitespace', 'Attack on Titan 30'),
 ];

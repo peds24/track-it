@@ -260,6 +260,246 @@
         "issue"
       ],
       "expect": null
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp 2026-02-31",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-02-31"
+      ],
+      "expect": true
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp 2026-04-31",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-04-31"
+      ],
+      "expect": true
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp 2026-02-32",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-02-32"
+      ],
+      "expect": false
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp 2026-00-10",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-00-10"
+      ],
+      "expect": false
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp 2026-08-00",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-08-00"
+      ],
+      "expect": false
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp 2026-08-12T24:00Z",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-08-12T24:00Z"
+      ],
+      "expect": true
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp 2026-08-12T24:00:00.000Z",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-08-12T24:00:00.000Z"
+      ],
+      "expect": true
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp 2026-08-12T24:01Z",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-08-12T24:01Z"
+      ],
+      "expect": false
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp 2026-08-12T24:00:01Z",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-08-12T24:00:01Z"
+      ],
+      "expect": false
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp 2026-08-12T23:60Z",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-08-12T23:60Z"
+      ],
+      "expect": false
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp 2026-08-12T10:00:60Z",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-08-12T10:00:60Z"
+      ],
+      "expect": false
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp 2026-08-12T10:00:59.999Z",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-08-12T10:00:59.999Z"
+      ],
+      "expect": true
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp 2026-08-12T10:00:00.123456789Z",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-08-12T10:00:00.123456789Z"
+      ],
+      "expect": true
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp 2026-08-12 10:00",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-08-12 10:00"
+      ],
+      "expect": true
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp 2026-08-12T10:00+05:30",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-08-12T10:00+05:30"
+      ],
+      "expect": true
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp 2026-08-12T10:00-0130",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-08-12T10:00-0130"
+      ],
+      "expect": true
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp 2026-08-12T10:00+23:59",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-08-12T10:00+23:59"
+      ],
+      "expect": true
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp 2026-08-12T10:00+2400",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-08-12T10:00+2400"
+      ],
+      "expect": false
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp 2026-08-12T10:00+24:00",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-08-12T10:00+24:00"
+      ],
+      "expect": false
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp 0000-01-01",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "0000-01-01"
+      ],
+      "expect": true
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp ２０２６-08-12",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "２０２６-08-12"
+      ],
+      "expect": false
+    },
+    {
+      "name": "Swift parity: isIsoTimestamp ٢٠٢٦-08-12",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "٢٠٢٦-08-12"
+      ],
+      "expect": false
+    },
+    {
+      "name": "Swift parity: assertOrdinal prints a whole number without a decimal",
+      "fn": "assertOrdinal",
+      "args": [
+        -2
+      ],
+      "throws": "ordinal must be a non-negative whole number, got: -2"
+    },
+    {
+      "name": "Swift parity: assertOrdinal prints the number the way JS's String(n) does: -100000000000000000000",
+      "fn": "assertOrdinal",
+      "args": [
+        -100000000000000000000
+      ],
+      "throws": "ordinal must be a non-negative whole number, got: -100000000000000000000"
+    },
+    {
+      "name": "Swift parity: assertOrdinal prints the number the way JS's String(n) does: -1e+21",
+      "fn": "assertOrdinal",
+      "args": [
+        -1e+21
+      ],
+      "throws": "ordinal must be a non-negative whole number, got: -1e+21"
+    },
+    {
+      "name": "Swift parity: assertOrdinal prints the number the way JS's String(n) does: -2.5",
+      "fn": "assertOrdinal",
+      "args": [
+        -2.5
+      ],
+      "throws": "ordinal must be a non-negative whole number, got: -2.5"
+    },
+    {
+      "name": "Swift parity: assertOrdinal prints the number the way JS's String(n) does: -0.00001",
+      "fn": "assertOrdinal",
+      "args": [
+        -0.00001
+      ],
+      "throws": "ordinal must be a non-negative whole number, got: -0.00001"
+    },
+    {
+      "name": "Swift parity: assertOrdinal prints the number the way JS's String(n) does: -1.5e-7",
+      "fn": "assertOrdinal",
+      "args": [
+        -1.5e-7
+      ],
+      "throws": "ordinal must be a non-negative whole number, got: -1.5e-7"
+    },
+    {
+      "name": "Swift parity: assertOrdinal prints the number the way JS's String(n) does: -1.5e+300",
+      "fn": "assertOrdinal",
+      "args": [
+        -1.5e+300
+      ],
+      "throws": "ordinal must be a non-negative whole number, got: -1.5e+300"
+    },
+    {
+      "name": "Swift parity: assertOrdinal prints the number the way JS's String(n) does: -123456.789",
+      "fn": "assertOrdinal",
+      "args": [
+        -123456.789
+      ],
+      "throws": "ordinal must be a non-negative whole number, got: -123456.789"
     }
   ]
 }

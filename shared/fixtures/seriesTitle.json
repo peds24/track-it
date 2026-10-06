@@ -200,6 +200,39 @@
         "title": "Attack on Titan",
         "ordinal": null
       }
+    },
+    {
+      "name": "Swift parity: only ASCII digits are ordinals",
+      "fn": "parseSeriesTitle",
+      "args": [
+        "Saga #١٢"
+      ],
+      "expect": {
+        "title": "Saga #١٢",
+        "ordinal": null
+      }
+    },
+    {
+      "name": "Swift parity: vol must start a word",
+      "fn": "parseSeriesTitle",
+      "args": [
+        "Avol 5"
+      ],
+      "expect": {
+        "title": "Avol 5",
+        "ordinal": null
+      }
+    },
+    {
+      "name": "Swift parity: a no-break space counts as whitespace",
+      "fn": "stripBareTrailingNumber",
+      "args": [
+        "Attack on Titan 30"
+      ],
+      "expect": {
+        "title": "Attack on Titan",
+        "ordinal": 30
+      }
     }
   ]
 }

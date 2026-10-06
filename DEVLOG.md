@@ -1,5 +1,17 @@
 # DEVLOG
 
+## 2026-10-06 — Iris I3: Swift domain port
+
+- `apple/IrisCore/Sources/IrisCore/Domain/` ports all of `src/domain`, one
+  file per TS file; XCTest replays all 380 `shared/fixtures` cases.
+- **Why reproduce JS quirks**: TS is the reference. V8 accepts Feb 31 and
+  24:00; toFixed rounds exact ties up; JS regex \d is ASCII; Swift's regex
+  treats "\r\n" as one Character. Each became a "Swift parity" fixture
+  first, then a JSCompat helper.
+- **Why a calendar parameter**: the TS reads the process timezone; Swift
+  takes `calendar: Calendar = .current`, so fixtures pin UTC and the app
+  gets the device's day without a global.
+
 ## 2026-10-06 — Iris I2: shared behaviour fixtures
 
 - `shared/fixtures/<module>.json` for all ten pure domain modules (322
