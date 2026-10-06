@@ -46,12 +46,26 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.peds24.iris.uitests
         GENERATE_INFOPLIST_FILE: YES
         TEST_TARGET_NAME: Iris
+  IrisTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [IrisTests]
+    dependencies:
+      - target: Iris
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.peds24.iris.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Iris.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Iris"
+        BUNDLE_LOADER: "$(TEST_HOST)"
 schemes:
   Iris:
     build:
       targets:
         Iris: all
         IrisUITests: [test]
+        IrisTests: [test]
     test:
       targets:
+        - IrisTests
         - IrisUITests
