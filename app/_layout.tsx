@@ -26,6 +26,8 @@ export default function RootLayout() {
           options={{ presentation: 'modal', headerShown: true, title: 'Add a track' }}
         />
         <Stack.Screen name="track/[kind]/[id]" options={{ headerShown: true, title: '' }} />
+        <Stack.Screen name="rate/[kind]/[id]" options={{ presentation: 'modal', headerShown: true, title: 'Rate' }} />
+        <Stack.Screen name="rankings" options={{ headerShown: true, title: 'Rankings' }} />
       </Stack>
 
       <StatusBar style={dark ? 'light' : 'dark'} />

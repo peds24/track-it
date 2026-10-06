@@ -106,6 +106,23 @@ export function similarity(a: RatingProfile, b: RatingProfile): number {
 }
 
 /**
+ * Why two tracks were put up against each other, in words, when similarity
+ * chose the matchup: "Both by Frank Herbert", "Both Science Fiction &
+ * Drama". Null when they share nothing worth saying.
+ */
+export function matchupReason(a: RatingProfile, b: RatingProfile): string | null {
+  const theirs = new Map([...creatorsOf(b.creator)].map((name) => [name, name]));
+  const shared = (a.creator ?? '')
+    .split(/,|&|\band\b/i)
+    .map((name) => name.trim())
+    .find((name) => name.length > 0 && theirs.has(name.toLowerCase()));
+  if (shared) return `Both by ${shared}`;
+  const genres = new Set(b.genres.map((g) => g.toLowerCase()));
+  const common = a.genres.filter((g) => genres.has(g.toLowerCase())).slice(0, 2);
+  return common.length > 0 ? `Both ${common.join(' & ')}` : null;
+}
+
+/**
  * A binary-insertion search over the tracks that share the new track's
  * sentiment. `[lo, hi)` is where it can still land within that bucket;
  * every answer shrinks it, and the session ends when it is empty.

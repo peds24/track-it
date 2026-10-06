@@ -2,6 +2,8 @@ import { Alert } from 'react-native';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import TrackDetailScreen from '../../../app/track/[kind]/[id]';
 import { addTrack } from '@/data/addTrack';
+import { saveRating } from '@/data/ratingRepo';
+import { completeTrack } from '@/data/trackRepo';
 import { migrate } from '@/db/schema';
 import { DatabaseContext } from '@/ui/DatabaseProvider';
 import { createMemoryDriver } from '../../../test/memoryDriver';
@@ -134,4 +136,42 @@ test('a failed load shows the not-found state instead of an unhandled rejection'
   );
 
   await waitFor(() => expect(screen.getByText(/couldn’t be found/)).toBeTruthy());
+});
+
+describe('A26 rating card', () => {
+  test('completing an unrated track asks to rate it, and the card offers Rate it', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert');
+    await setup();
+    await waitFor(() => expect(screen.getByText('Complete')).toBeTruthy());
+
+    await fireEvent.press(screen.getByText('Complete'));
+    const buttons = alertSpy.mock.calls[0]![2] as { text: string; onPress?: () => void }[];
+    await act(async () => buttons.find((b) => b.text === 'Complete')!.onPress!());
+
+    await waitFor(() => expect(screen.getByText('Rate it')).toBeTruthy());
+    await waitFor(() =>
+      expect(alertSpy).toHaveBeenCalledWith('Finished Dune', 'Rank it against the other books you’ve rated?', expect.any(Array)),
+    );
+  });
+
+  test('a rated track shows its score and rank', async () => {
+    const db = await setupWith({ title: 'Dune', category: 'book', count: 1 });
+    await completeTrack(db, { kind: 'entry', id: params.id }, '2026-09-02T12:00:00.000Z');
+    await saveRating(db, { kind: 'entry', id: params.id, category: 'book' }, 'liked', 0, '2026-09-02T12:00:00.000Z');
+    await render(
+      <DatabaseContext.Provider value={db}>
+        <TrackDetailScreen />
+      </DatabaseContext.Provider>,
+    );
+
+    await waitFor(() => expect(screen.getByLabelText('Rated 8.5 out of 10')).toBeTruthy());
+    expect(screen.getByText('#1 of 1 books')).toBeTruthy();
+    expect(screen.getByText('Re-rank')).toBeTruthy();
+  });
+
+  test('an unfinished, unrated track shows no rating card', async () => {
+    await setup();
+    await waitFor(() => expect(screen.getByText('Complete')).toBeTruthy());
+    expect(screen.queryByText('Rate it')).toBeNull();
+  });
 });

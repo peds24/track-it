@@ -2,6 +2,7 @@ import {
   answer,
   formatScore,
   isPlaced,
+  matchupReason,
   pickOpponent,
   placeInRanking,
   scoreAt,
@@ -174,5 +175,22 @@ describe('placeInRanking', () => {
 
   test('an out-of-range index is clamped into the bucket', () => {
     expect(placeInRanking([item('a')], 'new', 'liked', 9).map((i) => i.key)).toEqual(['a', 'new']);
+  });
+});
+
+describe('matchupReason', () => {
+  test('names a shared creator in the first track’s own spelling', () => {
+    expect(matchupReason({ ...blank('a'), creator: 'Frank Herbert, Brian Herbert' }, { ...blank('b'), creator: 'brian herbert' })).toBe(
+      'Both by Brian Herbert',
+    );
+  });
+
+  test('otherwise names up to two shared genres', () => {
+    const a = { ...blank('a'), genres: ['Drama', 'Crime', 'Thriller'] };
+    expect(matchupReason(a, { ...blank('b'), genres: ['thriller', 'crime', 'drama'] })).toBe('Both Drama & Crime');
+  });
+
+  test('null when nothing is shared', () => {
+    expect(matchupReason(blank('a'), blank('b'))).toBeNull();
   });
 });

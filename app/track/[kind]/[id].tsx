@@ -12,13 +12,16 @@ import {
   type TrackDetail,
   type TrackSummary,
 } from '@/data/trackRepo';
+import { getRating } from '@/data/ratingRepo';
 import { syncSeriesUnit } from '@/data/syncSeriesUnit';
 import { activityLine, cleanDescription, creatorLine, formatDate, formatRelative } from '@/domain/formatters';
+import { formatScore, type RatingSummary } from '@/domain/rating';
 import { completionMessage } from '@/ui/completionMessage';
 import { CoverImage } from '@/ui/CoverImage';
 import { ExpandableText } from '@/ui/ExpandableText';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { ProgressEditor } from '@/ui/ProgressEditor';
+import { CATEGORY_PLURAL, offerRatingIfFinished, rateHref, SENTIMENT_LABEL, sentimentColors } from '@/ui/rating';
 import { canEditPosition, KIND_LABEL, positionLabel, seasonPositionLabel } from '@/ui/TrackRow';
 import { elevation, font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
 
@@ -39,11 +42,13 @@ export default function TrackDetailScreen() {
   const [detail, setDetail] = useState<TrackDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<TrackSummary | null>(null);
+  const [rating, setRating] = useState<RatingSummary | null>(null);
   const trackKind = kind === 'series' ? 'series' : 'entry';
 
   const load = useCallback(async () => {
     try {
       setDetail(await getTrackDetail(db, trackKind, id));
+      setRating(await getRating(db, { kind: trackKind, id }));
     } catch {
       // A failed read shows the same "couldn't be found" state rather than
       // surfacing as an unhandled rejection from the focus effect.
@@ -61,6 +66,7 @@ export default function TrackDetailScreen() {
 
   const run = useCallback(
     (label: string, action: () => Promise<void>, moved = false) => {
+      const before = detail?.summary;
       void (async () => {
         try {
           await action();
@@ -68,11 +74,13 @@ export default function TrackDetailScreen() {
           Alert.alert(label, e instanceof Error ? e.message : String(e));
         }
         await load();
+        // A26: an action that just finished the track asks for a rating.
+        if (before && before.shelf !== 'done') await offerRatingIfFinished(db, before, (href) => router.push(href));
         // A25: after a move, a catalogued comic's cover and issue number follow.
         if (moved && trackKind === 'series' && (await syncSeriesUnit(db, id).catch(() => false))) await load();
       })();
     },
-    [db, trackKind, id, load],
+    [db, trackKind, id, load, detail, router],
   );
 
   if (loading) {
@@ -192,6 +200,42 @@ export default function TrackDetailScreen() {
           {activity && <Text style={styles.activity}>{activity}</Text>}
         </View>
 
+        {(rating || track.shelf === 'done') && (
+          <View style={styles.card}>
+            {rating ? (
+              <View style={styles.ratingRow}>
+                <View
+                  style={[styles.scoreBadge, { backgroundColor: sentimentColors(c, rating.sentiment).bg }]}
+                  accessible
+                  accessibilityLabel={`Rated ${formatScore(rating.score)} out of 10`}
+                >
+                  <Text style={[styles.scoreText, { color: sentimentColors(c, rating.sentiment).fg }]}>{formatScore(rating.score)}</Text>
+                </View>
+                <View style={styles.ratingText}>
+                  <Text style={styles.position}>{`#${rating.rank} of ${rating.outOf} ${CATEGORY_PLURAL[track.category]}`}</Text>
+                  <Text style={styles.muted}>{SENTIMENT_LABEL[rating.sentiment]}</Text>
+                </View>
+              </View>
+            ) : (
+              <Text style={styles.muted}>{`Not rated yet. Rank it against the other ${CATEGORY_PLURAL[track.category]} you’ve finished.`}</Text>
+            )}
+            <View style={styles.secondaryRow}>
+              <Pressable style={styles.secondary} accessibilityRole="button" onPress={() => router.push(rateHref(track))}>
+                <Text style={styles.secondaryText}>{rating ? 'Re-rank' : 'Rate it'}</Text>
+              </Pressable>
+              {rating && (
+                <Pressable
+                  style={styles.secondary}
+                  accessibilityRole="button"
+                  onPress={() => router.push(`/rankings?category=${track.category}`)}
+                >
+                  <Text style={styles.secondaryText}>Rankings</Text>
+                </Pressable>
+              )}
+            </View>
+          </View>
+        )}
+
         {description && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>About</Text>
@@ -269,6 +313,10 @@ function createStyles(c: Palette) {
     muted: { ...font.bodyMedium, color: c.onSurfaceVariant },
     progressTrack: { height: layout.progressHeight, borderRadius: radius.full, backgroundColor: c.surfaceContainerHighest, overflow: 'hidden' },
     progressFill: { height: '100%', borderRadius: radius.full, backgroundColor: c.primary },
+    ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+    ratingText: { flex: 1, minWidth: 0, gap: 2 },
+    scoreBadge: { width: 64, height: 64, borderRadius: radius.full, alignItems: 'center', justifyContent: 'center' },
+    scoreText: { ...font.headlineSmall, fontWeight: '700', fontVariant: ['tabular-nums'] },
     statRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
     statLabel: { ...font.bodyMedium, color: c.onSurfaceVariant },
     statValue: { ...font.bodyMedium, color: c.onSurface, flexShrink: 1, textAlign: 'right' },
