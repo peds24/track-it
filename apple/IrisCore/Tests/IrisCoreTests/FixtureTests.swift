@@ -21,6 +21,10 @@ final class FixtureTests: XCTestCase {
         XCTAssert(Self.ported.isDisjoint(with: Self.pending))
     }
 
+    func testEveryFixtureModuleIsPorted() {
+        XCTAssertEqual(Self.pending, [], "I3 is complete only when every shared/fixtures module runs in Swift")
+    }
+
     func testWhatsNew() throws { try check("whatsNew", whatsNewFixtures) }
     func testMode() throws { try check("mode", modeFixtures) }
     func testShelf() throws { try check("shelf", shelfFixtures) }

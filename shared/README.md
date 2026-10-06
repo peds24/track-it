@@ -37,3 +37,15 @@ composite defined in `fixtures/registry.ts`, not a TS export.
 `schema.sql` is the SQLite schema after every migration in
 `src/db/schema.ts`. The Swift persistence layer (I4) must produce the same
 file, so a database or backup moves between platforms unchanged.
+
+## The XCTest runner (Iris I3)
+
+`apple/IrisCore/Tests/IrisCoreTests/Fixtures/` replays every case against
+the Swift port: `Registry+<Module>.swift` maps each `fn` to the real Swift
+function (args decoded with JSONDecoder), a case with no registry entry
+fails, a key missing on one side equals null on the other, numbers match
+within 1e-9, and calendar-reading functions get a UTC calendar. JS
+behaviours the TS relies on (V8's Date.parse leniency, toFixed's tie
+rounding, ASCII \d/\w/\b, UTF-16 indexing) live in
+`apple/IrisCore/Sources/IrisCore/Domain/JSCompat.swift` and `ISODate.swift`,
+each pinned by a "Swift parity" fixture.
