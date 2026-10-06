@@ -184,7 +184,7 @@ All new features must strictly conform to existing architectural invariants:
 
 ---
 
-### Milestone v1.4.0 (was v1.3.0): Stats Page, Analytics Engine & Shareable Visuals
+### Milestone v1.5.0 (was v1.4.0, originally v1.3.0): Stats Page, Analytics Engine & Shareable Visuals
 
 #### User Goals
 * Dedicated **Stats** tab in the main navigation.
@@ -273,7 +273,7 @@ All new features must strictly conform to existing architectural invariants:
 
 ### Milestone v2.0.0: The "Iris" Evolution (Rebrand & Modern Glass UI)
 
-> **Superseded in part by A27 (2026-10-06).** Iris now starts as a native
+> **Superseded in part by A28 (2026-10-06).** Iris now starts as a native
 > SwiftUI iOS app in `apple/`, and its tokens live in `design/iris/tokens.json`
 > (generated into Swift, TS and CSS), not in `src/ui/theme.ts` with `expo-blur`.
 > The philosophy and pillars below still stand. See
@@ -363,5 +363,6 @@ Work in this repository follows the strict 3-branch pipeline:
 | **v1.1.0** | **Action Feedback & Undo** | Toast notifications, Undo for Advance/Pause/Delete, Finish celebrations | No | Pending |
 | **v1.2.0** | **Track Detail & Artwork** | Individual track pages, cover art, formatted details, time elapsed | **Yes** (cover_url, creator, blurb) | **Shipped 2026-09-23** |
 | **v1.3.0** | **v1.2.0 Feedback Polish** | Sharper covers, book search filtering, comic cover/issue advance, no typed count, feedback button | No | **Shipped 2026-09-24** |
-| **v1.4.0** | **Stats & Visual Insights** | Stats tab, velocity/averages, shareable graphic cards via `expo-sharing` | No | Pending |
-| **v2.0.0** | **Iris Rebrand & Glass UI** | Name change, aperture logo, native SwiftUI iOS app, shared design tokens → Android/web (A27, `docs/superpowers/specs/2026-10-06-iris-design.md`) | No | **In progress on `iris`** |
+| **v1.4.0** | **Ratings & Rankings** | Beli-style comparative rating per category, rankings screen, genres, what's-new on first launch, version in ? sheet | **Yes** (genres_json, rating, app_meta) | **Shipped 2026-10-06** |
+| **v1.5.0** | **Stats & Visual Insights** | Stats tab, velocity/averages, shareable graphic cards via `expo-sharing` | No | Pending |
+| **v2.0.0** | **Iris Rebrand & Glass UI** | Name change, aperture logo, native SwiftUI iOS app, shared design tokens → Android/web (A28, `docs/superpowers/specs/2026-10-06-iris-design.md`) | No | **In progress on `iris`** |

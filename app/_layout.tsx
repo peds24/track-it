@@ -3,6 +3,8 @@ import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'react-native';
 import { DatabaseProvider } from '@/ui/DatabaseProvider';
 import { font, useTheme } from '@/ui/theme';
+import { WhatsNew } from '@/ui/WhatsNew';
+import appConfig from '../app.json';
 
 export default function RootLayout() {
   const c = useTheme();
@@ -29,6 +31,8 @@ export default function RootLayout() {
         <Stack.Screen name="rate/[kind]/[id]" options={{ presentation: 'modal', headerShown: true, title: 'Rate' }} />
         <Stack.Screen name="rankings" options={{ headerShown: true, title: 'Rankings' }} />
       </Stack>
+
+      <WhatsNew version={appConfig.expo.version} />
 
       <StatusBar style={dark ? 'light' : 'dark'} />
     </DatabaseProvider>

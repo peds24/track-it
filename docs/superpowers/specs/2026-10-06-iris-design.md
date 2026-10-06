@@ -5,9 +5,10 @@
 native SwiftUI iOS app, and its design language later takes over Android and
 web.
 **Branches:** long-lived integration branch `iris`, cut from
-`claude/practical-knuth-20yw3y` (android + A26 ratings) at `65b3b39`. Each step
+`claude/practical-knuth-20yw3y` (android + A26 ratings) at `65b3b39`,
+then synced with `android` at `276375c` (v1.4.0, A26–A27) once that work merged there. Each step
 is a `worktree-iris-<slug>` branch merged into `iris` with `--no-ff`.
-**Decision record:** adds **A27** to `2026-08-12-track-it-design.md`.
+**Decision record:** adds **A28** to `2026-08-12-track-it-design.md`.
 
 ---
 
@@ -74,7 +75,7 @@ apple/
   IrisCore/                   Swift package, no UIKit/SwiftUI imports
     Sources/IrisCore/
       Domain/                 ports of src/domain/*.ts, one file per TS file
-      Persistence/            GRDB database, migrations 1–9, repositories, backup
+      Persistence/            GRDB database, migrations 1–10, repositories, backup
       Providers/              TMDB, Google Books, Metron, AniList, manual
     Tests/IrisCoreTests/      fixture runners + Swift-only tests
   Iris/                       SwiftUI app target
@@ -125,7 +126,7 @@ language-neutral test vectors:
 
 - One file per pure domain module: `advance`, `shelf`, `rating`
   (`scoreAt`, `similarity`, insertion), `seasons`, `formatters`, `validate`,
-  `seriesTitle`, `genres`, `mode`.
+  `seriesTitle`, `genres`, `mode`, `whatsNew` (`announcementFor`).
 - Jest gets a generic runner (`src/domain/__tests__/fixtures.test.ts`) that
   maps `function` to the TS export; XCTest gets the mirror. **Both suites run
   every case.** A behaviour change on either side without a fixture update
@@ -269,11 +270,11 @@ verification passes. Steps in the same column can run in parallel.
 
 | # | Step | Depends on | Done when |
 | --- | --- | --- | --- |
-| **I0** | **Foundations** — this spec, A27, CLAUDE.md §6 `iris` row, HANDOFF, `apple/project.yml` with an empty app + `IrisCore` package that builds and runs in the simulator, `apple/README.md` | — | `xcodebuild test` green on an empty test; app launches in simulator |
+| **I0** | **Foundations** — this spec, A28, CLAUDE.md §6 `iris` row, HANDOFF, `apple/project.yml` with an empty app + `IrisCore` package that builds and runs in the simulator, `apple/README.md` | — | `xcodebuild test` green on an empty test; app launches in simulator |
 | **I1** | **Tokens** — `tokens.json`, generator, three outputs, staleness tests | I0 | Both suites check staleness; `iris.html` renders |
 | **I2** | **Fixtures** — extract vectors for every pure domain module, jest runner, schema snapshot | I0 | `npm test` runs every fixture; TS unchanged |
 | **I3** | **Domain port** — `IrisCore/Domain`, XCTest fixture runner | I2 | Every fixture case passes in Swift |
-| **I4** | **Persistence** — GRDB, migrations 1–9, repositories (track, rating, addTrack), backup import/export | I3 | Schema fixture matches; a TS backup imports on iOS and round-trips |
+| **I4** | **Persistence** — GRDB, migrations 1–10, repositories (track, rating, addTrack, whatsNew/`app_meta`), backup import/export | I3 | Schema fixture matches; a TS backup imports on iOS and round-trips |
 | **I5** | **Providers** — TMDB, Google Books, Metron, AniList, manual, metadata backfill, `syncSeriesUnit` | I3 | Recorded-response tests per provider |
 | **I6** | **Component kit + Gallery** — `components.md`, SwiftUI kit, debug-only Gallery screen | I1 | Gallery screenshots, light/dark, AX5 |
 | **I7** | **Shelves** — Now/Up Next/Finished tabs, advance/start/pause/delete | I4, I6 | §5 checklist; screenshots |
@@ -297,8 +298,9 @@ agreed, not designed in detail here.
   (`git merge android` into `iris`, via a `worktree-iris-sync-<date>` branch).
   Any domain change in that merge needs a fixture update and a Swift port in
   the same sync — otherwise iOS silently falls behind.
-- The ratings branch this was cut from is not yet on `android`. When it
-  merges there, the next `iris` sync absorbs it as a no-op.
+- The ratings branch this was cut from merged into `android` as v1.4.0;
+  `iris` absorbed that (plus A27's what's-new and migration 10) in its
+  first sync, before any Swift code existed.
 
 ## 10. Testing
 

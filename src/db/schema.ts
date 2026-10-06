@@ -144,6 +144,15 @@ const MIGRATIONS: readonly string[] = [
 
   CREATE INDEX IF NOT EXISTS idx_rating_category ON rating(category, position);
   `,
+  // A27: small app-level facts that are not library data — today only the
+  // last version whose "What's new" the user has seen, so an update can
+  // announce itself once on first launch.
+  `
+  CREATE TABLE IF NOT EXISTS app_meta (
+    key   TEXT PRIMARY KEY NOT NULL,
+    value TEXT NOT NULL
+  );
+  `,
 ];
 
 /**

@@ -23,6 +23,9 @@ import { SwipeableTrackRow } from '@/ui/SwipeableTrackRow';
 import { useTracks } from '@/ui/useTracks';
 import appConfig from '../../app.json';
 
+/** A27: which build this is, in the ? sheet. */
+const PLATFORM_LABEL: Partial<Record<typeof Platform.OS, string>> = { android: 'Android', ios: 'iOS', web: 'Web' };
+
 export default function DoneScreen() {
   const db = useDatabase();
   const router = useRouter();
@@ -268,6 +271,7 @@ export default function DoneScreen() {
             <Text style={styles.modalBody}>
               Book and manga data from Google Books. Comic data from Metron.
             </Text>
+            <Text style={styles.version}>{`Track It v${appConfig.expo.version} · ${PLATFORM_LABEL[Platform.OS] ?? Platform.OS}`}</Text>
             <Pressable
               onPress={() => setAttributionOpen(false)}
               accessibilityRole="button"
@@ -392,6 +396,12 @@ function createStyles(c: Palette) {
       color: c.onSurfaceVariant,
       marginBottom: 12,
       lineHeight: 20,
+    },
+    version: {
+      ...font.labelMedium,
+      color: c.onSurfaceVariant,
+      marginTop: 4,
+      fontVariant: ['tabular-nums'],
     },
     modalClose: {
       alignSelf: 'flex-end',
