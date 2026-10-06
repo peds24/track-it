@@ -15,6 +15,7 @@ import { providerFor } from '@/providers/registry';
 import type { MatchPreview, SearchResult, SeriesDraft } from '@/providers/types';
 import { CoverImage } from '@/ui/CoverImage';
 import { ExpandableText } from '@/ui/ExpandableText';
+import { offerRatingIfFinished } from '@/ui/rating';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { SearchResultRow } from '@/ui/SearchResultRow';
 import { elevation, font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
@@ -459,6 +460,11 @@ export default function AddTrackScreen() {
       }
       allowLeave.current = true;
       router.back();
+      // A26: a movie added as Watched is finished on the spot, so it asks to
+      // be rated here too — same prompt as finishing one from a list.
+      if (startNow) {
+        await offerRatingIfFinished(db, { ...created, title: finalTitle, category }, (href) => router.push(href));
+      }
     } catch (error) {
       Alert.alert('Could not add track', error instanceof Error ? error.message : String(error));
     } finally {

@@ -1313,8 +1313,8 @@ Backups carry `ratings` and reject one that names a missing track.
 Returning a finished track to the backlog keeps its rating — you still
 watched it.
 
-*Where it shows.* Finishing a track (Currently, Backlog, or the detail
-screen) asks "Rank it against the other movies you've rated?" — Beli asks
+*Where it shows.* Finishing a track (Currently, Backlog, the detail
+screen, or adding a movie straight to Watched from Add) asks "Rank it against the other movies you've rated?" — Beli asks
 right after a visit; here it is an alert, not a forced detour. The Done
 row shows the score (or a Rate button); the detail screen has a rating
 card ("#3 of 12 movies", Re-rank, Rankings); the Rankings screen, from
