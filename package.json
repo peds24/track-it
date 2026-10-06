@@ -41,7 +41,9 @@
     "web": "expo start --web",
     "test": "jest",
     "typecheck": "tsc --noEmit",
-    "fixtures:record": "RECORD_FIXTURES=1 jest shared/"
+    "fixtures:record": "RECORD_FIXTURES=1 jest shared/",
+    "tokens": "node scripts/iris-tokens.js",
+    "tokens:check": "node scripts/iris-tokens.js --check"
   },
   "private": true
 }

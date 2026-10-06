@@ -1,5 +1,16 @@
 # DEVLOG
 
+## 2026-10-06 — Iris I1: design tokens
+
+- `design/iris/tokens.json` → `scripts/iris-tokens.js` → IrisTokens.swift,
+  src/ui/iris/tokens.ts, design/iris/iris.css, docs/design/iris.html.
+- **Why hand-rolled, not Style Dictionary**: four small outputs and no
+  dependency to keep current; the generator is ~330 lines and tested.
+- **Why a hash check in XCTest**: Swift tests can't run Node, so they
+  verify the generated file's embedded SHA-256 against tokens.json; jest
+  does the full regenerate-and-diff.
+- Accent is Apple system blue; category tints are system colours.
+
 ## 2026-10-06 — Iris I0: native iOS foundations
 
 - New `iris` branch and spec (A28): a native SwiftUI iOS app in `apple/`
