@@ -1,0 +1,603 @@
+{
+  "module": "formatters",
+  "generatedBy": "npm run fixtures:record",
+  "timezone": "UTC",
+  "cases": [
+    {
+      "name": "cleanDescription strips tags, turning paragraph and line breaks into newlines",
+      "fn": "cleanDescription",
+      "args": [
+        "<p>First <b>bold</b> line.</p><p>Second<br>third</p>"
+      ],
+      "expect": "First bold line.\n\nSecond\nthird"
+    },
+    {
+      "name": "cleanDescription decodes named and numeric entities",
+      "fn": "cleanDescription",
+      "args": [
+        "Tom &amp; Jerry &quot;hi&quot; &#39;yo&#39; &#x2014; ok&hellip;"
+      ],
+      "expect": "Tom & Jerry \"hi\" 'yo' — ok…"
+    },
+    {
+      "name": "cleanDescription collapses runs of whitespace and blank lines",
+      "fn": "cleanDescription",
+      "args": [
+        "  a   b \n\n\n\n c  "
+      ],
+      "expect": "a b\n\nc"
+    },
+    {
+      "name": "cleanDescription returns null for empty, missing, or markup-only input",
+      "fn": "cleanDescription",
+      "args": [
+        null
+      ],
+      "expect": null
+    },
+    {
+      "name": "cleanDescription returns null for empty, missing, or markup-only input (2)",
+      "fn": "cleanDescription",
+      "args": [
+        "   "
+      ],
+      "expect": null
+    },
+    {
+      "name": "cleanDescription returns null for empty, missing, or markup-only input (3)",
+      "fn": "cleanDescription",
+      "args": [
+        "<p> </p>"
+      ],
+      "expect": null
+    },
+    {
+      "name": "decodeEntities leaves an unknown entity as written rather than dropping it",
+      "fn": "decodeEntities",
+      "args": [
+        "a &madeup; b"
+      ],
+      "expect": "a &madeup; b"
+    },
+    {
+      "name": "cleanDescription: encoded brackets like &lt;PG-13&gt; decode",
+      "fn": "cleanDescription",
+      "args": [
+        "Rating: &lt;PG-13&gt; content, also x &lt; y and y &gt; z ok."
+      ],
+      "expect": "Rating: <PG-13> content, also x < y and y > z ok."
+    },
+    {
+      "name": "cleanDescription is idempotent: a decoded pass-1 result is unchanged",
+      "fn": "cleanDescription",
+      "args": [
+        "Rating: <PG-13> content, also x < y and y > z ok."
+      ],
+      "expect": "Rating: <PG-13> content, also x < y and y > z ok."
+    },
+    {
+      "name": "cleanDescription: unknown bracketed words like <PG-13> survive in raw input",
+      "fn": "cleanDescription",
+      "args": [
+        "<PG-13> rated"
+      ],
+      "expect": "<PG-13> rated"
+    },
+    {
+      "name": "cleanDescription: unknown bracketed words like <PG-13> survive in raw input (2)",
+      "fn": "cleanDescription",
+      "args": [
+        "before <unknown-tag> after"
+      ],
+      "expect": "before <unknown-tag> after"
+    },
+    {
+      "name": "cleanDescription is idempotent over existing fixtures",
+      "fn": "cleanDescription",
+      "args": [
+        "First bold line.\n\nSecond\nthird"
+      ],
+      "expect": "First bold line.\n\nSecond\nthird"
+    },
+    {
+      "name": "cleanDescription: <br> with attributes becomes a line break",
+      "fn": "cleanDescription",
+      "args": [
+        "<br class=\"x\"/>"
+      ],
+      "expect": null
+    },
+    {
+      "name": "cleanDescription: <br> with attributes becomes a line break (2)",
+      "fn": "cleanDescription",
+      "args": [
+        "line 1<br class=\"x\"/>line 2"
+      ],
+      "expect": "line 1\nline 2"
+    },
+    {
+      "name": "cleanDescription: <br> with attributes becomes a line break (3)",
+      "fn": "cleanDescription",
+      "args": [
+        "line 1<br style=\"clear:both\">line 2"
+      ],
+      "expect": "line 1\nline 2"
+    },
+    {
+      "name": "cleanDescription: <br> with attributes becomes a line break (4)",
+      "fn": "cleanDescription",
+      "args": [
+        "text<BR STYLE=\"DISPLAY:BLOCK\"/>more"
+      ],
+      "expect": "text\nmore"
+    },
+    {
+      "name": "yearOf takes the leading four-digit year only",
+      "fn": "yearOf",
+      "args": [
+        "2020-09-15"
+      ],
+      "expect": "2020"
+    },
+    {
+      "name": "yearOf takes the leading four-digit year only (2)",
+      "fn": "yearOf",
+      "args": [
+        "1965"
+      ],
+      "expect": "1965"
+    },
+    {
+      "name": "yearOf takes the leading four-digit year only (3)",
+      "fn": "yearOf",
+      "args": [
+        "20"
+      ],
+      "expect": null
+    },
+    {
+      "name": "yearOf takes the leading four-digit year only (4)",
+      "fn": "yearOf",
+      "args": [
+        null
+      ],
+      "expect": null
+    },
+    {
+      "name": "initialsOf uses the first letters of the first two words",
+      "fn": "initialsOf",
+      "args": [
+        "The Expanse"
+      ],
+      "expect": "TE"
+    },
+    {
+      "name": "initialsOf uses the first letters of the first two words (2)",
+      "fn": "initialsOf",
+      "args": [
+        "dune"
+      ],
+      "expect": "D"
+    },
+    {
+      "name": "initialsOf uses the first letters of the first two words (3)",
+      "fn": "initialsOf",
+      "args": [
+        "  "
+      ],
+      "expect": "?"
+    },
+    {
+      "name": "creatorLine phrases the credit per category",
+      "fn": "creatorLine",
+      "args": [
+        "book",
+        "Frank Herbert"
+      ],
+      "expect": "By Frank Herbert"
+    },
+    {
+      "name": "creatorLine phrases the credit per category (2)",
+      "fn": "creatorLine",
+      "args": [
+        "manga",
+        "Kentaro Miura"
+      ],
+      "expect": "By Kentaro Miura"
+    },
+    {
+      "name": "creatorLine phrases the credit per category (3)",
+      "fn": "creatorLine",
+      "args": [
+        "show",
+        "Dan Erickson"
+      ],
+      "expect": "Created by Dan Erickson"
+    },
+    {
+      "name": "creatorLine phrases the credit per category (4)",
+      "fn": "creatorLine",
+      "args": [
+        "movie",
+        "Denis Villeneuve"
+      ],
+      "expect": "Directed by Denis Villeneuve"
+    },
+    {
+      "name": "creatorLine phrases the credit per category (5)",
+      "fn": "creatorLine",
+      "args": [
+        "book",
+        null
+      ],
+      "expect": null
+    },
+    {
+      "name": "creatorLine phrases the credit per category (6)",
+      "fn": "creatorLine",
+      "args": [
+        "comic",
+        "Tom King"
+      ],
+      "expect": "By Tom King"
+    },
+    {
+      "name": "timelineOf: an untouched track has only its added date",
+      "fn": "timelineOf",
+      "args": [
+        "2026-08-01T12:00:00.000Z",
+        [
+          {
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null
+          }
+        ]
+      ],
+      "expect": {
+        "addedAt": "2026-08-01T12:00:00.000Z",
+        "startedAt": null,
+        "finishedAt": null
+      }
+    },
+    {
+      "name": "timelineOf: started is the earliest start; finished only once every unit is done",
+      "fn": "timelineOf",
+      "args": [
+        "2026-08-01T12:00:00.000Z",
+        [
+          {
+            "status": "done",
+            "startedAt": "2026-08-03T12:00:00.000Z",
+            "finishedAt": "2026-08-04T12:00:00.000Z"
+          },
+          {
+            "status": "in_progress",
+            "startedAt": "2026-08-02T12:00:00.000Z",
+            "finishedAt": null
+          }
+        ]
+      ],
+      "expect": {
+        "addedAt": "2026-08-01T12:00:00.000Z",
+        "startedAt": "2026-08-02T12:00:00.000Z",
+        "finishedAt": null
+      }
+    },
+    {
+      "name": "timelineOf: a fully done track reports its latest finish",
+      "fn": "timelineOf",
+      "args": [
+        "2026-08-01T12:00:00.000Z",
+        [
+          {
+            "status": "done",
+            "startedAt": "2026-08-02T12:00:00.000Z",
+            "finishedAt": "2026-08-09T12:00:00.000Z"
+          },
+          {
+            "status": "done",
+            "startedAt": "2026-08-02T12:00:00.000Z",
+            "finishedAt": "2026-08-05T12:00:00.000Z"
+          }
+        ]
+      ],
+      "expect": {
+        "addedAt": "2026-08-01T12:00:00.000Z",
+        "startedAt": "2026-08-02T12:00:00.000Z",
+        "finishedAt": "2026-08-09T12:00:00.000Z"
+      }
+    },
+    {
+      "name": "timelineOf: a series with no units has no start or finish",
+      "fn": "timelineOf",
+      "args": [
+        "2026-08-01T12:00:00.000Z",
+        []
+      ],
+      "expect": {
+        "addedAt": "2026-08-01T12:00:00.000Z",
+        "startedAt": null,
+        "finishedAt": null
+      }
+    },
+    {
+      "name": "formatDuration scales days to the largest sensible unit",
+      "fn": "formatDuration",
+      "args": [
+        0
+      ],
+      "expect": "less than a day"
+    },
+    {
+      "name": "formatDuration scales days to the largest sensible unit (2)",
+      "fn": "formatDuration",
+      "args": [
+        1
+      ],
+      "expect": "1 day"
+    },
+    {
+      "name": "formatDuration scales days to the largest sensible unit (3)",
+      "fn": "formatDuration",
+      "args": [
+        12
+      ],
+      "expect": "12 days"
+    },
+    {
+      "name": "formatDuration scales days to the largest sensible unit (4)",
+      "fn": "formatDuration",
+      "args": [
+        21
+      ],
+      "expect": "3 weeks"
+    },
+    {
+      "name": "formatDuration scales days to the largest sensible unit (5)",
+      "fn": "formatDuration",
+      "args": [
+        90
+      ],
+      "expect": "3 months"
+    },
+    {
+      "name": "formatDuration scales days to the largest sensible unit (6)",
+      "fn": "formatDuration",
+      "args": [
+        365
+      ],
+      "expect": "12 months"
+    },
+    {
+      "name": "formatDuration scales days to the largest sensible unit (7)",
+      "fn": "formatDuration",
+      "args": [
+        800
+      ],
+      "expect": "2 years"
+    },
+    {
+      "name": "formatDuration scales days to the largest sensible unit (8)",
+      "fn": "formatDuration",
+      "args": [
+        13
+      ],
+      "expect": "13 days"
+    },
+    {
+      "name": "formatDuration scales days to the largest sensible unit (9)",
+      "fn": "formatDuration",
+      "args": [
+        14
+      ],
+      "expect": "2 weeks"
+    },
+    {
+      "name": "formatDuration scales days to the largest sensible unit (10)",
+      "fn": "formatDuration",
+      "args": [
+        59
+      ],
+      "expect": "8 weeks"
+    },
+    {
+      "name": "formatDuration scales days to the largest sensible unit (11)",
+      "fn": "formatDuration",
+      "args": [
+        60
+      ],
+      "expect": "2 months"
+    },
+    {
+      "name": "formatDuration scales days to the largest sensible unit (12)",
+      "fn": "formatDuration",
+      "args": [
+        729
+      ],
+      "expect": "24 months"
+    },
+    {
+      "name": "formatDuration scales days to the largest sensible unit (13)",
+      "fn": "formatDuration",
+      "args": [
+        730
+      ],
+      "expect": "2 years"
+    },
+    {
+      "name": "formatRelative speaks in days-ago terms",
+      "fn": "formatRelative",
+      "args": [
+        "2026-08-22T08:00:00.000Z",
+        "2026-08-22T12:00:00.000Z"
+      ],
+      "expect": "today"
+    },
+    {
+      "name": "formatRelative speaks in days-ago terms (2)",
+      "fn": "formatRelative",
+      "args": [
+        "2026-08-21T12:00:00.000Z",
+        "2026-08-22T12:00:00.000Z"
+      ],
+      "expect": "yesterday"
+    },
+    {
+      "name": "formatRelative speaks in days-ago terms (3)",
+      "fn": "formatRelative",
+      "args": [
+        "2026-08-01T12:00:00.000Z",
+        "2026-08-22T12:00:00.000Z"
+      ],
+      "expect": "3 weeks ago"
+    },
+    {
+      "name": "formatDate is a short month-day-year date",
+      "fn": "formatDate",
+      "args": [
+        "2026-08-12T12:00:00.000Z"
+      ],
+      "expect": "Aug 12, 2026"
+    },
+    {
+      "name": "formatDate uses the device calendar, so a late-evening add is not tomorrow",
+      "fn": "formatDate",
+      "args": [
+        "2026-08-12T23:30:00.000Z"
+      ],
+      "expect": "Aug 12, 2026"
+    },
+    {
+      "name": "formatDate uses the device calendar, so a late-evening add is not tomorrow (2)",
+      "fn": "formatDate",
+      "args": [
+        "2026-08-13T00:15:00.000Z"
+      ],
+      "expect": "Aug 13, 2026"
+    },
+    {
+      "name": "formatDate near a year boundary",
+      "fn": "formatDate",
+      "args": [
+        "2026-12-31T23:59:59.000Z"
+      ],
+      "expect": "Dec 31, 2026"
+    },
+    {
+      "name": "daysBetween counts local calendar days, not 24-hour blocks",
+      "fn": "daysBetween",
+      "args": [
+        "2026-08-12T23:30:00.000Z",
+        "2026-08-13T00:30:00.000Z"
+      ],
+      "expect": 1
+    },
+    {
+      "name": "daysBetween counts local calendar days, not 24-hour blocks (2)",
+      "fn": "daysBetween",
+      "args": [
+        "2026-08-12T23:30:00.000Z",
+        "2026-08-12T23:59:00.000Z"
+      ],
+      "expect": 0
+    },
+    {
+      "name": "daysBetween counts local calendar days, not 24-hour blocks (3)",
+      "fn": "daysBetween",
+      "args": [
+        "2026-08-13T00:30:00.000Z",
+        "2026-08-12T23:30:00.000Z"
+      ],
+      "expect": 0
+    },
+    {
+      "name": "daysBetween across midnight UTC",
+      "fn": "daysBetween",
+      "args": [
+        "2026-03-01T23:30:00.000Z",
+        "2026-03-02T00:10:00.000Z"
+      ],
+      "expect": 1
+    },
+    {
+      "name": "formatRelative: late tonight seen early tomorrow is yesterday",
+      "fn": "formatRelative",
+      "args": [
+        "2026-08-12T23:30:00.000Z",
+        "2026-08-13T00:30:00.000Z"
+      ],
+      "expect": "yesterday"
+    },
+    {
+      "name": "activityLine: in progress reads as reading for a duration",
+      "fn": "activityLine",
+      "args": [
+        "book",
+        {
+          "addedAt": "2026-08-01T12:00:00.000Z",
+          "startedAt": "2026-08-10T12:00:00.000Z",
+          "finishedAt": null
+        },
+        "2026-08-22T12:00:00.000Z"
+      ],
+      "expect": "Reading for 12 days"
+    },
+    {
+      "name": "activityLine: in progress reads as watching for a duration",
+      "fn": "activityLine",
+      "args": [
+        "show",
+        {
+          "addedAt": "2026-08-01T12:00:00.000Z",
+          "startedAt": "2026-08-10T12:00:00.000Z",
+          "finishedAt": null
+        },
+        "2026-08-22T12:00:00.000Z"
+      ],
+      "expect": "Watching for 12 days"
+    },
+    {
+      "name": "activityLine: finished reads as finished in a duration from start",
+      "fn": "activityLine",
+      "args": [
+        "manga",
+        {
+          "addedAt": "2026-08-01T12:00:00.000Z",
+          "startedAt": "2026-08-10T12:00:00.000Z",
+          "finishedAt": "2026-08-14T12:00:00.000Z"
+        },
+        "2026-08-22T12:00:00.000Z"
+      ],
+      "expect": "Finished in 4 days"
+    },
+    {
+      "name": "activityLine: never started has no activity line",
+      "fn": "activityLine",
+      "args": [
+        "book",
+        {
+          "addedAt": "2026-08-22T12:00:00.000Z",
+          "startedAt": null,
+          "finishedAt": null
+        },
+        "2026-08-22T12:00:00.000Z"
+      ],
+      "expect": null
+    },
+    {
+      "name": "activityLine: started just before midnight, seen just after",
+      "fn": "activityLine",
+      "args": [
+        "comic",
+        {
+          "addedAt": "2026-08-01T12:00:00.000Z",
+          "startedAt": "2026-08-12T23:30:00.000Z",
+          "finishedAt": null
+        },
+        "2026-08-13T00:30:00.000Z"
+      ],
+      "expect": "Reading for 1 day"
+    }
+  ]
+}

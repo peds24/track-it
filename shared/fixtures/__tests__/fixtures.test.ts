@@ -8,8 +8,11 @@ import * as path from 'path';
 import { normalize, registry } from '../registry';
 import type { FixtureCase } from '../types';
 import { cases as advance } from '../cases/advance';
+import { cases as formatters } from '../cases/formatters';
 import { cases as genres } from '../cases/genres';
 import { cases as mode } from '../cases/mode';
+import { cases as rating } from '../cases/rating';
+import { cases as seasons } from '../cases/seasons';
 import { cases as seriesTitle } from '../cases/seriesTitle';
 import { cases as shelf } from '../cases/shelf';
 import { cases as validate } from '../cases/validate';
@@ -23,6 +26,9 @@ const MODULES: Record<string, { cases: FixtureCase[]; testFiles: string[] }> = {
   validate: { cases: validate, testFiles: ['validate.test.ts'] },
   seriesTitle: { cases: seriesTitle, testFiles: ['seriesTitle.test.ts'] },
   genres: { cases: genres, testFiles: ['genres.test.ts'] },
+  formatters: { cases: formatters, testFiles: ['formatters.test.ts'] },
+  seasons: { cases: seasons, testFiles: ['seasons.test.ts'] },
+  rating: { cases: rating, testFiles: ['rating.test.ts'] },
   whatsNew: { cases: whatsNew, testFiles: ['whatsNew.test.ts'] },
 };
 
@@ -72,4 +78,23 @@ describe.each(Object.entries(MODULES))('%s', (module, { cases, testFiles }) => {
     expect(committed.cases.map((c) => c.name)).toEqual(doc.cases.map((c) => c.name));
     doc.cases.forEach((actual, i) => expect({ case: actual.name, ...committed.cases[i] }).toEqual({ case: actual.name, ...JSON.parse(JSON.stringify(actual)) }));
   });
+});
+
+describe('normalize', () => {
+  test('a Map becomes an object in insertion order, not {}', () => {
+    expect(normalize(new Map([['b', 1], ['a', 2]]))).toEqual({ b: 1, a: 2 });
+    expect(Object.keys(normalize(new Map([['b', 1], ['a', 2]])) as object)).toEqual(['b', 'a']);
+  });
+  test('undefined fields are dropped and a bare undefined is null', () => {
+    expect(normalize({ a: 1, b: undefined })).toEqual({ a: 1 });
+    expect(normalize(undefined)).toBeNull();
+  });
+});
+
+test('rankingScenario walks a session to placement', () => {
+  const p = (key: string) => ({ key, creator: null, genres: [], releaseYear: null });
+  const ranking = ['a', 'b', 'c'].map((k) => ({ ...p(k), sentiment: 'liked' as const }));
+  const out = registry.rankingScenario!(p('new'), 'liked', ranking, ['opponent', 'opponent']) as { placed: boolean; lo: number };
+  expect(out.placed).toBe(true);
+  expect(out.lo).toBe(3);
 });
