@@ -1,0 +1,57 @@
+name: Iris
+options:
+  bundleIdPrefix: com.peds24
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    MARKETING_VERSION: "2.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+packages:
+  IrisCore:
+    path: IrisCore
+targets:
+  Iris:
+    type: application
+    platform: iOS
+    sources:
+      - path: Iris
+        excludes:
+          - "Config/*.xcconfig"
+    configFiles:
+      Debug: Iris/Config/Base.xcconfig
+      Release: Iris/Config/Base.xcconfig
+    dependencies:
+      - package: IrisCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.peds24.iris
+        PRODUCT_NAME: Iris
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Iris
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        TARGETED_DEVICE_FAMILY: "1,2"
+  IrisUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [IrisUITests]
+    dependencies:
+      - target: Iris
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.peds24.iris.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Iris
+schemes:
+  Iris:
+    build:
+      targets:
+        Iris: all
+        IrisUITests: [test]
+    test:
+      targets:
+        - IrisUITests
