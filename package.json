@@ -40,7 +40,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "tokens": "node scripts/iris-tokens.js",
+    "tokens:check": "node scripts/iris-tokens.js --check"
   },
   "private": true
 }

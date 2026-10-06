@@ -6,11 +6,12 @@ import SwiftUI
 struct RootView: View {
     var body: some View {
         NavigationStack {
-            ContentUnavailableView(
-                "Iris",
-                systemImage: "camera.aperture",
-                description: Text("Schema v\(IrisSchema.version)")
-            )
+            ContentUnavailableView {
+                Label("Iris", systemImage: "camera.aperture")
+                    .foregroundStyle(IrisTokens.Colors.accent)
+            } description: {
+                Text("Schema v\(IrisSchema.version)")
+            }
             .navigationTitle("Iris")
         }
     }
