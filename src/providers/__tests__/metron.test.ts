@@ -322,6 +322,11 @@ describe('A22/A24 metadata', () => {
     expect(draft.blurb).toBe('Space & war.');
   });
 
+  test('A26: details carries the series genres', async () => {
+    mockSequence(ISSUE, { ...SERIES, genres: [{ id: 1, name: 'Science Fiction' }, { id: 2, name: 'Fantasy' }] });
+    expect((await new MetronProvider().details('7'))?.genres).toEqual(['Science Fiction', 'Fantasy']);
+  });
+
   test('details returns null when credentials are missing', async () => {
     delete process.env.EXPO_PUBLIC_METRON_USERNAME;
     expect(await new MetronProvider().details('7')).toBeNull();

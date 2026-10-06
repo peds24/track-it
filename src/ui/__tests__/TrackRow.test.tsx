@@ -568,3 +568,26 @@ test('tapping the advance control does not open the track', async () => {
   expect(onAdvance).toHaveBeenCalled();
   expect(onOpen).not.toHaveBeenCalled();
 });
+
+describe('A26 ratings on a finished row', () => {
+  const finished: TrackSummary = { ...show, shelf: 'done', progress: { done: 9, total: 9 }, nextEntryId: null, nextEntryTitle: null, nextEntryStatus: null };
+
+  test('a rated row shows its score in place of a control', async () => {
+    await render(<TrackRow track={finished} onAdvance={() => {}} onResume={() => {}} onRename={() => {}} score={8.4} onRate={() => {}} />);
+    expect(screen.getByLabelText('Rated 8.4 out of 10')).toBeTruthy();
+    expect(screen.queryByText('Rate')).toBeNull();
+  });
+
+  test('an unrated row offers Rate', async () => {
+    const onRate = jest.fn();
+    await render(<TrackRow track={finished} onAdvance={() => {}} onResume={() => {}} onRename={() => {}} score={null} onRate={onRate} />);
+    await fireEvent.press(screen.getByText('Rate'));
+    expect(onRate).toHaveBeenCalledWith(finished);
+  });
+
+  test('rows on other shelves never show a score or Rate', async () => {
+    await render(<TrackRow track={show} onAdvance={() => {}} onResume={() => {}} onRename={() => {}} score={8.4} onRate={() => {}} />);
+    expect(screen.queryByLabelText(/Rated/)).toBeNull();
+    expect(screen.queryByText('Rate')).toBeNull();
+  });
+});

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { TrackSummary } from '@/data/trackRepo';
+import { formatScore } from '@/domain/rating';
 import { currentSeason, seasonSegments } from '@/domain/seasons';
 import type { Category } from '@/domain/types';
 import { font, layout, radius, useTheme, type Palette } from '@/ui/theme';
@@ -105,6 +106,8 @@ export function TrackRow({
   onRename,
   onEditProgress,
   onOpen,
+  score,
+  onRate,
 }: {
   track: TrackSummary;
   onAdvance: (entryId: string) => void;
@@ -112,6 +115,10 @@ export function TrackRow({
   onRename: (track: TrackSummary, title: string) => void;
   onEditProgress?: (track: TrackSummary) => void;
   onOpen?: (track: TrackSummary) => void;
+  /** A26: this track's 1–10 score, or null when it hasn't been rated. */
+  score?: number | null;
+  /** A26: given on Done, where an unrated row offers Rate in place of a control. */
+  onRate?: (track: TrackSummary) => void;
 }) {
   const palette = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
@@ -254,6 +261,23 @@ export function TrackRow({
           )}
         </Pressable>
       )}
+
+      {!nextEntryId && typeof score === 'number' && (
+        <View style={styles.score} accessible accessibilityLabel={`Rated ${formatScore(score)} out of 10`}>
+          <Text style={styles.scoreText}>{formatScore(score)}</Text>
+        </View>
+      )}
+      {!nextEntryId && score === null && onRate && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Rate ${track.title}`}
+          onPress={() => onRate(track)}
+          android_ripple={{ color: palette.primaryContainer }}
+          style={({ pressed }) => [styles.advance, pressed && styles.advancePressed]}
+        >
+          {({ pressed }) => <Text style={[styles.advanceText, pressed && styles.advanceTextPressed]}>Rate</Text>}
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -272,6 +296,16 @@ function createStyles(c: Palette) {
       backgroundColor: c.surface,
     },
     text: { flex: 1, minWidth: 0 },
+    score: {
+      minWidth: 48,
+      height: 32,
+      paddingHorizontal: 8,
+      borderRadius: radius.full,
+      backgroundColor: c.primaryContainer,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    scoreText: { ...font.titleSmall, color: c.onPrimaryContainer, fontWeight: '700', fontVariant: ['tabular-nums'] },
     title: {
       ...font.titleMedium,
       color: c.onSurface,

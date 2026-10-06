@@ -1,4 +1,5 @@
 import { cleanDescription } from '@/domain/formatters';
+import { withGenres } from '@/domain/genres';
 import type { TrackMetadata } from '@/domain/types';
 import { generateEntries } from '@/providers/manual';
 import type { MetadataProvider, SearchResult, SeriesDraft } from '@/providers/types';
@@ -28,6 +29,7 @@ const DETAIL_QUERY = `
       chapters
       status
       description(asHtml: false)
+      genres
       startDate { year }
       endDate { year }
       coverImage { extraLarge large }
@@ -50,6 +52,7 @@ type AnilistDetail = {
   chapters?: number | null;
   status?: string;
   description?: string | null;
+  genres?: (string | null)[] | null;
   startDate?: { year?: number | null };
   endDate?: { year?: number | null };
   coverImage?: { extraLarge?: string | null; large?: string | null };
@@ -65,13 +68,16 @@ function authorOf(staff: AnilistStaff | undefined): string | null {
 }
 
 function metadataOf(media: AnilistDetail): TrackMetadata {
-  return {
-    // A25: `extraLarge` — AniList's `large` is its medium size, blurry on the detail screen.
-    coverUrl: media.coverImage?.extraLarge ?? media.coverImage?.large ?? null,
-    creator: authorOf(media.staff),
-    description: cleanDescription(media.description),
-    releaseYear: media.startDate?.year ? String(media.startDate.year) : null,
-  };
+  return withGenres(
+    {
+      // A25: `extraLarge` — AniList's `large` is its medium size, blurry on the detail screen.
+      coverUrl: media.coverImage?.extraLarge ?? media.coverImage?.large ?? null,
+      creator: authorOf(media.staff),
+      description: cleanDescription(media.description),
+      releaseYear: media.startDate?.year ? String(media.startDate.year) : null,
+    },
+    media.genres,
+  );
 }
 
 /**

@@ -1,5 +1,15 @@
 # DEVLOG
 
+## 2026-10-06 — v1.4.0 ported to web
+
+- Ratings & rankings (A26), what's-new + version line (A27), genres and
+  expandable descriptions ported from `android` `2ec0841`.
+- Only real divergence: dialogs. Web already routes confirms through
+  `src/ui/alert.ts`; the rate prompt now does too, so it appears as a
+  browser confirm rather than silently doing nothing.
+- Verified with typecheck, jest (including a Platform.OS = 'web' test of
+  the Backlog → Watched → confirm → rate path) and `expo export --platform web`.
+
 ## 2026-09-24 — v1.3.0 ported to web
 
 ### What Changed

@@ -1,4 +1,5 @@
 import { cleanDescription, yearOf } from '@/domain/formatters';
+import { withGenres } from '@/domain/genres';
 import type { TrackMetadata } from '@/domain/types';
 import { generateEntries } from '@/providers/manual';
 import type { MetadataProvider, SearchResult, SeriesDraft, UnitRecord } from '@/providers/types';
@@ -62,6 +63,7 @@ type MetronSeriesDetail = {
   year_end?: number | null;
   publisher?: { name?: string };
   desc?: string;
+  genres?: { name?: string }[];
 };
 
 function toResults(body: MetronIssueListResponse): SearchResult[] {
@@ -86,12 +88,15 @@ function writersOf(credits: MetronCredit[] | undefined): string | null {
 }
 
 function metadataOf(issue: MetronIssueDetail, series: MetronSeriesDetail): TrackMetadata {
-  return {
-    coverUrl: issue.image ?? null,
-    creator: writersOf(issue.credits),
-    description: cleanDescription(series.desc),
-    releaseYear: series.year_began ? String(series.year_began) : null,
-  };
+  return withGenres(
+    {
+      coverUrl: issue.image ?? null,
+      creator: writersOf(issue.credits),
+      description: cleanDescription(series.desc),
+      releaseYear: series.year_began ? String(series.year_began) : null,
+    },
+    series.genres?.map((g) => g.name),
+  );
 }
 
 /**
