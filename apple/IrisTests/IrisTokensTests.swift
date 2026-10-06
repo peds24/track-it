@@ -31,17 +31,45 @@ final class IrisTokensTests: XCTestCase {
         XCTAssertEqual(a, 0.6, accuracy: 0.01)
     }
 
-    /// iOS-mapped neutrals are the system colours themselves (spec §4.1).
-    /// Compared by components: UIColor equality also compares colour spaces.
-    func testMappedNeutralIsTheSystemColour() {
-        for style in [UIUserInterfaceStyle.light, .dark] {
-            let traits = UITraitCollection(userInterfaceStyle: style)
-            XCTAssertEqual(
-                rgba(UIColor(IrisTokens.Colors.label).resolvedColor(with: traits)),
-                rgba(UIColor.label.resolvedColor(with: traits)),
-                "label differs in \(style == .dark ? "dark" : "light")"
+    /// spec §4.1: tokens.json publishes the light/dark values of every
+    /// iOS-mapped colour "so other platforms can match". They must be what
+    /// this iOS actually renders, or web/Android drift from the iOS reference.
+    func testPublishedValuesMatchTheIOSSystemColours() throws {
+        let json = try JSONSerialization.jsonObject(with: Data(contentsOf: Self.tokensURL)) as! [String: Any]
+        let colors = json["color"] as! [String: [String: String]]
+        var mismatches: [String] = []
+        for (name, token) in colors.sorted(by: { $0.key < $1.key }) {
+            guard let ios = token["ios"] else { continue }
+            let system = try XCTUnwrap(
+                UIColor.perform(NSSelectorFromString(ios + "Color"))?.takeUnretainedValue() as? UIColor,
+                "color.\(name).ios: UIColor has no \(ios)"
             )
+            for style in [UIUserInterfaceStyle.light, .dark] {
+                let key = style == .dark ? "dark" : "light"
+                let actual = rgba(system.resolvedColor(with: UITraitCollection(userInterfaceStyle: style)))
+                let published = try XCTUnwrap(Self.hexRGBA(token[key] ?? ""), "color.\(name).\(key) is not hex")
+                if zip(actual, published).contains(where: { abs($0 - $1) > 1.5 / 255 }) {
+                    mismatches.append("color.\(name).\(key): published \(token[key]!) but iOS renders \(Self.hex(actual))")
+                }
+            }
         }
+        XCTAssertEqual(mismatches, [], "Update design/iris/tokens.json, then `npm run tokens`")
+    }
+
+    private static let tokensURL = URL(fileURLWithPath: #filePath)
+        .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        .appendingPathComponent("design/iris/tokens.json")
+
+    /// "#RRGGBB" or "#RRGGBBAA" → [r, g, b, a] in 0...1.
+    private static func hexRGBA(_ s: String) -> [Double]? {
+        guard s.hasPrefix("#"), s.count == 7 || s.count == 9, let n = UInt64(s.dropFirst(), radix: 16) else { return nil }
+        let v = s.count == 7 ? (n << 8) | 0xFF : n
+        return [24, 16, 8, 0].map { Double((v >> UInt64($0)) & 0xFF) / 255 }
+    }
+
+    private static func hex(_ c: [Double]) -> String {
+        let b = c.map { Int((min(max($0, 0), 1) * 255).rounded()) }
+        return String(format: "#%02X%02X%02X", b[0], b[1], b[2]) + (b[3] == 255 ? "" : String(format: "%02X", b[3]))
     }
 
     private func rgba(_ c: UIColor) -> [Double] {

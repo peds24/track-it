@@ -151,7 +151,8 @@ Swift the way `web` ports them to RN Web today.
 ### 4.1 Tokens
 
 `design/iris/tokens.json` is the single source of the look. A generator
-(`scripts/iris-tokens.mjs`, Node, no dependencies) writes three outputs:
+(`scripts/iris-tokens.js`, CommonJS Node, no dependencies; `npm run tokens`)
+writes three outputs, plus the `docs/design/iris.html` specimen:
 
 | Output | Consumer |
 | --- | --- |
@@ -160,8 +161,10 @@ Swift the way `web` ports them to RN Web today.
 | `design/iris/iris.css` | web, the `gh-pages` landing page, `docs/design/iris.html` |
 
 Generated files carry a header saying so and are committed (so builds don't
-need Node). A jest test and an XCTest regenerate in memory and fail if the
-committed output is stale.
+need Node). Jest regenerates in memory and fails if any committed output is
+stale. XCTest can't run Node, so it compares the SHA-256 of `tokens.json`
+that every output embeds (I1 ruling): it catches a `tokens.json` edit that
+wasn't regenerated, and jest catches a hand edit to a generated file.
 
 Token groups, all **semantic** (named for purpose, never for a hue):
 
@@ -172,7 +175,10 @@ Token groups, all **semantic** (named for purpose, never for a hue):
   manga). On iOS the neutrals map to the system dynamic colours
   (`.label`, `.systemGroupedBackground`…) so they track accessibility
   settings like Increase Contrast; the JSON holds their published values so
-  other platforms can match.
+  other platforms can match. Those values are **what the current iOS renders**
+  (iOS 26 retuned several, e.g. system blue is `#0088FF`, not `#007AFF`), and
+  an XCTest fails if any mapped token's JSON value drifts from the system
+  colour, so a future iOS retune shows up as a red test, not silent drift.
 - **Type** — Apple's text styles (`largeTitle`, `title1–3`, `headline`,
   `body`, `callout`, `subheadline`, `footnote`, `caption1–2`) with size,
   weight, leading and tracking. iOS uses the real text styles (Dynamic Type
