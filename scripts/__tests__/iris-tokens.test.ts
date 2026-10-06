@@ -126,3 +126,15 @@ describe('main', () => {
     for (const rel of Object.values(gen.OUTPUTS)) expect(fs.existsSync(path.join(root, rel))).toBe(false);
   });
 });
+
+describe('the committed outputs', () => {
+  test('match design/iris/tokens.json (run `npm run tokens` if this fails)', () => {
+    const root = path.resolve(__dirname, '../..');
+    const out = gen.generate(fs.readFileSync(path.join(root, gen.SOURCE), 'utf8'));
+    for (const [key, rel] of Object.entries(gen.OUTPUTS)) {
+      const file = path.join(root, rel);
+      expect({ file: rel, exists: fs.existsSync(file) }).toEqual({ file: rel, exists: true });
+      expect({ file: rel, upToDate: fs.readFileSync(file, 'utf8') === out[key as keyof typeof out] }).toEqual({ file: rel, upToDate: true });
+    }
+  });
+});
