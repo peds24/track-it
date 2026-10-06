@@ -9,7 +9,7 @@ struct RootView: View {
             ContentUnavailableView(
                 "Iris",
                 systemImage: "camera.aperture",
-                description: Text("Schema v\(IrisCore.schemaVersion)")
+                description: Text("Schema v\(IrisSchema.version)")
             )
             .navigationTitle("Iris")
         }

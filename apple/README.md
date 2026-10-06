@@ -33,5 +33,5 @@ won't work.
 - `IrisCore` never imports UI frameworks, and `Domain/` does no I/O.
 - Domain behaviour must match the TS app. From I2 on, `shared/fixtures/*.json`
   is run by both jest and XCTest; a domain change lands its fixture first.
-- `IrisCore.schemaVersion` must equal `MIGRATIONS.length` in `src/db/schema.ts`.
+- `IrisSchema.version` must equal `MIGRATIONS.length` in `src/db/schema.ts`.
 - Work on `worktree-iris-<slug>` branches; merge into `iris` with `--no-ff`.
