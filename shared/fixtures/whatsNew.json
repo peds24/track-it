@@ -1,0 +1,100 @@
+{
+  "module": "whatsNew",
+  "generatedBy": "npm run fixtures:record",
+  "timezone": "UTC",
+  "cases": [
+    {
+      "name": "an upgrade from a build that never recorded a version announces",
+      "fn": "announcementFor",
+      "args": [
+        "1.4.0",
+        null,
+        true,
+        [
+          {
+            "version": "1.4.0",
+            "title": "New",
+            "items": []
+          }
+        ]
+      ],
+      "expect": {
+        "version": "1.4.0",
+        "title": "New",
+        "items": []
+      }
+    },
+    {
+      "name": "an upgrade from an older recorded version announces",
+      "fn": "announcementFor",
+      "args": [
+        "1.4.0",
+        "1.3.0",
+        false,
+        [
+          {
+            "version": "1.4.0",
+            "title": "New",
+            "items": []
+          }
+        ]
+      ],
+      "expect": {
+        "version": "1.4.0",
+        "title": "New",
+        "items": []
+      }
+    },
+    {
+      "name": "a fresh install, or the same version again, does not",
+      "fn": "announcementFor",
+      "args": [
+        "1.4.0",
+        null,
+        false,
+        [
+          {
+            "version": "1.4.0",
+            "title": "New",
+            "items": []
+          }
+        ]
+      ],
+      "expect": null
+    },
+    {
+      "name": "a fresh install, or the same version again, does not (2)",
+      "fn": "announcementFor",
+      "args": [
+        "1.4.0",
+        "1.4.0",
+        true,
+        [
+          {
+            "version": "1.4.0",
+            "title": "New",
+            "items": []
+          }
+        ]
+      ],
+      "expect": null
+    },
+    {
+      "name": "a version with no notes says nothing",
+      "fn": "announcementFor",
+      "args": [
+        "1.4.1",
+        "1.4.0",
+        true,
+        [
+          {
+            "version": "1.4.0",
+            "title": "New",
+            "items": []
+          }
+        ]
+      ],
+      "expect": null
+    }
+  ]
+}
