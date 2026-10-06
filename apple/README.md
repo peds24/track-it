@@ -35,3 +35,5 @@ won't work.
   is run by both jest and XCTest; a domain change lands its fixture first.
 - `IrisSchema.version` must equal `MIGRATIONS.length` in `src/db/schema.ts`.
 - Work on `worktree-iris-<slug>` branches; merge into `iris` with `--no-ff`.
+- Never hand-edit `Iris/DesignSystem/IrisTokens.swift`. Edit
+  `design/iris/tokens.json` and run `npm run tokens` from the repo root.
