@@ -1,5 +1,31 @@
 # DEVLOG
 
+## 2026-10-06 — Iris I0: native iOS foundations
+
+- New `iris` branch and spec (A28): a native SwiftUI iOS app in `apple/`
+  with its own Swift logic (`IrisCore`), held to the TS app by shared
+  fixtures, and one design-token source for every platform.
+- `apple/`: `IrisCore` package, `Iris` app, `IrisUITests`, `project.yml`,
+  `scripts/test.sh`.
+- **Why xcodegen**: two agents work this repo in parallel; a generated
+  `.xcodeproj` can't produce `.pbxproj` merge conflicts.
+- **Why a package for logic**: `swift test` runs it on the Mac in
+  seconds with no simulator, which keeps the domain port's TDD loop fast.
+
+## 2026-10-06 — v1.4.0: Ratings & Rankings release
+
+- Version bumped to **1.4.0** (`package.json`, `app.json`). The planned
+  Insights & Stats milestone moves to **v1.5.0**.
+- **A27**: what's-new on first launch (`src/domain/whatsNew.ts`,
+  `src/data/whatsNew.ts`, `src/ui/WhatsNew.tsx`, `src/ui/releaseNotes.ts`,
+  migration 10 `app_meta`) and the version line in Done's ? sheet.
+- **Why a table, not AsyncStorage**: the app already owns one SQLite
+  database and its migration runner; adding a native storage module for
+  one string would mean a new native dependency and a rebuild for no gain.
+- **Why skip fresh installs**: "What's new" only means something relative
+  to a previous version. An empty library with no stored version is a new
+  user; one with tracks is an upgrade from a pre-A27 build.
+
 ## 2026-10-06 — Beli-style ratings; expandable descriptions
 
 ### What Changed

@@ -39,3 +39,11 @@ yarn-error.*
 
 # agent scratch space
 .superpowers/
+
+# Iris native iOS (apple/) — the .xcodeproj is generated from project.yml
+/apple/Iris.xcodeproj/
+/apple/**/.build/
+/apple/**/.swiftpm/
+/apple/DerivedData/
+/apple/Iris/Config/Secrets.xcconfig
+xcuserdata/

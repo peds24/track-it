@@ -1,0 +1,4 @@
+// Shared settings for every Iris build configuration.
+// Secrets.xcconfig is git-ignored; `#include?` keeps a fresh clone building
+// without it (spec §2.2). Copy Secrets.example.xcconfig to create it.
+#include? "Secrets.xcconfig"
