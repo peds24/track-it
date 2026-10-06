@@ -24,9 +24,11 @@ design and the step list (I0–I13): `docs/superpowers/specs/2026-10-06-iris-des
 - The app is renamed **Iris** (I11 on iOS, I13 on Android/web; Android keeps
   `com.peds24.trackit`).
 
-**Status:** only the spec and docs exist (step I0 in progress, on
-`worktree-iris-foundations`). No `apple/` code yet. Toolchain on this Mac:
-Xcode 27.0, Swift 6.4, `xcodegen` at `/opt/homebrew/bin`.
+**Status:** I0 done — `apple/` builds and its UI test launches the app
+on the iPhone 17 simulator (`apple/scripts/test.sh`). Next is I1 (tokens)
+and I2 (fixtures), which can run in parallel; plans go in
+`docs/superpowers/plans/`. Toolchain on this Mac: Xcode 27.0, Swift 6.4,
+`xcodegen` at `/opt/homebrew/bin`.
 
 ## v1.4.0 — Ratings & Rankings (2026-10-06)
 

@@ -1,5 +1,17 @@
 # DEVLOG
 
+## 2026-10-06 — Iris I0: native iOS foundations
+
+- New `iris` branch and spec (A28): a native SwiftUI iOS app in `apple/`
+  with its own Swift logic (`IrisCore`), held to the TS app by shared
+  fixtures, and one design-token source for every platform.
+- `apple/`: `IrisCore` package, `Iris` app, `IrisUITests`, `project.yml`,
+  `scripts/test.sh`.
+- **Why xcodegen**: two agents work this repo in parallel; a generated
+  `.xcodeproj` can't produce `.pbxproj` merge conflicts.
+- **Why a package for logic**: `swift test` runs it on the Mac in
+  seconds with no simulator, which keeps the domain port's TDD loop fast.
+
 ## 2026-10-06 — v1.4.0: Ratings & Rankings release
 
 - Version bumped to **1.4.0** (`package.json`, `app.json`). The planned
