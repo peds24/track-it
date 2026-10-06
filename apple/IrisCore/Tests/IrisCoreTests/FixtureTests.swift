@@ -5,8 +5,8 @@ import XCTest
 final class FixtureTests: XCTestCase {
     /// Fixture modules not ported yet. Each task moves its modules out; I3 is
     /// done when this is empty (Task 7).
-    static let pending: Set<String> = ["formatters", "rating"]
-    static let ported: Set<String> = ["whatsNew", "mode", "shelf", "advance", "validate", "seriesTitle", "genres", "seasons"]
+    static let pending: Set<String> = ["formatters"]
+    static let ported: Set<String> = ["whatsNew", "mode", "shelf", "advance", "validate", "seriesTitle", "genres", "seasons", "rating"]
 
     private func check(_ module: String, _ registry: [String: FixtureFn]) throws {
         let failures = try runFixtures(module, registry)
@@ -29,4 +29,5 @@ final class FixtureTests: XCTestCase {
     func testSeriesTitle() throws { try check("seriesTitle", seriesTitleFixtures) }
     func testGenres() throws { try check("genres", genresFixtures) }
     func testSeasons() throws { try check("seasons", seasonsFixtures) }
+    func testRating() throws { try check("rating", ratingFixtures) }
 }
