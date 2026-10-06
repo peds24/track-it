@@ -1327,6 +1327,33 @@ screen, measuring real line count (a hidden unclamped copy's
 `onTextLayout`) instead of the detail screen's old 280-character guess,
 which missed text that wrapped past six lines.
 
+**A27 — Iris: a native SwiftUI iOS app, and one design source for every
+platform.** Extends ROADMAP v2.0.0 (the Iris rebrand) and changes how the app
+is built for iOS. Requested directly on 2026-10-06: an iOS version in Apple's
+design language, written natively in Swift, whose design later takes over
+Android and web. Full design: `2026-10-06-iris-design.md`.
+
+*What changes.* iOS stops being an Expo target and becomes a SwiftUI app in
+`apple/`, with its own Swift logic layer (`IrisCore`: domain, GRDB
+persistence on the *same* SQLite schema, providers). The TS app stays the
+Android/web codebase. This reverses the implicit "one codebase for every
+platform" premise behind the Expo stack choice, for iOS only.
+
+*Why two logic layers don't drift.* `shared/fixtures/*.json` holds test
+vectors for every pure domain module, and both jest and XCTest run every
+case; a schema snapshot keeps both databases (and therefore backups)
+identical. A domain change lands its fixture first.
+
+*Why the look doesn't drift.* `design/iris/tokens.json` is the single source,
+generated into Swift, TS and CSS with staleness tests on both sides, and
+`design/iris/components.md` is the one component contract. iOS is the
+reference rendering; the TS kit adopts both at takeover (step I13).
+
+*Branching.* `iris` is a temporary fourth long-lived branch (cut from the A26
+ratings branch), merged into `android` at takeover, synced from `android`
+until then. The app is renamed **Iris**; Android keeps its package ID so
+local databases survive.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:

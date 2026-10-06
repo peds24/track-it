@@ -8,6 +8,25 @@ sections below are left as written, and may describe a branch layout
 (`main`, PRs) that predates the `android`/`web`/`gh-pages` pipeline
 (CLAUDE.md §6) — read them as history, not current state.
 
+## Iris kicked off — native iOS + shared design source (2026-10-06)
+
+New long-lived branch **`iris`**, cut from `claude/practical-knuth-20yw3y`
+at `65b3b39` (so it includes the A26 ratings work, which is still not on
+`android`). Decision record: **A27**. Next amendment is **A28**. Full
+design and the step list (I0–I13): `docs/superpowers/specs/2026-10-06-iris-design.md`.
+
+- iOS becomes a **native SwiftUI app** in `apple/` with its own Swift logic
+  (`IrisCore`, GRDB on the same SQLite schema). The TS app stays Android/web.
+- Logic parity is enforced by `shared/fixtures/*.json`, run by both jest and
+  XCTest; look parity by `design/iris/tokens.json`, generated into Swift, TS
+  and CSS.
+- The app is renamed **Iris** (I11 on iOS, I13 on Android/web; Android keeps
+  `com.peds24.trackit`).
+
+**Status:** only the spec and docs exist (step I0 in progress, on
+`worktree-iris-foundations`). No `apple/` code yet. Toolchain on this Mac:
+Xcode 27.0, Swift 6.4, `xcodegen` at `/opt/homebrew/bin`.
+
 ## Ratings + expandable descriptions (2026-10-06)
 
 On branch `claude/practical-knuth-20yw3y` (the cloud session's designated
