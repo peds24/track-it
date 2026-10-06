@@ -27,9 +27,15 @@ design and the step list (I0–I13): `docs/superpowers/specs/2026-10-06-iris-des
 **Status:** I0 and I1 done — tokens live in `design/iris/tokens.json`
 (`npm run tokens` regenerates Swift/TS/CSS and the `docs/design/iris.html`
 specimen; jest and XCTest both fail on drift). `apple/` builds and its
-tests run on the iPhone 17 simulator (`apple/scripts/test.sh`). Next is
-I2 (fixtures), then I3; plans go in
-`docs/superpowers/plans/`. Toolchain on this Mac: Xcode 27.0, Swift 6.4,
+tests run on the iPhone 17 simulator (`apple/scripts/test.sh`). I2 done
+too — `shared/fixtures/*.json` holds 322 behaviour vectors for all ten pure
+domain modules and `shared/schema/schema.sql` the schema after migration
+10 (see `shared/README.md`). After an intentional domain change, run
+`npm run fixtures:record` and commit the JSON diff. Next is I3: port
+`src/domain` to `IrisCore/Domain` until every vector passes in XCTest.
+Carry over verbatim, quirks included: e.g. `assertMediaTypeMatchesParent`
+still says "must be book or movie" though comics are standalone too.
+Plans go in `docs/superpowers/plans/`. Toolchain on this Mac: Xcode 27.0, Swift 6.4,
 `xcodegen` at `/opt/homebrew/bin`.
 
 ## v1.4.0 — Ratings & Rankings (2026-10-06)

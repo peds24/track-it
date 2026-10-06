@@ -1,5 +1,22 @@
 # DEVLOG
 
+## 2026-10-06 — Iris I2: shared behaviour fixtures
+
+- `shared/fixtures/<module>.json` for all ten pure domain modules (322
+  vectors), recorded from TS under TZ=UTC; `shared/schema/schema.sql`
+  after migration 10. jest fails if TS stops matching either.
+- **Why record instead of hand-writing expectations**: TS is the
+  reference implementation; hand-written expectations would be a third
+  opinion that could disagree with both. Each recording was checked
+  against the original test's assertion.
+- **Why `rankingScenario`**: a ranking session is a sequence; recording
+  whole walks (oracle answers for every slot) holds Swift to the same
+  opponent order, not just the slot.
+- **Why a custom jest environment for UTC**: jest gives each test file a
+  copy of `process.env`, so a test can't change the process timezone;
+  `shared/fixtures/utcEnvironment.js` sets it on the real worker for the
+  fixture file only and restores it after.
+
 ## 2026-10-06 — Iris I1: design tokens
 
 - `design/iris/tokens.json` → `scripts/iris-tokens.js` → IrisTokens.swift,
