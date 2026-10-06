@@ -1,0 +1,265 @@
+{
+  "module": "validate",
+  "generatedBy": "npm run fixtures:record",
+  "timezone": "UTC",
+  "cases": [
+    {
+      "name": "only book and movie are standalone media types (A16: and comic): book",
+      "fn": "isStandaloneMediaType",
+      "args": [
+        "book"
+      ],
+      "expect": true
+    },
+    {
+      "name": "only book and movie are standalone media types (A16: and comic): movie",
+      "fn": "isStandaloneMediaType",
+      "args": [
+        "movie"
+      ],
+      "expect": true
+    },
+    {
+      "name": "only book and movie are standalone media types (A16: and comic): comic",
+      "fn": "isStandaloneMediaType",
+      "args": [
+        "comic"
+      ],
+      "expect": true
+    },
+    {
+      "name": "only book and movie are standalone media types (A16: and comic): episode",
+      "fn": "isStandaloneMediaType",
+      "args": [
+        "episode"
+      ],
+      "expect": false
+    },
+    {
+      "name": "only book and movie are standalone media types (A16: and comic): issue",
+      "fn": "isStandaloneMediaType",
+      "args": [
+        "issue"
+      ],
+      "expect": false
+    },
+    {
+      "name": "only book and movie are standalone media types (A16: and comic): volume",
+      "fn": "isStandaloneMediaType",
+      "args": [
+        "volume"
+      ],
+      "expect": false
+    },
+    {
+      "name": "only book and movie are standalone media types (A16: and comic): podcast",
+      "fn": "isStandaloneMediaType",
+      "args": [
+        "podcast"
+      ],
+      "expect": false
+    },
+    {
+      "name": "a parentless entry may not carry a unit label as its media type",
+      "fn": "assertEntryInvariants",
+      "args": [
+        {
+          "mediaType": "episode",
+          "parentUnitLabel": null,
+          "createdAt": "2026-08-12T10:00:00.000Z"
+        }
+      ],
+      "throws": "entry has no parent series, so its media type must be book or movie, got: episode"
+    },
+    {
+      "name": "a parented entry's media type must equal its parent's unit label",
+      "fn": "assertEntryInvariants",
+      "args": [
+        {
+          "mediaType": "episode",
+          "parentUnitLabel": "volume"
+        }
+      ],
+      "throws": "entry has media type episode but its series is tracked in volumes"
+    },
+    {
+      "name": "a parented entry's media type must equal its parent's unit label (2)",
+      "fn": "assertEntryInvariants",
+      "args": [
+        {
+          "mediaType": "volume",
+          "parentUnitLabel": "volume"
+        }
+      ],
+      "expect": null
+    },
+    {
+      "name": "timestamps must be ISO-8601, not merely parseable",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-08-12T10:00:00.000Z"
+      ],
+      "expect": true
+    },
+    {
+      "name": "timestamps must be ISO-8601, not merely parseable (2)",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-08-12"
+      ],
+      "expect": true
+    },
+    {
+      "name": "timestamps must be ISO-8601, not merely parseable (3)",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "not-a-date"
+      ],
+      "expect": false
+    },
+    {
+      "name": "timestamps must be ISO-8601, not merely parseable (4)",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "March 3 2026"
+      ],
+      "expect": false
+    },
+    {
+      "name": "timestamps must be ISO-8601, not merely parseable (5)",
+      "fn": "isIsoTimestamp",
+      "args": [
+        ""
+      ],
+      "expect": false
+    },
+    {
+      "name": "timestamps must be ISO-8601, not merely parseable (6)",
+      "fn": "isIsoTimestamp",
+      "args": [
+        "2026-13-45T99:00:00Z"
+      ],
+      "expect": false
+    },
+    {
+      "name": "null timestamps are allowed, bad ones are not",
+      "fn": "assertIsoTimestamp",
+      "args": [
+        null,
+        "startedAt"
+      ],
+      "expect": null
+    },
+    {
+      "name": "null timestamps are allowed, bad ones are not (2)",
+      "fn": "assertIsoTimestamp",
+      "args": [
+        "nope",
+        "startedAt"
+      ],
+      "throws": "startedAt must be an ISO-8601 timestamp, got: nope"
+    },
+    {
+      "name": "ordinals must be non-negative whole numbers",
+      "fn": "assertOrdinal",
+      "args": [
+        null
+      ],
+      "expect": null
+    },
+    {
+      "name": "ordinals must be non-negative whole numbers (2)",
+      "fn": "assertOrdinal",
+      "args": [
+        0
+      ],
+      "expect": null
+    },
+    {
+      "name": "ordinals must be non-negative whole numbers (3)",
+      "fn": "assertOrdinal",
+      "args": [
+        12
+      ],
+      "expect": null
+    },
+    {
+      "name": "ordinals must be non-negative whole numbers (4)",
+      "fn": "assertOrdinal",
+      "args": [
+        -4.5
+      ],
+      "throws": "ordinal must be a non-negative whole number, got: -4.5"
+    },
+    {
+      "name": "ordinals must be non-negative whole numbers (5)",
+      "fn": "assertOrdinal",
+      "args": [
+        -1
+      ],
+      "throws": "ordinal must be a non-negative whole number, got: -1"
+    },
+    {
+      "name": "ordinals must be non-negative whole numbers (6)",
+      "fn": "assertOrdinal",
+      "args": [
+        2.5
+      ],
+      "throws": "ordinal must be a non-negative whole number, got: 2.5"
+    },
+    {
+      "name": "assertEntryInvariants checks every timestamp field: createdAt",
+      "fn": "assertEntryInvariants",
+      "args": [
+        {
+          "mediaType": "book",
+          "parentUnitLabel": null,
+          "createdAt": "not-a-date"
+        }
+      ],
+      "throws": "entry createdAt must be an ISO-8601 timestamp, got: not-a-date"
+    },
+    {
+      "name": "assertEntryInvariants checks every timestamp field: startedAt",
+      "fn": "assertEntryInvariants",
+      "args": [
+        {
+          "mediaType": "book",
+          "parentUnitLabel": null,
+          "startedAt": "not-a-date"
+        }
+      ],
+      "throws": "entry startedAt must be an ISO-8601 timestamp, got: not-a-date"
+    },
+    {
+      "name": "assertEntryInvariants checks every timestamp field: finishedAt",
+      "fn": "assertEntryInvariants",
+      "args": [
+        {
+          "mediaType": "book",
+          "parentUnitLabel": null,
+          "finishedAt": "not-a-date"
+        }
+      ],
+      "throws": "entry finishedAt must be an ISO-8601 timestamp, got: not-a-date"
+    },
+    {
+      "name": "assertMediaTypeMatchesParent: a unit label with no parent throws",
+      "fn": "assertMediaTypeMatchesParent",
+      "args": [
+        "issue",
+        null
+      ],
+      "throws": "entry has no parent series, so its media type must be book or movie, got: issue"
+    },
+    {
+      "name": "assertMediaTypeMatchesParent: a matching parent passes",
+      "fn": "assertMediaTypeMatchesParent",
+      "args": [
+        "issue",
+        "issue"
+      ],
+      "expect": null
+    }
+  ]
+}

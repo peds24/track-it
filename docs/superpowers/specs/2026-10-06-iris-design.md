@@ -113,13 +113,16 @@ drift unless something forces them not to. The force is a set of
 language-neutral test vectors:
 
 ```jsonc
-// shared/fixtures/advance.json
+// shared/fixtures/advance.json — full contract in shared/README.md
 {
-  "function": "advance",
+  "module": "advance",
+  "timezone": "UTC",
   "cases": [
-    { "name": "watch mode: unstarted → done",
-      "input": { "mode": "watch", "entries": [ ... ] },
-      "expected": { "changed": [ ... ] } }
+    { "name": "a standalone watch-mode entry (a movie) skips in_progress entirely",
+      "fn": "advance", "args": [ { "id": "e1", "mediaType": "movie", ... }, "2026-08-12T10:00:00.000Z" ],
+      "expect": { "status": "done", ... } },
+    { "name": "advancing a finished entry throws",
+      "fn": "advance", "args": [ ... ], "throws": "Entry e1 is already done" }
   ]
 }
 ```
@@ -127,10 +130,13 @@ language-neutral test vectors:
 - One file per pure domain module: `advance`, `shelf`, `rating`
   (`scoreAt`, `similarity`, insertion), `seasons`, `formatters`, `validate`,
   `seriesTitle`, `genres`, `mode`, `whatsNew` (`announcementFor`).
-- Jest gets a generic runner (`src/domain/__tests__/fixtures.test.ts`) that
-  maps `function` to the TS export; XCTest gets the mirror. **Both suites run
-  every case.** A behaviour change on either side without a fixture update
-  turns that side red.
+- Inputs are authored in `shared/fixtures/cases/<module>.ts`; expectations
+  are **recorded** from TS (`npm run fixtures:record`), never hand-written.
+  Jest's runner (`shared/fixtures/__tests__/fixtures.test.ts`) maps `fn` to
+  the TS export and fails if TS no longer produces the committed JSON, or if
+  any test in `src/domain/__tests__` has no case named after it; XCTest gets
+  the mirror. **Both suites run every case.** A behaviour change on either
+  side without a fixture update turns that side red.
 - The existing TS unit tests stay. Fixtures are *extracted* from them (and
   added to), not a replacement — the TS tests remain the most readable
   description of intent.

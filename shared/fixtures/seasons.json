@@ -1,0 +1,1561 @@
+{
+  "module": "seasons",
+  "generatedBy": "npm run fixtures:record",
+  "timezone": "UTC",
+  "cases": [
+    {
+      "name": "seasonSegments splits a flat done-count across season boundaries in order",
+      "fn": "seasonSegments",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        60
+      ],
+      "expect": [
+        {
+          "number": 1,
+          "episodeCount": 22,
+          "done": 22
+        },
+        {
+          "number": 2,
+          "episodeCount": 24,
+          "done": 24
+        },
+        {
+          "number": 3,
+          "episodeCount": 24,
+          "done": 14
+        },
+        {
+          "number": 4,
+          "episodeCount": 16,
+          "done": 0
+        },
+        {
+          "number": 5,
+          "episodeCount": 24,
+          "done": 0
+        },
+        {
+          "number": 6,
+          "episodeCount": 21,
+          "done": 0
+        },
+        {
+          "number": 7,
+          "episodeCount": 23,
+          "done": 0
+        },
+        {
+          "number": 8,
+          "episodeCount": 22,
+          "done": 0
+        }
+      ]
+    },
+    {
+      "name": "seasonSegments: a done-count of zero leaves every segment empty",
+      "fn": "seasonSegments",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        0
+      ],
+      "expect": [
+        {
+          "number": 1,
+          "episodeCount": 22,
+          "done": 0
+        },
+        {
+          "number": 2,
+          "episodeCount": 24,
+          "done": 0
+        },
+        {
+          "number": 3,
+          "episodeCount": 24,
+          "done": 0
+        },
+        {
+          "number": 4,
+          "episodeCount": 16,
+          "done": 0
+        },
+        {
+          "number": 5,
+          "episodeCount": 24,
+          "done": 0
+        },
+        {
+          "number": 6,
+          "episodeCount": 21,
+          "done": 0
+        },
+        {
+          "number": 7,
+          "episodeCount": 23,
+          "done": 0
+        },
+        {
+          "number": 8,
+          "episodeCount": 22,
+          "done": 0
+        }
+      ]
+    },
+    {
+      "name": "seasonSegments: a done-count past the total fills every segment",
+      "fn": "seasonSegments",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        999
+      ],
+      "expect": [
+        {
+          "number": 1,
+          "episodeCount": 22,
+          "done": 22
+        },
+        {
+          "number": 2,
+          "episodeCount": 24,
+          "done": 24
+        },
+        {
+          "number": 3,
+          "episodeCount": 24,
+          "done": 24
+        },
+        {
+          "number": 4,
+          "episodeCount": 16,
+          "done": 16
+        },
+        {
+          "number": 5,
+          "episodeCount": 24,
+          "done": 24
+        },
+        {
+          "number": 6,
+          "episodeCount": 21,
+          "done": 21
+        },
+        {
+          "number": 7,
+          "episodeCount": 23,
+          "done": 23
+        },
+        {
+          "number": 8,
+          "episodeCount": 22,
+          "done": 22
+        }
+      ]
+    },
+    {
+      "name": "seasonSegments: an empty seasons list produces an empty result",
+      "fn": "seasonSegments",
+      "args": [
+        [],
+        10
+      ],
+      "expect": []
+    },
+    {
+      "name": "currentSeason finds the season the next episode falls in, and its number within that season",
+      "fn": "currentSeason",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        60
+      ],
+      "expect": {
+        "number": 3,
+        "nextEpisode": 15,
+        "episodeCount": 24
+      }
+    },
+    {
+      "name": "currentSeason: nothing done yet starts at season 1, episode 1",
+      "fn": "currentSeason",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        0
+      ],
+      "expect": {
+        "number": 1,
+        "nextEpisode": 1,
+        "episodeCount": 22
+      }
+    },
+    {
+      "name": "currentSeason: every season fully done returns null — nothing left to advance into",
+      "fn": "currentSeason",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        176
+      ],
+      "expect": null
+    },
+    {
+      "name": "currentSeason: an empty seasons list returns null",
+      "fn": "currentSeason",
+      "args": [
+        [],
+        10
+      ],
+      "expect": null
+    },
+    {
+      "name": "currentSeason at a season boundary moves to the next season",
+      "fn": "currentSeason",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        46
+      ],
+      "expect": {
+        "number": 3,
+        "nextEpisode": 1,
+        "episodeCount": 24
+      }
+    },
+    {
+      "name": "ordinalFor converts a season and within-season episode to a flat series ordinal",
+      "fn": "ordinalFor",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        3,
+        15
+      ],
+      "expect": 61
+    },
+    {
+      "name": "ordinalFor: season 1 episode 1 is ordinal 1",
+      "fn": "ordinalFor",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        1,
+        1
+      ],
+      "expect": 1
+    },
+    {
+      "name": "ordinalFor: the last episode of the last season is the series total",
+      "fn": "ordinalFor",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        8,
+        22
+      ],
+      "expect": 176
+    },
+    {
+      "name": "ordinalFor: an episode past that season length is out of range",
+      "fn": "ordinalFor",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        4,
+        17
+      ],
+      "expect": null
+    },
+    {
+      "name": "ordinalFor: an episode below 1 is out of range",
+      "fn": "ordinalFor",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        4,
+        0
+      ],
+      "expect": null
+    },
+    {
+      "name": "ordinalFor: a season the show does not have is out of range",
+      "fn": "ordinalFor",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        9,
+        1
+      ],
+      "expect": null
+    },
+    {
+      "name": "positionIn converts a flat series ordinal back to a season and within-season episode",
+      "fn": "positionIn",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        61
+      ],
+      "expect": {
+        "season": 3,
+        "episode": 15
+      }
+    },
+    {
+      "name": "positionIn round-trips every ordinal in the series: 1",
+      "fn": "positionIn",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        1
+      ],
+      "expect": {
+        "season": 1,
+        "episode": 1
+      }
+    },
+    {
+      "name": "positionIn round-trips every ordinal in the series: 22",
+      "fn": "positionIn",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        22
+      ],
+      "expect": {
+        "season": 1,
+        "episode": 22
+      }
+    },
+    {
+      "name": "positionIn round-trips every ordinal in the series: 23",
+      "fn": "positionIn",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        23
+      ],
+      "expect": {
+        "season": 2,
+        "episode": 1
+      }
+    },
+    {
+      "name": "positionIn round-trips every ordinal in the series: 46",
+      "fn": "positionIn",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        46
+      ],
+      "expect": {
+        "season": 2,
+        "episode": 24
+      }
+    },
+    {
+      "name": "positionIn round-trips every ordinal in the series: 47",
+      "fn": "positionIn",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        47
+      ],
+      "expect": {
+        "season": 3,
+        "episode": 1
+      }
+    },
+    {
+      "name": "positionIn round-trips every ordinal in the series: 70",
+      "fn": "positionIn",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        70
+      ],
+      "expect": {
+        "season": 3,
+        "episode": 24
+      }
+    },
+    {
+      "name": "positionIn round-trips every ordinal in the series: 71",
+      "fn": "positionIn",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        71
+      ],
+      "expect": {
+        "season": 4,
+        "episode": 1
+      }
+    },
+    {
+      "name": "positionIn round-trips every ordinal in the series: 86",
+      "fn": "positionIn",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        86
+      ],
+      "expect": {
+        "season": 4,
+        "episode": 16
+      }
+    },
+    {
+      "name": "positionIn round-trips every ordinal in the series: 87",
+      "fn": "positionIn",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        87
+      ],
+      "expect": {
+        "season": 5,
+        "episode": 1
+      }
+    },
+    {
+      "name": "positionIn round-trips every ordinal in the series: 110",
+      "fn": "positionIn",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        110
+      ],
+      "expect": {
+        "season": 5,
+        "episode": 24
+      }
+    },
+    {
+      "name": "positionIn round-trips every ordinal in the series: 111",
+      "fn": "positionIn",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        111
+      ],
+      "expect": {
+        "season": 6,
+        "episode": 1
+      }
+    },
+    {
+      "name": "positionIn round-trips every ordinal in the series: 131",
+      "fn": "positionIn",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        131
+      ],
+      "expect": {
+        "season": 6,
+        "episode": 21
+      }
+    },
+    {
+      "name": "positionIn round-trips every ordinal in the series: 132",
+      "fn": "positionIn",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        132
+      ],
+      "expect": {
+        "season": 7,
+        "episode": 1
+      }
+    },
+    {
+      "name": "positionIn round-trips every ordinal in the series: 154",
+      "fn": "positionIn",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        154
+      ],
+      "expect": {
+        "season": 7,
+        "episode": 23
+      }
+    },
+    {
+      "name": "positionIn round-trips every ordinal in the series: 155",
+      "fn": "positionIn",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        155
+      ],
+      "expect": {
+        "season": 8,
+        "episode": 1
+      }
+    },
+    {
+      "name": "positionIn round-trips every ordinal in the series: 176",
+      "fn": "positionIn",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        176
+      ],
+      "expect": {
+        "season": 8,
+        "episode": 22
+      }
+    },
+    {
+      "name": "positionIn: an ordinal past the series total has no position",
+      "fn": "positionIn",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        177
+      ],
+      "expect": null
+    },
+    {
+      "name": "positionIn: an ordinal below 1 has no position",
+      "fn": "positionIn",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        0
+      ],
+      "expect": null
+    }
+  ]
+}
