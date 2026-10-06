@@ -1,12 +1,41 @@
 # Track It — session handoff
 
-**Last updated:** 24 September 2026
+**Last updated:** 6 October 2026
 
 Where the project stands, what is unmerged, and what bit us — so the next
 session does not rediscover any of it. Newest section is at the top; older
 sections below are left as written, and may describe a branch layout
 (`main`, PRs) that predates the `android`/`web`/`gh-pages` pipeline
 (CLAUDE.md §6) — read them as history, not current state.
+
+## Ratings + expandable descriptions (2026-10-06)
+
+On branch `claude/practical-knuth-20yw3y` (the cloud session's designated
+branch, off `android` at `38149bf`; **not merged into `android`, not
+ported to `web`**). Decision record: **A26**. Next amendment is **A27**.
+
+- **Beli-style ratings.** `src/domain/rating.ts` (pure engine, scores,
+  similarity), `src/data/ratingRepo.ts`, `app/rate/[kind]/[id].tsx`,
+  `app/rankings.tsx`, `src/ui/rating.ts` (labels + the finish prompt).
+  Rankings are per category, always.
+- **Genres** on every catalogued track (migration 8, `genres_json`);
+  the backfill revisits each catalogued row once to fill them, paced as
+  before — expect one extra Metron/AniList lookup per such track on the
+  first launch after this lands.
+- **Migration 9** adds `rating`. Two migrations in one change: check the
+  `schema_version` jump (7 → 9) on a real device library before release.
+- **ExpandableText** (`src/ui/ExpandableText.tsx`) on the Add confirm
+  screen and detail screen.
+
+**Not verified on a device.** The cloud container had no emulator; the
+changes were checked with typecheck, the jest suite, and a successful
+`expo export --platform android` bundle. Before release, boot it and walk:
+finish a movie from Backlog → prompt → rate → result → Rankings; rate a
+second and third (watch the "Both by …" line); Re-rank from the detail
+screen; and open a long book blurb on the Add confirm screen.
+
+**Web port notes:** all of it ports as-is. `ExpandableText` falls back to
+a character-count estimate on react-native-web (no `onTextLayout`).
 
 ## v1.3.0 (2026-09-24)
 

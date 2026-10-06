@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Ratings, Beli-style.** Rate a finished track by saying whether you liked it, then picking which you preferred against other tracks of the same kind — movies only against movies, books only against books. Its 1–10 score comes from where it lands. The app pairs it with the most similar tracks it can (same author or director, same genre) for tough calls, and says why ("Both by Denis Villeneuve").
+- **Rankings screen** from the Done tab: your ranked list for each category, with scores.
+- **Rate prompts** when you finish something; finished rows show their score, or a Rate button.
+- **Genres** are now saved for every catalogued track (and filled in once for tracks you already have).
+
+### Fixed
+- **Long descriptions on the Add screen** can now be expanded with Show more before you add the track, instead of being cut off.
+
 ### Planned for v1.1.0 (Feedback & Undo)
 - **Added**: Floating action feedback notification (Snackbar/Toast) across Currently, Backlog, and Done screens.
 - **Added**: Instant Undo capability for advance, pause, and delete operations.
