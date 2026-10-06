@@ -16,13 +16,13 @@ import { syncSeriesUnit } from '@/data/syncSeriesUnit';
 import { activityLine, cleanDescription, creatorLine, formatDate, formatRelative } from '@/domain/formatters';
 import { completionMessage } from '@/ui/completionMessage';
 import { CoverImage } from '@/ui/CoverImage';
+import { ExpandableText } from '@/ui/ExpandableText';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { ProgressEditor } from '@/ui/ProgressEditor';
 import { canEditPosition, KIND_LABEL, positionLabel, seasonPositionLabel } from '@/ui/TrackRow';
 import { elevation, font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
 
 const READ = new Set(['book', 'comic', 'manga']);
-const LONG_DESCRIPTION = 280;
 
 /**
  * A22: one track, in full — modelled on Longbox's comic detail screen: cover,
@@ -38,7 +38,6 @@ export default function TrackDetailScreen() {
   const styles = useMemo(() => createStyles(c), [c]);
   const [detail, setDetail] = useState<TrackDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState<TrackSummary | null>(null);
   const trackKind = kind === 'series' ? 'series' : 'entry';
 
@@ -196,14 +195,7 @@ export default function TrackDetailScreen() {
         {description && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>About</Text>
-            <Text style={styles.description} numberOfLines={expanded ? undefined : 6}>
-              {description}
-            </Text>
-            {description.length > LONG_DESCRIPTION && (
-              <Pressable onPress={() => setExpanded((v) => !v)} accessibilityRole="button" style={styles.moreButton}>
-                <Text style={styles.moreText}>{expanded ? 'Show less' : 'Show more'}</Text>
-              </Pressable>
-            )}
+            <ExpandableText text={description} style={styles.description} />
           </View>
         )}
 
@@ -284,8 +276,6 @@ function createStyles(c: Palette) {
     section: { gap: 6 },
     sectionTitle: { ...font.titleMedium, color: c.onSurface, fontWeight: '700' },
     description: { ...font.bodyLarge, color: c.onSurface, lineHeight: 24 },
-    moreButton: { alignSelf: 'flex-start', paddingVertical: 4 },
-    moreText: { ...font.labelLarge, color: c.primary, fontWeight: '700' },
     actions: { gap: 10, marginTop: 8 },
     primary: { height: 48, borderRadius: radius.full, backgroundColor: c.primary, alignItems: 'center', justifyContent: 'center', ...elevation.level1 },
     primaryText: { ...font.labelLarge, color: c.onPrimary, fontWeight: '700' },

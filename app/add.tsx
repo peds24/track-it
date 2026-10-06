@@ -14,6 +14,7 @@ import { unitLabelFor } from '@/providers/manual';
 import { providerFor } from '@/providers/registry';
 import type { MatchPreview, SearchResult, SeriesDraft } from '@/providers/types';
 import { CoverImage } from '@/ui/CoverImage';
+import { ExpandableText } from '@/ui/ExpandableText';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { SearchResultRow } from '@/ui/SearchResultRow';
 import { elevation, font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
@@ -591,9 +592,9 @@ export default function AddTrackScreen() {
           <Text style={styles.metaLine}>{matchSummary.metaLine.join(' · ')}</Text>
         )}
         {blurb && (
-          <Text style={styles.blurb} numberOfLines={6}>
-            {blurb}
-          </Text>
+          <View style={styles.blurb}>
+            <ExpandableText text={blurb} style={styles.blurbText} />
+          </View>
         )}
         {matchSummary && (
           <View style={styles.buttonGroup}>
@@ -821,10 +822,12 @@ function createStyles(c: Palette) {
       marginBottom: 14,
     },
     blurb: {
-      ...font.bodyLarge,
-      color: c.onSurface,
       marginHorizontal: layout.inset,
       marginBottom: 24,
+    },
+    blurbText: {
+      ...font.bodyLarge,
+      color: c.onSurface,
       lineHeight: 22,
     },
     confirmScroll: { paddingBottom: space.xl },
