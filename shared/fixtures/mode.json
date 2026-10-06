@@ -1,0 +1,137 @@
+{
+  "module": "mode",
+  "generatedBy": "npm run fixtures:record",
+  "timezone": "UTC",
+  "cases": [
+    {
+      "name": "modeFor: episode",
+      "fn": "modeFor",
+      "args": [
+        "episode"
+      ],
+      "expect": "watch"
+    },
+    {
+      "name": "modeFor: movie",
+      "fn": "modeFor",
+      "args": [
+        "movie"
+      ],
+      "expect": "watch"
+    },
+    {
+      "name": "modeFor: book",
+      "fn": "modeFor",
+      "args": [
+        "book"
+      ],
+      "expect": "read"
+    },
+    {
+      "name": "modeFor: issue",
+      "fn": "modeFor",
+      "args": [
+        "issue"
+      ],
+      "expect": "read"
+    },
+    {
+      "name": "modeFor: volume",
+      "fn": "modeFor",
+      "args": [
+        "volume"
+      ],
+      "expect": "read"
+    },
+    {
+      "name": "a standalone watch-mode entry cannot be in_progress",
+      "fn": "isStatusValid",
+      "args": [
+        "movie",
+        "in_progress",
+        false
+      ],
+      "expect": false
+    },
+    {
+      "name": "a standalone watch-mode entry may be unstarted or done",
+      "fn": "isStatusValid",
+      "args": [
+        "movie",
+        "unstarted",
+        false
+      ],
+      "expect": true
+    },
+    {
+      "name": "a standalone watch-mode entry may be unstarted or done (2)",
+      "fn": "isStatusValid",
+      "args": [
+        "movie",
+        "done",
+        false
+      ],
+      "expect": true
+    },
+    {
+      "name": "a watch-mode series child may be in_progress",
+      "fn": "isStatusValid",
+      "args": [
+        "episode",
+        "in_progress",
+        true
+      ],
+      "expect": true
+    },
+    {
+      "name": "a watch-mode series child may also be unstarted or done",
+      "fn": "isStatusValid",
+      "args": [
+        "episode",
+        "unstarted",
+        true
+      ],
+      "expect": true
+    },
+    {
+      "name": "a watch-mode series child may also be unstarted or done (2)",
+      "fn": "isStatusValid",
+      "args": [
+        "episode",
+        "done",
+        true
+      ],
+      "expect": true
+    },
+    {
+      "name": "read-mode entries may hold any status, series child or not",
+      "fn": "isStatusValid",
+      "args": [
+        "book",
+        "in_progress",
+        false
+      ],
+      "expect": true
+    },
+    {
+      "name": "read-mode entries may hold any status, series child or not (2)",
+      "fn": "isStatusValid",
+      "args": [
+        "volume",
+        "unstarted",
+        true
+      ],
+      "expect": true
+    },
+    {
+      "name": "read-mode entries may hold any status, series child or not (3)",
+      "fn": "isStatusValid",
+      "args": [
+        "issue",
+        "done",
+        true
+      ],
+      "expect": true
+    }
+  ]
+}

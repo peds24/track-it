@@ -1,3 +1,16 @@
+import { advance, completeUnits, ongoingPlaceholder, setPosition } from '@/domain/advance';
+import { genresFrom, withGenres } from '@/domain/genres';
+import { isStatusValid, modeFor } from '@/domain/mode';
+import { parseSeriesTitle, stripBareTrailingNumber } from '@/domain/seriesTitle';
+import { nextEntry, progressFor, shelfForEntry, shelfForSeries } from '@/domain/shelf';
+import {
+  assertEntryInvariants,
+  assertIsoTimestamp,
+  assertMediaTypeMatchesParent,
+  assertOrdinal,
+  isIsoTimestamp,
+  isStandaloneMediaType,
+} from '@/domain/validate';
 import { announcementFor } from '@/domain/whatsNew';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -5,6 +18,26 @@ type AnyFn = (...args: any[]) => unknown;
 
 /** Every function a fixture may name. Swift's runner (I3) mirrors this table. */
 export const registry: Record<string, AnyFn> = {
+  advance,
+  setPosition,
+  ongoingPlaceholder,
+  completeUnits,
+  shelfForEntry,
+  shelfForSeries,
+  progressFor,
+  nextEntry,
+  modeFor,
+  isStatusValid,
+  isStandaloneMediaType,
+  isIsoTimestamp,
+  assertIsoTimestamp,
+  assertOrdinal,
+  assertMediaTypeMatchesParent,
+  assertEntryInvariants,
+  parseSeriesTitle,
+  stripBareTrailingNumber,
+  genresFrom,
+  withGenres,
   announcementFor,
 };
 

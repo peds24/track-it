@@ -7,10 +7,22 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { normalize, registry } from '../registry';
 import type { FixtureCase } from '../types';
+import { cases as advance } from '../cases/advance';
+import { cases as genres } from '../cases/genres';
+import { cases as mode } from '../cases/mode';
+import { cases as seriesTitle } from '../cases/seriesTitle';
+import { cases as shelf } from '../cases/shelf';
+import { cases as validate } from '../cases/validate';
 import { cases as whatsNew } from '../cases/whatsNew';
 
 /** Module → its authored cases and the src/domain tests they extract from. */
 const MODULES: Record<string, { cases: FixtureCase[]; testFiles: string[] }> = {
+  advance: { cases: advance, testFiles: ['advance.test.ts', 'complete.test.ts'] },
+  shelf: { cases: shelf, testFiles: ['shelf.test.ts'] },
+  mode: { cases: mode, testFiles: ['mode.test.ts'] },
+  validate: { cases: validate, testFiles: ['validate.test.ts'] },
+  seriesTitle: { cases: seriesTitle, testFiles: ['seriesTitle.test.ts'] },
+  genres: { cases: genres, testFiles: ['genres.test.ts'] },
   whatsNew: { cases: whatsNew, testFiles: ['whatsNew.test.ts'] },
 };
 

@@ -1,0 +1,2573 @@
+{
+  "module": "advance",
+  "generatedBy": "npm run fixtures:record",
+  "timezone": "UTC",
+  "cases": [
+    {
+      "name": "a read-mode entry advances unstarted -> in_progress and stamps startedAt",
+      "fn": "advance",
+      "args": [
+        {
+          "id": "e1",
+          "seriesId": null,
+          "title": "Test",
+          "ordinal": null,
+          "mediaType": "book",
+          "status": "unstarted",
+          "startedAt": null,
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        "2026-08-12T10:00:00.000Z"
+      ],
+      "expect": {
+        "id": "e1",
+        "seriesId": null,
+        "title": "Test",
+        "ordinal": null,
+        "mediaType": "book",
+        "status": "in_progress",
+        "startedAt": "2026-08-12T10:00:00.000Z",
+        "finishedAt": null,
+        "createdAt": "2026-08-12T10:00:00.000Z",
+        "paused": false,
+        "externalSource": null,
+        "externalId": null
+      }
+    },
+    {
+      "name": "a read-mode entry advances in_progress -> done and stamps finishedAt",
+      "fn": "advance",
+      "args": [
+        {
+          "id": "e1",
+          "seriesId": null,
+          "title": "Test",
+          "ordinal": null,
+          "mediaType": "book",
+          "status": "in_progress",
+          "startedAt": "2026-08-12T10:00:00.000Z",
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        "2026-08-13T10:00:00.000Z"
+      ],
+      "expect": {
+        "id": "e1",
+        "seriesId": null,
+        "title": "Test",
+        "ordinal": null,
+        "mediaType": "book",
+        "status": "done",
+        "startedAt": "2026-08-12T10:00:00.000Z",
+        "finishedAt": "2026-08-13T10:00:00.000Z",
+        "createdAt": "2026-08-12T10:00:00.000Z",
+        "paused": false,
+        "externalSource": null,
+        "externalId": null
+      }
+    },
+    {
+      "name": "a standalone watch-mode entry (a movie) skips in_progress entirely",
+      "fn": "advance",
+      "args": [
+        {
+          "id": "e1",
+          "seriesId": null,
+          "title": "Test",
+          "ordinal": null,
+          "mediaType": "movie",
+          "status": "unstarted",
+          "startedAt": null,
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        "2026-08-12T10:00:00.000Z"
+      ],
+      "expect": {
+        "id": "e1",
+        "seriesId": null,
+        "title": "Test",
+        "ordinal": null,
+        "mediaType": "movie",
+        "status": "done",
+        "startedAt": "2026-08-12T10:00:00.000Z",
+        "finishedAt": "2026-08-12T10:00:00.000Z",
+        "createdAt": "2026-08-12T10:00:00.000Z",
+        "paused": false,
+        "externalSource": null,
+        "externalId": null
+      }
+    },
+    {
+      "name": "a watch-mode series child (an episode) advances unstarted -> in_progress and stamps startedAt",
+      "fn": "advance",
+      "args": [
+        {
+          "id": "e1",
+          "seriesId": "s1",
+          "title": "Test",
+          "ordinal": null,
+          "mediaType": "episode",
+          "status": "unstarted",
+          "startedAt": null,
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        "2026-08-12T10:00:00.000Z"
+      ],
+      "expect": {
+        "id": "e1",
+        "seriesId": "s1",
+        "title": "Test",
+        "ordinal": null,
+        "mediaType": "episode",
+        "status": "in_progress",
+        "startedAt": "2026-08-12T10:00:00.000Z",
+        "finishedAt": null,
+        "createdAt": "2026-08-12T10:00:00.000Z",
+        "paused": false,
+        "externalSource": null,
+        "externalId": null
+      }
+    },
+    {
+      "name": "a watch-mode series child (an episode) advances in_progress -> done and stamps finishedAt",
+      "fn": "advance",
+      "args": [
+        {
+          "id": "e1",
+          "seriesId": "s1",
+          "title": "Test",
+          "ordinal": null,
+          "mediaType": "episode",
+          "status": "in_progress",
+          "startedAt": "2026-08-12T10:00:00.000Z",
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        "2026-08-13T10:00:00.000Z"
+      ],
+      "expect": {
+        "id": "e1",
+        "seriesId": "s1",
+        "title": "Test",
+        "ordinal": null,
+        "mediaType": "episode",
+        "status": "done",
+        "startedAt": "2026-08-12T10:00:00.000Z",
+        "finishedAt": "2026-08-13T10:00:00.000Z",
+        "createdAt": "2026-08-12T10:00:00.000Z",
+        "paused": false,
+        "externalSource": null,
+        "externalId": null
+      }
+    },
+    {
+      "name": "advancing a finished entry throws",
+      "fn": "advance",
+      "args": [
+        {
+          "id": "e1",
+          "seriesId": null,
+          "title": "Test",
+          "ordinal": null,
+          "mediaType": "book",
+          "status": "done",
+          "startedAt": null,
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        "2026-08-12T10:00:00.000Z"
+      ],
+      "throws": "Entry e1 is already done"
+    },
+    {
+      "name": "advance does not mutate its input (the returned entry)",
+      "fn": "advance",
+      "args": [
+        {
+          "id": "e1",
+          "seriesId": null,
+          "title": "Test",
+          "ordinal": null,
+          "mediaType": "book",
+          "status": "unstarted",
+          "startedAt": null,
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        "2026-08-12T10:00:00.000Z"
+      ],
+      "expect": {
+        "id": "e1",
+        "seriesId": null,
+        "title": "Test",
+        "ordinal": null,
+        "mediaType": "book",
+        "status": "in_progress",
+        "startedAt": "2026-08-12T10:00:00.000Z",
+        "finishedAt": null,
+        "createdAt": "2026-08-12T10:00:00.000Z",
+        "paused": false,
+        "externalSource": null,
+        "externalId": null
+      }
+    },
+    {
+      "name": "a comic collection (standalone) advances like a book",
+      "fn": "advance",
+      "args": [
+        {
+          "id": "e1",
+          "seriesId": null,
+          "title": "Test",
+          "ordinal": null,
+          "mediaType": "comic",
+          "status": "unstarted",
+          "startedAt": null,
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        "2026-08-12T10:00:00.000Z"
+      ],
+      "expect": {
+        "id": "e1",
+        "seriesId": null,
+        "title": "Test",
+        "ordinal": null,
+        "mediaType": "comic",
+        "status": "in_progress",
+        "startedAt": "2026-08-12T10:00:00.000Z",
+        "finishedAt": null,
+        "createdAt": "2026-08-12T10:00:00.000Z",
+        "paused": false,
+        "externalSource": null,
+        "externalId": null
+      }
+    },
+    {
+      "name": "setPosition marks every unit before the target done and the target in progress",
+      "fn": "setPosition",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "Episode 2",
+            "ordinal": 2,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Episode 3",
+            "ordinal": 3,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e4",
+            "seriesId": "s1",
+            "title": "Episode 4",
+            "ordinal": 4,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e5",
+            "seriesId": "s1",
+            "title": "Episode 5",
+            "ordinal": 5,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e6",
+            "seriesId": "s1",
+            "title": "Episode 6",
+            "ordinal": 6,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e7",
+            "seriesId": "s1",
+            "title": "Episode 7",
+            "ordinal": 7,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e8",
+            "seriesId": "s1",
+            "title": "Episode 8",
+            "ordinal": 8,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e9",
+            "seriesId": "s1",
+            "title": "Episode 9",
+            "ordinal": 9,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        5,
+        "2026-08-12T10:00:00.000Z"
+      ],
+      "expect": [
+        {
+          "id": "e1",
+          "seriesId": "s1",
+          "title": "Episode 1",
+          "ordinal": 1,
+          "mediaType": "episode",
+          "status": "done",
+          "startedAt": "2026-08-12T10:00:00.000Z",
+          "finishedAt": "2026-08-12T10:00:00.000Z",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        {
+          "id": "e2",
+          "seriesId": "s1",
+          "title": "Episode 2",
+          "ordinal": 2,
+          "mediaType": "episode",
+          "status": "done",
+          "startedAt": "2026-08-12T10:00:00.000Z",
+          "finishedAt": "2026-08-12T10:00:00.000Z",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        {
+          "id": "e3",
+          "seriesId": "s1",
+          "title": "Episode 3",
+          "ordinal": 3,
+          "mediaType": "episode",
+          "status": "done",
+          "startedAt": "2026-08-12T10:00:00.000Z",
+          "finishedAt": "2026-08-12T10:00:00.000Z",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        {
+          "id": "e4",
+          "seriesId": "s1",
+          "title": "Episode 4",
+          "ordinal": 4,
+          "mediaType": "episode",
+          "status": "done",
+          "startedAt": "2026-08-12T10:00:00.000Z",
+          "finishedAt": "2026-08-12T10:00:00.000Z",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        {
+          "id": "e5",
+          "seriesId": "s1",
+          "title": "Episode 5",
+          "ordinal": 5,
+          "mediaType": "episode",
+          "status": "in_progress",
+          "startedAt": "2026-08-12T10:00:00.000Z",
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        }
+      ]
+    },
+    {
+      "name": "setPosition to 1 leaves nothing done",
+      "fn": "setPosition",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "Episode 2",
+            "ordinal": 2,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Episode 3",
+            "ordinal": 3,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e4",
+            "seriesId": "s1",
+            "title": "Episode 4",
+            "ordinal": 4,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e5",
+            "seriesId": "s1",
+            "title": "Episode 5",
+            "ordinal": 5,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e6",
+            "seriesId": "s1",
+            "title": "Episode 6",
+            "ordinal": 6,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e7",
+            "seriesId": "s1",
+            "title": "Episode 7",
+            "ordinal": 7,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e8",
+            "seriesId": "s1",
+            "title": "Episode 8",
+            "ordinal": 8,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e9",
+            "seriesId": "s1",
+            "title": "Episode 9",
+            "ordinal": 9,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        1,
+        "2026-08-12T10:00:00.000Z"
+      ],
+      "expect": [
+        {
+          "id": "e1",
+          "seriesId": "s1",
+          "title": "Episode 1",
+          "ordinal": 1,
+          "mediaType": "episode",
+          "status": "in_progress",
+          "startedAt": "2026-08-12T10:00:00.000Z",
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        }
+      ]
+    },
+    {
+      "name": "setPosition stamps the units it newly finishes",
+      "fn": "setPosition",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "Episode 2",
+            "ordinal": 2,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Episode 3",
+            "ordinal": 3,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e4",
+            "seriesId": "s1",
+            "title": "Episode 4",
+            "ordinal": 4,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e5",
+            "seriesId": "s1",
+            "title": "Episode 5",
+            "ordinal": 5,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e6",
+            "seriesId": "s1",
+            "title": "Episode 6",
+            "ordinal": 6,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e7",
+            "seriesId": "s1",
+            "title": "Episode 7",
+            "ordinal": 7,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e8",
+            "seriesId": "s1",
+            "title": "Episode 8",
+            "ordinal": 8,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e9",
+            "seriesId": "s1",
+            "title": "Episode 9",
+            "ordinal": 9,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        3,
+        "2026-08-12T10:00:00.000Z"
+      ],
+      "expect": [
+        {
+          "id": "e1",
+          "seriesId": "s1",
+          "title": "Episode 1",
+          "ordinal": 1,
+          "mediaType": "episode",
+          "status": "done",
+          "startedAt": "2026-08-12T10:00:00.000Z",
+          "finishedAt": "2026-08-12T10:00:00.000Z",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        {
+          "id": "e2",
+          "seriesId": "s1",
+          "title": "Episode 2",
+          "ordinal": 2,
+          "mediaType": "episode",
+          "status": "done",
+          "startedAt": "2026-08-12T10:00:00.000Z",
+          "finishedAt": "2026-08-12T10:00:00.000Z",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        {
+          "id": "e3",
+          "seriesId": "s1",
+          "title": "Episode 3",
+          "ordinal": 3,
+          "mediaType": "episode",
+          "status": "in_progress",
+          "startedAt": "2026-08-12T10:00:00.000Z",
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        }
+      ]
+    },
+    {
+      "name": "setPosition keeps the original timestamps of units that were already done",
+      "fn": "setPosition",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": "2026-08-12T10:00:00.000Z",
+            "finishedAt": "2026-08-12T10:00:00.000Z",
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "Episode 2",
+            "ordinal": 2,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": "2026-08-12T10:00:00.000Z",
+            "finishedAt": "2026-08-12T10:00:00.000Z",
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Episode 3",
+            "ordinal": 3,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": "2026-08-12T10:00:00.000Z",
+            "finishedAt": "2026-08-12T10:00:00.000Z",
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e4",
+            "seriesId": "s1",
+            "title": "Episode 4",
+            "ordinal": 4,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e5",
+            "seriesId": "s1",
+            "title": "Episode 5",
+            "ordinal": 5,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e6",
+            "seriesId": "s1",
+            "title": "Episode 6",
+            "ordinal": 6,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e7",
+            "seriesId": "s1",
+            "title": "Episode 7",
+            "ordinal": 7,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e8",
+            "seriesId": "s1",
+            "title": "Episode 8",
+            "ordinal": 8,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e9",
+            "seriesId": "s1",
+            "title": "Episode 9",
+            "ordinal": 9,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        6,
+        "2026-08-14T10:00:00.000Z"
+      ],
+      "expect": [
+        {
+          "id": "e4",
+          "seriesId": "s1",
+          "title": "Episode 4",
+          "ordinal": 4,
+          "mediaType": "episode",
+          "status": "done",
+          "startedAt": "2026-08-14T10:00:00.000Z",
+          "finishedAt": "2026-08-14T10:00:00.000Z",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        {
+          "id": "e5",
+          "seriesId": "s1",
+          "title": "Episode 5",
+          "ordinal": 5,
+          "mediaType": "episode",
+          "status": "done",
+          "startedAt": "2026-08-14T10:00:00.000Z",
+          "finishedAt": "2026-08-14T10:00:00.000Z",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        {
+          "id": "e6",
+          "seriesId": "s1",
+          "title": "Episode 6",
+          "ordinal": 6,
+          "mediaType": "episode",
+          "status": "in_progress",
+          "startedAt": "2026-08-14T10:00:00.000Z",
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        }
+      ]
+    },
+    {
+      "name": "setPosition backwards clears the timestamps of units it un-finishes",
+      "fn": "setPosition",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": "2026-08-12T10:00:00.000Z",
+            "finishedAt": "2026-08-12T10:00:00.000Z",
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "Episode 2",
+            "ordinal": 2,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": "2026-08-12T10:00:00.000Z",
+            "finishedAt": "2026-08-12T10:00:00.000Z",
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Episode 3",
+            "ordinal": 3,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": "2026-08-12T10:00:00.000Z",
+            "finishedAt": "2026-08-12T10:00:00.000Z",
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e4",
+            "seriesId": "s1",
+            "title": "Episode 4",
+            "ordinal": 4,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": "2026-08-12T10:00:00.000Z",
+            "finishedAt": "2026-08-12T10:00:00.000Z",
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e5",
+            "seriesId": "s1",
+            "title": "Episode 5",
+            "ordinal": 5,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": "2026-08-12T10:00:00.000Z",
+            "finishedAt": "2026-08-12T10:00:00.000Z",
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e6",
+            "seriesId": "s1",
+            "title": "Episode 6",
+            "ordinal": 6,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": "2026-08-12T10:00:00.000Z",
+            "finishedAt": "2026-08-12T10:00:00.000Z",
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e7",
+            "seriesId": "s1",
+            "title": "Episode 7",
+            "ordinal": 7,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e8",
+            "seriesId": "s1",
+            "title": "Episode 8",
+            "ordinal": 8,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e9",
+            "seriesId": "s1",
+            "title": "Episode 9",
+            "ordinal": 9,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        3,
+        "2026-08-14T10:00:00.000Z"
+      ],
+      "expect": [
+        {
+          "id": "e3",
+          "seriesId": "s1",
+          "title": "Episode 3",
+          "ordinal": 3,
+          "mediaType": "episode",
+          "status": "in_progress",
+          "startedAt": "2026-08-12T10:00:00.000Z",
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        {
+          "id": "e4",
+          "seriesId": "s1",
+          "title": "Episode 4",
+          "ordinal": 4,
+          "mediaType": "episode",
+          "status": "unstarted",
+          "startedAt": null,
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        {
+          "id": "e5",
+          "seriesId": "s1",
+          "title": "Episode 5",
+          "ordinal": 5,
+          "mediaType": "episode",
+          "status": "unstarted",
+          "startedAt": null,
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        {
+          "id": "e6",
+          "seriesId": "s1",
+          "title": "Episode 6",
+          "ordinal": 6,
+          "mediaType": "episode",
+          "status": "unstarted",
+          "startedAt": null,
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        }
+      ]
+    },
+    {
+      "name": "setPosition returns only the units it actually changed",
+      "fn": "setPosition",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": "2026-08-12T10:00:00.000Z",
+            "finishedAt": "2026-08-12T10:00:00.000Z",
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "Episode 2",
+            "ordinal": 2,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": "2026-08-12T10:00:00.000Z",
+            "finishedAt": "2026-08-12T10:00:00.000Z",
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Episode 3",
+            "ordinal": 3,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": "2026-08-12T10:00:00.000Z",
+            "finishedAt": "2026-08-12T10:00:00.000Z",
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e4",
+            "seriesId": "s1",
+            "title": "Episode 4",
+            "ordinal": 4,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": "2026-08-12T10:00:00.000Z",
+            "finishedAt": "2026-08-12T10:00:00.000Z",
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e5",
+            "seriesId": "s1",
+            "title": "Episode 5",
+            "ordinal": 5,
+            "mediaType": "episode",
+            "status": "in_progress",
+            "startedAt": "2026-08-12T10:00:00.000Z",
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e6",
+            "seriesId": "s1",
+            "title": "Episode 6",
+            "ordinal": 6,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e7",
+            "seriesId": "s1",
+            "title": "Episode 7",
+            "ordinal": 7,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e8",
+            "seriesId": "s1",
+            "title": "Episode 8",
+            "ordinal": 8,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e9",
+            "seriesId": "s1",
+            "title": "Episode 9",
+            "ordinal": 9,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        5,
+        "2026-08-14T10:00:00.000Z"
+      ],
+      "expect": []
+    },
+    {
+      "name": "setPosition orders by ordinal, not by the order the rows arrive in",
+      "fn": "setPosition",
+      "args": [
+        [
+          {
+            "id": "e9",
+            "seriesId": "s1",
+            "title": "Episode 9",
+            "ordinal": 9,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e8",
+            "seriesId": "s1",
+            "title": "Episode 8",
+            "ordinal": 8,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e7",
+            "seriesId": "s1",
+            "title": "Episode 7",
+            "ordinal": 7,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e6",
+            "seriesId": "s1",
+            "title": "Episode 6",
+            "ordinal": 6,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e5",
+            "seriesId": "s1",
+            "title": "Episode 5",
+            "ordinal": 5,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e4",
+            "seriesId": "s1",
+            "title": "Episode 4",
+            "ordinal": 4,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Episode 3",
+            "ordinal": 3,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "Episode 2",
+            "ordinal": 2,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        5,
+        "2026-08-12T10:00:00.000Z"
+      ],
+      "expect": [
+        {
+          "id": "e1",
+          "seriesId": "s1",
+          "title": "Episode 1",
+          "ordinal": 1,
+          "mediaType": "episode",
+          "status": "done",
+          "startedAt": "2026-08-12T10:00:00.000Z",
+          "finishedAt": "2026-08-12T10:00:00.000Z",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        {
+          "id": "e2",
+          "seriesId": "s1",
+          "title": "Episode 2",
+          "ordinal": 2,
+          "mediaType": "episode",
+          "status": "done",
+          "startedAt": "2026-08-12T10:00:00.000Z",
+          "finishedAt": "2026-08-12T10:00:00.000Z",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        {
+          "id": "e3",
+          "seriesId": "s1",
+          "title": "Episode 3",
+          "ordinal": 3,
+          "mediaType": "episode",
+          "status": "done",
+          "startedAt": "2026-08-12T10:00:00.000Z",
+          "finishedAt": "2026-08-12T10:00:00.000Z",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        {
+          "id": "e4",
+          "seriesId": "s1",
+          "title": "Episode 4",
+          "ordinal": 4,
+          "mediaType": "episode",
+          "status": "done",
+          "startedAt": "2026-08-12T10:00:00.000Z",
+          "finishedAt": "2026-08-12T10:00:00.000Z",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        },
+        {
+          "id": "e5",
+          "seriesId": "s1",
+          "title": "Episode 5",
+          "ordinal": 5,
+          "mediaType": "episode",
+          "status": "in_progress",
+          "startedAt": "2026-08-12T10:00:00.000Z",
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        }
+      ]
+    },
+    {
+      "name": "setPosition rejects a target the series does not have",
+      "fn": "setPosition",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "Episode 2",
+            "ordinal": 2,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Episode 3",
+            "ordinal": 3,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e4",
+            "seriesId": "s1",
+            "title": "Episode 4",
+            "ordinal": 4,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e5",
+            "seriesId": "s1",
+            "title": "Episode 5",
+            "ordinal": 5,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e6",
+            "seriesId": "s1",
+            "title": "Episode 6",
+            "ordinal": 6,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e7",
+            "seriesId": "s1",
+            "title": "Episode 7",
+            "ordinal": 7,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e8",
+            "seriesId": "s1",
+            "title": "Episode 8",
+            "ordinal": 8,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e9",
+            "seriesId": "s1",
+            "title": "Episode 9",
+            "ordinal": 9,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        10,
+        "2026-08-12T10:00:00.000Z"
+      ],
+      "throws": "Position 10 is out of range for a 9-unit series"
+    },
+    {
+      "name": "setPosition rejects a target the series does not have (2)",
+      "fn": "setPosition",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "Episode 2",
+            "ordinal": 2,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Episode 3",
+            "ordinal": 3,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e4",
+            "seriesId": "s1",
+            "title": "Episode 4",
+            "ordinal": 4,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e5",
+            "seriesId": "s1",
+            "title": "Episode 5",
+            "ordinal": 5,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e6",
+            "seriesId": "s1",
+            "title": "Episode 6",
+            "ordinal": 6,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e7",
+            "seriesId": "s1",
+            "title": "Episode 7",
+            "ordinal": 7,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e8",
+            "seriesId": "s1",
+            "title": "Episode 8",
+            "ordinal": 8,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e9",
+            "seriesId": "s1",
+            "title": "Episode 9",
+            "ordinal": 9,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        0,
+        "2026-08-12T10:00:00.000Z"
+      ],
+      "throws": "Position 0 is out of range for a 9-unit series"
+    },
+    {
+      "name": "every unfinished unit becomes done at now; finished units are left alone",
+      "fn": "completeUnits",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-02T12:00:00.000Z",
+            "finishedAt": "2026-09-03T12:00:00.000Z",
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "mediaType": "issue",
+            "status": "in_progress",
+            "startedAt": "2026-09-04T12:00:00.000Z",
+            "finishedAt": null,
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "mediaType": "issue",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        false,
+        "2026-09-22T12:00:00.000Z"
+      ],
+      "expect": {
+        "updated": [
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-04T12:00:00.000Z",
+            "finishedAt": "2026-09-22T12:00:00.000Z",
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-22T12:00:00.000Z",
+            "finishedAt": "2026-09-22T12:00:00.000Z",
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        "removedIds": []
+      }
+    },
+    {
+      "name": "a standalone entry completes as one unit",
+      "fn": "completeUnits",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": null,
+            "title": "Dune",
+            "ordinal": null,
+            "mediaType": "book",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        false,
+        "2026-09-22T12:00:00.000Z"
+      ],
+      "expect": {
+        "updated": [
+          {
+            "id": "e1",
+            "seriesId": null,
+            "title": "Dune",
+            "ordinal": null,
+            "mediaType": "book",
+            "status": "done",
+            "startedAt": "2026-09-22T12:00:00.000Z",
+            "finishedAt": "2026-09-22T12:00:00.000Z",
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        "removedIds": []
+      }
+    },
+    {
+      "name": "an ongoing series: drops the auto-appended placeholder created the instant its predecessor finished",
+      "fn": "completeUnits",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-05T12:00:00.000Z",
+            "finishedAt": "2026-09-06T12:00:00.000Z",
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-06T12:00:00.000Z",
+            "finishedAt": "2026-09-10T12:00:00.000Z",
+            "createdAt": "2026-09-06T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "mediaType": "issue",
+            "status": "in_progress",
+            "startedAt": "2026-09-10T12:00:00.000Z",
+            "finishedAt": null,
+            "createdAt": "2026-09-10T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        true,
+        "2026-09-22T12:00:00.000Z"
+      ],
+      "expect": {
+        "updated": [],
+        "removedIds": [
+          "e3"
+        ]
+      }
+    },
+    {
+      "name": "an ongoing series: keeps a trailing unit that was not created at its predecessor finish",
+      "fn": "completeUnits",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-05T12:00:00.000Z",
+            "finishedAt": "2026-09-06T12:00:00.000Z",
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-06T12:00:00.000Z",
+            "finishedAt": "2026-09-10T12:00:00.000Z",
+            "createdAt": "2026-09-06T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "mediaType": "issue",
+            "status": "in_progress",
+            "startedAt": "2026-09-10T12:00:00.000Z",
+            "finishedAt": null,
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        true,
+        "2026-09-22T12:00:00.000Z"
+      ],
+      "expect": {
+        "updated": [
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-10T12:00:00.000Z",
+            "finishedAt": "2026-09-22T12:00:00.000Z",
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        "removedIds": []
+      }
+    },
+    {
+      "name": "an ongoing series: a lone bootstrap unit is completed, never removed",
+      "fn": "completeUnits",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "mediaType": "issue",
+            "status": "in_progress",
+            "startedAt": "2026-09-05T12:00:00.000Z",
+            "finishedAt": null,
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        true,
+        "2026-09-22T12:00:00.000Z"
+      ],
+      "expect": {
+        "updated": [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-05T12:00:00.000Z",
+            "finishedAt": "2026-09-22T12:00:00.000Z",
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        "removedIds": []
+      }
+    },
+    {
+      "name": "a finite series never has its last unit removed, even with matching stamps",
+      "fn": "completeUnits",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-05T12:00:00.000Z",
+            "finishedAt": "2026-09-06T12:00:00.000Z",
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-06T12:00:00.000Z",
+            "finishedAt": "2026-09-10T12:00:00.000Z",
+            "createdAt": "2026-09-06T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "mediaType": "issue",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-09-10T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        false,
+        "2026-09-22T12:00:00.000Z"
+      ],
+      "expect": {
+        "updated": [
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-22T12:00:00.000Z",
+            "finishedAt": "2026-09-22T12:00:00.000Z",
+            "createdAt": "2026-09-10T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        "removedIds": []
+      }
+    },
+    {
+      "name": "sorts children by ordinal before processing",
+      "fn": "completeUnits",
+      "args": [
+        [
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "mediaType": "issue",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-02T12:00:00.000Z",
+            "finishedAt": "2026-09-03T12:00:00.000Z",
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "mediaType": "issue",
+            "status": "in_progress",
+            "startedAt": "2026-09-04T12:00:00.000Z",
+            "finishedAt": null,
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        false,
+        "2026-09-22T12:00:00.000Z"
+      ],
+      "expect": {
+        "updated": [
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-04T12:00:00.000Z",
+            "finishedAt": "2026-09-22T12:00:00.000Z",
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-22T12:00:00.000Z",
+            "finishedAt": "2026-09-22T12:00:00.000Z",
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        "removedIds": []
+      }
+    },
+    {
+      "name": "does not remove a trailing done unit even with matching fingerprint",
+      "fn": "completeUnits",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-05T12:00:00.000Z",
+            "finishedAt": "2026-09-06T12:00:00.000Z",
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-06T12:00:00.000Z",
+            "finishedAt": "2026-09-10T12:00:00.000Z",
+            "createdAt": "2026-09-06T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-10T12:00:00.000Z",
+            "finishedAt": "2026-09-11T12:00:00.000Z",
+            "createdAt": "2026-09-10T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        true,
+        "2026-09-22T12:00:00.000Z"
+      ],
+      "expect": {
+        "updated": [],
+        "removedIds": []
+      }
+    },
+    {
+      "name": "names the auto-appended unit completeUnits would remove, whatever the input order",
+      "fn": "ongoingPlaceholder",
+      "args": [
+        [
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "mediaType": "issue",
+            "status": "in_progress",
+            "startedAt": "2026-09-10T12:00:00.000Z",
+            "finishedAt": null,
+            "createdAt": "2026-09-10T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-05T12:00:00.000Z",
+            "finishedAt": "2026-09-06T12:00:00.000Z",
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-06T12:00:00.000Z",
+            "finishedAt": "2026-09-10T12:00:00.000Z",
+            "createdAt": "2026-09-06T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        true
+      ],
+      "expect": {
+        "id": "e3",
+        "seriesId": "s1",
+        "title": "Issue 3",
+        "ordinal": 3,
+        "mediaType": "issue",
+        "status": "in_progress",
+        "startedAt": "2026-09-10T12:00:00.000Z",
+        "finishedAt": null,
+        "createdAt": "2026-09-10T12:00:00.000Z",
+        "paused": false,
+        "externalSource": null,
+        "externalId": null
+      }
+    },
+    {
+      "name": "is null for a finite series",
+      "fn": "ongoingPlaceholder",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-05T12:00:00.000Z",
+            "finishedAt": "2026-09-06T12:00:00.000Z",
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-06T12:00:00.000Z",
+            "finishedAt": "2026-09-10T12:00:00.000Z",
+            "createdAt": "2026-09-06T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "mediaType": "issue",
+            "status": "in_progress",
+            "startedAt": "2026-09-10T12:00:00.000Z",
+            "finishedAt": null,
+            "createdAt": "2026-09-10T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        false
+      ],
+      "expect": null
+    },
+    {
+      "name": "is null when the trailing unit was not created at its predecessor finish",
+      "fn": "ongoingPlaceholder",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-05T12:00:00.000Z",
+            "finishedAt": "2026-09-06T12:00:00.000Z",
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-06T12:00:00.000Z",
+            "finishedAt": "2026-09-10T12:00:00.000Z",
+            "createdAt": "2026-09-06T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "mediaType": "issue",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        true
+      ],
+      "expect": null
+    },
+    {
+      "name": "is null when the trailing unit is already done",
+      "fn": "ongoingPlaceholder",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-05T12:00:00.000Z",
+            "finishedAt": "2026-09-06T12:00:00.000Z",
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-06T12:00:00.000Z",
+            "finishedAt": "2026-09-10T12:00:00.000Z",
+            "createdAt": "2026-09-06T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "mediaType": "issue",
+            "status": "done",
+            "startedAt": "2026-09-10T12:00:00.000Z",
+            "finishedAt": "2026-09-11T12:00:00.000Z",
+            "createdAt": "2026-09-10T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        true
+      ],
+      "expect": null
+    },
+    {
+      "name": "is null for a lone unit or no units",
+      "fn": "ongoingPlaceholder",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "mediaType": "issue",
+            "status": "in_progress",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-09-01T12:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        true
+      ],
+      "expect": null
+    },
+    {
+      "name": "is null for a lone unit or no units (2)",
+      "fn": "ongoingPlaceholder",
+      "args": [
+        [],
+        true
+      ],
+      "expect": null
+    }
+  ]
+}

@@ -1,0 +1,636 @@
+{
+  "module": "shelf",
+  "generatedBy": "npm run fixtures:record",
+  "timezone": "UTC",
+  "cases": [
+    {
+      "name": "shelfForEntry: unstarted",
+      "fn": "shelfForEntry",
+      "args": [
+        {
+          "id": "e1",
+          "seriesId": "s1",
+          "title": "#1",
+          "ordinal": 1,
+          "mediaType": "book",
+          "status": "unstarted",
+          "startedAt": null,
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        }
+      ],
+      "expect": "backlog"
+    },
+    {
+      "name": "shelfForEntry: in_progress",
+      "fn": "shelfForEntry",
+      "args": [
+        {
+          "id": "e1",
+          "seriesId": "s1",
+          "title": "#1",
+          "ordinal": 1,
+          "mediaType": "book",
+          "status": "in_progress",
+          "startedAt": null,
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        }
+      ],
+      "expect": "currently"
+    },
+    {
+      "name": "shelfForEntry: done",
+      "fn": "shelfForEntry",
+      "args": [
+        {
+          "id": "e1",
+          "seriesId": "s1",
+          "title": "#1",
+          "ordinal": 1,
+          "mediaType": "book",
+          "status": "done",
+          "startedAt": null,
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": false,
+          "externalSource": null,
+          "externalId": null
+        }
+      ],
+      "expect": "done"
+    },
+    {
+      "name": "A6: a paused entry reads as backlog even mid-way through",
+      "fn": "shelfForEntry",
+      "args": [
+        {
+          "id": "e1",
+          "seriesId": "s1",
+          "title": "#1",
+          "ordinal": 1,
+          "mediaType": "book",
+          "status": "in_progress",
+          "startedAt": null,
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": true,
+          "externalSource": null,
+          "externalId": null
+        }
+      ],
+      "expect": "backlog"
+    },
+    {
+      "name": "A6: done wins over paused — there is nothing left to resume",
+      "fn": "shelfForEntry",
+      "args": [
+        {
+          "id": "e1",
+          "seriesId": "s1",
+          "title": "#1",
+          "ordinal": 1,
+          "mediaType": "book",
+          "status": "done",
+          "startedAt": null,
+          "finishedAt": null,
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "paused": true,
+          "externalSource": null,
+          "externalId": null
+        }
+      ],
+      "expect": "done"
+    },
+    {
+      "name": "no children done and none in progress is backlog",
+      "fn": "shelfForSeries",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "#1",
+            "ordinal": 1,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "#2",
+            "ordinal": 2,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ]
+      ],
+      "expect": "backlog"
+    },
+    {
+      "name": "some done and some not is currently",
+      "fn": "shelfForSeries",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "#1",
+            "ordinal": 1,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "#2",
+            "ordinal": 2,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ]
+      ],
+      "expect": "currently"
+    },
+    {
+      "name": "all done is done",
+      "fn": "shelfForSeries",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "#1",
+            "ordinal": 1,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "#2",
+            "ordinal": 2,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ]
+      ],
+      "expect": "done"
+    },
+    {
+      "name": "a read-mode child in progress is currently even with nothing done",
+      "fn": "shelfForSeries",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "#1",
+            "ordinal": 1,
+            "mediaType": "volume",
+            "status": "in_progress",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "#2",
+            "ordinal": 2,
+            "mediaType": "volume",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ]
+      ],
+      "expect": "currently"
+    },
+    {
+      "name": "a series with no children is backlog",
+      "fn": "shelfForSeries",
+      "args": [
+        []
+      ],
+      "expect": "backlog"
+    },
+    {
+      "name": "A6: paused pulls a part-way series back to backlog",
+      "fn": "shelfForSeries",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "#1",
+            "ordinal": 1,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "#2",
+            "ordinal": 2,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        true
+      ],
+      "expect": "backlog"
+    },
+    {
+      "name": "A6: paused overrides an in-progress read-mode child too",
+      "fn": "shelfForSeries",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "#1",
+            "ordinal": 1,
+            "mediaType": "volume",
+            "status": "in_progress",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "#2",
+            "ordinal": 2,
+            "mediaType": "volume",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        true
+      ],
+      "expect": "backlog"
+    },
+    {
+      "name": "A6: paused overrides an in-progress read-mode child too (2)",
+      "fn": "shelfForSeries",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "#1",
+            "ordinal": 1,
+            "mediaType": "volume",
+            "status": "in_progress",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "#2",
+            "ordinal": 2,
+            "mediaType": "volume",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        false
+      ],
+      "expect": "currently"
+    },
+    {
+      "name": "A6: done wins over paused for a fully finished series",
+      "fn": "shelfForSeries",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "#1",
+            "ordinal": 1,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "#2",
+            "ordinal": 2,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ],
+        true
+      ],
+      "expect": "done"
+    },
+    {
+      "name": "progressFor counts only done children",
+      "fn": "progressFor",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "#1",
+            "ordinal": 1,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "#2",
+            "ordinal": 2,
+            "mediaType": "volume",
+            "status": "in_progress",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "#3",
+            "ordinal": 3,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ]
+      ],
+      "expect": {
+        "done": 1,
+        "total": 3
+      }
+    },
+    {
+      "name": "progressFor: an empty series is 0 of 0",
+      "fn": "progressFor",
+      "args": [
+        []
+      ],
+      "expect": {
+        "done": 0,
+        "total": 0
+      }
+    },
+    {
+      "name": "nextEntry returns the in-progress child first",
+      "fn": "nextEntry",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "#1",
+            "ordinal": 1,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "#2",
+            "ordinal": 2,
+            "mediaType": "volume",
+            "status": "in_progress",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "#3",
+            "ordinal": 3,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ]
+      ],
+      "expect": {
+        "id": "e2",
+        "seriesId": "s1",
+        "title": "#2",
+        "ordinal": 2,
+        "mediaType": "volume",
+        "status": "in_progress",
+        "startedAt": null,
+        "finishedAt": null,
+        "createdAt": "2026-08-12T10:00:00.000Z",
+        "paused": false,
+        "externalSource": null,
+        "externalId": null
+      }
+    },
+    {
+      "name": "nextEntry otherwise returns the lowest-ordinal unstarted child",
+      "fn": "nextEntry",
+      "args": [
+        [
+          {
+            "id": "e3",
+            "seriesId": "s1",
+            "title": "#3",
+            "ordinal": 3,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "#1",
+            "ordinal": 1,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          },
+          {
+            "id": "e2",
+            "seriesId": "s1",
+            "title": "#2",
+            "ordinal": 2,
+            "mediaType": "episode",
+            "status": "unstarted",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ]
+      ],
+      "expect": {
+        "id": "e2",
+        "seriesId": "s1",
+        "title": "#2",
+        "ordinal": 2,
+        "mediaType": "episode",
+        "status": "unstarted",
+        "startedAt": null,
+        "finishedAt": null,
+        "createdAt": "2026-08-12T10:00:00.000Z",
+        "paused": false,
+        "externalSource": null,
+        "externalId": null
+      }
+    },
+    {
+      "name": "nextEntry returns null when everything is done",
+      "fn": "nextEntry",
+      "args": [
+        [
+          {
+            "id": "e1",
+            "seriesId": "s1",
+            "title": "#1",
+            "ordinal": 1,
+            "mediaType": "episode",
+            "status": "done",
+            "startedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-08-12T10:00:00.000Z",
+            "paused": false,
+            "externalSource": null,
+            "externalId": null
+          }
+        ]
+      ],
+      "expect": null
+    }
+  ]
+}

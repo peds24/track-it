@@ -1,0 +1,205 @@
+{
+  "module": "seriesTitle",
+  "generatedBy": "npm run fixtures:record",
+  "timezone": "UTC",
+  "cases": [
+    {
+      "name": "strips a trailing #N",
+      "fn": "parseSeriesTitle",
+      "args": [
+        "Absolute Batman #1"
+      ],
+      "expect": {
+        "title": "Absolute Batman",
+        "ordinal": 1
+      }
+    },
+    {
+      "name": "strips a trailing #N with no space before the number",
+      "fn": "parseSeriesTitle",
+      "args": [
+        "Saga #12"
+      ],
+      "expect": {
+        "title": "Saga",
+        "ordinal": 12
+      }
+    },
+    {
+      "name": "strips a trailing volume form: Berserk Volume 5",
+      "fn": "parseSeriesTitle",
+      "args": [
+        "Berserk Volume 5"
+      ],
+      "expect": {
+        "title": "Berserk",
+        "ordinal": 5
+      }
+    },
+    {
+      "name": "strips a trailing volume form: Berserk Vol 5",
+      "fn": "parseSeriesTitle",
+      "args": [
+        "Berserk Vol 5"
+      ],
+      "expect": {
+        "title": "Berserk",
+        "ordinal": 5
+      }
+    },
+    {
+      "name": "strips a trailing volume form: Berserk Vol. 5",
+      "fn": "parseSeriesTitle",
+      "args": [
+        "Berserk Vol. 5"
+      ],
+      "expect": {
+        "title": "Berserk",
+        "ordinal": 5
+      }
+    },
+    {
+      "name": "strips a trailing issue form: Chainsaw Man Issue 12",
+      "fn": "parseSeriesTitle",
+      "args": [
+        "Chainsaw Man Issue 12"
+      ],
+      "expect": {
+        "title": "Chainsaw Man",
+        "ordinal": 12
+      }
+    },
+    {
+      "name": "strips a trailing issue form: Chainsaw Man Iss 12",
+      "fn": "parseSeriesTitle",
+      "args": [
+        "Chainsaw Man Iss 12"
+      ],
+      "expect": {
+        "title": "Chainsaw Man",
+        "ordinal": 12
+      }
+    },
+    {
+      "name": "strips a trailing issue form: Chainsaw Man Iss. 12",
+      "fn": "parseSeriesTitle",
+      "args": [
+        "Chainsaw Man Iss. 12"
+      ],
+      "expect": {
+        "title": "Chainsaw Man",
+        "ordinal": 12
+      }
+    },
+    {
+      "name": "matching is case-insensitive for volume/issue forms",
+      "fn": "parseSeriesTitle",
+      "args": [
+        "Berserk VOLUME 5"
+      ],
+      "expect": {
+        "title": "Berserk",
+        "ordinal": 5
+      }
+    },
+    {
+      "name": "matching is case-insensitive for volume/issue forms (2)",
+      "fn": "parseSeriesTitle",
+      "args": [
+        "Chainsaw Man issue 12"
+      ],
+      "expect": {
+        "title": "Chainsaw Man",
+        "ordinal": 12
+      }
+    },
+    {
+      "name": "no trailing number leaves the title untouched",
+      "fn": "parseSeriesTitle",
+      "args": [
+        "Absolute Batman"
+      ],
+      "expect": {
+        "title": "Absolute Batman",
+        "ordinal": null
+      }
+    },
+    {
+      "name": "trims incidental whitespace even with no match",
+      "fn": "parseSeriesTitle",
+      "args": [
+        "  Absolute Batman  "
+      ],
+      "expect": {
+        "title": "Absolute Batman",
+        "ordinal": null
+      }
+    },
+    {
+      "name": "does not strip when doing so would empty the title",
+      "fn": "parseSeriesTitle",
+      "args": [
+        "#5"
+      ],
+      "expect": {
+        "title": "#5",
+        "ordinal": null
+      }
+    },
+    {
+      "name": "does not strip when doing so would empty the title (2)",
+      "fn": "parseSeriesTitle",
+      "args": [
+        "Volume 5"
+      ],
+      "expect": {
+        "title": "Volume 5",
+        "ordinal": null
+      }
+    },
+    {
+      "name": "stripBareTrailingNumber: strips a bare trailing number",
+      "fn": "stripBareTrailingNumber",
+      "args": [
+        "Attack on Titan 30"
+      ],
+      "expect": {
+        "title": "Attack on Titan",
+        "ordinal": 30
+      }
+    },
+    {
+      "name": "stripBareTrailingNumber: no trailing number leaves the title untouched",
+      "fn": "stripBareTrailingNumber",
+      "args": [
+        "Attack on Titan"
+      ],
+      "expect": {
+        "title": "Attack on Titan",
+        "ordinal": null
+      }
+    },
+    {
+      "name": "stripBareTrailingNumber: does not strip when doing so would empty the title",
+      "fn": "stripBareTrailingNumber",
+      "args": [
+        "30"
+      ],
+      "expect": {
+        "title": "30",
+        "ordinal": null
+      }
+    },
+    {
+      "name": "stripBareTrailingNumber: trims incidental whitespace even with no match",
+      "fn": "stripBareTrailingNumber",
+      "args": [
+        "  Attack on Titan  "
+      ],
+      "expect": {
+        "title": "Attack on Titan",
+        "ordinal": null
+      }
+    }
+  ]
+}
