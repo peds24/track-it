@@ -1327,6 +1327,22 @@ screen, measuring real line count (a hidden unclamped copy's
 `onTextLayout`) instead of the detail screen's old 280-character guess,
 which missed text that wrapped past six lines.
 
+**A27 — An update says what's new, once; the ? sheet names the build.**
+Shipped with A26 as v1.4.0, so a feature as large as ratings does not go
+unnoticed. Migration 10 adds `app_meta(key, value)`, a home for app-level
+facts that are not library data (D6 still holds: nothing leaves the
+device). `last_announced_version` is the only key. On launch,
+`announcementFor` (pure) shows the running version's note from
+`src/ui/releaseNotes.ts` when the stored version differs — **except on a
+fresh install** (no stored version and an empty library), which records
+the version silently: a new user has nothing to compare against. An
+upgrade from a build that predates A27 has no stored version but does
+have tracks, so it is announced. "Got it" records the version; a test
+fails if the running version has no notes, so a release cannot ship
+silently by accident. The Done tab's ? sheet ends with
+`Track It v<version> · <platform>`, read from `app.json`, so a report
+from the Android build and one from the web build can be told apart.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:
