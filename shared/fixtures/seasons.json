@@ -354,7 +354,7 @@
       }
     },
     {
-      "name": "currentSeason: every season fully done returns null",
+      "name": "currentSeason: every season fully done returns null — nothing left to advance into",
       "fn": "currentSeason",
       "args": [
         [
@@ -754,7 +754,7 @@
       }
     },
     {
-      "name": "positionIn round-trips every ordinal: 1",
+      "name": "positionIn round-trips every ordinal in the series: 1",
       "fn": "positionIn",
       "args": [
         [
@@ -799,7 +799,7 @@
       }
     },
     {
-      "name": "positionIn round-trips every ordinal: 22",
+      "name": "positionIn round-trips every ordinal in the series: 22",
       "fn": "positionIn",
       "args": [
         [
@@ -844,7 +844,7 @@
       }
     },
     {
-      "name": "positionIn round-trips every ordinal: 23",
+      "name": "positionIn round-trips every ordinal in the series: 23",
       "fn": "positionIn",
       "args": [
         [
@@ -889,7 +889,7 @@
       }
     },
     {
-      "name": "positionIn round-trips every ordinal: 46",
+      "name": "positionIn round-trips every ordinal in the series: 46",
       "fn": "positionIn",
       "args": [
         [
@@ -934,7 +934,7 @@
       }
     },
     {
-      "name": "positionIn round-trips every ordinal: 47",
+      "name": "positionIn round-trips every ordinal in the series: 47",
       "fn": "positionIn",
       "args": [
         [
@@ -979,7 +979,7 @@
       }
     },
     {
-      "name": "positionIn round-trips every ordinal: 70",
+      "name": "positionIn round-trips every ordinal in the series: 70",
       "fn": "positionIn",
       "args": [
         [
@@ -1024,7 +1024,7 @@
       }
     },
     {
-      "name": "positionIn round-trips every ordinal: 71",
+      "name": "positionIn round-trips every ordinal in the series: 71",
       "fn": "positionIn",
       "args": [
         [
@@ -1069,7 +1069,7 @@
       }
     },
     {
-      "name": "positionIn round-trips every ordinal: 86",
+      "name": "positionIn round-trips every ordinal in the series: 86",
       "fn": "positionIn",
       "args": [
         [
@@ -1114,7 +1114,7 @@
       }
     },
     {
-      "name": "positionIn round-trips every ordinal: 87",
+      "name": "positionIn round-trips every ordinal in the series: 87",
       "fn": "positionIn",
       "args": [
         [
@@ -1159,7 +1159,7 @@
       }
     },
     {
-      "name": "positionIn round-trips every ordinal: 110",
+      "name": "positionIn round-trips every ordinal in the series: 110",
       "fn": "positionIn",
       "args": [
         [
@@ -1204,7 +1204,7 @@
       }
     },
     {
-      "name": "positionIn round-trips every ordinal: 111",
+      "name": "positionIn round-trips every ordinal in the series: 111",
       "fn": "positionIn",
       "args": [
         [
@@ -1249,7 +1249,7 @@
       }
     },
     {
-      "name": "positionIn round-trips every ordinal: 131",
+      "name": "positionIn round-trips every ordinal in the series: 131",
       "fn": "positionIn",
       "args": [
         [
@@ -1294,7 +1294,7 @@
       }
     },
     {
-      "name": "positionIn round-trips every ordinal: 132",
+      "name": "positionIn round-trips every ordinal in the series: 132",
       "fn": "positionIn",
       "args": [
         [
@@ -1339,7 +1339,7 @@
       }
     },
     {
-      "name": "positionIn round-trips every ordinal: 154",
+      "name": "positionIn round-trips every ordinal in the series: 154",
       "fn": "positionIn",
       "args": [
         [
@@ -1384,7 +1384,7 @@
       }
     },
     {
-      "name": "positionIn round-trips every ordinal: 155",
+      "name": "positionIn round-trips every ordinal in the series: 155",
       "fn": "positionIn",
       "args": [
         [
@@ -1429,7 +1429,7 @@
       }
     },
     {
-      "name": "positionIn round-trips every ordinal: 176",
+      "name": "positionIn round-trips every ordinal in the series: 176",
       "fn": "positionIn",
       "args": [
         [

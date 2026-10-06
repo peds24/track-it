@@ -4,7 +4,7 @@ import type { FixtureCase } from '../types';
 // undefined (recorded as null) or throw (recorded as `throws`).
 export const cases: FixtureCase[] = [
   ...['book', 'movie', 'comic', 'episode', 'issue', 'volume', 'podcast'].map((m) => ({
-    name: `only book, movie and comic are standalone media types: ${m}`,
+    name: `only book and movie are standalone media types (A16: and comic): ${m}`,
     fn: 'isStandaloneMediaType',
     args: [m],
   })),

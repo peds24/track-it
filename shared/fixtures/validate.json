@@ -4,7 +4,7 @@
   "timezone": "UTC",
   "cases": [
     {
-      "name": "only book, movie and comic are standalone media types: book",
+      "name": "only book and movie are standalone media types (A16: and comic): book",
       "fn": "isStandaloneMediaType",
       "args": [
         "book"
@@ -12,7 +12,7 @@
       "expect": true
     },
     {
-      "name": "only book, movie and comic are standalone media types: movie",
+      "name": "only book and movie are standalone media types (A16: and comic): movie",
       "fn": "isStandaloneMediaType",
       "args": [
         "movie"
@@ -20,7 +20,7 @@
       "expect": true
     },
     {
-      "name": "only book, movie and comic are standalone media types: comic",
+      "name": "only book and movie are standalone media types (A16: and comic): comic",
       "fn": "isStandaloneMediaType",
       "args": [
         "comic"
@@ -28,7 +28,7 @@
       "expect": true
     },
     {
-      "name": "only book, movie and comic are standalone media types: episode",
+      "name": "only book and movie are standalone media types (A16: and comic): episode",
       "fn": "isStandaloneMediaType",
       "args": [
         "episode"
@@ -36,7 +36,7 @@
       "expect": false
     },
     {
-      "name": "only book, movie and comic are standalone media types: issue",
+      "name": "only book and movie are standalone media types (A16: and comic): issue",
       "fn": "isStandaloneMediaType",
       "args": [
         "issue"
@@ -44,7 +44,7 @@
       "expect": false
     },
     {
-      "name": "only book, movie and comic are standalone media types: volume",
+      "name": "only book and movie are standalone media types (A16: and comic): volume",
       "fn": "isStandaloneMediaType",
       "args": [
         "volume"
@@ -52,7 +52,7 @@
       "expect": false
     },
     {
-      "name": "only book, movie and comic are standalone media types: podcast",
+      "name": "only book and movie are standalone media types (A16: and comic): podcast",
       "fn": "isStandaloneMediaType",
       "args": [
         "podcast"

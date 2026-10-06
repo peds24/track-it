@@ -27,7 +27,7 @@ export const cases: FixtureCase[] = [
   c('seasonSegments: an empty seasons list produces an empty result', 'seasonSegments', [], 10),
   c('currentSeason finds the season the next episode falls in, and its number within that season', 'currentSeason', HOUSE, 60),
   c('currentSeason: nothing done yet starts at season 1, episode 1', 'currentSeason', HOUSE, 0),
-  c('currentSeason: every season fully done returns null', 'currentSeason', HOUSE, 176),
+  c('currentSeason: every season fully done returns null — nothing left to advance into', 'currentSeason', HOUSE, 176),
   c('currentSeason: an empty seasons list returns null', 'currentSeason', [], 10),
   c('currentSeason at a season boundary moves to the next season', 'currentSeason', HOUSE, 46),
   c('ordinalFor converts a season and within-season episode to a flat series ordinal', 'ordinalFor', HOUSE, 3, 15),
@@ -37,7 +37,7 @@ export const cases: FixtureCase[] = [
   c('ordinalFor: an episode below 1 is out of range', 'ordinalFor', HOUSE, 4, 0),
   c('ordinalFor: a season the show does not have is out of range', 'ordinalFor', HOUSE, 9, 1),
   c('positionIn converts a flat series ordinal back to a season and within-season episode', 'positionIn', HOUSE, 61),
-  ...boundaryOrdinals.map((o) => c(`positionIn round-trips every ordinal: ${o}`, 'positionIn', HOUSE, o)),
+  ...boundaryOrdinals.map((o) => c(`positionIn round-trips every ordinal in the series: ${o}`, 'positionIn', HOUSE, o)),
   c('positionIn: an ordinal past the series total has no position', 'positionIn', HOUSE, 177),
   c('positionIn: an ordinal below 1 has no position', 'positionIn', HOUSE, 0),
 ];

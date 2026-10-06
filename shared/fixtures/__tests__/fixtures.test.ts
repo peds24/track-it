@@ -5,6 +5,7 @@
 // value depends on the machine's timezone.
 import * as fs from 'fs';
 import * as path from 'path';
+import { isDeepStrictEqual } from 'util';
 import { normalize, registry } from '../registry';
 import type { FixtureCase } from '../types';
 import { cases as advance } from '../cases/advance';
@@ -41,7 +42,8 @@ function run(c: FixtureCase): Record<string, unknown> {
   const fn = registry[c.fn];
   if (!fn) throw new Error(`No registry entry for "${c.fn}" (case "${c.name}")`);
   try {
-    return { name: c.name, fn: c.fn, args: c.args, expect: normalize(fn(...structuredClone(c.args))) };
+    // Call with exactly what the JSON will hold, so Swift replays what TS saw.
+    return { name: c.name, fn: c.fn, args: c.args, expect: normalize(fn(...(JSON.parse(JSON.stringify(c.args)) as unknown[]))) };
   } catch (e) {
     return { name: c.name, fn: c.fn, args: c.args, throws: (e as Error).message };
   }
@@ -97,4 +99,62 @@ test('rankingScenario walks a session to placement', () => {
   const out = registry.rankingScenario!(p('new'), 'liked', ranking, ['opponent', 'opponent']) as { placed: boolean; lo: number };
   expect(out.placed).toBe(true);
   expect(out.lo).toBe(3);
+});
+
+/**
+ * Every test title in src/domain/__tests__ (test.each templates cut at the
+ * first `%`/`$`), so coverage is checked by name, not by count: a new test
+ * with no matching fixture case fails here (I2 review).
+ */
+function testTitles(source: string): string[] {
+  const titles: string[] = [];
+  const re = /\b(?:it|test)(\.each)?\s*\(/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(source))) {
+    let i = m.index + m[0].length;
+    if (m[1]) {
+      // Skip the .each table — balanced parens — to the title call's "(".
+      for (let depth = 1; depth > 0 && i < source.length; i += 1) {
+        if (source[i] === '(') depth += 1;
+        else if (source[i] === ')') depth -= 1;
+      }
+      while (source[i] !== '(' && i < source.length) i += 1;
+      i += 1;
+    }
+    const lit = /^\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/.exec(source.slice(i));
+    if (lit) titles.push(lit[2]!.split(/[%$]/)[0]!.trim());
+  }
+  return titles;
+}
+
+const norm = (s: string) => s.toLowerCase().replace(/[’']/g, "'");
+
+describe.each(Object.entries(MODULES))('%s coverage by title', (module, { cases, testFiles }) => {
+  test('every src/domain test has a fixture case named after it', () => {
+    const names = cases.map((c) => norm(c.name));
+    const titles = testFiles.flatMap((f) => testTitles(fs.readFileSync(path.join(DOMAIN_TESTS, f), 'utf8')));
+    expect(titles.length).toBeGreaterThan(0);
+    expect(titles.filter((t) => !names.some((n) => n.includes(norm(t))))).toEqual([]);
+  });
+});
+
+test('every src/domain test file feeds some fixture module', () => {
+  const listed = new Set(Object.values(MODULES).flatMap((m) => m.testFiles));
+  const files = fs.readdirSync(DOMAIN_TESTS).filter((f) => f.endsWith('.test.ts') && f !== 'types.test.ts');
+  expect(files.filter((f) => !listed.has(f))).toEqual([]);
+});
+
+test('every case’s args survive a JSON round trip, so Swift sees what TS saw', () => {
+  const lossy = Object.values(MODULES)
+    .flatMap((m) => m.cases)
+    .filter((c) => !isDeepStrictEqual(JSON.parse(JSON.stringify(c.args)), c.args))
+    .map((c) => c.name);
+  expect(lossy).toEqual([]);
+});
+
+test('placeInRanking vectors use only its declared item shape { key, sentiment }', () => {
+  const extra = (items: unknown) =>
+    (items as Record<string, unknown>[]).some((it) => Object.keys(it).some((k) => k !== 'key' && k !== 'sentiment'));
+  const offenders = MODULES.rating!.cases.filter((c) => c.fn === 'placeInRanking' && extra(c.args[0])).map((c) => c.name);
+  expect(offenders).toEqual([]);
 });

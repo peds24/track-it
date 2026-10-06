@@ -4,7 +4,7 @@
   "timezone": "UTC",
   "cases": [
     {
-      "name": "scores: one liked track sits mid-band",
+      "name": "scores: one track sits mid-band; two split it evenly",
       "fn": "scoreAt",
       "args": [
         "liked",
@@ -14,7 +14,7 @@
       "expect": 8.5
     },
     {
-      "name": "scores: one fine track sits mid-band",
+      "name": "scores: one track sits mid-band; two split it evenly (2)",
       "fn": "scoreAt",
       "args": [
         "fine",
@@ -24,7 +24,7 @@
       "expect": 5.5
     },
     {
-      "name": "scores: one disliked track sits mid-band",
+      "name": "scores: one track sits mid-band; two split it evenly (3)",
       "fn": "scoreAt",
       "args": [
         "disliked",
@@ -34,7 +34,7 @@
       "expect": 2.5
     },
     {
-      "name": "scores: two split the band evenly",
+      "name": "scores: one track sits mid-band; two split it evenly (4)",
       "fn": "scoreAt",
       "args": [
         "liked",
@@ -44,7 +44,7 @@
       "expect": 9.3
     },
     {
-      "name": "scores: two split the band evenly (2)",
+      "name": "scores: one track sits mid-band; two split it evenly (5)",
       "fn": "scoreAt",
       "args": [
         "liked",
@@ -346,7 +346,7 @@
       "expect": "10.0"
     },
     {
-      "name": "similarity: a shared creator",
+      "name": "similarity: a shared creator outweighs any number of shared genres",
       "fn": "similarity",
       "args": [
         {
@@ -367,7 +367,7 @@
       "expect": 4.5
     },
     {
-      "name": "similarity: shared genres but not creator",
+      "name": "similarity: a shared creator outweighs any number of shared genres (2)",
       "fn": "similarity",
       "args": [
         {
@@ -514,7 +514,7 @@
       }
     },
     {
-      "name": "finds the true position for every slot on plain tracks: slot 0",
+      "name": "finds the true position for every slot, with ~log2(n) questions on plain tracks: slot 0",
       "fn": "rankingScenario",
       "args": [
         {
@@ -660,7 +660,7 @@
       }
     },
     {
-      "name": "finds the true position for every slot on plain tracks: slot 1",
+      "name": "finds the true position for every slot, with ~log2(n) questions on plain tracks: slot 1",
       "fn": "rankingScenario",
       "args": [
         {
@@ -806,7 +806,7 @@
       }
     },
     {
-      "name": "finds the true position for every slot on plain tracks: slot 2",
+      "name": "finds the true position for every slot, with ~log2(n) questions on plain tracks: slot 2",
       "fn": "rankingScenario",
       "args": [
         {
@@ -950,7 +950,7 @@
       }
     },
     {
-      "name": "finds the true position for every slot on plain tracks: slot 3",
+      "name": "finds the true position for every slot, with ~log2(n) questions on plain tracks: slot 3",
       "fn": "rankingScenario",
       "args": [
         {
@@ -1094,7 +1094,7 @@
       }
     },
     {
-      "name": "finds the true position for every slot on plain tracks: slot 4",
+      "name": "finds the true position for every slot, with ~log2(n) questions on plain tracks: slot 4",
       "fn": "rankingScenario",
       "args": [
         {
@@ -1238,7 +1238,7 @@
       }
     },
     {
-      "name": "finds the true position for every slot on plain tracks: slot 5",
+      "name": "finds the true position for every slot, with ~log2(n) questions on plain tracks: slot 5",
       "fn": "rankingScenario",
       "args": [
         {
@@ -1382,7 +1382,7 @@
       }
     },
     {
-      "name": "finds the true position for every slot on plain tracks: slot 6",
+      "name": "finds the true position for every slot, with ~log2(n) questions on plain tracks: slot 6",
       "fn": "rankingScenario",
       "args": [
         {
@@ -1526,7 +1526,7 @@
       }
     },
     {
-      "name": "finds the true position for every slot on plain tracks: slot 7",
+      "name": "finds the true position for every slot, with ~log2(n) questions on plain tracks: slot 7",
       "fn": "rankingScenario",
       "args": [
         {
@@ -1670,7 +1670,7 @@
       }
     },
     {
-      "name": "finds the true position for every slot on plain tracks: slot 8",
+      "name": "finds the true position for every slot, with ~log2(n) questions on plain tracks: slot 8",
       "fn": "rankingScenario",
       "args": [
         {
@@ -1814,7 +1814,7 @@
       }
     },
     {
-      "name": "finds the true position for every slot on plain tracks: slot 9",
+      "name": "finds the true position for every slot, with ~log2(n) questions on plain tracks: slot 9",
       "fn": "rankingScenario",
       "args": [
         {
@@ -1958,7 +1958,7 @@
       }
     },
     {
-      "name": "finds the true position for every slot on plain tracks: slot 10",
+      "name": "finds the true position for every slot, with ~log2(n) questions on plain tracks: slot 10",
       "fn": "rankingScenario",
       "args": [
         {
@@ -2102,7 +2102,7 @@
       }
     },
     {
-      "name": "finds the true position for every slot on plain tracks: slot 11",
+      "name": "finds the true position for every slot, with ~log2(n) questions on plain tracks: slot 11",
       "fn": "rankingScenario",
       "args": [
         {
@@ -2246,7 +2246,7 @@
       }
     },
     {
-      "name": "finds the true position for every slot on plain tracks: slot 12",
+      "name": "finds the true position for every slot, with ~log2(n) questions on plain tracks: slot 12",
       "fn": "rankingScenario",
       "args": [
         {
@@ -2390,7 +2390,7 @@
       }
     },
     {
-      "name": "finds the true position for every slot on plain tracks: slot 13",
+      "name": "finds the true position for every slot, with ~log2(n) questions on plain tracks: slot 13",
       "fn": "rankingScenario",
       "args": [
         {
@@ -2534,7 +2534,7 @@
       }
     },
     {
-      "name": "finds the true position for every slot on plain tracks: slot 14",
+      "name": "finds the true position for every slot, with ~log2(n) questions on plain tracks: slot 14",
       "fn": "rankingScenario",
       "args": [
         {
@@ -2678,7 +2678,7 @@
       }
     },
     {
-      "name": "finds the true position for every slot on plain tracks: slot 15",
+      "name": "finds the true position for every slot, with ~log2(n) questions on plain tracks: slot 15",
       "fn": "rankingScenario",
       "args": [
         {
@@ -2822,7 +2822,7 @@
       }
     },
     {
-      "name": "finds the true position for every slot on plain tracks: slot 16",
+      "name": "finds the true position for every slot, with ~log2(n) questions on plain tracks: slot 16",
       "fn": "rankingScenario",
       "args": [
         {
@@ -12618,7 +12618,7 @@
       "expect": 4
     },
     {
-      "name": "a similar track outside the middle half is not picked",
+      "name": "a similar track outside the middle half is not picked — the search must keep shrinking",
       "fn": "pickOpponent",
       "args": [
         [
@@ -13039,31 +13039,19 @@
         [
           {
             "key": "a",
-            "sentiment": "liked",
-            "creator": null,
-            "genres": [],
-            "releaseYear": null
+            "sentiment": "liked"
           },
           {
             "key": "b",
-            "sentiment": "liked",
-            "creator": null,
-            "genres": [],
-            "releaseYear": null
+            "sentiment": "liked"
           },
           {
             "key": "c",
-            "sentiment": "fine",
-            "creator": null,
-            "genres": [],
-            "releaseYear": null
+            "sentiment": "fine"
           },
           {
             "key": "d",
-            "sentiment": "disliked",
-            "creator": null,
-            "genres": [],
-            "releaseYear": null
+            "sentiment": "disliked"
           }
         ],
         "new",
@@ -13073,17 +13061,11 @@
       "expect": [
         {
           "key": "a",
-          "sentiment": "liked",
-          "creator": null,
-          "genres": [],
-          "releaseYear": null
+          "sentiment": "liked"
         },
         {
           "key": "b",
-          "sentiment": "liked",
-          "creator": null,
-          "genres": [],
-          "releaseYear": null
+          "sentiment": "liked"
         },
         {
           "key": "new",
@@ -13091,17 +13073,11 @@
         },
         {
           "key": "c",
-          "sentiment": "fine",
-          "creator": null,
-          "genres": [],
-          "releaseYear": null
+          "sentiment": "fine"
         },
         {
           "key": "d",
-          "sentiment": "disliked",
-          "creator": null,
-          "genres": [],
-          "releaseYear": null
+          "sentiment": "disliked"
         }
       ]
     },
@@ -13112,31 +13088,19 @@
         [
           {
             "key": "a",
-            "sentiment": "liked",
-            "creator": null,
-            "genres": [],
-            "releaseYear": null
+            "sentiment": "liked"
           },
           {
             "key": "b",
-            "sentiment": "liked",
-            "creator": null,
-            "genres": [],
-            "releaseYear": null
+            "sentiment": "liked"
           },
           {
             "key": "c",
-            "sentiment": "fine",
-            "creator": null,
-            "genres": [],
-            "releaseYear": null
+            "sentiment": "fine"
           },
           {
             "key": "d",
-            "sentiment": "disliked",
-            "creator": null,
-            "genres": [],
-            "releaseYear": null
+            "sentiment": "disliked"
           }
         ],
         "new",
@@ -13146,31 +13110,19 @@
       "expect": [
         {
           "key": "a",
-          "sentiment": "liked",
-          "creator": null,
-          "genres": [],
-          "releaseYear": null
+          "sentiment": "liked"
         },
         {
           "key": "b",
-          "sentiment": "liked",
-          "creator": null,
-          "genres": [],
-          "releaseYear": null
+          "sentiment": "liked"
         },
         {
           "key": "c",
-          "sentiment": "fine",
-          "creator": null,
-          "genres": [],
-          "releaseYear": null
+          "sentiment": "fine"
         },
         {
           "key": "d",
-          "sentiment": "disliked",
-          "creator": null,
-          "genres": [],
-          "releaseYear": null
+          "sentiment": "disliked"
         },
         {
           "key": "new",
@@ -13185,24 +13137,15 @@
         [
           {
             "key": "a",
-            "sentiment": "liked",
-            "creator": null,
-            "genres": [],
-            "releaseYear": null
+            "sentiment": "liked"
           },
           {
             "key": "b",
-            "sentiment": "liked",
-            "creator": null,
-            "genres": [],
-            "releaseYear": null
+            "sentiment": "liked"
           },
           {
             "key": "c",
-            "sentiment": "liked",
-            "creator": null,
-            "genres": [],
-            "releaseYear": null
+            "sentiment": "liked"
           }
         ],
         "a",
@@ -13212,17 +13155,11 @@
       "expect": [
         {
           "key": "b",
-          "sentiment": "liked",
-          "creator": null,
-          "genres": [],
-          "releaseYear": null
+          "sentiment": "liked"
         },
         {
           "key": "c",
-          "sentiment": "liked",
-          "creator": null,
-          "genres": [],
-          "releaseYear": null
+          "sentiment": "liked"
         },
         {
           "key": "a",
@@ -13237,10 +13174,7 @@
         [
           {
             "key": "a",
-            "sentiment": "liked",
-            "creator": null,
-            "genres": [],
-            "releaseYear": null
+            "sentiment": "liked"
           }
         ],
         "new",
@@ -13250,10 +13184,7 @@
       "expect": [
         {
           "key": "a",
-          "sentiment": "liked",
-          "creator": null,
-          "genres": [],
-          "releaseYear": null
+          "sentiment": "liked"
         },
         {
           "key": "new",
@@ -13268,10 +13199,7 @@
         [
           {
             "key": "a",
-            "sentiment": "liked",
-            "creator": null,
-            "genres": [],
-            "releaseYear": null
+            "sentiment": "liked"
           }
         ],
         "new",
@@ -13285,10 +13213,7 @@
         },
         {
           "key": "a",
-          "sentiment": "liked",
-          "creator": null,
-          "genres": [],
-          "releaseYear": null
+          "sentiment": "liked"
         }
       ]
     },

@@ -42,13 +42,16 @@ const villeneuve = { key: 'new', creator: 'Denis Villeneuve', genres: ['Science 
 const leGuin = [item('a'), item('b'), item('c', 'liked', { creator: 'Ursula K. Le Guin' }), item('d'), item('e'), item('f'), item('g'), item('h')];
 const fiveLiked = ['a', 'b', 'c', 'd', 'e'].map((k) => item(k));
 const mixed = [item('a'), item('b'), item('c', 'fine'), item('d', 'disliked')];
+/** placeInRanking's declared item shape: { key, sentiment } only. */
+const ks = (key: string, sentiment: Sentiment = 'liked') => ({ key, sentiment });
+const mixedKs = [ks('a'), ks('b'), ks('c', 'fine'), ks('d', 'disliked')];
 
 export const cases: FixtureCase[] = [
-  c('scores: one liked track sits mid-band', 'scoreAt', 'liked', 0, 1),
-  c('scores: one fine track sits mid-band', 'scoreAt', 'fine', 0, 1),
-  c('scores: one disliked track sits mid-band', 'scoreAt', 'disliked', 0, 1),
-  c('scores: two split the band evenly', 'scoreAt', 'liked', 0, 2),
-  c('scores: two split the band evenly (2)', 'scoreAt', 'liked', 1, 2),
+  c('scores: one track sits mid-band; two split it evenly', 'scoreAt', 'liked', 0, 1),
+  c('scores: one track sits mid-band; two split it evenly (2)', 'scoreAt', 'fine', 0, 1),
+  c('scores: one track sits mid-band; two split it evenly (3)', 'scoreAt', 'disliked', 0, 1),
+  c('scores: one track sits mid-band; two split it evenly (4)', 'scoreAt', 'liked', 0, 2),
+  c('scores: one track sits mid-band; two split it evenly (5)', 'scoreAt', 'liked', 1, 2),
   ...(['liked', 'fine', 'disliked'] as const).flatMap((s) =>
     [[0, 7], [6, 7], [0, 50], [49, 50], [0, 400], [199, 400], [399, 400]].map(([i, n]) =>
       c(`every score stays inside 1–10 and inside its own band: ${s} ${i}/${n}`, 'scoreAt', s, i, n),
@@ -59,10 +62,10 @@ export const cases: FixtureCase[] = [
   c('formatScore always shows one decimal', 'formatScore', 9),
   c('formatScore always shows one decimal (2)', 'formatScore', 8.46),
   c('formatScore always shows one decimal (3)', 'formatScore', 10),
-  c('similarity: a shared creator', 'similarity',
+  c('similarity: a shared creator outweighs any number of shared genres', 'similarity',
     { key: 'a', creator: 'Frank Herbert', genres: ['Science Fiction'], releaseYear: '1965' },
     { key: 'b', creator: 'Frank Herbert', genres: [], releaseYear: '1969' }),
-  c('similarity: shared genres but not creator', 'similarity',
+  c('similarity: a shared creator outweighs any number of shared genres (2)', 'similarity',
     { key: 'a', creator: 'Frank Herbert', genres: ['Science Fiction'], releaseYear: '1965' },
     { key: 'c', creator: 'Isaac Asimov', genres: ['Science Fiction', 'Space Opera', 'Classics'], releaseYear: '1951' }),
   c('similarity: co-authors and case differences still count as the same person', 'similarity',
@@ -72,11 +75,11 @@ export const cases: FixtureCase[] = [
   c('similarity: hand-typed tracks with no metadata are equally (dis)similar', 'similarity', blank('a'), blank('b')),
   c('similarity: release within five years', 'similarity', { ...blank('a'), releaseYear: '2010' }, { ...blank('b'), releaseYear: '2014' }),
   c('ranking session: the first track of a sentiment is placed with no questions', 'startRanking', blank('new'), 'fine', [item('a', 'liked')]),
-  ...slotScenarios('finds the true position for every slot on plain tracks', blank('new'), plain),
+  ...slotScenarios('finds the true position for every slot, with ~log2(n) questions on plain tracks', blank('new'), plain),
   ...slotScenarios('still finds the true position when similarity steers the opponent choice', villeneuve, steered),
   c('the first question is the most similar track near the middle, not just the midpoint', 'pickOpponent', leGuin, 0, 8, { ...blank('new'), creator: 'Ursula K. Le Guin' }),
   c('the first question is the midpoint when nothing is similar', 'pickOpponent', leGuin, 0, 8, blank('new')),
-  c('a similar track outside the middle half is not picked', 'pickOpponent',
+  c('a similar track outside the middle half is not picked — the search must keep shrinking', 'pickOpponent',
     [item('a', 'liked', { creator: 'X' }), ...'bcdefgh'.split('').map((k) => item(k))], 0, 8, { ...blank('new'), creator: 'X' }),
   c('pickOpponent on an empty window is null', 'pickOpponent', leGuin, 3, 3, blank('new')),
   c('only tracks of the same sentiment are compared', 'startRanking', blank('new'), 'fine', [item('a', 'liked'), item('b', 'fine'), item('c', 'disliked')]),
@@ -84,11 +87,11 @@ export const cases: FixtureCase[] = [
   c('"too tough" places the track just below the opponent and ends the session', 'rankingScenario', blank('new'), 'liked', fiveLiked, ['tie']),
   c('answer after the session is placed changes nothing', 'answer', startRanking(blank('new'), 'fine', [item('a', 'liked')]), 'candidate'),
   c('a candidate-then-opponent walk', 'rankingScenario', blank('new'), 'liked', fiveLiked, ['candidate', 'opponent', 'opponent']),
-  c('placeInRanking inserts within the sentiment’s own bucket, keeping buckets in order', 'placeInRanking', mixed, 'new', 'fine', 0),
-  c('placeInRanking inserts within the sentiment’s own bucket, keeping buckets in order (2)', 'placeInRanking', mixed, 'new', 'disliked', 1),
-  c('placeInRanking: a re-ranked track moves rather than duplicating', 'placeInRanking', [item('a'), item('b'), item('c')], 'a', 'disliked', 0),
-  c('placeInRanking: an out-of-range index is clamped into the bucket', 'placeInRanking', [item('a')], 'new', 'liked', 9),
-  c('placeInRanking: a negative index is clamped to the top', 'placeInRanking', [item('a')], 'new', 'liked', -3),
+  c('placeInRanking inserts within the sentiment’s own bucket, keeping buckets in order', 'placeInRanking', mixedKs, 'new', 'fine', 0),
+  c('placeInRanking inserts within the sentiment’s own bucket, keeping buckets in order (2)', 'placeInRanking', mixedKs, 'new', 'disliked', 1),
+  c('placeInRanking: a re-ranked track moves rather than duplicating', 'placeInRanking', [ks('a'), ks('b'), ks('c')], 'a', 'disliked', 0),
+  c('placeInRanking: an out-of-range index is clamped into the bucket', 'placeInRanking', [ks('a')], 'new', 'liked', 9),
+  c('placeInRanking: a negative index is clamped to the top', 'placeInRanking', [ks('a')], 'new', 'liked', -3),
   c('matchupReason names a shared creator in the first track’s own spelling', 'matchupReason',
     { ...blank('a'), creator: 'Frank Herbert, Brian Herbert' }, { ...blank('b'), creator: 'brian herbert' }),
   c('matchupReason otherwise names up to two shared genres', 'matchupReason',

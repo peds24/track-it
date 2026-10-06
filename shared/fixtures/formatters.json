@@ -60,7 +60,7 @@
       "expect": "a &madeup; b"
     },
     {
-      "name": "cleanDescription: encoded brackets like &lt;PG-13&gt; decode",
+      "name": "cleanDescription is idempotent: encoded brackets like &lt;PG-13&gt; survive re-encoding",
       "fn": "cleanDescription",
       "args": [
         "Rating: &lt;PG-13&gt; content, also x &lt; y and y &gt; z ok."
@@ -68,7 +68,7 @@
       "expect": "Rating: <PG-13> content, also x < y and y > z ok."
     },
     {
-      "name": "cleanDescription is idempotent: a decoded pass-1 result is unchanged",
+      "name": "cleanDescription is idempotent: encoded brackets like &lt;PG-13&gt; survive re-encoding (2)",
       "fn": "cleanDescription",
       "args": [
         "Rating: <PG-13> content, also x < y and y > z ok."
@@ -92,7 +92,7 @@
       "expect": "before <unknown-tag> after"
     },
     {
-      "name": "cleanDescription is idempotent over existing fixtures",
+      "name": "cleanDescription is idempotent over all existing fixtures",
       "fn": "cleanDescription",
       "args": [
         "First bold line.\n\nSecond\nthird"
@@ -530,7 +530,7 @@
       "expect": "yesterday"
     },
     {
-      "name": "activityLine: in progress reads as reading for a duration",
+      "name": "activityLine: in progress reads as reading/watching for a duration",
       "fn": "activityLine",
       "args": [
         "book",
@@ -544,7 +544,7 @@
       "expect": "Reading for 12 days"
     },
     {
-      "name": "activityLine: in progress reads as watching for a duration",
+      "name": "activityLine: in progress reads as reading/watching for a duration (2)",
       "fn": "activityLine",
       "args": [
         "show",
