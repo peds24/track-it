@@ -598,6 +598,95 @@
         "2026-08-13T00:30:00.000Z"
       ],
       "expect": "Reading for 1 day"
+    },
+    {
+      "name": "Swift parity: formatDate of a date-only string is UTC, and Feb 31 rolls over",
+      "fn": "formatDate",
+      "args": [
+        "2026-02-31"
+      ],
+      "expect": "Mar 3, 2026"
+    },
+    {
+      "name": "Swift parity: formatDate at 24:00 is the next day",
+      "fn": "formatDate",
+      "args": [
+        "2026-08-12T24:00:00Z"
+      ],
+      "expect": "Aug 13, 2026"
+    },
+    {
+      "name": "Swift parity: formatDate honours an explicit offset",
+      "fn": "formatDate",
+      "args": [
+        "2026-08-12T23:30:00+05:30"
+      ],
+      "expect": "Aug 12, 2026"
+    },
+    {
+      "name": "Swift parity: formatDate of a local date-time",
+      "fn": "formatDate",
+      "args": [
+        "2026-08-12T10:00"
+      ],
+      "expect": "Aug 12, 2026"
+    },
+    {
+      "name": "Swift parity: daysBetween date-only strings",
+      "fn": "daysBetween",
+      "args": [
+        "2026-08-12",
+        "2026-08-14"
+      ],
+      "expect": 2
+    },
+    {
+      "name": "Swift parity: decodeEntities numeric edges and case-folded names",
+      "fn": "decodeEntities",
+      "args": [
+        "&#0; &#x110000; &#65;&#x1F600; &AMP; &Eacute;"
+      ],
+      "expect": "&#0; &#x110000; A😀 & é"
+    },
+    {
+      "name": "Swift parity: initialsOf takes the first scalar of a decomposed letter",
+      "fn": "initialsOf",
+      "args": [
+        "éclair zed"
+      ],
+      "expect": "EZ"
+    },
+    {
+      "name": "Swift parity: initialsOf upper-cases ß to SS",
+      "fn": "initialsOf",
+      "args": [
+        "ß x"
+      ],
+      "expect": "SSX"
+    },
+    {
+      "name": "Swift parity: cleanDescription treats \\r\\n and \\r as line breaks",
+      "fn": "cleanDescription",
+      "args": [
+        "a\r\nb\rc"
+      ],
+      "expect": "a\nb\nc"
+    },
+    {
+      "name": "Swift parity: cleanDescription decodes nbsp to a plain space and collapses it",
+      "fn": "cleanDescription",
+      "args": [
+        "x&nbsp;&nbsp;y"
+      ],
+      "expect": "x y"
+    },
+    {
+      "name": "Swift parity: yearOf needs ASCII digits",
+      "fn": "yearOf",
+      "args": [
+        "２０２６-01-01"
+      ],
+      "expect": null
     }
   ]
 }

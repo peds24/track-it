@@ -1556,6 +1556,89 @@
         0
       ],
       "expect": null
+    },
+    {
+      "name": "Swift parity: seasonSegments with a negative done-count is all empty",
+      "fn": "seasonSegments",
+      "args": [
+        [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          },
+          {
+            "number": 3,
+            "episodeCount": 24
+          },
+          {
+            "number": 4,
+            "episodeCount": 16
+          },
+          {
+            "number": 5,
+            "episodeCount": 24
+          },
+          {
+            "number": 6,
+            "episodeCount": 21
+          },
+          {
+            "number": 7,
+            "episodeCount": 23
+          },
+          {
+            "number": 8,
+            "episodeCount": 22
+          }
+        ],
+        -5
+      ],
+      "expect": [
+        {
+          "number": 1,
+          "episodeCount": 22,
+          "done": 0
+        },
+        {
+          "number": 2,
+          "episodeCount": 24,
+          "done": 0
+        },
+        {
+          "number": 3,
+          "episodeCount": 24,
+          "done": 0
+        },
+        {
+          "number": 4,
+          "episodeCount": 16,
+          "done": 0
+        },
+        {
+          "number": 5,
+          "episodeCount": 24,
+          "done": 0
+        },
+        {
+          "number": 6,
+          "episodeCount": 21,
+          "done": 0
+        },
+        {
+          "number": 7,
+          "episodeCount": 23,
+          "done": 0
+        },
+        {
+          "number": 8,
+          "episodeCount": 22,
+          "done": 0
+        }
+      ]
     }
   ]
 }

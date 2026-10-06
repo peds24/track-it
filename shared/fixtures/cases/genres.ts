@@ -9,4 +9,5 @@ export const cases: FixtureCase[] = [
   { name: 'nothing in, nothing out (2)', fn: 'genresFrom', args: [[]] },
   { name: 'withGenres adds the key only when there is something to add', fn: 'withGenres', args: [{ a: 1 }, ['Drama']] },
   { name: 'withGenres adds the key only when there is something to add (2)', fn: 'withGenres', args: [{ a: 1 }, ['General']] },
+  { name: 'Swift parity: filler, padding and case duplicates', fn: 'genresFrom', args: [['Sci-Fi / General / Other', ' Drama ', 'DRAMA']] },
 ];
