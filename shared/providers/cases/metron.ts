@@ -70,6 +70,8 @@ export const cases: ProviderCase[] = [
   // --- Iris parity ---
   at('Iris parity: Basic auth of a non-ASCII password', 'search', ['saga'], [empty], { METRON_USERNAME: 'jöe', METRON_PASSWORD: 'pässwörd€' }),
   at('Iris parity: Basic auth of an emoji password (UTF-16 surrogates encoded one by one)', 'search', ['saga'], [empty], { METRON_USERNAME: 'u', METRON_PASSWORD: 'p😀' }),
+  at('Iris parity: Basic auth padded with two "=" (4 bytes)', 'search', ['saga'], [empty], { METRON_USERNAME: 'ab', METRON_PASSWORD: 'c' }),
+  at('Iris parity: Basic auth padded with one "=" (5 bytes)', 'search', ['saga'], [empty], { METRON_USERNAME: 'ab', METRON_PASSWORD: 'cd' }),
   at('Iris parity: search encodes the series name', 'search', ['Spider-Man & Venom: Ça (2018)'], [empty]),
   at('Iris parity: search on a network error throws', 'search', ['Saga'], [{ networkError: true }]),
   at('Iris parity: search on a 500 throws with the status', 'search', ['Saga'], [fail]),

@@ -9,8 +9,8 @@ public struct ProviderRegistry: Sendable {
     public func provider(for category: Category) -> any MetadataProvider {
         switch category {
         case .book: GoogleBooksProvider(category: .book, apiKey: keys.googleBooks, http: http)
-        // Iris I5 Task 6 replaces these with AniList and Metron.
-        case .manga, .comic: ManualProvider()
+        case .manga: AniListProvider(http: http)
+        case .comic: MetronProvider(username: keys.metronUsername, password: keys.metronPassword, http: http)
         case .show: TMDBProvider(category: .show, apiKey: keys.tmdb, http: http)
         case .movie: TMDBProvider(category: .movie, apiKey: keys.tmdb, http: http)
         }
@@ -20,6 +20,8 @@ public struct ProviderRegistry: Sendable {
         switch source {
         case "google-books": GoogleBooksProvider(category: .book, apiKey: keys.googleBooks, http: http)
         case "tmdb": provider(for: category == .movie ? .movie : .show)
+        case "metron": provider(for: .comic)
+        case "anilist": provider(for: .manga)
         default: nil
         }
     }

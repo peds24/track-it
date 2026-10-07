@@ -21,6 +21,7 @@ let providerCalls: [String: RecordingCall] = [
     "preview": { p, a in try toJSON(await require(p, (any PreviewingProvider).self).preview(arg(a, 0))) },
     "details": { p, a in try toJSON(await require(p, (any DetailsProvider).self).details(arg(a, 0))) },
     "unitAt": { p, a in try toJSON(await require(p, (any UnitProvider).self).unitAt(arg(a, 0), ordinal: arg(a, 1))) },
+    "searchByUpc": { p, a in try toJSON(await require(p, MetronProvider.self).searchByUpc(arg(a, 0), ean5: arg(a, 1))) },
     "sumEpisodeCount": { _, a in try toJSON(sumEpisodeCount(arg(a, 0))) },
     "seasonBreakdown": { _, a in try toJSON(seasonBreakdown(arg(a, 0))) },
     "httpsUrl": { _, a in try toJSON(httpsUrl(arg(a, 0))) },

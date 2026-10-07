@@ -2436,6 +2436,68 @@
       "result": []
     },
     {
+      "name": "Iris parity: Basic auth padded with two \"=\" (4 bytes)",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "ab",
+        "METRON_PASSWORD": "c"
+      },
+      "call": "search",
+      "args": [
+        "saga"
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/?series_name=saga",
+          "headers": {
+            "Authorization": "Basic YWI6Yw=="
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "Iris parity: Basic auth padded with one \"=\" (5 bytes)",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "ab",
+        "METRON_PASSWORD": "cd"
+      },
+      "call": "search",
+      "args": [
+        "saga"
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/?series_name=saga",
+          "headers": {
+            "Authorization": "Basic YWI6Y2Q="
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
       "name": "Iris parity: search encodes the series name",
       "provider": "metron",
       "env": {
