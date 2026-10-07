@@ -37,9 +37,17 @@ file per TS file) and `swift test` replays all 380 fixture cases, 58 of
 them "Swift parity" cases pinning JS quirks: V8's lenient `Date.parse`
 (Feb 31, 24:00), `toFixed`'s tie-up rounding, ASCII `\d`/`\b`, UTF-16
 indexing. Those live in `JSCompat.swift`/`ISODate.swift`. Local-day
-formatters take `calendar:` (default `.current`). Next is I4: persistence
-(GRDB; replay `src/db/schema.ts`'s migration SQL verbatim, in order, so
-`shared/schema/schema.sql` matches byte for byte). Plans go in `docs/superpowers/plans/`. Toolchain on this Mac: Xcode 27.0, Swift 6.4,
+formatters take `calendar:` (default `.current`). **I4 done** — persistence
+on GRDB in `apple/IrisCore/Sources/IrisCore/Persistence/`, with the TS
+schema byte for byte (migration strings generated from `src/db/schema.ts`
+by `npm run fixtures:record`). **A29**: the data layer is held to TS by 127
+recorded scenarios in `shared/scenarios/` (tracks, progress, ratings,
+backup, whatsNew) that Swift replays identically — including a TS-made
+backup imported and re-exported on iOS. Two tests aren't scenarios (driver
+fault injection; listed in the cases files). Decision record is at A29;
+the next amendment is **A30**. Next is I5: providers (TMDB, Google Books,
+Metron, AniList), metadata backfill and `syncSeriesUnit` — plus the two
+`LATER` scenario areas (`backfillMetadata`, `syncSeriesUnit`). Plans go in `docs/superpowers/plans/`. Toolchain on this Mac: Xcode 27.0, Swift 6.4,
 `xcodegen` at `/opt/homebrew/bin`.
 
 ## v1.4.0 — Ratings & Rankings (2026-10-06)

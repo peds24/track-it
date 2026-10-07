@@ -1370,6 +1370,22 @@ merged into `android` at takeover, synced from `android`
 until then. The app is renamed **Iris**; Android keeps its package ID so
 local databases survive.
 
+**A29 — Iris: the data layer is held to the TS app by recorded scenarios.**
+Amends A28's testing approach (and §10/§11 of `2026-10-06-iris-design.md`,
+which said the repository test suites would "mirror each other"). Decided
+by the user on 2026-10-07. `shared/scenarios/` records sequences of
+repository calls on a fresh database — every step's result and a dump of
+every table afterwards — from TS, and the Swift persistence layer (GRDB)
+must replay each one identically. Random ids are normalised to insertion
+order (`#1`, `#2`, …) on both sides. Why: hand-mirrored tests drift
+silently when android changes the data layer; a recording turns that
+change into a red Swift test. The SQLite DDL is shared too: Swift runs
+`src/db/schema.ts`'s migration strings verbatim, generated into
+`Migrations.generated.swift`, so `schema.sql` matches byte for byte. Out of
+scope until I5: the metadata backfill and comic-unit sync, which need real
+catalogue providers. Two tests need fault injection at the driver seam and
+are listed, with reasons, as not expressible as scenarios.
+
 ### Error handling
 
 A local-only app (D6) has few failure modes, and they concentrate in two places:

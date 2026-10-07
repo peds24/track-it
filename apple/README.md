@@ -39,5 +39,8 @@ won't work.
   `shared/fixtures` (every case runs in `swift test`). Where the TS relies on
   a JavaScript built-in's quirks, reproduce them in `JSCompat.swift` /
   `ISODate.swift`, never inline.
+- `IrisCore/Persistence` ports `src/data` and `src/db`, held to them by
+  `shared/scenarios` (A29). Never hand-edit `Migrations.generated.swift`; it
+  comes from `npm run fixtures:record`.
 - Never hand-edit `Iris/DesignSystem/IrisTokens.swift`. Edit
   `design/iris/tokens.json` and run `npm run tokens` from the repo root.

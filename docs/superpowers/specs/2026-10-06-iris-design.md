@@ -316,22 +316,22 @@ agreed, not designed in detail here.
 
 ## 10. Testing
 
-- **IrisCore:** XCTest — fixtures (behaviour), schema snapshot, in-memory GRDB
-  repository tests mirroring `src/data/__tests__`, provider tests on recorded
-  JSON responses (no live network in tests).
+- **IrisCore:** XCTest — fixtures (behaviour), schema snapshot, recorded
+  data-layer scenarios (`shared/scenarios/`, A29) replayed on in-memory GRDB,
+  provider tests on recorded JSON responses (no live network in tests).
 - **Iris app:** a handful of UI smoke tests (launch, add a manual track,
   advance it, finish it, rate it) plus screenshot capture for every screen in
   light/dark — run with `xcodebuild test -scheme Iris -destination 'platform=iOS Simulator,name=iPhone 17'`.
-- **TS side:** fixture runner, schema snapshot, token staleness — all in the
-  existing `npm test`.
+- **TS side:** fixture runner, scenario recorder, schema snapshot, token
+  staleness — all in the existing `npm test`.
 - Passing tests is necessary, not sufficient (CLAUDE.md §3): each UI step
   boots the app in the simulator and looks.
 
 ## 11. Risks
 
 - **Two logic implementations drift.** Mitigated by fixtures; residual risk
-  is behaviour that only exists in the data layer (SQL). The repository test
-  suites mirror each other for that reason.
+  is behaviour that only exists in the data layer (SQL). Recorded scenarios
+  (A29) cover that layer the way fixtures cover the domain.
 - **Android keeps moving while iOS catches up.** The weekly sync rule above;
   if feature velocity on android outpaces the port, pause new android
   features at a known point rather than chasing a moving target.

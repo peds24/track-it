@@ -49,3 +49,28 @@ behaviours the TS relies on (V8's Date.parse leniency, toFixed's tie
 rounding, ASCII \d/\w/\b, UTF-16 indexing) live in
 `apple/IrisCore/Sources/IrisCore/Domain/JSCompat.swift` and `ISODate.swift`,
 each pinned by a "Swift parity" fixture.
+
+## scenarios/ (Iris I4, A29)
+
+The data layer's corpus. `scenarios/cases/<area>.ts` holds scenarios —
+sequences of repository calls on a fresh, migrated database — and
+`npm run fixtures:record` runs them through `scenarios/play.ts`, writing
+`scenarios/<area>.json`: every step's `result` (or `throws`) and a `dump` of
+every table afterwards. `apple/IrisCore/Tests/IrisCoreTests/Scenarios/`
+replays each on in-memory GRDB and must match.
+
+- **Steps** name a call from `scenarios/registry.ts` (the Swift runner
+  mirrors the table). `{ "$ref": n, "path": "0.id" }` takes a value from an
+  earlier step's result; `"json": true` passes it `JSON.stringify`'d (for
+  `importLibrary`). `sql`/`query` run raw SQL — test setup and inspection.
+- **Ids are random on both platforms**, so every id is replaced by `#n` in
+  insertion order (series, then entries, by rowid, learned after each step),
+  in values and in object keys (`allScores` is keyed by `kind:id`).
+- **Order every multi-row `query`** (`ORDER BY rowid` or a column): without
+  one, `SELECT id FROM entry` reads the id index and returns random order.
+- **Coverage**: every test in `src/data/__tests__` has a scenario named after
+  it, except the files listed as `LATER` (I5: they need real providers) and
+  titles listed in a cases file's `NOT_A_SCENARIO` (fault injection).
+- The Swift migration strings (`Migrations.generated.swift`) are emitted by
+  `schema/__tests__/schema.test.ts` from `src/db/schema.ts`, so Swift runs
+  the exact DDL and `schema.sql` matches byte for byte.
