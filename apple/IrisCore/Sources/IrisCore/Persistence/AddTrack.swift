@@ -22,12 +22,13 @@ public struct AddTrackInput: Codable, Equatable, Sendable {
     }
 }
 
-/// Until I5 brings real providers, an unmatched (hand-typed) result hydrates
-/// exactly as every TS provider does for one: generateEntries.
+/// How an unmatched (hand-typed) result hydrates with every provider:
+/// generateEntries. The default for callers with no catalogue match.
 public let manualHydrate: @Sendable (SearchResult) async throws -> SeriesDraft = { try generateEntries($0) }
 
-/// Port of src/data/addTrack.ts. Hydrates (possibly over the network, I5)
-/// *before* opening the write, as TS does.
+/// Port of src/data/addTrack.ts. Hydrates (possibly over the network) *before*
+/// opening the write, as TS does. The app passes the category's catalogue
+/// provider: `hydrate: registry.provider(for: input.category).hydrate`.
 public func addTrack(
     _ writer: some DatabaseWriter, _ input: AddTrackInput, now: String,
     hydrate: @Sendable (SearchResult) async throws -> SeriesDraft = manualHydrate
