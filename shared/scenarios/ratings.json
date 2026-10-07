@@ -1,0 +1,1703 @@
+{
+  "area": "ratings",
+  "generatedBy": "npm run fixtures:record",
+  "timezone": "UTC",
+  "scenarios": [
+    {
+      "name": "ratings are ordered within their category and scored from that order",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Arrival",
+              "category": "movie",
+              "count": 1
+            },
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "movie",
+              "count": 1
+            },
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#2"
+          }
+        },
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Cats",
+              "category": "movie",
+              "count": 1
+            },
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#3"
+          }
+        },
+        {
+          "call": "saveRating",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 0,
+                "path": "id"
+              },
+              "category": "movie"
+            },
+            "liked",
+            0,
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "saveRating",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 1,
+                "path": "id"
+              },
+              "category": "movie"
+            },
+            "liked",
+            0,
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "saveRating",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 2,
+                "path": "id"
+              },
+              "category": "movie"
+            },
+            "disliked",
+            0,
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "listRanking",
+          "args": [
+            "movie"
+          ],
+          "result": [
+            {
+              "key": "entry:#2",
+              "kind": "entry",
+              "id": "#2",
+              "title": "Dune",
+              "coverUrl": null,
+              "creator": null,
+              "genres": [],
+              "releaseYear": null,
+              "sentiment": "liked",
+              "score": 9.3,
+              "rank": 1
+            },
+            {
+              "key": "entry:#1",
+              "kind": "entry",
+              "id": "#1",
+              "title": "Arrival",
+              "coverUrl": null,
+              "creator": null,
+              "genres": [],
+              "releaseYear": null,
+              "sentiment": "liked",
+              "score": 7.8,
+              "rank": 2
+            },
+            {
+              "key": "entry:#3",
+              "kind": "entry",
+              "id": "#3",
+              "title": "Cats",
+              "coverUrl": null,
+              "creator": null,
+              "genres": [],
+              "releaseYear": null,
+              "sentiment": "disliked",
+              "score": 2.5,
+              "rank": 3
+            }
+          ]
+        },
+        {
+          "call": "getRating",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 0,
+                "path": "id"
+              }
+            }
+          ],
+          "result": {
+            "sentiment": "liked",
+            "score": 7.8,
+            "rank": 2,
+            "outOf": 3,
+            "category": "movie"
+          }
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Arrival",
+            "ordinal": null,
+            "media_type": "movie",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-10-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#2",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "movie",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-10-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": null,
+            "title": "Cats",
+            "ordinal": null,
+            "media_type": "movie",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-10-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [
+          {
+            "track_kind": "entry",
+            "track_id": "#1",
+            "category": "movie",
+            "sentiment": "liked",
+            "position": 1,
+            "rated_at": "2026-10-01T12:00:00.000Z"
+          },
+          {
+            "track_kind": "entry",
+            "track_id": "#2",
+            "category": "movie",
+            "sentiment": "liked",
+            "position": 0,
+            "rated_at": "2026-10-01T12:00:00.000Z"
+          },
+          {
+            "track_kind": "entry",
+            "track_id": "#3",
+            "category": "movie",
+            "sentiment": "disliked",
+            "position": 2,
+            "rated_at": "2026-10-01T12:00:00.000Z"
+          }
+        ],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "categories never mix",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Arrival",
+              "category": "movie",
+              "count": 1
+            },
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book",
+              "count": 1
+            },
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#2"
+          }
+        },
+        {
+          "call": "saveRating",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 0,
+                "path": "id"
+              },
+              "category": "movie"
+            },
+            "liked",
+            0,
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "saveRating",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 1,
+                "path": "id"
+              },
+              "category": "book"
+            },
+            "fine",
+            0,
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "listRanking",
+          "args": [
+            "movie"
+          ],
+          "result": [
+            {
+              "key": "entry:#1",
+              "kind": "entry",
+              "id": "#1",
+              "title": "Arrival",
+              "coverUrl": null,
+              "creator": null,
+              "genres": [],
+              "releaseYear": null,
+              "sentiment": "liked",
+              "score": 8.5,
+              "rank": 1
+            }
+          ]
+        },
+        {
+          "call": "listRanking",
+          "args": [
+            "book"
+          ],
+          "result": [
+            {
+              "key": "entry:#2",
+              "kind": "entry",
+              "id": "#2",
+              "title": "Dune",
+              "coverUrl": null,
+              "creator": null,
+              "genres": [],
+              "releaseYear": null,
+              "sentiment": "fine",
+              "score": 5.5,
+              "rank": 1
+            }
+          ]
+        },
+        {
+          "call": "getRating",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 0,
+                "path": "id"
+              }
+            }
+          ],
+          "result": {
+            "sentiment": "liked",
+            "score": 8.5,
+            "rank": 1,
+            "outOf": 1,
+            "category": "movie"
+          }
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Arrival",
+            "ordinal": null,
+            "media_type": "movie",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-10-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#2",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-10-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [
+          {
+            "track_kind": "entry",
+            "track_id": "#1",
+            "category": "movie",
+            "sentiment": "liked",
+            "position": 0,
+            "rated_at": "2026-10-01T12:00:00.000Z"
+          },
+          {
+            "track_kind": "entry",
+            "track_id": "#2",
+            "category": "book",
+            "sentiment": "fine",
+            "position": 0,
+            "rated_at": "2026-10-01T12:00:00.000Z"
+          }
+        ],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "re-rating a track moves it rather than duplicating it",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "A",
+              "category": "movie",
+              "count": 1
+            },
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "B",
+              "category": "movie",
+              "count": 1
+            },
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#2"
+          }
+        },
+        {
+          "call": "saveRating",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 0,
+                "path": "id"
+              },
+              "category": "movie"
+            },
+            "liked",
+            0,
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "saveRating",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 1,
+                "path": "id"
+              },
+              "category": "movie"
+            },
+            "liked",
+            1,
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "saveRating",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 0,
+                "path": "id"
+              },
+              "category": "movie"
+            },
+            "fine",
+            0,
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "listRanking",
+          "args": [
+            "movie"
+          ],
+          "result": [
+            {
+              "key": "entry:#2",
+              "kind": "entry",
+              "id": "#2",
+              "title": "B",
+              "coverUrl": null,
+              "creator": null,
+              "genres": [],
+              "releaseYear": null,
+              "sentiment": "liked",
+              "score": 8.5,
+              "rank": 1
+            },
+            {
+              "key": "entry:#1",
+              "kind": "entry",
+              "id": "#1",
+              "title": "A",
+              "coverUrl": null,
+              "creator": null,
+              "genres": [],
+              "releaseYear": null,
+              "sentiment": "fine",
+              "score": 5.5,
+              "rank": 2
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "A",
+            "ordinal": null,
+            "media_type": "movie",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-10-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#2",
+            "series_id": null,
+            "title": "B",
+            "ordinal": null,
+            "media_type": "movie",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-10-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [
+          {
+            "track_kind": "entry",
+            "track_id": "#2",
+            "category": "movie",
+            "sentiment": "liked",
+            "position": 0,
+            "rated_at": "2026-10-01T12:00:00.000Z"
+          },
+          {
+            "track_kind": "entry",
+            "track_id": "#1",
+            "category": "movie",
+            "sentiment": "fine",
+            "position": 1,
+            "rated_at": "2026-10-01T12:00:00.000Z"
+          }
+        ],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "deleting a track deletes its rating; removing a rating keeps the track",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "A",
+              "category": "movie",
+              "count": 1
+            },
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "B",
+              "category": "movie",
+              "count": 1
+            },
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#2"
+          }
+        },
+        {
+          "call": "saveRating",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 0,
+                "path": "id"
+              },
+              "category": "movie"
+            },
+            "liked",
+            0,
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "saveRating",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 1,
+                "path": "id"
+              },
+              "category": "movie"
+            },
+            "liked",
+            1,
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "deleteTrack",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 0,
+                "path": "id"
+              }
+            }
+          ],
+          "result": null
+        },
+        {
+          "call": "listRanking",
+          "args": [
+            "movie"
+          ],
+          "result": [
+            {
+              "key": "entry:#2",
+              "kind": "entry",
+              "id": "#2",
+              "title": "B",
+              "coverUrl": null,
+              "creator": null,
+              "genres": [],
+              "releaseYear": null,
+              "sentiment": "liked",
+              "score": 8.5,
+              "rank": 1
+            }
+          ]
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT * FROM rating WHERE track_id = ?",
+            [
+              {
+                "$ref": 0,
+                "path": "id"
+              }
+            ]
+          ],
+          "result": []
+        },
+        {
+          "call": "removeRating",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 1,
+                "path": "id"
+              }
+            }
+          ],
+          "result": null
+        },
+        {
+          "call": "getRating",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 1,
+                "path": "id"
+              }
+            }
+          ],
+          "result": null
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT id FROM entry WHERE id = ?",
+            [
+              {
+                "$ref": 1,
+                "path": "id"
+              }
+            ]
+          ],
+          "result": [
+            {
+              "id": "#2"
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": null,
+            "title": "B",
+            "ordinal": null,
+            "media_type": "movie",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-10-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "the rating profile carries creator and genres for matchups",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Arrival",
+              "category": "movie",
+              "count": 1,
+              "match": {
+                "id": "tmdb-Arrival",
+                "title": "Arrival",
+                "category": "movie",
+                "count": 1
+              },
+              "metadata": {
+                "coverUrl": null,
+                "creator": "Denis Villeneuve",
+                "description": null,
+                "releaseYear": "2020",
+                "genres": [
+                  "Science Fiction",
+                  "Drama"
+                ]
+              }
+            },
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "ratingProfileOf",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 0,
+                "path": "id"
+              }
+            }
+          ],
+          "result": {
+            "key": "entry:#1",
+            "creator": "Denis Villeneuve",
+            "genres": [
+              "Science Fiction",
+              "Drama"
+            ],
+            "releaseYear": "2020"
+          }
+        },
+        {
+          "call": "listRanking",
+          "args": [
+            "movie"
+          ],
+          "result": []
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Arrival",
+            "ordinal": null,
+            "media_type": "movie",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-10-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "tmdb",
+            "external_id": "tmdb-Arrival",
+            "cover_url": null,
+            "creator": "Denis Villeneuve",
+            "description": null,
+            "release_year": "2020",
+            "metadata_checked_at": "2026-10-01T12:00:00.000Z",
+            "genres_json": "[\"Science Fiction\",\"Drama\"]"
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "allScores covers every category",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Arrival",
+              "category": "movie",
+              "count": 1
+            },
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book",
+              "count": 1
+            },
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#2"
+          }
+        },
+        {
+          "call": "saveRating",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 0,
+                "path": "id"
+              },
+              "category": "movie"
+            },
+            "liked",
+            0,
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "saveRating",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 1,
+                "path": "id"
+              },
+              "category": "book"
+            },
+            "disliked",
+            0,
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "allScores",
+          "args": [],
+          "result": {
+            "entry:#2": 2.5,
+            "entry:#1": 8.5
+          }
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Arrival",
+            "ordinal": null,
+            "media_type": "movie",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-10-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#2",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-10-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [
+          {
+            "track_kind": "entry",
+            "track_id": "#1",
+            "category": "movie",
+            "sentiment": "liked",
+            "position": 0,
+            "rated_at": "2026-10-01T12:00:00.000Z"
+          },
+          {
+            "track_kind": "entry",
+            "track_id": "#2",
+            "category": "book",
+            "sentiment": "disliked",
+            "position": 0,
+            "rated_at": "2026-10-01T12:00:00.000Z"
+          }
+        ],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "ratings survive an export/import round trip, and a backup rating a missing track is rejected",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "A",
+              "category": "movie",
+              "count": 1
+            },
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "B",
+              "category": "movie",
+              "count": 1
+            },
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#2"
+          }
+        },
+        {
+          "call": "saveRating",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 0,
+                "path": "id"
+              },
+              "category": "movie"
+            },
+            "liked",
+            0,
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "saveRating",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 1,
+                "path": "id"
+              },
+              "category": "movie"
+            },
+            "liked",
+            0,
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "exportLibrary",
+          "args": [],
+          "result": {
+            "version": 1,
+            "series": [],
+            "entries": [
+              {
+                "id": "#1",
+                "seriesId": null,
+                "title": "A",
+                "ordinal": null,
+                "mediaType": "movie",
+                "status": "unstarted",
+                "startedAt": null,
+                "finishedAt": null,
+                "createdAt": "2026-10-01T12:00:00.000Z",
+                "paused": false,
+                "externalSource": null,
+                "externalId": null
+              },
+              {
+                "id": "#2",
+                "seriesId": null,
+                "title": "B",
+                "ordinal": null,
+                "mediaType": "movie",
+                "status": "unstarted",
+                "startedAt": null,
+                "finishedAt": null,
+                "createdAt": "2026-10-01T12:00:00.000Z",
+                "paused": false,
+                "externalSource": null,
+                "externalId": null
+              }
+            ],
+            "ratings": [
+              {
+                "trackKind": "entry",
+                "trackId": "#2",
+                "category": "movie",
+                "sentiment": "liked",
+                "position": 0,
+                "ratedAt": "2026-10-01T12:00:00.000Z"
+              },
+              {
+                "trackKind": "entry",
+                "trackId": "#1",
+                "category": "movie",
+                "sentiment": "liked",
+                "position": 1,
+                "ratedAt": "2026-10-01T12:00:00.000Z"
+              }
+            ]
+          }
+        },
+        {
+          "call": "removeRating",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 0,
+                "path": "id"
+              }
+            }
+          ],
+          "result": null
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            {
+              "$ref": 4,
+              "json": true
+            }
+          ],
+          "result": null
+        },
+        {
+          "call": "listRanking",
+          "args": [
+            "movie"
+          ],
+          "result": [
+            {
+              "key": "entry:#2",
+              "kind": "entry",
+              "id": "#2",
+              "title": "B",
+              "coverUrl": null,
+              "creator": null,
+              "genres": [],
+              "releaseYear": null,
+              "sentiment": "liked",
+              "score": 9.3,
+              "rank": 1
+            },
+            {
+              "key": "entry:#1",
+              "kind": "entry",
+              "id": "#1",
+              "title": "A",
+              "coverUrl": null,
+              "creator": null,
+              "genres": [],
+              "releaseYear": null,
+              "sentiment": "liked",
+              "score": 7.8,
+              "rank": 2
+            }
+          ]
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[],\"entries\":[{\"id\":\"m1\",\"seriesId\":null,\"title\":\"A\",\"ordinal\":null,\"mediaType\":\"movie\",\"status\":\"unstarted\",\"startedAt\":null,\"finishedAt\":null,\"createdAt\":\"2026-10-01T12:00:00.000Z\"}],\"ratings\":[{\"trackKind\":\"entry\",\"trackId\":\"nope\",\"category\":\"movie\",\"sentiment\":\"liked\",\"position\":0,\"ratedAt\":\"2026-10-01T12:00:00.000Z\"}]}"
+          ],
+          "throws": "Rating for missing entry nope"
+        },
+        {
+          "call": "listRanking",
+          "args": [
+            "movie"
+          ],
+          "result": [
+            {
+              "key": "entry:#2",
+              "kind": "entry",
+              "id": "#2",
+              "title": "B",
+              "coverUrl": null,
+              "creator": null,
+              "genres": [],
+              "releaseYear": null,
+              "sentiment": "liked",
+              "score": 9.3,
+              "rank": 1
+            },
+            {
+              "key": "entry:#1",
+              "kind": "entry",
+              "id": "#1",
+              "title": "A",
+              "coverUrl": null,
+              "creator": null,
+              "genres": [],
+              "releaseYear": null,
+              "sentiment": "liked",
+              "score": 7.8,
+              "rank": 2
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "A",
+            "ordinal": null,
+            "media_type": "movie",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-10-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#2",
+            "series_id": null,
+            "title": "B",
+            "ordinal": null,
+            "media_type": "movie",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-10-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [
+          {
+            "track_kind": "entry",
+            "track_id": "#2",
+            "category": "movie",
+            "sentiment": "liked",
+            "position": 0,
+            "rated_at": "2026-10-01T12:00:00.000Z"
+          },
+          {
+            "track_kind": "entry",
+            "track_id": "#1",
+            "category": "movie",
+            "sentiment": "liked",
+            "position": 1,
+            "rated_at": "2026-10-01T12:00:00.000Z"
+          }
+        ],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "saveRating rejects a malformed timestamp before writing anything",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "A",
+              "category": "movie",
+              "count": 1
+            },
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "saveRating",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 0,
+                "path": "id"
+              },
+              "category": "movie"
+            },
+            "liked",
+            0,
+            "yesterday"
+          ],
+          "throws": "rating ratedAt must be an ISO-8601 timestamp, got: yesterday"
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT * FROM rating"
+          ],
+          "result": []
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "A",
+            "ordinal": null,
+            "media_type": "movie",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-10-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "Iris parity: a rated series, covers sharpened on read, and a re-rank into another sentiment",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Severance",
+              "mediaType": "show",
+              "unitLabel": "episode",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Episode 1"
+                }
+              ],
+              "metadata": {
+                "coverUrl": "http://image.tmdb.org/t/p/w342/s.jpg",
+                "creator": "Dan Erickson",
+                "description": null,
+                "releaseYear": "2022",
+                "genres": [
+                  "Drama",
+                  "Mystery"
+                ]
+              }
+            },
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Lost",
+              "category": "show",
+              "count": 2
+            },
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": {
+            "kind": "series",
+            "id": "#3"
+          }
+        },
+        {
+          "call": "saveRating",
+          "args": [
+            {
+              "kind": "series",
+              "id": {
+                "$ref": 0
+              },
+              "category": "show"
+            },
+            "liked",
+            0,
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "saveRating",
+          "args": [
+            {
+              "kind": "series",
+              "id": {
+                "$ref": 1,
+                "path": "id"
+              },
+              "category": "show"
+            },
+            "liked",
+            1,
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "saveRating",
+          "args": [
+            {
+              "kind": "series",
+              "id": {
+                "$ref": 0
+              },
+              "category": "show"
+            },
+            "disliked",
+            0,
+            "2026-10-01T12:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "listRanking",
+          "args": [
+            "show"
+          ],
+          "result": [
+            {
+              "key": "series:#3",
+              "kind": "series",
+              "id": "#3",
+              "title": "Lost",
+              "coverUrl": null,
+              "creator": null,
+              "genres": [],
+              "releaseYear": null,
+              "sentiment": "liked",
+              "score": 8.5,
+              "rank": 1
+            },
+            {
+              "key": "series:#1",
+              "kind": "series",
+              "id": "#1",
+              "title": "Severance",
+              "coverUrl": "https://image.tmdb.org/t/p/w780/s.jpg",
+              "creator": "Dan Erickson",
+              "genres": [
+                "Drama",
+                "Mystery"
+              ],
+              "releaseYear": "2022",
+              "sentiment": "disliked",
+              "score": 2.5,
+              "rank": 2
+            }
+          ]
+        },
+        {
+          "call": "ratingProfileOf",
+          "args": [
+            {
+              "kind": "series",
+              "id": {
+                "$ref": 0
+              }
+            }
+          ],
+          "result": {
+            "key": "series:#1",
+            "creator": "Dan Erickson",
+            "genres": [
+              "Drama",
+              "Mystery"
+            ],
+            "releaseYear": "2022"
+          }
+        },
+        {
+          "call": "allScores",
+          "args": [],
+          "result": {
+            "series:#3": 8.5,
+            "series:#1": 2.5
+          }
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Severance",
+            "media_type": "show",
+            "unit_label": "episode",
+            "created_at": "2026-10-01T12:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": "http://image.tmdb.org/t/p/w342/s.jpg",
+            "creator": "Dan Erickson",
+            "description": null,
+            "release_year": "2022",
+            "metadata_checked_at": "2026-10-01T12:00:00.000Z",
+            "genres_json": "[\"Drama\",\"Mystery\"]"
+          },
+          {
+            "id": "#3",
+            "title": "Lost",
+            "media_type": "show",
+            "unit_label": "episode",
+            "created_at": "2026-10-01T12:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "media_type": "episode",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-10-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#3",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "media_type": "episode",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-10-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#5",
+            "series_id": "#3",
+            "title": "Episode 2",
+            "ordinal": 2,
+            "media_type": "episode",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-10-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [
+          {
+            "track_kind": "series",
+            "track_id": "#3",
+            "category": "show",
+            "sentiment": "liked",
+            "position": 0,
+            "rated_at": "2026-10-01T12:00:00.000Z"
+          },
+          {
+            "track_kind": "series",
+            "track_id": "#1",
+            "category": "show",
+            "sentiment": "disliked",
+            "position": 1,
+            "rated_at": "2026-10-01T12:00:00.000Z"
+          }
+        ],
+        "app_meta": []
+      }
+    }
+  ]
+}

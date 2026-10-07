@@ -46,7 +46,8 @@ class IdTokens {
       return Object.fromEntries(
         Object.entries(value)
           .filter(([, v]) => v !== undefined)
-          .map(([k, v]) => [k, this.normalize(v)]),
+          // Keys too: allScores is keyed by `kind:id`.
+          .map(([k, v]) => [this.normalize(k) as string, this.normalize(v)]),
       );
     }
     return value;

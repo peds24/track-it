@@ -6,7 +6,9 @@ import * as path from 'path';
 import { normTitle, testTitles } from '../../testTitles';
 import { play } from '../play';
 import type { Scenario } from '../types';
+import { NOT_A_SCENARIO as backupNot, scenarios as backup } from '../cases/backup';
 import { scenarios as progress } from '../cases/progress';
+import { scenarios as ratings } from '../cases/ratings';
 import { NOT_A_SCENARIO as tracksNot, scenarios as tracks } from '../cases/tracks';
 import { scenarios as whatsNew } from '../cases/whatsNew';
 
@@ -22,7 +24,8 @@ const AREAS: Record<string, { scenarios: Scenario[]; testFiles: string[]; notASc
   progress: {
     scenarios: progress,
     testFiles: ['advanceTrack.test.ts', 'oneTapAdvance.test.ts', 'ongoing.test.ts', 'setTrackPosition.test.ts', 'completeTrack.test.ts', 'trackActions.test.ts'],
-  },
+  },  ratings: { scenarios: ratings, testFiles: ['ratingRepo.test.ts'] },
+  backup: { scenarios: backup, testFiles: ['backup.test.ts'], notAScenario: backupNot },
 };
 
 /** src/data tests that are not scenarios yet: they need real providers (I5). */
