@@ -1,0 +1,1783 @@
+{
+  "area": "tmdb",
+  "generatedBy": "npm run fixtures:record",
+  "cases": [
+    {
+      "name": "sums episode_count across seasons, excluding season 0 (specials)",
+      "call": "sumEpisodeCount",
+      "args": [
+        [
+          {
+            "season_number": 0,
+            "episode_count": 5
+          },
+          {
+            "season_number": 1,
+            "episode_count": 10
+          },
+          {
+            "season_number": 2,
+            "episode_count": 8
+          }
+        ]
+      ],
+      "requests": [],
+      "unusedResponses": 0,
+      "result": 18
+    },
+    {
+      "name": "treats a missing episode_count as zero rather than throwing",
+      "call": "sumEpisodeCount",
+      "args": [
+        [
+          {
+            "season_number": 1
+          }
+        ]
+      ],
+      "requests": [],
+      "unusedResponses": 0,
+      "result": 0
+    },
+    {
+      "name": "an empty season list sums to zero",
+      "call": "sumEpisodeCount",
+      "args": [
+        []
+      ],
+      "requests": [],
+      "unusedResponses": 0,
+      "result": 0
+    },
+    {
+      "name": "search hits the tv endpoint and reads `name` for a show",
+      "provider": "tmdb-show",
+      "env": {
+        "TMDB_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "Severance"
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": [
+              {
+                "id": 1,
+                "name": "Severance"
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/search/tv?api_key=test-key&query=Severance",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": [
+        {
+          "id": "1",
+          "title": "Severance",
+          "category": "show",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "search hits the movie endpoint and reads `title` for a movie",
+      "provider": "tmdb-movie",
+      "env": {
+        "TMDB_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "Arrival"
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": [
+              {
+                "id": 2,
+                "title": "Arrival"
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/search/movie?api_key=test-key&query=Arrival",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": [
+        {
+          "id": "2",
+          "title": "Arrival",
+          "category": "movie",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "search fails clearly when the API key is missing",
+      "provider": "tmdb-show",
+      "env": {},
+      "call": "search",
+      "args": [
+        "Severance"
+      ],
+      "responses": [],
+      "requests": [],
+      "unusedResponses": 0,
+      "throws": "TMDB search needs EXPO_PUBLIC_TMDB_API_KEY"
+    },
+    {
+      "name": "search on a blank query never calls the network",
+      "provider": "tmdb-show",
+      "env": {
+        "TMDB_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "  "
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": []
+          }
+        }
+      ],
+      "requests": [],
+      "unusedResponses": 1,
+      "result": []
+    },
+    {
+      "name": "hydrate for a real, ended show fetches the season breakdown and a real episode total",
+      "provider": "tmdb-show",
+      "env": {
+        "TMDB_API_KEY": "test-key"
+      },
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "111",
+          "title": "Severance",
+          "category": "show",
+          "count": 2
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "status": "Ended",
+            "seasons": [
+              {
+                "season_number": 0,
+                "episode_count": 1
+              },
+              {
+                "season_number": 1,
+                "episode_count": 9
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/tv/111?api_key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "Severance",
+        "mediaType": "show",
+        "unitLabel": "episode",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Episode 1"
+          },
+          {
+            "ordinal": 2,
+            "title": "Episode 2"
+          },
+          {
+            "ordinal": 3,
+            "title": "Episode 3"
+          },
+          {
+            "ordinal": 4,
+            "title": "Episode 4"
+          },
+          {
+            "ordinal": 5,
+            "title": "Episode 5"
+          },
+          {
+            "ordinal": 6,
+            "title": "Episode 6"
+          },
+          {
+            "ordinal": 7,
+            "title": "Episode 7"
+          },
+          {
+            "ordinal": 8,
+            "title": "Episode 8"
+          },
+          {
+            "ordinal": 9,
+            "title": "Episode 9"
+          }
+        ],
+        "seasons": [
+          {
+            "number": 1,
+            "episodeCount": 9
+          }
+        ],
+        "metaLine": [
+          "1 season",
+          "9 episodes",
+          "Ended"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": null,
+          "releaseYear": null
+        },
+        "externalSource": "tmdb",
+        "externalId": "111"
+      }
+    },
+    {
+      "name": "hydrate for a real, still-running show sets ongoing from TMDB status, not a guess",
+      "provider": "tmdb-show",
+      "env": {
+        "TMDB_API_KEY": "test-key"
+      },
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "111",
+          "title": "Severance",
+          "category": "show",
+          "count": 2
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "status": "Returning Series",
+            "seasons": [
+              {
+                "season_number": 1,
+                "episode_count": 9
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/tv/111?api_key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": true,
+        "title": "Severance",
+        "mediaType": "show",
+        "unitLabel": "episode",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Episode 1"
+          }
+        ],
+        "seasons": [
+          {
+            "number": 1,
+            "episodeCount": 9
+          }
+        ],
+        "metaLine": [
+          "1 season",
+          "9 episodes",
+          "Ongoing"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": null,
+          "releaseYear": null
+        },
+        "externalSource": "tmdb",
+        "externalId": "111"
+      }
+    },
+    {
+      "name": "\"Canceled\" counts as ended, the same as \"Ended\"",
+      "provider": "tmdb-show",
+      "env": {
+        "TMDB_API_KEY": "test-key"
+      },
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "111",
+          "title": "Firefly",
+          "category": "show",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "status": "Canceled",
+            "seasons": [
+              {
+                "season_number": 1,
+                "episode_count": 4
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/tv/111?api_key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "Firefly",
+        "mediaType": "show",
+        "unitLabel": "episode",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Episode 1"
+          },
+          {
+            "ordinal": 2,
+            "title": "Episode 2"
+          },
+          {
+            "ordinal": 3,
+            "title": "Episode 3"
+          },
+          {
+            "ordinal": 4,
+            "title": "Episode 4"
+          }
+        ],
+        "seasons": [
+          {
+            "number": 1,
+            "episodeCount": 4
+          }
+        ],
+        "metaLine": [
+          "1 season",
+          "4 episodes",
+          "Canceled"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": null,
+          "releaseYear": null
+        },
+        "externalSource": "tmdb",
+        "externalId": "111"
+      }
+    },
+    {
+      "name": "hydrate for an unmatched (hand-typed) title never calls the network",
+      "provider": "tmdb-show",
+      "env": {},
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "tmdb",
+          "title": "Severance",
+          "category": "show",
+          "count": 4
+        }
+      ],
+      "responses": [],
+      "requests": [],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "Severance",
+        "mediaType": "show",
+        "unitLabel": "episode",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Episode 1"
+          },
+          {
+            "ordinal": 2,
+            "title": "Episode 2"
+          },
+          {
+            "ordinal": 3,
+            "title": "Episode 3"
+          },
+          {
+            "ordinal": 4,
+            "title": "Episode 4"
+          }
+        ]
+      }
+    },
+    {
+      "name": "hydrate falls back to the guessed count when the season fetch fails",
+      "provider": "tmdb-show",
+      "env": {
+        "TMDB_API_KEY": "test-key"
+      },
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "111",
+          "title": "Severance",
+          "category": "show",
+          "count": 3
+        }
+      ],
+      "responses": [
+        {
+          "status": 500,
+          "body": {}
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/tv/111?api_key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "Severance",
+        "mediaType": "show",
+        "unitLabel": "episode",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Episode 1"
+          },
+          {
+            "ordinal": 2,
+            "title": "Episode 2"
+          },
+          {
+            "ordinal": 3,
+            "title": "Episode 3"
+          }
+        ],
+        "externalSource": "tmdb",
+        "externalId": "111"
+      }
+    },
+    {
+      "name": "hydrate metaLine/blurb (A17): an ended show gets a closed year range and its real status word",
+      "provider": "tmdb-show",
+      "env": {
+        "TMDB_API_KEY": "test-key"
+      },
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "1408",
+          "title": "House",
+          "category": "show",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "status": "Ended",
+            "overview": "A drug-addicted, unconventional medical genius.",
+            "first_air_date": "2004-11-16",
+            "last_air_date": "2012-05-21",
+            "seasons": [
+              {
+                "season_number": 0,
+                "episode_count": 46
+              },
+              {
+                "season_number": 1,
+                "episode_count": 22
+              },
+              {
+                "season_number": 2,
+                "episode_count": 24
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/tv/1408?api_key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "House",
+        "mediaType": "show",
+        "unitLabel": "episode",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Episode 1"
+          },
+          {
+            "ordinal": 2,
+            "title": "Episode 2"
+          },
+          {
+            "ordinal": 3,
+            "title": "Episode 3"
+          },
+          {
+            "ordinal": 4,
+            "title": "Episode 4"
+          },
+          {
+            "ordinal": 5,
+            "title": "Episode 5"
+          },
+          {
+            "ordinal": 6,
+            "title": "Episode 6"
+          },
+          {
+            "ordinal": 7,
+            "title": "Episode 7"
+          },
+          {
+            "ordinal": 8,
+            "title": "Episode 8"
+          },
+          {
+            "ordinal": 9,
+            "title": "Episode 9"
+          },
+          {
+            "ordinal": 10,
+            "title": "Episode 10"
+          },
+          {
+            "ordinal": 11,
+            "title": "Episode 11"
+          },
+          {
+            "ordinal": 12,
+            "title": "Episode 12"
+          },
+          {
+            "ordinal": 13,
+            "title": "Episode 13"
+          },
+          {
+            "ordinal": 14,
+            "title": "Episode 14"
+          },
+          {
+            "ordinal": 15,
+            "title": "Episode 15"
+          },
+          {
+            "ordinal": 16,
+            "title": "Episode 16"
+          },
+          {
+            "ordinal": 17,
+            "title": "Episode 17"
+          },
+          {
+            "ordinal": 18,
+            "title": "Episode 18"
+          },
+          {
+            "ordinal": 19,
+            "title": "Episode 19"
+          },
+          {
+            "ordinal": 20,
+            "title": "Episode 20"
+          },
+          {
+            "ordinal": 21,
+            "title": "Episode 21"
+          },
+          {
+            "ordinal": 22,
+            "title": "Episode 22"
+          },
+          {
+            "ordinal": 23,
+            "title": "Episode 23"
+          },
+          {
+            "ordinal": 24,
+            "title": "Episode 24"
+          },
+          {
+            "ordinal": 25,
+            "title": "Episode 25"
+          },
+          {
+            "ordinal": 26,
+            "title": "Episode 26"
+          },
+          {
+            "ordinal": 27,
+            "title": "Episode 27"
+          },
+          {
+            "ordinal": 28,
+            "title": "Episode 28"
+          },
+          {
+            "ordinal": 29,
+            "title": "Episode 29"
+          },
+          {
+            "ordinal": 30,
+            "title": "Episode 30"
+          },
+          {
+            "ordinal": 31,
+            "title": "Episode 31"
+          },
+          {
+            "ordinal": 32,
+            "title": "Episode 32"
+          },
+          {
+            "ordinal": 33,
+            "title": "Episode 33"
+          },
+          {
+            "ordinal": 34,
+            "title": "Episode 34"
+          },
+          {
+            "ordinal": 35,
+            "title": "Episode 35"
+          },
+          {
+            "ordinal": 36,
+            "title": "Episode 36"
+          },
+          {
+            "ordinal": 37,
+            "title": "Episode 37"
+          },
+          {
+            "ordinal": 38,
+            "title": "Episode 38"
+          },
+          {
+            "ordinal": 39,
+            "title": "Episode 39"
+          },
+          {
+            "ordinal": 40,
+            "title": "Episode 40"
+          },
+          {
+            "ordinal": 41,
+            "title": "Episode 41"
+          },
+          {
+            "ordinal": 42,
+            "title": "Episode 42"
+          },
+          {
+            "ordinal": 43,
+            "title": "Episode 43"
+          },
+          {
+            "ordinal": 44,
+            "title": "Episode 44"
+          },
+          {
+            "ordinal": 45,
+            "title": "Episode 45"
+          },
+          {
+            "ordinal": 46,
+            "title": "Episode 46"
+          }
+        ],
+        "seasons": [
+          {
+            "number": 1,
+            "episodeCount": 22
+          },
+          {
+            "number": 2,
+            "episodeCount": 24
+          }
+        ],
+        "metaLine": [
+          "2004–2012",
+          "2 seasons",
+          "46 episodes",
+          "Ended"
+        ],
+        "blurb": "A drug-addicted, unconventional medical genius.",
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": "A drug-addicted, unconventional medical genius.",
+          "releaseYear": "2004"
+        },
+        "externalSource": "tmdb",
+        "externalId": "1408"
+      }
+    },
+    {
+      "name": "hydrate metaLine/blurb (A17): a still-running show gets an open year range and \"Ongoing\"",
+      "provider": "tmdb-show",
+      "env": {
+        "TMDB_API_KEY": "test-key"
+      },
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "95396",
+          "title": "Severance",
+          "category": "show",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "status": "Returning Series",
+            "overview": "Severed memories, divided lives.",
+            "first_air_date": "2022-02-18",
+            "seasons": [
+              {
+                "season_number": 1,
+                "episode_count": 9
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/tv/95396?api_key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": true,
+        "title": "Severance",
+        "mediaType": "show",
+        "unitLabel": "episode",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Episode 1"
+          }
+        ],
+        "seasons": [
+          {
+            "number": 1,
+            "episodeCount": 9
+          }
+        ],
+        "metaLine": [
+          "2022–present",
+          "1 season",
+          "9 episodes",
+          "Ongoing"
+        ],
+        "blurb": "Severed memories, divided lives.",
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": "Severed memories, divided lives.",
+          "releaseYear": "2022"
+        },
+        "externalSource": "tmdb",
+        "externalId": "95396"
+      }
+    },
+    {
+      "name": "hydrate metaLine/blurb (A17): a failed detail fetch leaves metaLine/blurb unset, same as seasons",
+      "provider": "tmdb-show",
+      "env": {
+        "TMDB_API_KEY": "test-key"
+      },
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "111",
+          "title": "Severance",
+          "category": "show",
+          "count": 3
+        }
+      ],
+      "responses": [
+        {
+          "status": 500,
+          "body": {}
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/tv/111?api_key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "Severance",
+        "mediaType": "show",
+        "unitLabel": "episode",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Episode 1"
+          },
+          {
+            "ordinal": 2,
+            "title": "Episode 2"
+          },
+          {
+            "ordinal": 3,
+            "title": "Episode 3"
+          }
+        ],
+        "externalSource": "tmdb",
+        "externalId": "111"
+      }
+    },
+    {
+      "name": "preview (A17, movie only): fetches the movie detail and returns a year and the overview as blurb",
+      "provider": "tmdb-movie",
+      "env": {
+        "TMDB_API_KEY": "test-key"
+      },
+      "call": "preview",
+      "args": [
+        {
+          "id": "273481",
+          "title": "Sicario",
+          "category": "movie",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "release_date": "2015-09-17",
+            "overview": "An FBI agent joins the war on drugs."
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/movie/273481?api_key=test-key&append_to_response=credits",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "title": "Sicario",
+        "metaLine": [
+          "2015"
+        ],
+        "blurb": "An FBI agent joins the war on drugs.",
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": "An FBI agent joins the war on drugs.",
+          "releaseYear": "2015"
+        }
+      }
+    },
+    {
+      "name": "preview (A17, movie only): falls back to just the title when the fetch fails, never throws",
+      "provider": "tmdb-movie",
+      "env": {
+        "TMDB_API_KEY": "test-key"
+      },
+      "call": "preview",
+      "args": [
+        {
+          "id": "273481",
+          "title": "Sicario",
+          "category": "movie",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "status": 500,
+          "body": {}
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/movie/273481?api_key=test-key&append_to_response=credits",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "title": "Sicario",
+        "metaLine": [],
+        "blurb": null
+      }
+    },
+    {
+      "name": "preview (A17, movie only): falls back to just the title when no API key is configured",
+      "provider": "tmdb-movie",
+      "env": {},
+      "call": "preview",
+      "args": [
+        {
+          "id": "273481",
+          "title": "Sicario",
+          "category": "movie",
+          "count": 1
+        }
+      ],
+      "responses": [],
+      "requests": [],
+      "unusedResponses": 0,
+      "result": {
+        "title": "Sicario",
+        "metaLine": [],
+        "blurb": null
+      }
+    },
+    {
+      "name": "A22/A24 metadata: movie search hits carry year and a small poster",
+      "provider": "tmdb-movie",
+      "env": {
+        "TMDB_API_KEY": "k"
+      },
+      "call": "search",
+      "args": [
+        "Dune"
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": [
+              {
+                "id": 1,
+                "title": "Dune",
+                "release_date": "2021-09-15",
+                "poster_path": "/p.jpg"
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/search/movie?api_key=k&query=Dune",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": [
+        {
+          "id": "1",
+          "title": "Dune",
+          "category": "movie",
+          "count": 1,
+          "year": "2021",
+          "thumbnailUrl": "https://image.tmdb.org/t/p/w185/p.jpg"
+        }
+      ]
+    },
+    {
+      "name": "A22/A24 metadata: show search hits take their year from first_air_date",
+      "provider": "tmdb-show",
+      "env": {
+        "TMDB_API_KEY": "k"
+      },
+      "call": "search",
+      "args": [
+        "Severance"
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": [
+              {
+                "id": 2,
+                "name": "Severance",
+                "first_air_date": "2022-02-18"
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/search/tv?api_key=k&query=Severance",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": [
+        {
+          "id": "2",
+          "title": "Severance",
+          "category": "show",
+          "count": 1,
+          "year": "2022"
+        }
+      ]
+    },
+    {
+      "name": "A22/A24 metadata: movie details asks for credits and names the director",
+      "provider": "tmdb-movie",
+      "env": {
+        "TMDB_API_KEY": "k"
+      },
+      "call": "details",
+      "args": [
+        "1"
+      ],
+      "responses": [
+        {
+          "body": {
+            "overview": "Spice.",
+            "release_date": "2021-09-15",
+            "poster_path": "/p.jpg",
+            "credits": {
+              "crew": [
+                {
+                  "job": "Producer",
+                  "name": "X"
+                },
+                {
+                  "job": "Director",
+                  "name": "Denis Villeneuve"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/movie/1?api_key=k&append_to_response=credits",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "coverUrl": "https://image.tmdb.org/t/p/w780/p.jpg",
+        "creator": "Denis Villeneuve",
+        "description": "Spice.",
+        "releaseYear": "2021"
+      }
+    },
+    {
+      "name": "A22/A24 metadata: show details names the creators",
+      "provider": "tmdb-show",
+      "env": {
+        "TMDB_API_KEY": "k"
+      },
+      "call": "details",
+      "args": [
+        "2"
+      ],
+      "responses": [
+        {
+          "body": {
+            "overview": "Work.",
+            "first_air_date": "2022-02-18",
+            "status": "Returning Series",
+            "poster_path": "/s.jpg",
+            "created_by": [
+              {
+                "name": "Dan Erickson"
+              }
+            ],
+            "seasons": [
+              {
+                "season_number": 1,
+                "episode_count": 9
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/tv/2?api_key=k",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "coverUrl": "https://image.tmdb.org/t/p/w780/s.jpg",
+        "creator": "Dan Erickson",
+        "description": "Work.",
+        "releaseYear": "2022"
+      }
+    },
+    {
+      "name": "A22/A24 metadata: a matched show hydrate carries the same metadata",
+      "provider": "tmdb-show",
+      "env": {
+        "TMDB_API_KEY": "k"
+      },
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "2",
+          "title": "Severance",
+          "category": "show",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "overview": "Work.",
+            "first_air_date": "2022-02-18",
+            "poster_path": "/s.jpg",
+            "created_by": [
+              {
+                "name": "Dan Erickson"
+              }
+            ],
+            "seasons": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/tv/2?api_key=k",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": true,
+        "title": "Severance",
+        "mediaType": "show",
+        "unitLabel": "episode",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Episode 1"
+          }
+        ],
+        "metaLine": [
+          "2022–present",
+          "Ongoing"
+        ],
+        "blurb": "Work.",
+        "metadata": {
+          "coverUrl": "https://image.tmdb.org/t/p/w780/s.jpg",
+          "creator": "Dan Erickson",
+          "description": "Work.",
+          "releaseYear": "2022"
+        },
+        "externalSource": "tmdb",
+        "externalId": "2"
+      }
+    },
+    {
+      "name": "A22/A24 metadata: A26: movie and show details carry TMDB genres",
+      "provider": "tmdb-movie",
+      "env": {
+        "TMDB_API_KEY": "k"
+      },
+      "call": "details",
+      "args": [
+        "1"
+      ],
+      "responses": [
+        {
+          "body": {
+            "genres": [
+              {
+                "id": 878,
+                "name": "Science Fiction"
+              },
+              {
+                "id": 12,
+                "name": "Adventure"
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/movie/1?api_key=k&append_to_response=credits",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "coverUrl": null,
+        "creator": null,
+        "description": null,
+        "releaseYear": null,
+        "genres": [
+          "Science Fiction",
+          "Adventure"
+        ]
+      }
+    },
+    {
+      "name": "A22/A24 metadata: A26: movie and show details carry TMDB genres (2)",
+      "provider": "tmdb-show",
+      "env": {
+        "TMDB_API_KEY": "k"
+      },
+      "call": "details",
+      "args": [
+        "2"
+      ],
+      "responses": [
+        {
+          "body": {
+            "genres": [
+              {
+                "id": 18,
+                "name": "Drama"
+              }
+            ],
+            "seasons": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/tv/2?api_key=k",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "coverUrl": null,
+        "creator": null,
+        "description": null,
+        "releaseYear": null,
+        "genres": [
+          "Drama"
+        ]
+      }
+    },
+    {
+      "name": "A22/A24 metadata: details returns null on a failed lookup",
+      "provider": "tmdb-movie",
+      "env": {
+        "TMDB_API_KEY": "k"
+      },
+      "call": "details",
+      "args": [
+        "1"
+      ],
+      "responses": [
+        {
+          "status": 500,
+          "body": {}
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/movie/1?api_key=k&append_to_response=credits",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": null
+    },
+    {
+      "name": "Iris parity: search encodes the query and key like encodeURIComponent",
+      "provider": "tmdb-movie",
+      "env": {
+        "TMDB_API_KEY": "a+b/c=d e"
+      },
+      "call": "search",
+      "args": [
+        "  Spirited Away & Co. — Ça va? (It's) 100%  "
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/search/movie?api_key=a%2Bb%2Fc%3Dd%20e&query=Spirited%20Away%20%26%20Co.%20%E2%80%94%20%C3%87a%20va%3F%20(It's)%20100%25",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "Iris parity: search on a network error throws",
+      "provider": "tmdb-show",
+      "env": {
+        "TMDB_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "Severance"
+      ],
+      "responses": [
+        {
+          "networkError": true
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/search/tv?api_key=test-key&query=Severance",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "throws": "Network request failed"
+    },
+    {
+      "name": "Iris parity: search on a 500 throws with the status",
+      "provider": "tmdb-show",
+      "env": {
+        "TMDB_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "Severance"
+      ],
+      "responses": [
+        {
+          "status": 500,
+          "body": {}
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/search/tv?api_key=test-key&query=Severance",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "throws": "TMDB search failed: 500"
+    },
+    {
+      "name": "Iris parity: show details on a network error is null",
+      "provider": "tmdb-show",
+      "env": {
+        "TMDB_API_KEY": "test-key"
+      },
+      "call": "details",
+      "args": [
+        "2"
+      ],
+      "responses": [
+        {
+          "networkError": true
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/tv/2?api_key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": null
+    },
+    {
+      "name": "Iris parity: movie preview on a network error falls back",
+      "provider": "tmdb-movie",
+      "env": {
+        "TMDB_API_KEY": "test-key"
+      },
+      "call": "preview",
+      "args": [
+        {
+          "id": "1",
+          "title": "Dune",
+          "category": "movie",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "networkError": true
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/movie/1?api_key=test-key&append_to_response=credits",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "title": "Dune",
+        "metaLine": [],
+        "blurb": null
+      }
+    },
+    {
+      "name": "Iris parity: hydrate on a network error falls back to the guess",
+      "provider": "tmdb-show",
+      "env": {
+        "TMDB_API_KEY": "test-key"
+      },
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "111",
+          "title": "Severance",
+          "category": "show",
+          "count": 3
+        }
+      ],
+      "responses": [
+        {
+          "networkError": true
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/tv/111?api_key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "Severance",
+        "mediaType": "show",
+        "unitLabel": "episode",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Episode 1"
+          },
+          {
+            "ordinal": 2,
+            "title": "Episode 2"
+          },
+          {
+            "ordinal": 3,
+            "title": "Episode 3"
+          }
+        ],
+        "externalSource": "tmdb",
+        "externalId": "111"
+      }
+    },
+    {
+      "name": "Iris parity: loose JSON — non-string titles are skipped, a null results list is empty",
+      "provider": "tmdb-show",
+      "env": {
+        "TMDB_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "x"
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": [
+              {
+                "id": 1,
+                "name": 7
+              },
+              {
+                "id": 2.5,
+                "name": "Two",
+                "extra": true,
+                "first_air_date": null,
+                "poster_path": null
+              },
+              {
+                "name": "No id"
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/search/tv?api_key=test-key&query=x",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": [
+        {
+          "id": "2.5",
+          "title": "Two",
+          "category": "show",
+          "count": 1
+        },
+        {
+          "id": "undefined",
+          "title": "No id",
+          "category": "show",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "Iris parity: loose JSON — results null",
+      "provider": "tmdb-movie",
+      "env": {
+        "TMDB_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "x"
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": null
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/search/movie?api_key=test-key&query=x",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "Iris parity: a single season and episode, a show ending in its start year",
+      "provider": "tmdb-show",
+      "env": {
+        "TMDB_API_KEY": "test-key"
+      },
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "9",
+          "title": "Mini",
+          "category": "show",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "status": "Ended",
+            "first_air_date": "2020-01-01",
+            "last_air_date": "2020-03-01",
+            "seasons": [
+              {
+                "season_number": 1,
+                "episode_count": 1
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/tv/9?api_key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "Mini",
+        "mediaType": "show",
+        "unitLabel": "episode",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Episode 1"
+          }
+        ],
+        "seasons": [
+          {
+            "number": 1,
+            "episodeCount": 1
+          }
+        ],
+        "metaLine": [
+          "2020",
+          "1 season",
+          "1 episode",
+          "Ended"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": null,
+          "releaseYear": "2020"
+        },
+        "externalSource": "tmdb",
+        "externalId": "9"
+      }
+    },
+    {
+      "name": "Iris parity: a show with no seasons keeps the guessed count and no season list",
+      "provider": "tmdb-show",
+      "env": {
+        "TMDB_API_KEY": "test-key"
+      },
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "9",
+          "title": "Unknown",
+          "category": "show",
+          "count": 2
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "status": "In Production",
+            "seasons": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://api.themoviedb.org/3/tv/9?api_key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": true,
+        "title": "Unknown",
+        "mediaType": "show",
+        "unitLabel": "episode",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Episode 1"
+          }
+        ],
+        "metaLine": [
+          "Ongoing"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": null,
+          "releaseYear": null
+        },
+        "externalSource": "tmdb",
+        "externalId": "9"
+      }
+    }
+  ]
+}

@@ -3,14 +3,17 @@ import * as path from 'path';
 import { normTitle, testTitles } from '../../testTitles';
 import { recordCase } from '../record';
 import type { ProviderCase } from '../types';
+import { cases as googleBooks } from '../cases/googleBooks';
 import { cases as pure } from '../cases/pure';
+import { cases as tmdb } from '../cases/tmdb';
 
 /** Area → its cases and the tests they carry over. Paths are repo-relative. */
 const AREAS: Record<string, { cases: ProviderCase[]; testFiles: string[] }> = {
   pure: {
     cases: pure,
     testFiles: ['src/providers/__tests__/images.test.ts', 'src/providers/__tests__/manual.test.ts', 'src/providers/__tests__/registry.test.ts'],
-  },
+  },  tmdb: { cases: tmdb, testFiles: ['src/providers/__tests__/tmdb.test.ts'] },
+  googleBooks: { cases: googleBooks, testFiles: ['src/providers/__tests__/googleBooks.test.ts'] },
 };
 
 const ROOT = path.resolve(__dirname, '../../..');
