@@ -17,8 +17,13 @@ public struct HTTPResponse: Sendable {
     public init(status: Int, body: Data) { self.status = status; self.body = body }
     /// `response.ok`.
     public var ok: Bool { (200..<300).contains(status) }
-    /// `await response.json()`.
-    public func json() throws -> JSONValue { try JSONDecoder().decode(JSONValue.self, from: body) }
+    /// `await response.json()`. A body that isn't JSON (a captive portal's
+    /// HTML page) throws a short message rather than a DecodingError dump —
+    /// JS's own SyntaxError text differs by engine, so it isn't mirrored.
+    public func json() throws -> JSONValue {
+        do { return try JSONDecoder().decode(JSONValue.self, from: body) }
+        catch { throw DomainError("The server's response wasn't readable") }
+    }
 }
 
 /// The one seam between providers and the network (spec §10: none in tests).
