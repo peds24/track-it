@@ -6,6 +6,7 @@ import * as path from 'path';
 import { normTitle, testTitles } from '../../testTitles';
 import { play } from '../play';
 import type { Scenario } from '../types';
+import { scenarios as progress } from '../cases/progress';
 import { NOT_A_SCENARIO as tracksNot, scenarios as tracks } from '../cases/tracks';
 import { scenarios as whatsNew } from '../cases/whatsNew';
 
@@ -17,6 +18,10 @@ const AREAS: Record<string, { scenarios: Scenario[]; testFiles: string[]; notASc
     scenarios: tracks,
     testFiles: ['trackRepo.test.ts', 'trackDetail.test.ts', 'addAndStart.test.ts', 'seriesTitleOrdinal.test.ts'],
     notAScenario: tracksNot,
+  },
+  progress: {
+    scenarios: progress,
+    testFiles: ['advanceTrack.test.ts', 'oneTapAdvance.test.ts', 'ongoing.test.ts', 'setTrackPosition.test.ts', 'completeTrack.test.ts', 'trackActions.test.ts'],
   },
 };
 

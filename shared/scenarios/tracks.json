@@ -225,7 +225,7 @@
         {
           "call": "query",
           "args": [
-            "SELECT id FROM series",
+            "SELECT id FROM series ORDER BY rowid",
             []
           ],
           "result": []

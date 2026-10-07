@@ -49,7 +49,7 @@ export const scenarios: Scenario[] = [
   },
   {
     name: 'a standalone book is created with no series row',
-    steps: [book('Dune'), query('SELECT id FROM series'), list('backlog')],
+    steps: [book('Dune'), query('SELECT id FROM series ORDER BY rowid'), list('backlog')],
   },
   {
     name: 'listTracks filters by category',
