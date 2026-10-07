@@ -6,6 +6,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { isDeepStrictEqual } from 'util';
+import { normTitle as norm, testTitles } from '../../testTitles';
 import { normalize, registry } from '../registry';
 import type { FixtureCase } from '../types';
 import { cases as advance } from '../cases/advance';
@@ -101,33 +102,6 @@ test('rankingScenario walks a session to placement', () => {
   expect(out.lo).toBe(3);
 });
 
-/**
- * Every test title in src/domain/__tests__ (test.each templates cut at the
- * first `%`/`$`), so coverage is checked by name, not by count: a new test
- * with no matching fixture case fails here (I2 review).
- */
-function testTitles(source: string): string[] {
-  const titles: string[] = [];
-  const re = /\b(?:it|test)(\.each)?\s*\(/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(source))) {
-    let i = m.index + m[0].length;
-    if (m[1]) {
-      // Skip the .each table — balanced parens — to the title call's "(".
-      for (let depth = 1; depth > 0 && i < source.length; i += 1) {
-        if (source[i] === '(') depth += 1;
-        else if (source[i] === ')') depth -= 1;
-      }
-      while (source[i] !== '(' && i < source.length) i += 1;
-      i += 1;
-    }
-    const lit = /^\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/.exec(source.slice(i));
-    if (lit) titles.push(lit[2]!.split(/[%$]/)[0]!.trim());
-  }
-  return titles;
-}
-
-const norm = (s: string) => s.toLowerCase().replace(/[’']/g, "'");
 
 describe.each(Object.entries(MODULES))('%s coverage by title', (module, { cases, testFiles }) => {
   test('every src/domain test has a fixture case named after it', () => {

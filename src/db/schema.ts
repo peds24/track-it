@@ -4,7 +4,7 @@ import type { SqlDriver } from '@/db/driver';
  * There is no `mode` column: mode is derived from media_type.
  * There is no shelf or status column on `series`: shelf is derived from children.
  */
-const MIGRATIONS: readonly string[] = [
+export const MIGRATIONS: readonly string[] = [
   `
   CREATE TABLE IF NOT EXISTS series (
     id              TEXT PRIMARY KEY NOT NULL,
