@@ -4,6 +4,75 @@
   "timezone": "UTC",
   "scenarios": [
     {
+      "name": "a series that fails partway through its entries persists nothing",
+      "steps": [
+        {
+          "call": "sql",
+          "args": [
+            "CREATE TRIGGER boom BEFORE INSERT ON entry WHEN NEW.ordinal = 2 BEGIN SELECT RAISE(ABORT, 'boom'); END",
+            []
+          ],
+          "result": null
+        },
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Severance",
+              "mediaType": "show",
+              "unitLabel": "episode",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Episode 1"
+                },
+                {
+                  "ordinal": 2,
+                  "title": "Episode 2"
+                },
+                {
+                  "ordinal": 3,
+                  "title": "Episode 3"
+                }
+              ]
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "throws": "boom"
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT count(*) AS n FROM series",
+            []
+          ],
+          "result": [
+            {
+              "n": 0
+            }
+          ]
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT count(*) AS n FROM entry",
+            []
+          ],
+          "result": [
+            {
+              "n": 0
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
       "name": "creating a series track writes the series and all its entries",
       "steps": [
         {
@@ -5633,6 +5702,35 @@
             "genres_json": null
           }
         ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "Iris parity: a draft ordinal no platform can store is rejected",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Big",
+              "mediaType": "manga",
+              "unitLabel": "volume",
+              "entries": [
+                {
+                  "ordinal": 10000000000000000000,
+                  "title": "Volume ∞"
+                }
+              ]
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "throws": "Entry \"Volume ∞\" ordinal must be a non-negative whole number, got: 10000000000000000000"
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [],
         "rating": [],
         "app_meta": []
       }

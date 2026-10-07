@@ -73,11 +73,20 @@ const CROSS_PLATFORM_BACKUP = JSON.stringify({
   ],
 });
 
-/** Fault injection at the driver seam is not expressible as a scenario;
- * Swift's import runs in the caller's GRDB write transaction. */
-export const NOT_A_SCENARIO = ['a failure part-way through applying a backup rolls the library back'];
+/** Every test here is a scenario: a trigger injects the mid-apply failure. */
+export const NOT_A_SCENARIO: string[] = [];
 
 export const scenarios: Scenario[] = [
+  {
+    name: 'a failure part-way through applying a backup rolls the library back',
+    steps: [
+      dune,
+      add({ title: 'Solaris', category: 'book', count: 1 }),
+      { call: 'sql', args: ["CREATE TRIGGER boom BEFORE INSERT ON entry WHEN NEW.title = 'Ubik' BEGIN SELECT RAISE(ABORT, 'boom'); END"] },
+      importText(payload({ entries: [entry({ id: 'e1', title: 'Dracula' }), entry({ id: 'e2', title: 'Ubik' })] })),
+      list('backlog'),
+    ],
+  },
   {
     name: 'a library survives an export/import round trip',
     steps: [add({ title: 'Berserk', category: 'manga', count: 2 }), exportStep, { call: 'deleteTrack', args: [{ $ref: 0 }] }, importRef(1), list('backlog')],
@@ -172,6 +181,23 @@ export const scenarios: Scenario[] = [
       importText(payload({ entries: [entry({ startedAt: 'yesterday', status: 'in_progress' })] })),
       importText(payload({ entries: [entry({ finishedAt: 'soon', status: 'done' })] })),
       importText(payload({ series: [series({ createdAt: 'whenever' })] })),
+      list('backlog'),
+    ],
+  },
+  {
+    name: 'a backup with an unsafe ordinal, rating position or season count is rejected',
+    steps: [
+      dune,
+      importText(payload({ series: [series({ id: 's1' })], entries: [entry({ seriesId: 's1', mediaType: 'volume', ordinal: 1e19 })] })),
+      importText(payload({ series: [series({ seasons: [{ number: 1.5, episodeCount: 2 }] })] })),
+      importText(
+        JSON.stringify({
+          version: 1,
+          series: [],
+          entries: [entry({ id: 'e1' })],
+          ratings: [{ trackKind: 'entry', trackId: 'e1', category: 'book', sentiment: 'liked', position: 1e19, ratedAt: NOW }],
+        }),
+      ),
       list('backlog'),
     ],
   },

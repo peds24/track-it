@@ -407,3 +407,25 @@ describe('A22 metadata in backups', () => {
     expect(row).toMatchObject({ cover_url: null, creator: null, metadata_checked_at: null, genres_json: null });
   });
 });
+
+/**
+ * Iris I4 review: numbers no platform can store as integers are rejected on
+ * import rather than written as REALs (TS) or trapping (Swift).
+ */
+test('a backup with an unsafe ordinal, rating position or season count is rejected', async () => {
+  await expectRejectedAndLibraryIntact(
+    payload({ series: [seriesFixture({ id: 's1' })], entries: [entryFixture({ seriesId: 's1', mediaType: 'volume', ordinal: 1e19 })] }),
+    /non-negative whole number/,
+  );
+  await expectRejectedAndLibraryIntact(
+    payload({ series: [seriesFixture({ seasons: [{ number: 1.5, episodeCount: 2 }] })] }),
+    /number must be a whole number/,
+  );
+  const ratedTooFar = JSON.stringify({
+    version: 1,
+    series: [],
+    entries: [entryFixture({ id: 'e1' })],
+    ratings: [{ trackKind: 'entry', trackId: 'e1', category: 'book', sentiment: 'liked', position: 1e19, ratedAt: NOW }],
+  });
+  await expectRejectedAndLibraryIntact(ratedTooFar, /position must be a whole number/);
+});

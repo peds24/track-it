@@ -33,12 +33,25 @@ const watchRaw = (id: unknown, at: string): Step =>
   sql("UPDATE entry SET status = 'done', started_at = ?, finished_at = ? WHERE id = ?", [at, at, id]);
 const ref = ($ref: number, path?: string) => (path === undefined ? { $ref } : { $ref, path });
 
-/** A failing-driver test needs fault injection a scenario cannot express;
- * Swift gets the same guarantee from GRDB's write transaction. */
-export const NOT_A_SCENARIO = ['a series that fails partway through its entries persists nothing'];
+/** Every test here is a scenario (the I4 review showed a trigger can inject
+ * the mid-write failure the failing-driver test simulates). */
+export const NOT_A_SCENARIO: string[] = [];
+
+/** Fails any INSERT of an entry with this ordinal — a real mid-write error on both platforms. */
+const failInsertAtOrdinal = (ordinal: number): Step =>
+  sql(`CREATE TRIGGER boom BEFORE INSERT ON entry WHEN NEW.ordinal = ${ordinal} BEGIN SELECT RAISE(ABORT, 'boom'); END`);
 
 export const scenarios: Scenario[] = [
   // --- trackRepo.test.ts ---
+  {
+    name: 'a series that fails partway through its entries persists nothing',
+    steps: [
+      failInsertAtOrdinal(2),
+      { call: 'createSeriesTrack', args: [series('Severance', 'show', 'episode', 3), NOW] },
+      query('SELECT count(*) AS n FROM series'),
+      query('SELECT count(*) AS n FROM entry'),
+    ],
+  },
   {
     name: 'creating a series track writes the series and all its entries',
     steps: [{ call: 'createSeriesTrack', args: [series('Berserk', 'manga', 'volume', 2), NOW] }, query('SELECT title FROM entry ORDER BY ordinal')],
@@ -361,6 +374,10 @@ export const scenarios: Scenario[] = [
   {
     name: 'Iris parity: tracks added at the same instant list in insertion order',
     steps: [book('First'), book('Second'), book('Third'), { call: 'createSeriesTrack', args: [series('Fourth', 'show', 'episode', 1), NOW] }, list('backlog')],
+  },
+  {
+    name: 'Iris parity: a draft ordinal no platform can store is rejected',
+    steps: [{ call: 'createSeriesTrack', args: [{ title: 'Big', mediaType: 'manga', unitLabel: 'volume', entries: [{ ordinal: 1e19, title: 'Volume ∞' }] }, NOW] }],
   },
   {
     name: 'Iris parity: a rejected draft writes nothing',

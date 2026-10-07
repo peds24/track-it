@@ -47,4 +47,9 @@ export const cases: FixtureCase[] = [
     fn: 'assertOrdinal',
     args: [v],
   })),
+  ...[9007199254740991, 9007199254740992, 1e19].map((v, i) => ({
+    name: `ordinals must be safe integers, so every platform can store them${i ? ` (${i + 1})` : ''}`,
+    fn: 'assertOrdinal',
+    args: [v],
+  })),
 ];
