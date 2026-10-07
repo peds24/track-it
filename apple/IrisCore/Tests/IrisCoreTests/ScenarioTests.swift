@@ -3,7 +3,7 @@ import XCTest
 
 /// Iris I4 / A29: every recorded data-layer scenario replays identically on GRDB.
 final class ScenarioTests: XCTestCase {
-    static let pending: Set<String> = []
+    static let pending: Set<String> = ["backfill", "sync"] // Iris I5 Task 7
     static let ported: Set<String> = ["whatsNew", "tracks", "progress", "ratings", "backup"]
 
     private func check(_ area: String, _ calls: [String: ScenarioCall]) async throws {

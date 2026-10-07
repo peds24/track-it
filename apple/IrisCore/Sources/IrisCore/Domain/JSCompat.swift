@@ -84,3 +84,19 @@ func jsRegex<Output>(_ regex: Regex<Output>) -> Regex<Output> {
 func isSafeInteger(_ x: Double) -> Bool {
     x.isFinite && x.rounded(.towardZero) == x && abs(x) <= 9_007_199_254_740_991
 }
+
+/// `encodeURIComponent`: percent-encode the UTF-8 bytes of everything except
+/// A–Z a–z 0–9 - _ . ! ~ * ' ( ) — URLs must match the TS app byte for byte.
+func encodeURIComponent(_ s: String) -> String {
+    let unreserved = Set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.!~*'()".utf8)
+    var out = ""
+    for byte in s.utf8 {
+        if unreserved.contains(byte) { out.unicodeScalars.append(Unicode.Scalar(byte)) }
+        else { out += String(format: "%%%02X", byte) }
+    }
+    return out
+}
+
+/// JS `String(value)` for an untyped JSON value read off a catalogue response
+/// (`undefined` when the key is absent).
+func jsString(_ value: JSONValue?) -> String { value?.jsDescription ?? "undefined" }
