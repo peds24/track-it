@@ -79,3 +79,8 @@ func jsRegex<Output>(_ regex: Regex<Output>) -> Regex<Output> {
         .asciiOnlyWordCharacters()
         .wordBoundaryKind(.simple)
 }
+
+/// `Number.isSafeInteger`: whole and within ±(2^53 − 1).
+func isSafeInteger(_ x: Double) -> Bool {
+    x.isFinite && x.rounded(.towardZero) == x && abs(x) <= 9_007_199_254_740_991
+}

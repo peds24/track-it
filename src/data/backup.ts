@@ -132,11 +132,12 @@ function requireOptionalSeasons(value: unknown, field: string): readonly SeasonB
   if (!Array.isArray(value)) throw new Error(`Backup field ${field} must be a list`);
   return value.map((entry, i) => {
     if (!isRecord(entry)) throw new Error(`Backup field ${field}[${i}] is not an object`);
-    if (typeof entry.number !== 'number') throw new Error(`Backup field ${field}[${i}].number must be a number`);
-    if (typeof entry.episodeCount !== 'number') {
-      throw new Error(`Backup field ${field}[${i}].episodeCount must be a number`);
+    // Iris I4: whole, and safe — a season count no platform can hold as an integer is corrupt.
+    if (!Number.isSafeInteger(entry.number)) throw new Error(`Backup field ${field}[${i}].number must be a whole number`);
+    if (!Number.isSafeInteger(entry.episodeCount)) {
+      throw new Error(`Backup field ${field}[${i}].episodeCount must be a whole number`);
     }
-    return { number: entry.number, episodeCount: entry.episodeCount };
+    return { number: entry.number as number, episodeCount: entry.episodeCount as number };
   });
 }
 
@@ -280,12 +281,12 @@ function parseRating(value: unknown, exists: (kind: 'series' | 'entry', id: stri
   if (!CATEGORIES.includes(category as Category)) throw new Error(`Unknown rating category: ${category}`);
   const sentiment = requireString(value.sentiment, 'rating.sentiment');
   if (!SENTIMENTS.includes(sentiment as Sentiment)) throw new Error(`Unknown rating sentiment: ${sentiment}`);
-  if (typeof value.position !== 'number' || !Number.isInteger(value.position)) {
+  if (!Number.isSafeInteger(value.position)) {
     throw new Error('Backup field rating.position must be a whole number');
   }
   const ratedAt = requireString(value.ratedAt, 'rating.ratedAt');
   assertIsoTimestamp(ratedAt, 'rating.ratedAt');
-  return { trackKind, trackId, category: category as Category, sentiment: sentiment as Sentiment, position: value.position, ratedAt };
+  return { trackKind, trackId, category: category as Category, sentiment: sentiment as Sentiment, position: value.position as number, ratedAt };
 }
 
 /** Validate everything first: a half-imported library reads as corruption. */

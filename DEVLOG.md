@@ -1,5 +1,25 @@
 # DEVLOG
 
+## 2026-10-07 — Iris I4: persistence on GRDB
+
+- `apple/IrisCore/Sources/IrisCore/Persistence/` ports `src/db` and the
+  repositories in `src/data` (tracks, addTrack, ratings, what's-new, backup);
+  127 recorded scenarios replay identically.
+- **Why recorded scenarios (A29)**: the user's choice over hand-mirrored
+  tests — a data-layer change on android re-records, and Swift goes red.
+- **Why not GRDB's migrator**: its bookkeeping table would make the schema
+  differ; the TS `schema_version` table and migration strings are reused.
+- **Why hand-written JSON column text**: JSONEncoder escapes "/", and
+  `genres_json`/`seasons_json` text is compared across platforms.
+- **Gotchas found**: `SELECT id FROM entry` with no ORDER BY reads the id
+  index, so rows come back in random-id order — every multi-row inspection
+  query orders by rowid. And `tsc` (no `include`) scanned GRDB's JS under
+  `apple/DerivedData`; `tsconfig.json` now excludes `apple/`.
+- **Review fixes**: a 1e19 ordinal (whole, so "valid") stored as a REAL in
+  TS and trapped Swift's Int — both now require safe integers. Swift's
+  writes are atomic on their own (savepoints), proven by tests that call
+  them outside any transaction.
+
 ## 2026-10-06 — Iris I3: Swift domain port
 
 - `apple/IrisCore/Sources/IrisCore/Domain/` ports all of `src/domain`, one

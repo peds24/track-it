@@ -1,0 +1,2701 @@
+{
+  "area": "backup",
+  "generatedBy": "npm run fixtures:record",
+  "timezone": "UTC",
+  "scenarios": [
+    {
+      "name": "a failure part-way through applying a backup rolls the library back",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book",
+              "count": 1
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Solaris",
+              "category": "book",
+              "count": 1
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#2"
+          }
+        },
+        {
+          "call": "sql",
+          "args": [
+            "CREATE TRIGGER boom BEFORE INSERT ON entry WHEN NEW.title = 'Ubik' BEGIN SELECT RAISE(ABORT, 'boom'); END"
+          ],
+          "result": null
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[],\"entries\":[{\"id\":\"e1\",\"seriesId\":null,\"title\":\"Dracula\",\"ordinal\":null,\"mediaType\":\"book\",\"status\":\"unstarted\",\"startedAt\":null,\"finishedAt\":null,\"createdAt\":\"2026-08-12T10:00:00.000Z\"},{\"id\":\"e2\",\"seriesId\":null,\"title\":\"Ubik\",\"ordinal\":null,\"mediaType\":\"book\",\"status\":\"unstarted\",\"startedAt\":null,\"finishedAt\":null,\"createdAt\":\"2026-08-12T10:00:00.000Z\"}]}"
+          ],
+          "throws": "boom"
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            },
+            {
+              "kind": "entry",
+              "id": "#2",
+              "title": "Solaris",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Solaris",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#2",
+            "series_id": null,
+            "title": "Solaris",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a library survives an export/import round trip",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Berserk",
+              "category": "manga",
+              "count": 2
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "series",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "exportLibrary",
+          "args": [],
+          "result": {
+            "version": 1,
+            "series": [
+              {
+                "id": "#1",
+                "title": "Berserk",
+                "mediaType": "manga",
+                "unitLabel": "volume",
+                "createdAt": "2026-08-12T10:00:00.000Z",
+                "ongoing": false,
+                "paused": false,
+                "externalSource": null,
+                "externalId": null
+              }
+            ],
+            "entries": [
+              {
+                "id": "#2",
+                "seriesId": "#1",
+                "title": "Volume 1",
+                "ordinal": 1,
+                "mediaType": "volume",
+                "status": "unstarted",
+                "startedAt": null,
+                "finishedAt": null,
+                "createdAt": "2026-08-12T10:00:00.000Z",
+                "paused": false,
+                "externalSource": null,
+                "externalId": null
+              },
+              {
+                "id": "#3",
+                "seriesId": "#1",
+                "title": "Volume 2",
+                "ordinal": 2,
+                "mediaType": "volume",
+                "status": "unstarted",
+                "startedAt": null,
+                "finishedAt": null,
+                "createdAt": "2026-08-12T10:00:00.000Z",
+                "paused": false,
+                "externalSource": null,
+                "externalId": null
+              }
+            ],
+            "ratings": []
+          }
+        },
+        {
+          "call": "deleteTrack",
+          "args": [
+            {
+              "$ref": 0
+            }
+          ],
+          "result": null
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            {
+              "$ref": 1,
+              "json": true
+            }
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "Berserk",
+              "category": "manga",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": {
+                "done": 0,
+                "total": 2
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Volume 1",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Berserk",
+            "media_type": "manga",
+            "unit_label": "volume",
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Volume 1",
+            "ordinal": 1,
+            "media_type": "volume",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Volume 2",
+            "ordinal": 2,
+            "media_type": "volume",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a show's season breakdown survives an export/import round trip",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "House",
+              "mediaType": "show",
+              "unitLabel": "episode",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Episode 1"
+                },
+                {
+                  "ordinal": 2,
+                  "title": "Episode 2"
+                }
+              ],
+              "seasons": [
+                {
+                  "number": 1,
+                  "episodeCount": 2
+                }
+              ]
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "exportLibrary",
+          "args": [],
+          "result": {
+            "version": 1,
+            "series": [
+              {
+                "id": "#1",
+                "title": "House",
+                "mediaType": "show",
+                "unitLabel": "episode",
+                "createdAt": "2026-08-12T10:00:00.000Z",
+                "ongoing": false,
+                "paused": false,
+                "externalSource": null,
+                "externalId": null,
+                "seasons": [
+                  {
+                    "number": 1,
+                    "episodeCount": 2
+                  }
+                ]
+              }
+            ],
+            "entries": [
+              {
+                "id": "#2",
+                "seriesId": "#1",
+                "title": "Episode 1",
+                "ordinal": 1,
+                "mediaType": "episode",
+                "status": "unstarted",
+                "startedAt": null,
+                "finishedAt": null,
+                "createdAt": "2026-08-12T10:00:00.000Z",
+                "paused": false,
+                "externalSource": null,
+                "externalId": null
+              },
+              {
+                "id": "#3",
+                "seriesId": "#1",
+                "title": "Episode 2",
+                "ordinal": 2,
+                "mediaType": "episode",
+                "status": "unstarted",
+                "startedAt": null,
+                "finishedAt": null,
+                "createdAt": "2026-08-12T10:00:00.000Z",
+                "paused": false,
+                "externalSource": null,
+                "externalId": null
+              }
+            ],
+            "ratings": []
+          }
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            {
+              "$ref": 1,
+              "json": true
+            }
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "House",
+              "category": "show",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": {
+                "done": 0,
+                "total": 2
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": [
+                {
+                  "number": 1,
+                  "episodeCount": 2
+                }
+              ],
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Episode 1",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "House",
+            "media_type": "show",
+            "unit_label": "episode",
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": "[{\"number\":1,\"episodeCount\":2}]",
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "media_type": "episode",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Episode 2",
+            "ordinal": 2,
+            "media_type": "episode",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a series with no season data round-trips to seasons: null, same as today",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Berserk",
+              "category": "manga",
+              "count": 2
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "series",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "exportLibrary",
+          "args": [],
+          "result": {
+            "version": 1,
+            "series": [
+              {
+                "id": "#1",
+                "title": "Berserk",
+                "mediaType": "manga",
+                "unitLabel": "volume",
+                "createdAt": "2026-08-12T10:00:00.000Z",
+                "ongoing": false,
+                "paused": false,
+                "externalSource": null,
+                "externalId": null
+              }
+            ],
+            "entries": [
+              {
+                "id": "#2",
+                "seriesId": "#1",
+                "title": "Volume 1",
+                "ordinal": 1,
+                "mediaType": "volume",
+                "status": "unstarted",
+                "startedAt": null,
+                "finishedAt": null,
+                "createdAt": "2026-08-12T10:00:00.000Z",
+                "paused": false,
+                "externalSource": null,
+                "externalId": null
+              },
+              {
+                "id": "#3",
+                "seriesId": "#1",
+                "title": "Volume 2",
+                "ordinal": 2,
+                "mediaType": "volume",
+                "status": "unstarted",
+                "startedAt": null,
+                "finishedAt": null,
+                "createdAt": "2026-08-12T10:00:00.000Z",
+                "paused": false,
+                "externalSource": null,
+                "externalId": null
+              }
+            ],
+            "ratings": []
+          }
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            {
+              "$ref": 1,
+              "json": true
+            }
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "Berserk",
+              "category": "manga",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": {
+                "done": 0,
+                "total": 2
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Volume 1",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Berserk",
+            "media_type": "manga",
+            "unit_label": "volume",
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Volume 1",
+            "ordinal": 1,
+            "media_type": "volume",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Volume 2",
+            "ordinal": 2,
+            "media_type": "volume",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "import replaces the existing library rather than merging",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Berserk",
+              "category": "manga",
+              "count": 1
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "series",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "exportLibrary",
+          "args": [],
+          "result": {
+            "version": 1,
+            "series": [
+              {
+                "id": "#1",
+                "title": "Berserk",
+                "mediaType": "manga",
+                "unitLabel": "volume",
+                "createdAt": "2026-08-12T10:00:00.000Z",
+                "ongoing": false,
+                "paused": false,
+                "externalSource": null,
+                "externalId": null
+              }
+            ],
+            "entries": [
+              {
+                "id": "#2",
+                "seriesId": "#1",
+                "title": "Volume 1",
+                "ordinal": 1,
+                "mediaType": "volume",
+                "status": "unstarted",
+                "startedAt": null,
+                "finishedAt": null,
+                "createdAt": "2026-08-12T10:00:00.000Z",
+                "paused": false,
+                "externalSource": null,
+                "externalId": null
+              }
+            ],
+            "ratings": []
+          }
+        },
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book",
+              "count": 1
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#3"
+          }
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            {
+              "$ref": 1,
+              "json": true
+            }
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "Berserk",
+              "category": "manga",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": {
+                "done": 0,
+                "total": 1
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Volume 1",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Berserk",
+            "media_type": "manga",
+            "unit_label": "volume",
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Volume 1",
+            "ordinal": 1,
+            "media_type": "volume",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "malformed JSON is rejected and leaves the library untouched",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book",
+              "count": 1
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{ not json"
+          ],
+          "throws": "Backup is not valid JSON"
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a payload with an invalid status is rejected before any write",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book",
+              "count": 1
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[],\"entries\":[{\"id\":\"x\",\"seriesId\":null,\"title\":\"Bad\",\"ordinal\":null,\"mediaType\":\"book\",\"status\":\"reading\",\"startedAt\":null,\"finishedAt\":null,\"createdAt\":\"2026-08-12T10:00:00.000Z\"}]}"
+          ],
+          "throws": "Unknown status: reading"
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a standalone movie marked in_progress is rejected: it has no in_progress state",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book",
+              "count": 1
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[],\"entries\":[{\"id\":\"e1\",\"seriesId\":null,\"title\":\"Arrival\",\"ordinal\":null,\"mediaType\":\"movie\",\"status\":\"in_progress\",\"startedAt\":null,\"finishedAt\":null,\"createdAt\":\"2026-08-12T10:00:00.000Z\"}]}"
+          ],
+          "throws": "Status in_progress is not valid for a movie"
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "an episode marked in_progress imports fine — a series child does have in_progress",
+      "steps": [
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[{\"id\":\"s1\",\"title\":\"Twin Peaks\",\"mediaType\":\"show\",\"unitLabel\":\"episode\",\"createdAt\":\"2026-08-12T10:00:00.000Z\",\"externalSource\":null,\"externalId\":null}],\"entries\":[{\"id\":\"e1\",\"seriesId\":\"s1\",\"title\":\"Episode 1\",\"ordinal\":1,\"mediaType\":\"episode\",\"status\":\"in_progress\",\"startedAt\":null,\"finishedAt\":null,\"createdAt\":\"2026-08-12T10:00:00.000Z\"}]}"
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "currently"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "Twin Peaks",
+              "category": "show",
+              "shelf": "currently",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": {
+                "done": 0,
+                "total": 1
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "in_progress",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Episode 1",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Twin Peaks",
+            "media_type": "show",
+            "unit_label": "episode",
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "media_type": "episode",
+            "status": "in_progress",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a standalone entry survives an export/import round trip",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book",
+              "count": 1
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "exportLibrary",
+          "args": [],
+          "result": {
+            "version": 1,
+            "series": [],
+            "entries": [
+              {
+                "id": "#1",
+                "seriesId": null,
+                "title": "Dune",
+                "ordinal": null,
+                "mediaType": "book",
+                "status": "unstarted",
+                "startedAt": null,
+                "finishedAt": null,
+                "createdAt": "2026-08-12T10:00:00.000Z",
+                "paused": false,
+                "externalSource": null,
+                "externalId": null
+              }
+            ],
+            "ratings": []
+          }
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            {
+              "$ref": 1,
+              "json": true
+            }
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "an entry pointing at a series that is not in the payload is rejected",
+      "steps": [
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[],\"entries\":[{\"id\":\"e1\",\"seriesId\":\"missing\",\"title\":\"Dracula\",\"ordinal\":null,\"mediaType\":\"book\",\"status\":\"unstarted\",\"startedAt\":null,\"finishedAt\":null,\"createdAt\":\"2026-08-12T10:00:00.000Z\"}]}"
+          ],
+          "throws": "Entry e1 refers to a missing series"
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "an unknown series media type is rejected",
+      "steps": [
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[{\"id\":\"s1\",\"title\":\"Berserk\",\"mediaType\":\"podcast\",\"unitLabel\":\"volume\",\"createdAt\":\"2026-08-12T10:00:00.000Z\",\"externalSource\":null,\"externalId\":null}],\"entries\":[]}"
+          ],
+          "throws": "Unknown series media type: podcast"
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "an unknown unit label is rejected",
+      "steps": [
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[{\"id\":\"s1\",\"title\":\"Berserk\",\"mediaType\":\"manga\",\"unitLabel\":\"chapter\",\"createdAt\":\"2026-08-12T10:00:00.000Z\",\"externalSource\":null,\"externalId\":null}],\"entries\":[]}"
+          ],
+          "throws": "Unknown unit label: chapter"
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "duplicate ids are rejected before the transaction opens",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book",
+              "count": 1
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[],\"entries\":[{\"id\":\"e1\",\"seriesId\":null,\"title\":\"Dracula\",\"ordinal\":null,\"mediaType\":\"book\",\"status\":\"unstarted\",\"startedAt\":null,\"finishedAt\":null,\"createdAt\":\"2026-08-12T10:00:00.000Z\"},{\"id\":\"e1\",\"seriesId\":null,\"title\":\"Dracula\",\"ordinal\":null,\"mediaType\":\"book\",\"status\":\"unstarted\",\"startedAt\":null,\"finishedAt\":null,\"createdAt\":\"2026-08-12T10:00:00.000Z\"}]}"
+          ],
+          "throws": "Backup contains duplicate entry ids"
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[{\"id\":\"s1\",\"title\":\"Berserk\",\"mediaType\":\"manga\",\"unitLabel\":\"volume\",\"createdAt\":\"2026-08-12T10:00:00.000Z\",\"externalSource\":null,\"externalId\":null},{\"id\":\"s1\",\"title\":\"Berserk\",\"mediaType\":\"manga\",\"unitLabel\":\"volume\",\"createdAt\":\"2026-08-12T10:00:00.000Z\",\"externalSource\":null,\"externalId\":null}],\"entries\":[]}"
+          ],
+          "throws": "Backup contains duplicate series ids"
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "an empty library exports to a payload that imports cleanly",
+      "steps": [
+        {
+          "call": "exportLibrary",
+          "args": [],
+          "result": {
+            "version": 1,
+            "series": [],
+            "entries": [],
+            "ratings": []
+          }
+        },
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book",
+              "count": 1
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            {
+              "$ref": 0,
+              "json": true
+            }
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": []
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "currently"
+          ],
+          "result": []
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "done"
+          ],
+          "result": []
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a parentless entry typed as a unit label is rejected",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book",
+              "count": 1
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[],\"entries\":[{\"id\":\"e1\",\"seriesId\":null,\"title\":\"Dracula\",\"ordinal\":null,\"mediaType\":\"episode\",\"status\":\"unstarted\",\"startedAt\":null,\"finishedAt\":null,\"createdAt\":\"2026-08-12T10:00:00.000Z\"}]}"
+          ],
+          "throws": "Entry e1 has no parent series, so its media type must be book or movie, got: episode"
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a child whose media type disagrees with its series unit label is rejected",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book",
+              "count": 1
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[{\"id\":\"s1\",\"title\":\"Berserk\",\"mediaType\":\"manga\",\"unitLabel\":\"volume\",\"createdAt\":\"2026-08-12T10:00:00.000Z\",\"externalSource\":null,\"externalId\":null}],\"entries\":[{\"id\":\"e1\",\"seriesId\":\"s1\",\"title\":\"Dracula\",\"ordinal\":1,\"mediaType\":\"episode\",\"status\":\"unstarted\",\"startedAt\":null,\"finishedAt\":null,\"createdAt\":\"2026-08-12T10:00:00.000Z\"}]}"
+          ],
+          "throws": "Entry e1 has media type episode but its series is tracked in volumes"
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a non-ISO createdAt is rejected — it would corrupt every sort order",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book",
+              "count": 1
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[],\"entries\":[{\"id\":\"e1\",\"seriesId\":null,\"title\":\"Dracula\",\"ordinal\":null,\"mediaType\":\"book\",\"status\":\"unstarted\",\"startedAt\":null,\"finishedAt\":null,\"createdAt\":\"not-a-date\"}]}"
+          ],
+          "throws": "Entry e1 createdAt must be an ISO-8601 timestamp, got: not-a-date"
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a negative fractional ordinal is rejected",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book",
+              "count": 1
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[{\"id\":\"s1\",\"title\":\"Berserk\",\"mediaType\":\"manga\",\"unitLabel\":\"volume\",\"createdAt\":\"2026-08-12T10:00:00.000Z\",\"externalSource\":null,\"externalId\":null}],\"entries\":[{\"id\":\"e1\",\"seriesId\":\"s1\",\"title\":\"Dracula\",\"ordinal\":-4.5,\"mediaType\":\"volume\",\"status\":\"unstarted\",\"startedAt\":null,\"finishedAt\":null,\"createdAt\":\"2026-08-12T10:00:00.000Z\"}]}"
+          ],
+          "throws": "Entry e1 ordinal must be a non-negative whole number, got: -4.5"
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "bad startedAt, finishedAt and series createdAt are all rejected",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book",
+              "count": 1
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[],\"entries\":[{\"id\":\"e1\",\"seriesId\":null,\"title\":\"Dracula\",\"ordinal\":null,\"mediaType\":\"book\",\"status\":\"in_progress\",\"startedAt\":\"yesterday\",\"finishedAt\":null,\"createdAt\":\"2026-08-12T10:00:00.000Z\"}]}"
+          ],
+          "throws": "Entry e1 startedAt must be an ISO-8601 timestamp, got: yesterday"
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[],\"entries\":[{\"id\":\"e1\",\"seriesId\":null,\"title\":\"Dracula\",\"ordinal\":null,\"mediaType\":\"book\",\"status\":\"done\",\"startedAt\":null,\"finishedAt\":\"soon\",\"createdAt\":\"2026-08-12T10:00:00.000Z\"}]}"
+          ],
+          "throws": "Entry e1 finishedAt must be an ISO-8601 timestamp, got: soon"
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[{\"id\":\"s1\",\"title\":\"Berserk\",\"mediaType\":\"manga\",\"unitLabel\":\"volume\",\"createdAt\":\"whenever\",\"externalSource\":null,\"externalId\":null}],\"entries\":[]}"
+          ],
+          "throws": "series.createdAt must be an ISO-8601 timestamp, got: whenever"
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a backup with an unsafe ordinal, rating position or season count is rejected",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book",
+              "count": 1
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[{\"id\":\"s1\",\"title\":\"Berserk\",\"mediaType\":\"manga\",\"unitLabel\":\"volume\",\"createdAt\":\"2026-08-12T10:00:00.000Z\",\"externalSource\":null,\"externalId\":null}],\"entries\":[{\"id\":\"e1\",\"seriesId\":\"s1\",\"title\":\"Dracula\",\"ordinal\":10000000000000000000,\"mediaType\":\"volume\",\"status\":\"unstarted\",\"startedAt\":null,\"finishedAt\":null,\"createdAt\":\"2026-08-12T10:00:00.000Z\"}]}"
+          ],
+          "throws": "Entry e1 ordinal must be a non-negative whole number, got: 10000000000000000000"
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[{\"id\":\"s1\",\"title\":\"Berserk\",\"mediaType\":\"manga\",\"unitLabel\":\"volume\",\"createdAt\":\"2026-08-12T10:00:00.000Z\",\"externalSource\":null,\"externalId\":null,\"seasons\":[{\"number\":1.5,\"episodeCount\":2}]}],\"entries\":[]}"
+          ],
+          "throws": "Backup field series.seasons[0].number must be a whole number"
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[],\"entries\":[{\"id\":\"e1\",\"seriesId\":null,\"title\":\"Dracula\",\"ordinal\":null,\"mediaType\":\"book\",\"status\":\"unstarted\",\"startedAt\":null,\"finishedAt\":null,\"createdAt\":\"2026-08-12T10:00:00.000Z\"}],\"ratings\":[{\"trackKind\":\"entry\",\"trackId\":\"e1\",\"category\":\"book\",\"sentiment\":\"liked\",\"position\":10000000000000000000,\"ratedAt\":\"2026-08-12T10:00:00.000Z\"}]}"
+          ],
+          "throws": "Backup field rating.position must be a whole number"
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "A22 metadata in backups: metadata survives an export/import round trip",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Saga, Volume 1",
+              "category": "comic",
+              "count": 1,
+              "standalone": true,
+              "externalSource": "google-books",
+              "match": {
+                "id": "gb9",
+                "title": "Saga, Volume 1",
+                "category": "comic",
+                "count": 1
+              },
+              "metadata": {
+                "coverUrl": "https://x/saga.jpg",
+                "creator": "Brian K. Vaughan",
+                "description": "Space opera.",
+                "releaseYear": "2012",
+                "genres": [
+                  "Science Fiction"
+                ]
+              }
+            },
+            "2026-09-01T12:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "exportLibrary",
+          "args": [],
+          "result": {
+            "version": 1,
+            "series": [],
+            "entries": [
+              {
+                "id": "#1",
+                "seriesId": null,
+                "title": "Saga, Volume 1",
+                "ordinal": null,
+                "mediaType": "comic",
+                "status": "unstarted",
+                "startedAt": null,
+                "finishedAt": null,
+                "createdAt": "2026-09-01T12:00:00.000Z",
+                "paused": false,
+                "externalSource": "google-books",
+                "externalId": "gb9",
+                "coverUrl": "https://x/saga.jpg",
+                "creator": "Brian K. Vaughan",
+                "description": "Space opera.",
+                "releaseYear": "2012",
+                "metadataCheckedAt": "2026-09-01T12:00:00.000Z",
+                "genres": [
+                  "Science Fiction"
+                ]
+              }
+            ],
+            "ratings": []
+          }
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            {
+              "$ref": 1,
+              "json": true
+            }
+          ],
+          "result": null
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT * FROM entry ORDER BY rowid"
+          ],
+          "result": [
+            {
+              "id": "#1",
+              "series_id": null,
+              "title": "Saga, Volume 1",
+              "ordinal": null,
+              "media_type": "comic",
+              "status": "unstarted",
+              "started_at": null,
+              "finished_at": null,
+              "created_at": "2026-09-01T12:00:00.000Z",
+              "paused": 0,
+              "external_source": "google-books",
+              "external_id": "gb9",
+              "cover_url": "https://x/saga.jpg",
+              "creator": "Brian K. Vaughan",
+              "description": "Space opera.",
+              "release_year": "2012",
+              "metadata_checked_at": "2026-09-01T12:00:00.000Z",
+              "genres_json": "[\"Science Fiction\"]"
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Saga, Volume 1",
+            "ordinal": null,
+            "media_type": "comic",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "google-books",
+            "external_id": "gb9",
+            "cover_url": "https://x/saga.jpg",
+            "creator": "Brian K. Vaughan",
+            "description": "Space opera.",
+            "release_year": "2012",
+            "metadata_checked_at": "2026-09-01T12:00:00.000Z",
+            "genres_json": "[\"Science Fiction\"]"
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "A22 metadata in backups: a backup from before A22 imports with empty metadata",
+      "steps": [
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[],\"entries\":[{\"id\":\"e1\",\"seriesId\":null,\"title\":\"Dune\",\"ordinal\":null,\"mediaType\":\"book\",\"status\":\"unstarted\",\"startedAt\":null,\"finishedAt\":null,\"createdAt\":\"2026-09-01T12:00:00.000Z\"}]}"
+          ],
+          "result": null
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT * FROM entry ORDER BY rowid"
+          ],
+          "result": [
+            {
+              "id": "#1",
+              "series_id": null,
+              "title": "Dune",
+              "ordinal": null,
+              "media_type": "book",
+              "status": "unstarted",
+              "started_at": null,
+              "finished_at": null,
+              "created_at": "2026-09-01T12:00:00.000Z",
+              "paused": 0,
+              "external_source": null,
+              "external_id": null,
+              "cover_url": null,
+              "creator": null,
+              "description": null,
+              "release_year": null,
+              "metadata_checked_at": null,
+              "genres_json": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "Iris parity: a TS backup imports and round-trips",
+      "steps": [
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[{\"id\":\"show-1\",\"title\":\"Severance \\\"Season\\\" 1/2\",\"mediaType\":\"show\",\"unitLabel\":\"episode\",\"createdAt\":\"2026-01-01T09:00:00.000Z\",\"ongoing\":false,\"paused\":false,\"externalSource\":\"tmdb\",\"externalId\":\"95396\",\"seasons\":[{\"number\":1,\"episodeCount\":2}],\"coverUrl\":\"https://image.tmdb.org/t/p/w342/sev.jpg\",\"creator\":\"Dan Erickson\",\"description\":\"Work/life — séparation.\",\"releaseYear\":\"2022\",\"metadataCheckedAt\":\"2026-01-02T00:00:00.000Z\",\"genres\":[\"Drama\",\"Sci-Fi/Fantasy\"]},{\"id\":\"comic-1\",\"title\":\"Saga\",\"mediaType\":\"comic\",\"unitLabel\":\"issue\",\"createdAt\":\"2026-02-01T09:00:00.000Z\",\"ongoing\":true,\"paused\":true,\"externalSource\":\"metron\",\"externalId\":\"42\"}],\"entries\":[{\"id\":\"ep-1\",\"seriesId\":\"show-1\",\"title\":\"Episode 1\",\"ordinal\":1,\"mediaType\":\"episode\",\"status\":\"done\",\"startedAt\":\"2026-01-03T00:00:00.000Z\",\"finishedAt\":\"2026-01-04T00:00:00.000Z\",\"createdAt\":\"2026-01-01T09:00:00.000Z\"},{\"id\":\"ep-2\",\"seriesId\":\"show-1\",\"title\":\"Episode 2\",\"ordinal\":2,\"mediaType\":\"episode\",\"status\":\"in_progress\",\"startedAt\":\"2026-01-04T00:00:00.000Z\",\"finishedAt\":null,\"createdAt\":\"2026-01-01T09:00:00.000Z\"},{\"id\":\"is-7\",\"seriesId\":\"comic-1\",\"title\":\"Issue 7\",\"ordinal\":7,\"mediaType\":\"issue\",\"status\":\"in_progress\",\"startedAt\":\"2026-02-02T00:00:00.000Z\",\"finishedAt\":null,\"createdAt\":\"2026-02-01T09:00:00.000Z\"},{\"id\":\"book-1\",\"seriesId\":null,\"title\":\"Dune\",\"ordinal\":null,\"mediaType\":\"book\",\"status\":\"done\",\"startedAt\":\"2026-03-01T00:00:00.000Z\",\"finishedAt\":\"2026-03-20T00:00:00.000Z\",\"createdAt\":\"2026-03-01T00:00:00.000Z\",\"paused\":false,\"externalSource\":\"google-books\",\"externalId\":\"gb1\",\"coverUrl\":\"http://books.google.com/books/content?id=x&edge=curl&zoom=1\",\"creator\":\"Frank Herbert\",\"metadataCheckedAt\":\"2026-03-01T00:00:00.000Z\",\"genres\":[]},{\"id\":\"movie-1\",\"seriesId\":null,\"title\":\"Arrival\",\"ordinal\":null,\"mediaType\":\"movie\",\"status\":\"done\",\"startedAt\":\"2026-04-01T00:00:00.000Z\",\"finishedAt\":\"2026-04-01T00:00:00.000Z\",\"createdAt\":\"2026-04-01T00:00:00.000Z\"}],\"ratings\":[{\"trackKind\":\"entry\",\"trackId\":\"book-1\",\"category\":\"book\",\"sentiment\":\"liked\",\"position\":0,\"ratedAt\":\"2026-03-21T00:00:00.000Z\"},{\"trackKind\":\"entry\",\"trackId\":\"movie-1\",\"category\":\"movie\",\"sentiment\":\"fine\",\"position\":0,\"ratedAt\":\"2026-04-02T00:00:00.000Z\"}]}"
+          ],
+          "result": null
+        },
+        {
+          "call": "exportLibrary",
+          "args": [],
+          "result": {
+            "version": 1,
+            "series": [
+              {
+                "id": "#1",
+                "title": "Severance \"Season\" 1/2",
+                "mediaType": "show",
+                "unitLabel": "episode",
+                "createdAt": "2026-01-01T09:00:00.000Z",
+                "ongoing": false,
+                "paused": false,
+                "externalSource": "tmdb",
+                "externalId": "95396",
+                "seasons": [
+                  {
+                    "number": 1,
+                    "episodeCount": 2
+                  }
+                ],
+                "coverUrl": "https://image.tmdb.org/t/p/w342/sev.jpg",
+                "creator": "Dan Erickson",
+                "description": "Work/life — séparation.",
+                "releaseYear": "2022",
+                "metadataCheckedAt": "2026-01-02T00:00:00.000Z",
+                "genres": [
+                  "Drama",
+                  "Sci-Fi/Fantasy"
+                ]
+              },
+              {
+                "id": "#2",
+                "title": "Saga",
+                "mediaType": "comic",
+                "unitLabel": "issue",
+                "createdAt": "2026-02-01T09:00:00.000Z",
+                "ongoing": true,
+                "paused": true,
+                "externalSource": "metron",
+                "externalId": "42"
+              }
+            ],
+            "entries": [
+              {
+                "id": "#3",
+                "seriesId": "#1",
+                "title": "Episode 1",
+                "ordinal": 1,
+                "mediaType": "episode",
+                "status": "done",
+                "startedAt": "2026-01-03T00:00:00.000Z",
+                "finishedAt": "2026-01-04T00:00:00.000Z",
+                "createdAt": "2026-01-01T09:00:00.000Z",
+                "paused": false,
+                "externalSource": null,
+                "externalId": null
+              },
+              {
+                "id": "#4",
+                "seriesId": "#1",
+                "title": "Episode 2",
+                "ordinal": 2,
+                "mediaType": "episode",
+                "status": "in_progress",
+                "startedAt": "2026-01-04T00:00:00.000Z",
+                "finishedAt": null,
+                "createdAt": "2026-01-01T09:00:00.000Z",
+                "paused": false,
+                "externalSource": null,
+                "externalId": null
+              },
+              {
+                "id": "#5",
+                "seriesId": "#2",
+                "title": "Issue 7",
+                "ordinal": 7,
+                "mediaType": "issue",
+                "status": "in_progress",
+                "startedAt": "2026-02-02T00:00:00.000Z",
+                "finishedAt": null,
+                "createdAt": "2026-02-01T09:00:00.000Z",
+                "paused": false,
+                "externalSource": null,
+                "externalId": null
+              },
+              {
+                "id": "#6",
+                "seriesId": null,
+                "title": "Dune",
+                "ordinal": null,
+                "mediaType": "book",
+                "status": "done",
+                "startedAt": "2026-03-01T00:00:00.000Z",
+                "finishedAt": "2026-03-20T00:00:00.000Z",
+                "createdAt": "2026-03-01T00:00:00.000Z",
+                "paused": false,
+                "externalSource": "google-books",
+                "externalId": "gb1",
+                "coverUrl": "http://books.google.com/books/content?id=x&edge=curl&zoom=1",
+                "creator": "Frank Herbert",
+                "metadataCheckedAt": "2026-03-01T00:00:00.000Z",
+                "genres": []
+              },
+              {
+                "id": "#7",
+                "seriesId": null,
+                "title": "Arrival",
+                "ordinal": null,
+                "mediaType": "movie",
+                "status": "done",
+                "startedAt": "2026-04-01T00:00:00.000Z",
+                "finishedAt": "2026-04-01T00:00:00.000Z",
+                "createdAt": "2026-04-01T00:00:00.000Z",
+                "paused": false,
+                "externalSource": null,
+                "externalId": null
+              }
+            ],
+            "ratings": [
+              {
+                "trackKind": "entry",
+                "trackId": "#6",
+                "category": "book",
+                "sentiment": "liked",
+                "position": 0,
+                "ratedAt": "2026-03-21T00:00:00.000Z"
+              },
+              {
+                "trackKind": "entry",
+                "trackId": "#7",
+                "category": "movie",
+                "sentiment": "fine",
+                "position": 0,
+                "ratedAt": "2026-04-02T00:00:00.000Z"
+              }
+            ]
+          }
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#2",
+              "title": "Saga",
+              "category": "comic",
+              "shelf": "backlog",
+              "createdAt": "2026-02-01T09:00:00.000Z",
+              "progress": null,
+              "ongoing": true,
+              "paused": true,
+              "seasons": null,
+              "nextEntryStatus": "in_progress",
+              "nextEntryId": "#5",
+              "nextEntryTitle": "Issue 7",
+              "lastAdvancedAt": "2026-02-02T00:00:00.000Z",
+              "completionDrops": null
+            }
+          ]
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "currently"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "Severance \"Season\" 1/2",
+              "category": "show",
+              "shelf": "currently",
+              "createdAt": "2026-01-01T09:00:00.000Z",
+              "progress": {
+                "done": 1,
+                "total": 2
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": [
+                {
+                  "number": 1,
+                  "episodeCount": 2
+                }
+              ],
+              "nextEntryStatus": "in_progress",
+              "nextEntryId": "#4",
+              "nextEntryTitle": "Episode 2",
+              "lastAdvancedAt": "2026-01-04T00:00:00.000Z",
+              "completionDrops": null
+            }
+          ]
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "done"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#7",
+              "title": "Arrival",
+              "category": "movie",
+              "shelf": "done",
+              "createdAt": "2026-04-01T00:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": null,
+              "nextEntryId": null,
+              "nextEntryTitle": null,
+              "lastAdvancedAt": "2026-04-01T00:00:00.000Z",
+              "completionDrops": null
+            },
+            {
+              "kind": "entry",
+              "id": "#6",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "done",
+              "createdAt": "2026-03-01T00:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": null,
+              "nextEntryId": null,
+              "nextEntryTitle": null,
+              "lastAdvancedAt": "2026-03-20T00:00:00.000Z",
+              "completionDrops": null
+            }
+          ]
+        },
+        {
+          "call": "listRanking",
+          "args": [
+            "book"
+          ],
+          "result": [
+            {
+              "key": "entry:#6",
+              "kind": "entry",
+              "id": "#6",
+              "title": "Dune",
+              "coverUrl": "https://books.google.com/books/content?id=x&zoom=1&fife=w600",
+              "creator": "Frank Herbert",
+              "genres": [],
+              "releaseYear": null,
+              "sentiment": "liked",
+              "score": 8.5,
+              "rank": 1
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Severance \"Season\" 1/2",
+            "media_type": "show",
+            "unit_label": "episode",
+            "created_at": "2026-01-01T09:00:00.000Z",
+            "external_source": "tmdb",
+            "external_id": "95396",
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": "[{\"number\":1,\"episodeCount\":2}]",
+            "cover_url": "https://image.tmdb.org/t/p/w342/sev.jpg",
+            "creator": "Dan Erickson",
+            "description": "Work/life — séparation.",
+            "release_year": "2022",
+            "metadata_checked_at": "2026-01-02T00:00:00.000Z",
+            "genres_json": "[\"Drama\",\"Sci-Fi/Fantasy\"]"
+          },
+          {
+            "id": "#2",
+            "title": "Saga",
+            "media_type": "comic",
+            "unit_label": "issue",
+            "created_at": "2026-02-01T09:00:00.000Z",
+            "external_source": "metron",
+            "external_id": "42",
+            "ongoing": 1,
+            "paused": 1,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "media_type": "episode",
+            "status": "done",
+            "started_at": "2026-01-03T00:00:00.000Z",
+            "finished_at": "2026-01-04T00:00:00.000Z",
+            "created_at": "2026-01-01T09:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#1",
+            "title": "Episode 2",
+            "ordinal": 2,
+            "media_type": "episode",
+            "status": "in_progress",
+            "started_at": "2026-01-04T00:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-01-01T09:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#5",
+            "series_id": "#2",
+            "title": "Issue 7",
+            "ordinal": 7,
+            "media_type": "issue",
+            "status": "in_progress",
+            "started_at": "2026-02-02T00:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-02-01T09:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#6",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "done",
+            "started_at": "2026-03-01T00:00:00.000Z",
+            "finished_at": "2026-03-20T00:00:00.000Z",
+            "created_at": "2026-03-01T00:00:00.000Z",
+            "paused": 0,
+            "external_source": "google-books",
+            "external_id": "gb1",
+            "cover_url": "http://books.google.com/books/content?id=x&edge=curl&zoom=1",
+            "creator": "Frank Herbert",
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": "2026-03-01T00:00:00.000Z",
+            "genres_json": "[]"
+          },
+          {
+            "id": "#7",
+            "series_id": null,
+            "title": "Arrival",
+            "ordinal": null,
+            "media_type": "movie",
+            "status": "done",
+            "started_at": "2026-04-01T00:00:00.000Z",
+            "finished_at": "2026-04-01T00:00:00.000Z",
+            "created_at": "2026-04-01T00:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [
+          {
+            "track_kind": "entry",
+            "track_id": "#6",
+            "category": "book",
+            "sentiment": "liked",
+            "position": 0,
+            "rated_at": "2026-03-21T00:00:00.000Z"
+          },
+          {
+            "track_kind": "entry",
+            "track_id": "#7",
+            "category": "movie",
+            "sentiment": "fine",
+            "position": 0,
+            "rated_at": "2026-04-02T00:00:00.000Z"
+          }
+        ],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "Iris parity: backup shape errors carry the TS messages",
+      "steps": [
+        {
+          "call": "importLibrary",
+          "args": [
+            "[]"
+          ],
+          "throws": "Backup is not an object"
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":2,\"series\":[],\"entries\":[]}"
+          ],
+          "throws": "Unsupported backup version: 2"
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[]}"
+          ],
+          "throws": "Backup is missing its series or entries list"
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[],\"entries\":[],\"ratings\":{}}"
+          ],
+          "throws": "Backup ratings must be a list"
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[{\"id\":\"s1\",\"title\":\"Berserk\",\"mediaType\":\"manga\",\"unitLabel\":\"volume\",\"createdAt\":\"2026-08-12T10:00:00.000Z\",\"externalSource\":null,\"externalId\":null,\"seasons\":[{\"number\":1}]}],\"entries\":[]}"
+          ],
+          "throws": "Backup field series.seasons[0].episodeCount must be a whole number"
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[],\"entries\":[{\"id\":\"e1\",\"seriesId\":null,\"title\":\"Dracula\",\"ordinal\":null,\"mediaType\":\"book\",\"status\":\"unstarted\",\"startedAt\":null,\"finishedAt\":null,\"createdAt\":\"2026-08-12T10:00:00.000Z\",\"genres\":[\"ok\",3]}]}"
+          ],
+          "throws": "Backup field entry.genres must be a list of text"
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[],\"entries\":[{\"id\":\"e1\",\"seriesId\":null,\"title\":\"Dracula\",\"ordinal\":\"one\",\"mediaType\":\"book\",\"status\":\"unstarted\",\"startedAt\":null,\"finishedAt\":null,\"createdAt\":\"2026-08-12T10:00:00.000Z\"}]}"
+          ],
+          "throws": "Entry e1 has a non-numeric ordinal"
+        },
+        {
+          "call": "importLibrary",
+          "args": [
+            "{\"version\":1,\"series\":[],\"entries\":[{\"id\":\"e1\",\"seriesId\":null,\"title\":7,\"ordinal\":null,\"mediaType\":\"book\",\"status\":\"unstarted\",\"startedAt\":null,\"finishedAt\":null,\"createdAt\":\"2026-08-12T10:00:00.000Z\"}]}"
+          ],
+          "throws": "Backup field entry.title must be text"
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [],
+        "rating": [],
+        "app_meta": []
+      }
+    }
+  ]
+}

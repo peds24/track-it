@@ -17,10 +17,12 @@ public func assertIsoTimestamp(_ value: String?, field: String) throws {
     }
 }
 
-/// Ordinals number the units of a series: never negative, never fractional.
+/// Ordinals number the units of a series: never negative, never fractional,
+/// never past MAX_SAFE_INTEGER (JS `Number.isSafeInteger`) — so `Int(_:)` on a
+/// validated ordinal can't trap.
 public func assertOrdinal(_ value: Double?, field: String = "ordinal") throws {
     guard let value else { return }
-    if !value.isFinite || value.rounded(.towardZero) != value || value < 0 {
+    if !isSafeInteger(value) || value < 0 {
         throw DomainError("\(field) must be a non-negative whole number, got: \(jsNumberString(value))")
     }
 }

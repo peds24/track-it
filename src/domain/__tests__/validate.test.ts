@@ -57,3 +57,14 @@ test('assertEntryInvariants checks every timestamp field', () => {
   expect(() => assertEntryInvariants({ ...base, startedAt: 'not-a-date' })).toThrow(/startedAt/);
   expect(() => assertEntryInvariants({ ...base, finishedAt: 'not-a-date' })).toThrow(/finishedAt/);
 });
+
+/**
+ * Iris I4 review: an ordinal must be a *safe* integer. 1e19 is whole, but no
+ * platform can hold it as an integer — SQLite stores it as a REAL and Swift's
+ * Int traps on it — so it is rejected the same way a fraction is.
+ */
+test('ordinals must be safe integers, so every platform can store them', () => {
+  expect(() => assertOrdinal(Number.MAX_SAFE_INTEGER)).not.toThrow();
+  expect(() => assertOrdinal(Number.MAX_SAFE_INTEGER + 1)).toThrow(/non-negative whole number/);
+  expect(() => assertOrdinal(1e19)).toThrow(/non-negative whole number/);
+});

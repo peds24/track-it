@@ -1,0 +1,5978 @@
+{
+  "area": "tracks",
+  "generatedBy": "npm run fixtures:record",
+  "timezone": "UTC",
+  "scenarios": [
+    {
+      "name": "a series that fails partway through its entries persists nothing",
+      "steps": [
+        {
+          "call": "sql",
+          "args": [
+            "CREATE TRIGGER boom BEFORE INSERT ON entry WHEN NEW.ordinal = 2 BEGIN SELECT RAISE(ABORT, 'boom'); END",
+            []
+          ],
+          "result": null
+        },
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Severance",
+              "mediaType": "show",
+              "unitLabel": "episode",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Episode 1"
+                },
+                {
+                  "ordinal": 2,
+                  "title": "Episode 2"
+                },
+                {
+                  "ordinal": 3,
+                  "title": "Episode 3"
+                }
+              ]
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "throws": "boom"
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT count(*) AS n FROM series",
+            []
+          ],
+          "result": [
+            {
+              "n": 0
+            }
+          ]
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT count(*) AS n FROM entry",
+            []
+          ],
+          "result": [
+            {
+              "n": 0
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "creating a series track writes the series and all its entries",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Berserk",
+              "mediaType": "manga",
+              "unitLabel": "volume",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Volume 1"
+                },
+                {
+                  "ordinal": 2,
+                  "title": "Volume 2"
+                }
+              ]
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT title FROM entry ORDER BY ordinal",
+            []
+          ],
+          "result": [
+            {
+              "title": "Volume 1"
+            },
+            {
+              "title": "Volume 2"
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Berserk",
+            "media_type": "manga",
+            "unit_label": "volume",
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Volume 1",
+            "ordinal": 1,
+            "media_type": "volume",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Volume 2",
+            "ordinal": 2,
+            "media_type": "volume",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a newly created series track lands in the backlog",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Severance",
+              "mediaType": "show",
+              "unitLabel": "episode",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Episode 1"
+                }
+              ]
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "Severance",
+              "category": "show",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": {
+                "done": 0,
+                "total": 1
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Episode 1",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Severance",
+            "media_type": "show",
+            "unit_label": "episode",
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "media_type": "episode",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a standalone book is created with no series row",
+      "steps": [
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book"
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT id FROM series ORDER BY rowid",
+            []
+          ],
+          "result": []
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "listTracks filters by category",
+      "steps": [
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book"
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Arrival",
+              "category": "movie"
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#2"
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog",
+            "book"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#2",
+            "series_id": null,
+            "title": "Arrival",
+            "ordinal": null,
+            "media_type": "movie",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "listTracks sorts by date added, newest first",
+      "steps": [
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Older",
+              "category": "book"
+            },
+            "2026-08-01T00:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Newer",
+              "category": "book"
+            },
+            "2026-08-10T00:00:00.000Z"
+          ],
+          "result": "#2"
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#2",
+              "title": "Newer",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-10T00:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Newer",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            },
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Older",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-01T00:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Older",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Older",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-01T00:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#2",
+            "series_id": null,
+            "title": "Newer",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-10T00:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "toEntry maps every column to its own domain field (via a stored row read back)",
+      "steps": [
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO series (id, title, media_type, unit_label, created_at) VALUES ('series-id', 'Show', 'show', 'episode', '2026-01-01T00:00:00.000Z')",
+            []
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, started_at, finished_at, created_at, paused, external_source, external_id)\n         VALUES ('entry-id', 'series-id', 'Episode 7', 7, 'episode', 'done', '2026-01-01T00:00:00.000Z', '2026-02-02T00:00:00.000Z', '2026-03-03T00:00:00.000Z', 1, 'tmdb', 'ext-id')",
+            []
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at)\n         VALUES ('entry-8', 'series-id', 'Episode 8', 8, 'episode', 'unstarted', '2026-03-04T00:00:00.000Z')",
+            []
+          ],
+          "result": null
+        },
+        {
+          "call": "getTrackDetail",
+          "args": [
+            "series",
+            "series-id"
+          ],
+          "result": {
+            "summary": {
+              "kind": "series",
+              "id": "#1",
+              "title": "Show",
+              "category": "show",
+              "shelf": "currently",
+              "createdAt": "2026-01-01T00:00:00.000Z",
+              "progress": {
+                "done": 1,
+                "total": 2
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#3",
+              "nextEntryTitle": "Episode 8",
+              "lastAdvancedAt": "2026-02-02T00:00:00.000Z",
+              "completionDrops": null
+            },
+            "metadata": {
+              "coverUrl": null,
+              "creator": null,
+              "description": null,
+              "releaseYear": null
+            },
+            "timeline": {
+              "addedAt": "2026-01-01T00:00:00.000Z",
+              "startedAt": "2026-01-01T00:00:00.000Z",
+              "finishedAt": null
+            },
+            "unitLabel": "episode"
+          }
+        },
+        {
+          "call": "exportLibrary",
+          "args": [],
+          "result": {
+            "version": 1,
+            "series": [
+              {
+                "id": "#1",
+                "title": "Show",
+                "mediaType": "show",
+                "unitLabel": "episode",
+                "createdAt": "2026-01-01T00:00:00.000Z",
+                "ongoing": false,
+                "paused": false,
+                "externalSource": null,
+                "externalId": null
+              }
+            ],
+            "entries": [
+              {
+                "id": "#2",
+                "seriesId": "#1",
+                "title": "Episode 7",
+                "ordinal": 7,
+                "mediaType": "episode",
+                "status": "done",
+                "startedAt": "2026-01-01T00:00:00.000Z",
+                "finishedAt": "2026-02-02T00:00:00.000Z",
+                "createdAt": "2026-03-03T00:00:00.000Z",
+                "paused": true,
+                "externalSource": "tmdb",
+                "externalId": "ext-id"
+              },
+              {
+                "id": "#3",
+                "seriesId": "#1",
+                "title": "Episode 8",
+                "ordinal": 8,
+                "mediaType": "episode",
+                "status": "unstarted",
+                "startedAt": null,
+                "finishedAt": null,
+                "createdAt": "2026-03-04T00:00:00.000Z",
+                "paused": false,
+                "externalSource": null,
+                "externalId": null
+              }
+            ],
+            "ratings": []
+          }
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Show",
+            "media_type": "show",
+            "unit_label": "episode",
+            "created_at": "2026-01-01T00:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Episode 7",
+            "ordinal": 7,
+            "media_type": "episode",
+            "status": "done",
+            "started_at": "2026-01-01T00:00:00.000Z",
+            "finished_at": "2026-02-02T00:00:00.000Z",
+            "created_at": "2026-03-03T00:00:00.000Z",
+            "paused": 1,
+            "external_source": "tmdb",
+            "external_id": "ext-id",
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Episode 8",
+            "ordinal": 8,
+            "media_type": "episode",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-03-04T00:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "listTracks excludes tracks that are on another shelf",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Berserk",
+              "mediaType": "manga",
+              "unitLabel": "volume",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Volume 1"
+                }
+              ]
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book"
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#3"
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT id FROM entry WHERE series_id IS NOT NULL",
+            []
+          ],
+          "result": [
+            {
+              "id": "#2"
+            }
+          ]
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET status = 'in_progress', started_at = ? WHERE id = ?",
+            [
+              "2026-08-12T10:00:00.000Z",
+              {
+                "$ref": 2,
+                "path": "0.id"
+              }
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#3",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#3",
+              "nextEntryTitle": "Dune",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "currently"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "Berserk",
+              "category": "manga",
+              "shelf": "currently",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": {
+                "done": 0,
+                "total": 1
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "in_progress",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Volume 1",
+              "lastAdvancedAt": "2026-08-12T10:00:00.000Z",
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Berserk",
+            "media_type": "manga",
+            "unit_label": "volume",
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Volume 1",
+            "ordinal": 1,
+            "media_type": "volume",
+            "status": "in_progress",
+            "started_at": "2026-08-12T10:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a finished standalone book has nothing left to advance",
+      "steps": [
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book"
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET status = 'in_progress', started_at = ? WHERE id = ?",
+            [
+              "2026-08-12T10:00:00.000Z",
+              {
+                "$ref": 0
+              }
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET status = 'done', finished_at = ? WHERE id = ?",
+            [
+              "2026-08-12T10:00:00.000Z",
+              {
+                "$ref": 0
+              }
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "done"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "done",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": null,
+              "nextEntryId": null,
+              "nextEntryTitle": null,
+              "lastAdvancedAt": "2026-08-12T10:00:00.000Z",
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "done",
+            "started_at": "2026-08-12T10:00:00.000Z",
+            "finished_at": "2026-08-12T10:00:00.000Z",
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a finished standalone movie has nothing left to advance",
+      "steps": [
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Arrival",
+              "category": "movie"
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET status = 'done', started_at = ?, finished_at = ? WHERE id = ?",
+            [
+              "2026-08-12T10:00:00.000Z",
+              "2026-08-12T10:00:00.000Z",
+              {
+                "$ref": 0
+              }
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "done"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Arrival",
+              "category": "movie",
+              "shelf": "done",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": null,
+              "nextEntryId": null,
+              "nextEntryTitle": null,
+              "lastAdvancedAt": "2026-08-12T10:00:00.000Z",
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Arrival",
+            "ordinal": null,
+            "media_type": "movie",
+            "status": "done",
+            "started_at": "2026-08-12T10:00:00.000Z",
+            "finished_at": "2026-08-12T10:00:00.000Z",
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a standalone book in progress still points at itself to advance",
+      "steps": [
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book"
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET status = 'in_progress', started_at = ? WHERE id = ?",
+            [
+              "2026-08-12T10:00:00.000Z",
+              {
+                "$ref": 0
+              }
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "currently"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "currently",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "in_progress",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune",
+              "lastAdvancedAt": "2026-08-12T10:00:00.000Z",
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "in_progress",
+            "started_at": "2026-08-12T10:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a fully completed series also reports nothing left to advance",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Severance",
+              "mediaType": "show",
+              "unitLabel": "episode",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Episode 1"
+                },
+                {
+                  "ordinal": 2,
+                  "title": "Episode 2"
+                }
+              ]
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT id FROM entry ORDER BY ordinal",
+            []
+          ],
+          "result": [
+            {
+              "id": "#2"
+            },
+            {
+              "id": "#3"
+            }
+          ]
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET status = 'in_progress', started_at = ? WHERE id = ?",
+            [
+              "2026-08-12T10:00:00.000Z",
+              {
+                "$ref": 1,
+                "path": "0.id"
+              }
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET status = 'done', finished_at = ? WHERE id = ?",
+            [
+              "2026-08-12T10:00:00.000Z",
+              {
+                "$ref": 1,
+                "path": "0.id"
+              }
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET status = 'in_progress', started_at = ? WHERE id = ?",
+            [
+              "2026-08-12T10:00:00.000Z",
+              {
+                "$ref": 1,
+                "path": "1.id"
+              }
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET status = 'done', finished_at = ? WHERE id = ?",
+            [
+              "2026-08-12T10:00:00.000Z",
+              {
+                "$ref": 1,
+                "path": "1.id"
+              }
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "done"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "Severance",
+              "category": "show",
+              "shelf": "done",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": {
+                "done": 2,
+                "total": 2
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": null,
+              "nextEntryId": null,
+              "nextEntryTitle": null,
+              "lastAdvancedAt": "2026-08-12T10:00:00.000Z",
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Severance",
+            "media_type": "show",
+            "unit_label": "episode",
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "media_type": "episode",
+            "status": "done",
+            "started_at": "2026-08-12T10:00:00.000Z",
+            "finished_at": "2026-08-12T10:00:00.000Z",
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Episode 2",
+            "ordinal": 2,
+            "media_type": "episode",
+            "status": "done",
+            "started_at": "2026-08-12T10:00:00.000Z",
+            "finished_at": "2026-08-12T10:00:00.000Z",
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "Currently is ordered by most recently advanced, not by date added",
+      "steps": [
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Older",
+              "category": "book"
+            },
+            "2026-08-01T00:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Newer",
+              "category": "book"
+            },
+            "2026-08-10T00:00:00.000Z"
+          ],
+          "result": "#2"
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET status = 'in_progress', started_at = ? WHERE id = ?",
+            [
+              "2026-08-11T00:00:00.000Z",
+              {
+                "$ref": 1
+              }
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET status = 'in_progress', started_at = ? WHERE id = ?",
+            [
+              "2026-08-12T00:00:00.000Z",
+              {
+                "$ref": 0
+              }
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "currently"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Older",
+              "category": "book",
+              "shelf": "currently",
+              "createdAt": "2026-08-01T00:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "in_progress",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Older",
+              "lastAdvancedAt": "2026-08-12T00:00:00.000Z",
+              "completionDrops": null
+            },
+            {
+              "kind": "entry",
+              "id": "#2",
+              "title": "Newer",
+              "category": "book",
+              "shelf": "currently",
+              "createdAt": "2026-08-10T00:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "in_progress",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Newer",
+              "lastAdvancedAt": "2026-08-11T00:00:00.000Z",
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Older",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "in_progress",
+            "started_at": "2026-08-12T00:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-08-01T00:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#2",
+            "series_id": null,
+            "title": "Newer",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "in_progress",
+            "started_at": "2026-08-11T00:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-08-10T00:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "backlog ordering stays by date added even when another track is advanced",
+      "steps": [
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Older",
+              "category": "book"
+            },
+            "2026-08-01T00:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Newer",
+              "category": "book"
+            },
+            "2026-08-10T00:00:00.000Z"
+          ],
+          "result": "#2"
+        },
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Middle",
+              "category": "book"
+            },
+            "2026-08-05T00:00:00.000Z"
+          ],
+          "result": "#3"
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET status = 'in_progress', started_at = ? WHERE id = ?",
+            [
+              "2026-08-12T00:00:00.000Z",
+              {
+                "$ref": 2
+              }
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#2",
+              "title": "Newer",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-10T00:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Newer",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            },
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Older",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-01T00:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Older",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Older",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-01T00:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#2",
+            "series_id": null,
+            "title": "Newer",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-10T00:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": null,
+            "title": "Middle",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "in_progress",
+            "started_at": "2026-08-12T00:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-08-05T00:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a Currently track with no advance timestamps sorts after ones that have them",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Untouched",
+              "mediaType": "show",
+              "unitLabel": "episode",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Episode 1"
+                },
+                {
+                  "ordinal": 2,
+                  "title": "Episode 2"
+                }
+              ]
+            },
+            "2026-08-20T00:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT id FROM entry WHERE series_id IS NOT NULL ORDER BY ordinal",
+            []
+          ],
+          "result": [
+            {
+              "id": "#2"
+            },
+            {
+              "id": "#3"
+            }
+          ]
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET status = 'in_progress', started_at = ? WHERE id = ?",
+            [
+              "2026-08-21T00:00:00.000Z",
+              {
+                "$ref": 1,
+                "path": "0.id"
+              }
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET started_at = NULL, finished_at = NULL WHERE id = ?",
+            [
+              {
+                "$ref": 1,
+                "path": "0.id"
+              }
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Dated",
+              "category": "book"
+            },
+            "2026-08-01T00:00:00.000Z"
+          ],
+          "result": "#4"
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET status = 'in_progress', started_at = ? WHERE id = ?",
+            [
+              "2026-08-02T00:00:00.000Z",
+              {
+                "$ref": 4
+              }
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "currently"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#4",
+              "title": "Dated",
+              "category": "book",
+              "shelf": "currently",
+              "createdAt": "2026-08-01T00:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "in_progress",
+              "nextEntryId": "#4",
+              "nextEntryTitle": "Dated",
+              "lastAdvancedAt": "2026-08-02T00:00:00.000Z",
+              "completionDrops": null
+            },
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "Untouched",
+              "category": "show",
+              "shelf": "currently",
+              "createdAt": "2026-08-20T00:00:00.000Z",
+              "progress": {
+                "done": 0,
+                "total": 2
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "in_progress",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Episode 1",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Untouched",
+            "media_type": "show",
+            "unit_label": "episode",
+            "created_at": "2026-08-20T00:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "media_type": "episode",
+            "status": "in_progress",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-20T00:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Episode 2",
+            "ordinal": 2,
+            "media_type": "episode",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-20T00:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": null,
+            "title": "Dated",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "in_progress",
+            "started_at": "2026-08-02T00:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-08-01T00:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a series reports the latest advance across all of its children",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Severance",
+              "mediaType": "show",
+              "unitLabel": "episode",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Episode 1"
+                },
+                {
+                  "ordinal": 2,
+                  "title": "Episode 2"
+                },
+                {
+                  "ordinal": 3,
+                  "title": "Episode 3"
+                },
+                {
+                  "ordinal": 4,
+                  "title": "Episode 4"
+                }
+              ]
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT id FROM entry ORDER BY ordinal",
+            []
+          ],
+          "result": [
+            {
+              "id": "#2"
+            },
+            {
+              "id": "#3"
+            },
+            {
+              "id": "#4"
+            },
+            {
+              "id": "#5"
+            }
+          ]
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET status = 'in_progress', started_at = ? WHERE id = ?",
+            [
+              "2026-08-13T00:00:00.000Z",
+              {
+                "$ref": 1,
+                "path": "0.id"
+              }
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET status = 'in_progress', started_at = ? WHERE id = ?",
+            [
+              "2026-08-19T00:00:00.000Z",
+              {
+                "$ref": 1,
+                "path": "2.id"
+              }
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET status = 'in_progress', started_at = ? WHERE id = ?",
+            [
+              "2026-08-15T00:00:00.000Z",
+              {
+                "$ref": 1,
+                "path": "1.id"
+              }
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "currently"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "Severance",
+              "category": "show",
+              "shelf": "currently",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": {
+                "done": 0,
+                "total": 4
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "in_progress",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Episode 1",
+              "lastAdvancedAt": "2026-08-19T00:00:00.000Z",
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Severance",
+            "media_type": "show",
+            "unit_label": "episode",
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "media_type": "episode",
+            "status": "in_progress",
+            "started_at": "2026-08-13T00:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Episode 2",
+            "ordinal": 2,
+            "media_type": "episode",
+            "status": "in_progress",
+            "started_at": "2026-08-15T00:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#1",
+            "title": "Episode 3",
+            "ordinal": 3,
+            "media_type": "episode",
+            "status": "in_progress",
+            "started_at": "2026-08-19T00:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#5",
+            "series_id": "#1",
+            "title": "Episode 4",
+            "ordinal": 4,
+            "media_type": "episode",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a track advanced only to in_progress reports its start as its last advance",
+      "steps": [
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book"
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET status = 'in_progress', started_at = ? WHERE id = ?",
+            [
+              "2026-08-14T00:00:00.000Z",
+              {
+                "$ref": 0
+              }
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "currently"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "currently",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "in_progress",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune",
+              "lastAdvancedAt": "2026-08-14T00:00:00.000Z",
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "in_progress",
+            "started_at": "2026-08-14T00:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "creating a series track with a bad ordinal writes nothing",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Berserk",
+              "mediaType": "manga",
+              "unitLabel": "volume",
+              "entries": [
+                {
+                  "ordinal": -4.5,
+                  "title": "Volume ?"
+                }
+              ]
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "throws": "Entry \"Volume ?\" ordinal must be a non-negative whole number, got: -4.5"
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "creating a track with a non-ISO timestamp is rejected",
+      "steps": [
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book"
+            },
+            "not-a-date"
+          ],
+          "throws": "Entry \"Dune\" createdAt must be an ISO-8601 timestamp, got: not-a-date"
+        },
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Berserk",
+              "mediaType": "manga",
+              "unitLabel": "volume",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Volume 1"
+                }
+              ]
+            },
+            "not-a-date"
+          ],
+          "throws": "series createdAt must be an ISO-8601 timestamp, got: not-a-date"
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "createSeriesTrack persists a draft's seasons, and listTracks reads them back",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "House",
+              "mediaType": "show",
+              "unitLabel": "episode",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Episode 1"
+                },
+                {
+                  "ordinal": 2,
+                  "title": "Episode 2"
+                }
+              ],
+              "seasons": [
+                {
+                  "number": 1,
+                  "episodeCount": 2
+                }
+              ]
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "House",
+              "category": "show",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": {
+                "done": 0,
+                "total": 2
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": [
+                {
+                  "number": 1,
+                  "episodeCount": 2
+                }
+              ],
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Episode 1",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "House",
+            "media_type": "show",
+            "unit_label": "episode",
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": "[{\"number\":1,\"episodeCount\":2}]",
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "media_type": "episode",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Episode 2",
+            "ordinal": 2,
+            "media_type": "episode",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a series created without season data reports seasons as null",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Berserk",
+              "mediaType": "manga",
+              "unitLabel": "volume",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Volume 1"
+                }
+              ]
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "Berserk",
+              "category": "manga",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": {
+                "done": 0,
+                "total": 1
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Volume 1",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Berserk",
+            "media_type": "manga",
+            "unit_label": "volume",
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Volume 1",
+            "ordinal": 1,
+            "media_type": "volume",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "listTracks skips a parentless row whose media type is a unit label",
+      "steps": [
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book"
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at)\n         VALUES ('legacy', NULL, 'Orphan', NULL, 'episode', 'unstarted', ?)",
+            [
+              "2026-08-12T10:00:00.000Z"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#2",
+            "series_id": null,
+            "title": "Orphan",
+            "ordinal": null,
+            "media_type": "episode",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "renameTrack updates a series title, keeping its external source/id and seasons",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "House",
+              "mediaType": "show",
+              "unitLabel": "episode",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Episode 1"
+                }
+              ],
+              "externalSource": "tmdb",
+              "externalId": "1408",
+              "seasons": [
+                {
+                  "number": 1,
+                  "episodeCount": 1
+                }
+              ]
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "renameTrack",
+          "args": [
+            {
+              "kind": "series",
+              "id": {
+                "$ref": 0
+              }
+            },
+            "House, M.D."
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "House, M.D.",
+              "category": "show",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": {
+                "done": 0,
+                "total": 1
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": [
+                {
+                  "number": 1,
+                  "episodeCount": 1
+                }
+              ],
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Episode 1",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT external_source, external_id FROM series WHERE id = ?",
+            [
+              {
+                "$ref": 0
+              }
+            ]
+          ],
+          "result": [
+            {
+              "external_source": "tmdb",
+              "external_id": "1408"
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "House, M.D.",
+            "media_type": "show",
+            "unit_label": "episode",
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "external_source": "tmdb",
+            "external_id": "1408",
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": "[{\"number\":1,\"episodeCount\":1}]",
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "media_type": "episode",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "renameTrack updates a standalone entry title",
+      "steps": [
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book"
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "renameTrack",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 0
+              }
+            },
+            "Dune (1965)"
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune (1965)",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune (1965)",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune (1965)",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "renameTrack trims surrounding whitespace",
+      "steps": [
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book"
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "renameTrack",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 0
+              }
+            },
+            "  Dune Messiah  "
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune Messiah",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune Messiah",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune Messiah",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "renameTrack rejects a blank title",
+      "steps": [
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book"
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "renameTrack",
+          "args": [
+            {
+              "kind": "entry",
+              "id": {
+                "$ref": 0
+              }
+            },
+            "   "
+          ],
+          "throws": "A track needs a title"
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a standalone add stores its metadata and marks it checked",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book",
+              "count": 1,
+              "match": {
+                "id": "gb1",
+                "title": "Dune",
+                "category": "book",
+                "count": 1
+              },
+              "metadata": {
+                "coverUrl": "https://books.google.com/dune.jpg",
+                "creator": "Frank Herbert",
+                "description": "Spice.",
+                "releaseYear": "1965"
+              }
+            },
+            "2026-09-01T12:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "getTrackDetail",
+          "args": [
+            "entry",
+            {
+              "$ref": 0,
+              "path": "id"
+            }
+          ],
+          "result": {
+            "summary": {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-09-01T12:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            },
+            "metadata": {
+              "coverUrl": "https://books.google.com/dune.jpg",
+              "creator": "Frank Herbert",
+              "description": "Spice.",
+              "releaseYear": "1965"
+            },
+            "timeline": {
+              "addedAt": "2026-09-01T12:00:00.000Z",
+              "startedAt": null,
+              "finishedAt": null
+            },
+            "unitLabel": null
+          }
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT metadata_checked_at FROM entry",
+            []
+          ],
+          "result": [
+            {
+              "metadata_checked_at": "2026-09-01T12:00:00.000Z"
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "google-books",
+            "external_id": "gb1",
+            "cover_url": "https://books.google.com/dune.jpg",
+            "creator": "Frank Herbert",
+            "description": "Spice.",
+            "release_year": "1965",
+            "metadata_checked_at": "2026-09-01T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a hand-typed add has empty metadata and is not marked checked",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Notes",
+              "category": "book",
+              "count": 1
+            },
+            "2026-09-01T12:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "getTrackDetail",
+          "args": [
+            "entry",
+            {
+              "$ref": 0,
+              "path": "id"
+            }
+          ],
+          "result": {
+            "summary": {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Notes",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-09-01T12:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Notes",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            },
+            "metadata": {
+              "coverUrl": null,
+              "creator": null,
+              "description": null,
+              "releaseYear": null
+            },
+            "timeline": {
+              "addedAt": "2026-09-01T12:00:00.000Z",
+              "startedAt": null,
+              "finishedAt": null
+            },
+            "unitLabel": null
+          }
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT metadata_checked_at FROM entry",
+            []
+          ],
+          "result": [
+            {
+              "metadata_checked_at": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Notes",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a series stores draft metadata on the series row and reports a timeline",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Severance",
+              "mediaType": "show",
+              "unitLabel": "episode",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Episode 1"
+                },
+                {
+                  "ordinal": 2,
+                  "title": "Episode 2"
+                }
+              ],
+              "externalSource": "tmdb",
+              "externalId": "95396",
+              "metadata": {
+                "coverUrl": "https://image.tmdb.org/t/p/w342/x.jpg",
+                "creator": "Dan Erickson",
+                "description": null,
+                "releaseYear": "2022"
+              }
+            },
+            "2026-09-01T12:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT id FROM entry WHERE ordinal = 1",
+            []
+          ],
+          "result": [
+            {
+              "id": "#2"
+            }
+          ]
+        },
+        {
+          "call": "advanceEntry",
+          "args": [
+            {
+              "$ref": 1,
+              "path": "0.id"
+            },
+            "2026-09-03T12:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "getTrackDetail",
+          "args": [
+            "series",
+            {
+              "$ref": 0
+            }
+          ],
+          "result": {
+            "summary": {
+              "kind": "series",
+              "id": "#1",
+              "title": "Severance",
+              "category": "show",
+              "shelf": "currently",
+              "createdAt": "2026-09-01T12:00:00.000Z",
+              "progress": {
+                "done": 0,
+                "total": 2
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "in_progress",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Episode 1",
+              "lastAdvancedAt": "2026-09-03T12:00:00.000Z",
+              "completionDrops": null
+            },
+            "metadata": {
+              "coverUrl": "https://image.tmdb.org/t/p/w780/x.jpg",
+              "creator": "Dan Erickson",
+              "description": null,
+              "releaseYear": "2022"
+            },
+            "timeline": {
+              "addedAt": "2026-09-01T12:00:00.000Z",
+              "startedAt": "2026-09-03T12:00:00.000Z",
+              "finishedAt": null
+            },
+            "unitLabel": "episode"
+          }
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Severance",
+            "media_type": "show",
+            "unit_label": "episode",
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "external_source": "tmdb",
+            "external_id": "95396",
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": "https://image.tmdb.org/t/p/w342/x.jpg",
+            "creator": "Dan Erickson",
+            "description": null,
+            "release_year": "2022",
+            "metadata_checked_at": "2026-09-01T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "media_type": "episode",
+            "status": "in_progress",
+            "started_at": "2026-09-03T12:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Episode 2",
+            "ordinal": 2,
+            "media_type": "episode",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a missing track returns null",
+      "steps": [
+        {
+          "call": "getTrackDetail",
+          "args": [
+            "series",
+            "nope"
+          ],
+          "result": null
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "addTrack reports what it created, so the caller can start it immediately",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Berserk",
+              "category": "manga",
+              "count": 3
+            },
+            "2026-08-13T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "series",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "firstEntryOf",
+          "args": [
+            {
+              "$ref": 0
+            }
+          ],
+          "result": {
+            "id": "#2",
+            "status": "unstarted"
+          }
+        },
+        {
+          "call": "advanceEntry",
+          "args": [
+            {
+              "$ref": 1,
+              "path": "id"
+            },
+            "2026-08-13T10:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "currently"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "Berserk",
+              "category": "manga",
+              "shelf": "currently",
+              "createdAt": "2026-08-13T10:00:00.000Z",
+              "progress": {
+                "done": 0,
+                "total": 3
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "in_progress",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Volume 1",
+              "lastAdvancedAt": "2026-08-13T10:00:00.000Z",
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Berserk",
+            "media_type": "manga",
+            "unit_label": "volume",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Volume 1",
+            "ordinal": 1,
+            "media_type": "volume",
+            "status": "in_progress",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Volume 2",
+            "ordinal": 2,
+            "media_type": "volume",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#1",
+            "title": "Volume 3",
+            "ordinal": 3,
+            "media_type": "volume",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "starting a standalone track right after adding it works the same way",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Dune",
+              "category": "book",
+              "count": 1
+            },
+            "2026-08-13T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "firstEntryOf",
+          "args": [
+            {
+              "$ref": 0
+            }
+          ],
+          "result": {
+            "id": "#1",
+            "status": "unstarted"
+          }
+        },
+        {
+          "call": "advanceEntry",
+          "args": [
+            {
+              "$ref": 1,
+              "path": "id"
+            },
+            "2026-08-13T10:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "currently"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Dune",
+              "category": "book",
+              "shelf": "currently",
+              "createdAt": "2026-08-13T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "in_progress",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "Dune",
+              "lastAdvancedAt": "2026-08-13T10:00:00.000Z",
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "in_progress",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "starting a show right after adding it starts episode 1, watch mode now has a reading state",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Severance",
+              "category": "show",
+              "count": 3
+            },
+            "2026-08-13T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "series",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "firstEntryOf",
+          "args": [
+            {
+              "$ref": 0
+            }
+          ],
+          "result": {
+            "id": "#2",
+            "status": "unstarted"
+          }
+        },
+        {
+          "call": "advanceEntry",
+          "args": [
+            {
+              "$ref": 1,
+              "path": "id"
+            },
+            "2026-08-13T10:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "currently"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "Severance",
+              "category": "show",
+              "shelf": "currently",
+              "createdAt": "2026-08-13T10:00:00.000Z",
+              "progress": {
+                "done": 0,
+                "total": 3
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "in_progress",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Episode 1",
+              "lastAdvancedAt": "2026-08-13T10:00:00.000Z",
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Severance",
+            "media_type": "show",
+            "unit_label": "episode",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "media_type": "episode",
+            "status": "in_progress",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Episode 2",
+            "ordinal": 2,
+            "media_type": "episode",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#1",
+            "title": "Episode 3",
+            "ordinal": 3,
+            "media_type": "episode",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a standalone movie still completes in one tap right after adding",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Sicario",
+              "category": "movie",
+              "count": 1
+            },
+            "2026-08-13T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "firstEntryOf",
+          "args": [
+            {
+              "$ref": 0
+            }
+          ],
+          "result": {
+            "id": "#1",
+            "status": "unstarted"
+          }
+        },
+        {
+          "call": "advanceEntry",
+          "args": [
+            {
+              "$ref": 1,
+              "path": "id"
+            },
+            "2026-08-13T10:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "currently"
+          ],
+          "result": []
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "done"
+          ],
+          "result": [
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "Sicario",
+              "category": "movie",
+              "shelf": "done",
+              "createdAt": "2026-08-13T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": null,
+              "nextEntryId": null,
+              "nextEntryTitle": null,
+              "lastAdvancedAt": "2026-08-13T10:00:00.000Z",
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Sicario",
+            "ordinal": null,
+            "media_type": "movie",
+            "status": "done",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": "2026-08-13T10:00:00.000Z",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "firstEntryOf points at ordinal 1 when nothing has started it early",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Saga",
+              "category": "comic",
+              "count": 5
+            },
+            "2026-08-13T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "series",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "firstEntryOf",
+          "args": [
+            {
+              "$ref": 0
+            }
+          ],
+          "result": {
+            "id": "#2",
+            "status": "unstarted"
+          }
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT ordinal FROM entry WHERE id = ?",
+            [
+              {
+                "$ref": 1,
+                "path": "id"
+              }
+            ]
+          ],
+          "result": [
+            {
+              "ordinal": 1
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Saga",
+            "media_type": "comic",
+            "unit_label": "issue",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#5",
+            "series_id": "#1",
+            "title": "Issue 4",
+            "ordinal": 4,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#6",
+            "series_id": "#1",
+            "title": "Issue 5",
+            "ordinal": 5,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a parsed ordinal within range starts that entry in_progress, backfills what came before as done, and lands the series in Currently",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Saga",
+              "category": "comic",
+              "count": 5,
+              "startAtOrdinal": 3
+            },
+            "2026-08-13T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "series",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": []
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "currently"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "Saga",
+              "category": "comic",
+              "shelf": "currently",
+              "createdAt": "2026-08-13T10:00:00.000Z",
+              "progress": {
+                "done": 2,
+                "total": 5
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "in_progress",
+              "nextEntryId": "#4",
+              "nextEntryTitle": "Issue 3",
+              "lastAdvancedAt": "2026-08-13T10:00:00.000Z",
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Saga",
+            "media_type": "comic",
+            "unit_label": "issue",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "media_type": "issue",
+            "status": "done",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": "2026-08-13T10:00:00.000Z",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "media_type": "issue",
+            "status": "done",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": "2026-08-13T10:00:00.000Z",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "media_type": "issue",
+            "status": "in_progress",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#5",
+            "series_id": "#1",
+            "title": "Issue 4",
+            "ordinal": 4,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#6",
+            "series_id": "#1",
+            "title": "Issue 5",
+            "ordinal": 5,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "finishing the started entry continues to the next ordinal, not back to 1",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Saga",
+              "category": "comic",
+              "count": 5,
+              "startAtOrdinal": 3
+            },
+            "2026-08-13T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "series",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "firstEntryOf",
+          "args": [
+            {
+              "$ref": 0
+            }
+          ],
+          "result": {
+            "id": "#4",
+            "status": "in_progress"
+          }
+        },
+        {
+          "call": "advanceEntry",
+          "args": [
+            {
+              "$ref": 1,
+              "path": "id"
+            },
+            "2026-08-13T10:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "currently"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "Saga",
+              "category": "comic",
+              "shelf": "currently",
+              "createdAt": "2026-08-13T10:00:00.000Z",
+              "progress": {
+                "done": 3,
+                "total": 5
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "in_progress",
+              "nextEntryId": "#5",
+              "nextEntryTitle": "Issue 4",
+              "lastAdvancedAt": "2026-08-13T10:00:00.000Z",
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Saga",
+            "media_type": "comic",
+            "unit_label": "issue",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "media_type": "issue",
+            "status": "done",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": "2026-08-13T10:00:00.000Z",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "media_type": "issue",
+            "status": "done",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": "2026-08-13T10:00:00.000Z",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "media_type": "issue",
+            "status": "done",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": "2026-08-13T10:00:00.000Z",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#5",
+            "series_id": "#1",
+            "title": "Issue 4",
+            "ordinal": 4,
+            "media_type": "issue",
+            "status": "in_progress",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#6",
+            "series_id": "#1",
+            "title": "Issue 5",
+            "ordinal": 5,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "an out-of-range ordinal is ignored, falling back to a normal all-unstarted series",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Saga",
+              "category": "comic",
+              "count": 5,
+              "startAtOrdinal": 99
+            },
+            "2026-08-13T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "series",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "currently"
+          ],
+          "result": []
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "Saga",
+              "category": "comic",
+              "shelf": "backlog",
+              "createdAt": "2026-08-13T10:00:00.000Z",
+              "progress": {
+                "done": 0,
+                "total": 5
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Issue 1",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Saga",
+            "media_type": "comic",
+            "unit_label": "issue",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#5",
+            "series_id": "#1",
+            "title": "Issue 4",
+            "ordinal": 4,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#6",
+            "series_id": "#1",
+            "title": "Issue 5",
+            "ordinal": 5,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "an ordinal of exactly the last entry is in range, not off-by-one",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Saga",
+              "category": "comic",
+              "count": 5,
+              "startAtOrdinal": 5
+            },
+            "2026-08-13T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "series",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "currently"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "Saga",
+              "category": "comic",
+              "shelf": "currently",
+              "createdAt": "2026-08-13T10:00:00.000Z",
+              "progress": {
+                "done": 4,
+                "total": 5
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "in_progress",
+              "nextEntryId": "#6",
+              "nextEntryTitle": "Issue 5",
+              "lastAdvancedAt": "2026-08-13T10:00:00.000Z",
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Saga",
+            "media_type": "comic",
+            "unit_label": "issue",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "media_type": "issue",
+            "status": "done",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": "2026-08-13T10:00:00.000Z",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "media_type": "issue",
+            "status": "done",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": "2026-08-13T10:00:00.000Z",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "media_type": "issue",
+            "status": "done",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": "2026-08-13T10:00:00.000Z",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#5",
+            "series_id": "#1",
+            "title": "Issue 4",
+            "ordinal": 4,
+            "media_type": "issue",
+            "status": "done",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": "2026-08-13T10:00:00.000Z",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#6",
+            "series_id": "#1",
+            "title": "Issue 5",
+            "ordinal": 5,
+            "media_type": "issue",
+            "status": "in_progress",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "no ordinal at all creates a normal series, unstarted at entry 1",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Saga",
+              "category": "comic",
+              "count": 5
+            },
+            "2026-08-13T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "series",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "currently"
+          ],
+          "result": []
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "Saga",
+              "category": "comic",
+              "shelf": "backlog",
+              "createdAt": "2026-08-13T10:00:00.000Z",
+              "progress": {
+                "done": 0,
+                "total": 5
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Issue 1",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Saga",
+            "media_type": "comic",
+            "unit_label": "issue",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#5",
+            "series_id": "#1",
+            "title": "Issue 4",
+            "ordinal": 4,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#6",
+            "series_id": "#1",
+            "title": "Issue 5",
+            "ordinal": 5,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "an ongoing series with a parsed ordinal renumbers its bootstrap entry",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "One Piece",
+              "category": "manga",
+              "count": null,
+              "ongoing": true,
+              "startAtOrdinal": 8
+            },
+            "2026-08-13T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "series",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "currently"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "One Piece",
+              "category": "manga",
+              "shelf": "currently",
+              "createdAt": "2026-08-13T10:00:00.000Z",
+              "progress": null,
+              "ongoing": true,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "in_progress",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Volume 8",
+              "lastAdvancedAt": "2026-08-13T10:00:00.000Z",
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "One Piece",
+            "media_type": "manga",
+            "unit_label": "volume",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 1,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Volume 8",
+            "ordinal": 8,
+            "media_type": "volume",
+            "status": "in_progress",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "an ongoing series with no parsed ordinal starts at Volume 1, unstarted",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "One Piece",
+              "category": "manga",
+              "count": null,
+              "ongoing": true
+            },
+            "2026-08-13T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "series",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "One Piece",
+              "category": "manga",
+              "shelf": "backlog",
+              "createdAt": "2026-08-13T10:00:00.000Z",
+              "progress": null,
+              "ongoing": true,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Volume 1",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "One Piece",
+            "media_type": "manga",
+            "unit_label": "volume",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 1,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Volume 1",
+            "ordinal": 1,
+            "media_type": "volume",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "firstEntryOf reports the A10-started entry as already in_progress, not ordinal 1",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Berserk",
+              "category": "manga",
+              "count": 10,
+              "startAtOrdinal": 5
+            },
+            "2026-08-13T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "series",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "firstEntryOf",
+          "args": [
+            {
+              "$ref": 0
+            }
+          ],
+          "result": {
+            "id": "#6",
+            "status": "in_progress"
+          }
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT ordinal FROM entry WHERE id = ?",
+            [
+              {
+                "$ref": 1,
+                "path": "id"
+              }
+            ]
+          ],
+          "result": [
+            {
+              "ordinal": 5
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Berserk",
+            "media_type": "manga",
+            "unit_label": "volume",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Volume 1",
+            "ordinal": 1,
+            "media_type": "volume",
+            "status": "done",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": "2026-08-13T10:00:00.000Z",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Volume 2",
+            "ordinal": 2,
+            "media_type": "volume",
+            "status": "done",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": "2026-08-13T10:00:00.000Z",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#1",
+            "title": "Volume 3",
+            "ordinal": 3,
+            "media_type": "volume",
+            "status": "done",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": "2026-08-13T10:00:00.000Z",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#5",
+            "series_id": "#1",
+            "title": "Volume 4",
+            "ordinal": 4,
+            "media_type": "volume",
+            "status": "done",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": "2026-08-13T10:00:00.000Z",
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#6",
+            "series_id": "#1",
+            "title": "Volume 5",
+            "ordinal": 5,
+            "media_type": "volume",
+            "status": "in_progress",
+            "started_at": "2026-08-13T10:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#7",
+            "series_id": "#1",
+            "title": "Volume 6",
+            "ordinal": 6,
+            "media_type": "volume",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#8",
+            "series_id": "#1",
+            "title": "Volume 7",
+            "ordinal": 7,
+            "media_type": "volume",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#9",
+            "series_id": "#1",
+            "title": "Volume 8",
+            "ordinal": 8,
+            "media_type": "volume",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#10",
+            "series_id": "#1",
+            "title": "Volume 9",
+            "ordinal": 9,
+            "media_type": "volume",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#11",
+            "series_id": "#1",
+            "title": "Volume 10",
+            "ordinal": 10,
+            "media_type": "volume",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-13T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "Iris parity: tracks added at the same instant list in insertion order",
+      "steps": [
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "First",
+              "category": "book"
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Second",
+              "category": "book"
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#2"
+        },
+        {
+          "call": "createStandaloneTrack",
+          "args": [
+            {
+              "title": "Third",
+              "category": "book"
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#3"
+        },
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Fourth",
+              "mediaType": "show",
+              "unitLabel": "episode",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Episode 1"
+                }
+              ]
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": "#4"
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#4",
+              "title": "Fourth",
+              "category": "show",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": {
+                "done": 0,
+                "total": 1
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#5",
+              "nextEntryTitle": "Episode 1",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            },
+            {
+              "kind": "entry",
+              "id": "#1",
+              "title": "First",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#1",
+              "nextEntryTitle": "First",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            },
+            {
+              "kind": "entry",
+              "id": "#2",
+              "title": "Second",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Second",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            },
+            {
+              "kind": "entry",
+              "id": "#3",
+              "title": "Third",
+              "category": "book",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#3",
+              "nextEntryTitle": "Third",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#4",
+            "title": "Fourth",
+            "media_type": "show",
+            "unit_label": "episode",
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "First",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#2",
+            "series_id": null,
+            "title": "Second",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": null,
+            "title": "Third",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#5",
+            "series_id": "#4",
+            "title": "Episode 1",
+            "ordinal": 1,
+            "media_type": "episode",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "Iris parity: a draft ordinal no platform can store is rejected",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Big",
+              "mediaType": "manga",
+              "unitLabel": "volume",
+              "entries": [
+                {
+                  "ordinal": 10000000000000000000,
+                  "title": "Volume ∞"
+                }
+              ]
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "throws": "Entry \"Volume ∞\" ordinal must be a non-negative whole number, got: 10000000000000000000"
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "Iris parity: a rejected draft writes nothing",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Bad",
+              "mediaType": "manga",
+              "unitLabel": "volume",
+              "entries": [
+                {
+                  "ordinal": -1,
+                  "title": "Volume -1"
+                }
+              ]
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "throws": "Entry \"Volume -1\" ordinal must be a non-negative whole number, got: -1"
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "Iris parity: blank, untrimmed and standalone-forced adds",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "   ",
+              "category": "book",
+              "count": 1
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "throws": "A track needs a title"
+        },
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "  Saga  ",
+              "category": "comic",
+              "count": 2
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "series",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Saga Vol. 1",
+              "category": "comic",
+              "count": 1,
+              "standalone": true,
+              "match": {
+                "id": "gb-saga",
+                "title": "Saga Vol. 1",
+                "category": "comic",
+                "count": 1
+              },
+              "externalSource": "google-books"
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#4"
+          }
+        },
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Zero",
+              "category": "show",
+              "count": 0
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "throws": "A track must have at least 1 unit"
+        },
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Half",
+              "category": "show",
+              "count": 2.5
+            },
+            "2026-08-12T10:00:00.000Z"
+          ],
+          "throws": "A unit count must be a whole number"
+        },
+        {
+          "call": "listTracks",
+          "args": [
+            "backlog"
+          ],
+          "result": [
+            {
+              "kind": "series",
+              "id": "#1",
+              "title": "Saga",
+              "category": "comic",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": {
+                "done": 0,
+                "total": 2
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#2",
+              "nextEntryTitle": "Issue 1",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            },
+            {
+              "kind": "entry",
+              "id": "#4",
+              "title": "Saga Vol. 1",
+              "category": "comic",
+              "shelf": "backlog",
+              "createdAt": "2026-08-12T10:00:00.000Z",
+              "progress": null,
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "unstarted",
+              "nextEntryId": "#4",
+              "nextEntryTitle": "Saga Vol. 1",
+              "lastAdvancedAt": null,
+              "completionDrops": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Saga",
+            "media_type": "comic",
+            "unit_label": "issue",
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": null,
+            "title": "Saga Vol. 1",
+            "ordinal": null,
+            "media_type": "comic",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-08-12T10:00:00.000Z",
+            "paused": 0,
+            "external_source": "google-books",
+            "external_id": "gb-saga",
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    }
+  ]
+}

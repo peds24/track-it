@@ -44,10 +44,11 @@ export function assertIsoTimestamp(value: string | null | undefined, field: stri
   }
 }
 
-/** Ordinals number the units of a series: 1, 2, 3 — never negative, never fractional. */
+/** Ordinals number the units of a series: 1, 2, 3 — never negative, never fractional,
+ * and (Iris I4) never past MAX_SAFE_INTEGER, which no platform stores as an integer. */
 export function assertOrdinal(value: number | null | undefined, field = 'ordinal'): void {
   if (value === null || value === undefined) return;
-  if (!Number.isInteger(value) || value < 0) {
+  if (!Number.isSafeInteger(value) || value < 0) {
     throw new Error(`${field} must be a non-negative whole number, got: ${String(value)}`);
   }
 }

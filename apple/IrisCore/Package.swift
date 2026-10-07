@@ -7,8 +7,12 @@ let package = Package(
     products: [
         .library(name: "IrisCore", targets: ["IrisCore"]),
     ],
+    dependencies: [
+        // Spec §2.2: plain SQLite, so the schema is the TS app's schema, not a lookalike.
+        .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.0.0"),
+    ],
     targets: [
-        .target(name: "IrisCore"),
-        .testTarget(name: "IrisCoreTests", dependencies: ["IrisCore"]),
+        .target(name: "IrisCore", dependencies: [.product(name: "GRDB", package: "GRDB.swift")]),
+        .testTarget(name: "IrisCoreTests", dependencies: ["IrisCore", .product(name: "GRDB", package: "GRDB.swift")]),
     ]
 )

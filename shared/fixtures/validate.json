@@ -500,6 +500,30 @@
         -123456.789
       ],
       "throws": "ordinal must be a non-negative whole number, got: -123456.789"
+    },
+    {
+      "name": "ordinals must be safe integers, so every platform can store them",
+      "fn": "assertOrdinal",
+      "args": [
+        9007199254740991
+      ],
+      "expect": null
+    },
+    {
+      "name": "ordinals must be safe integers, so every platform can store them (2)",
+      "fn": "assertOrdinal",
+      "args": [
+        9007199254740992
+      ],
+      "throws": "ordinal must be a non-negative whole number, got: 9007199254740992"
+    },
+    {
+      "name": "ordinals must be safe integers, so every platform can store them (3)",
+      "fn": "assertOrdinal",
+      "args": [
+        10000000000000000000
+      ],
+      "throws": "ordinal must be a non-negative whole number, got: 10000000000000000000"
     }
   ]
 }
