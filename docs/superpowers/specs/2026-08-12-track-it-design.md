@@ -1383,8 +1383,12 @@ change into a red Swift test. The SQLite DDL is shared too: Swift runs
 `src/db/schema.ts`'s migration strings verbatim, generated into
 `Migrations.generated.swift`, so `schema.sql` matches byte for byte. Out of
 scope until I5: the metadata backfill and comic-unit sync, which need real
-catalogue providers. Two tests need fault injection at the driver seam and
-are listed, with reasons, as not expressible as scenarios.
+catalogue providers. Mid-write failures are injected with a SQL trigger, so
+even the rollback tests are scenarios; Swift's multi-statement writes are
+atomic on their own (savepoints), as TS's are. The I4 review also hardened
+both platforms: ordinals, rating positions and season counts must be safe
+integers (`Number.isSafeInteger`) — 1e19 used to store as a REAL in TS and
+trap in Swift.
 
 ### Error handling
 

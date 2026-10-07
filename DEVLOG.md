@@ -15,6 +15,10 @@
   index, so rows come back in random-id order — every multi-row inspection
   query orders by rowid. And `tsc` (no `include`) scanned GRDB's JS under
   `apple/DerivedData`; `tsconfig.json` now excludes `apple/`.
+- **Review fixes**: a 1e19 ordinal (whole, so "valid") stored as a REAL in
+  TS and trapped Swift's Int — both now require safe integers. Swift's
+  writes are atomic on their own (savepoints), proven by tests that call
+  them outside any transaction.
 
 ## 2026-10-06 — Iris I3: Swift domain port
 
