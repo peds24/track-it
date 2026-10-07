@@ -49,9 +49,20 @@ too (a SQL trigger injects the failure). **TS change on `iris` that
 safe integers (`Number.isSafeInteger`) for ordinals, rating positions and
 season counts — it rides along when `iris` merges into `android` (I13), or
 port it sooner. Decision record is at A29;
-the next amendment is **A30**. Next is I5: providers (TMDB, Google Books,
-Metron, AniList), metadata backfill and `syncSeriesUnit` — plus the two
-`LATER` scenario areas (`backfillMetadata`, `syncSeriesUnit`). Plans go in `docs/superpowers/plans/`. Toolchain on this Mac: Xcode 27.0, Swift 6.4,
+the next amendment is **A30**. **I5 done** — the four catalogue providers
+(TMDB, Google Books, Metron, AniList) are in
+`apple/IrisCore/Sources/IrisCore/Providers/`, held to TS by 180 recorded
+provider calls in `shared/providers/` — every request (URL, headers,
+GraphQL body, Metron's Basic auth) and every result must match, replayed
+against canned responses, never the network. The metadata backfill and
+Metron issue sync are ported too, with their scenarios (stub providers
+written as data; per-source pacing recorded as sleeps), so all 155
+scenarios now replay. Keys: `apple/Iris/Config/Secrets.xcconfig`
+(git-ignored; copy `Secrets.example.xcconfig`) → `Info.plist` →
+`ProviderKeys.fromBundle()`. **Still open for I7** (from I4):
+DatabasePool (WAL) vs DatabaseQueue, GRDB truncating strings at NUL, and
+the `Category` name clashing with Objective-C's. Next is I6 (app shell).
+Plans go in `docs/superpowers/plans/`. Toolchain on this Mac: Xcode 27.0, Swift 6.4,
 `xcodegen` at `/opt/homebrew/bin`.
 
 ## v1.4.0 — Ratings & Rankings (2026-10-06)

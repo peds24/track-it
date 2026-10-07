@@ -46,4 +46,5 @@ yarn-error.*
 /apple/**/.swiftpm/
 /apple/DerivedData/
 /apple/Iris/Config/Secrets.xcconfig
+/apple/Iris/Info.plist
 xcuserdata/

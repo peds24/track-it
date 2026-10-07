@@ -42,5 +42,9 @@ won't work.
 - `IrisCore/Persistence` ports `src/data` and `src/db`, held to them by
   `shared/scenarios` (A29). Never hand-edit `Migrations.generated.swift`; it
   comes from `npm run fixtures:record`.
+- `IrisCore/Providers` ports `src/providers`, held to them by
+  `shared/providers`. Providers take an injected `HTTPClient`; tests never
+  touch the network — they replay the recorded calls. Keys come from
+  `Iris/Config/Secrets.xcconfig` (git-ignored) via Info.plist.
 - Never hand-edit `Iris/DesignSystem/IrisTokens.swift`. Edit
   `design/iris/tokens.json` and run `npm run tokens` from the repo root.

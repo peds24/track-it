@@ -6,7 +6,9 @@ module.exports = {
   // second React reaches the renderer and every component test there dies on
   // "Invalid hook call". Git already excludes the directory; jest has to be
   // told separately.
-  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/.claude/'],
+  // apple/ holds GRDB's checkout (SwiftPM .build, Xcode DerivedData), whose
+  // SQLite sources ship browser-only JS tests.
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/.claude/', '<rootDir>/apple/'],
   transformIgnorePatterns: [
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|expo-router|@testing-library/.*))',
   ],
