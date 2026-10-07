@@ -114,8 +114,9 @@ private func requireOptionalSeasons(_ v: JSONValue?, _ field: String) throws -> 
     case let .array(items)?:
         return try items.enumerated().map { i, item in
             guard let o = item.object else { throw DomainError("Backup field \(field)[\(i)] is not an object") }
-            guard case let .number(n)? = o["number"] else { throw DomainError("Backup field \(field)[\(i)].number must be a number") }
-            guard case let .number(c)? = o["episodeCount"] else { throw DomainError("Backup field \(field)[\(i)].episodeCount must be a number") }
+            // Iris I4: whole and safe, as backup.ts now requires.
+            guard case let .number(n)? = o["number"], isSafeInteger(n) else { throw DomainError("Backup field \(field)[\(i)].number must be a whole number") }
+            guard case let .number(c)? = o["episodeCount"], isSafeInteger(c) else { throw DomainError("Backup field \(field)[\(i)].episodeCount must be a whole number") }
             return SeasonBoundary(number: Int(n), episodeCount: Int(c))
         }
     default: throw DomainError("Backup field \(field) must be a list")
@@ -207,7 +208,7 @@ private func parseRating(_ value: JSONValue, exists: (TrackKind, String) -> Bool
     guard let category = Category(rawValue: categoryRaw) else { throw DomainError("Unknown rating category: \(categoryRaw)") }
     let sentimentRaw = try requireString(o["sentiment"], "rating.sentiment")
     guard let sentiment = Sentiment(rawValue: sentimentRaw) else { throw DomainError("Unknown rating sentiment: \(sentimentRaw)") }
-    guard case let .number(position)? = o["position"], position == position.rounded(.towardZero) else {
+    guard case let .number(position)? = o["position"], isSafeInteger(position) else {
         throw DomainError("Backup field rating.position must be a whole number")
     }
     let ratedAt = try requireString(o["ratedAt"], "rating.ratedAt")
@@ -216,7 +217,7 @@ private func parseRating(_ value: JSONValue, exists: (TrackKind, String) -> Bool
 }
 
 /// Replace the whole library with `json` — validated in full first, then
-/// written in the caller's one transaction.
+/// written atomically (a half-imported library reads as corruption).
 public func importLibrary(_ db: Database, json: String) throws {
     guard let raw = try? JSONDecoder().decode(JSONValue.self, from: Data(json.utf8)) else {
         throw DomainError("Backup is not valid JSON")
@@ -246,6 +247,7 @@ public func importLibrary(_ db: Database, json: String) throws {
         throw DomainError("Backup rates the same track twice")
     }
 
+    try atomically(db) {
     try db.execute(sql: "DELETE FROM rating")
     try db.execute(sql: "DELETE FROM entry")
     try db.execute(sql: "DELETE FROM series")
@@ -275,5 +277,6 @@ public func importLibrary(_ db: Database, json: String) throws {
             sql: "INSERT INTO rating (track_kind, track_id, category, sentiment, position, rated_at) VALUES (?, ?, ?, ?, ?, ?)",
             arguments: [r.trackKind.rawValue, r.trackId, r.category.rawValue, r.sentiment.rawValue, r.position, r.ratedAt]
         )
+    }
     }
 }

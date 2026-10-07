@@ -98,7 +98,7 @@ public func allScores(_ db: Database) throws -> [(key: String, score: Double)] {
 }
 
 /// Place `track` at `indexInBucket` within its sentiment and rewrite the
-/// category's order (the caller's write makes it one transaction).
+/// category's order, atomically.
 public func saveRating(_ db: Database, _ track: RatableTrack, sentiment: Sentiment, indexInBucket: Int, now: String) throws {
     try assertIsoTimestamp(now, field: "rating ratedAt")
     let key = ratingKey(track.ref)
@@ -107,6 +107,7 @@ public func saveRating(_ db: Database, _ track: RatableTrack, sentiment: Sentime
     var refs: [String: TrackRef] = [key: track.ref]
     for r in current { refs[r.key] = TrackRef(kind: r.kind, id: r.id) }
 
+    try atomically(db) {
     try db.execute(sql: "DELETE FROM rating WHERE track_kind = ? AND track_id = ?", arguments: [track.kind.rawValue, track.id])
     try db.execute(
         sql: "INSERT INTO rating (track_kind, track_id, category, sentiment, position, rated_at) VALUES (?, ?, ?, ?, 0, ?)",
@@ -116,6 +117,7 @@ public func saveRating(_ db: Database, _ track: RatableTrack, sentiment: Sentime
         let ref = refs[item.key]!
         try db.execute(sql: "UPDATE rating SET position = ? WHERE track_kind = ? AND track_id = ?",
                        arguments: [position, ref.kind.rawValue, ref.id])
+    }
     }
 }
 

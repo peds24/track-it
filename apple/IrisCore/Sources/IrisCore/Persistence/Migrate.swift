@@ -22,3 +22,13 @@ public func openLibrary(at path: String) throws -> DatabaseQueue {
     try queue.write { try migrate($0) }
     return queue
 }
+
+/// Runs `body` as one unit, whoever the caller is: a savepoint nests inside a
+/// `write` transaction and opens its own transaction outside one. TS opens a
+/// transaction in each multi-statement write; this is that guarantee (I4 review).
+func atomically(_ db: Database, _ body: () throws -> Void) throws {
+    try db.inSavepoint {
+        try body()
+        return .commit
+    }
+}

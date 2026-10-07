@@ -1,8 +1,8 @@
 import Foundation
 import GRDB
 
-/// Port of src/data/trackRepo.ts. Each function runs inside the caller's
-/// `writer.write { db in … }` — one transaction per call.
+/// Port of src/data/trackRepo.ts. Callers wrap a call in `writer.write { db in … }`;
+/// every multi-statement write is also `atomically`, as TS opens its own transaction.
 
 public enum TrackKind: String, Codable, Sendable { case series, entry }
 
@@ -131,6 +131,7 @@ public func createSeriesTrack(_ db: Database, _ draft: SeriesDraft, now: String,
         ))
     }
 
+    try atomically(db) {
     try db.execute(
         sql: """
         INSERT INTO series (id, title, media_type, unit_label, created_at, ongoing, external_source, external_id, seasons_json,
@@ -153,6 +154,7 @@ public func createSeriesTrack(_ db: Database, _ draft: SeriesDraft, now: String,
             arguments: [newId(), seriesId, entry.title, Int(entry.ordinal), draft.unitLabel.rawValue, status.rawValue,
                         status != .unstarted ? now : nil, status == .done ? now : nil, now]
         )
+    }
     }
     return seriesId
 }
@@ -282,11 +284,13 @@ public func advanceEntry(_ db: Database, entryId: String, now: String) throws {
         throw DomainError("Entry \(entryId) not found")
     }
     let updated = try advance(toEntry(row), now: now)
-    try db.execute(sql: "UPDATE entry SET status = ?, started_at = ?, finished_at = ? WHERE id = ?",
-                   arguments: [updated.status.rawValue, updated.startedAt, updated.finishedAt, updated.id])
-    if updated.status == .done {
-        try appendNextOngoingEntry(db, finished: updated, now: now)
-        try startNextInSeries(db, finished: updated, now: now)
+    try atomically(db) {
+        try db.execute(sql: "UPDATE entry SET status = ?, started_at = ?, finished_at = ? WHERE id = ?",
+                       arguments: [updated.status.rawValue, updated.startedAt, updated.finishedAt, updated.id])
+        if updated.status == .done {
+            try appendNextOngoingEntry(db, finished: updated, now: now)
+            try startNextInSeries(db, finished: updated, now: now)
+        }
     }
 }
 
@@ -319,9 +323,11 @@ private func startNextInSeries(_ db: Database, finished: Entry, now: String) thr
 private func table(_ kind: TrackKind) -> String { kind == .series ? "series" : "entry" }
 
 public func deleteTrack(_ db: Database, _ track: TrackRef) throws {
-    try db.execute(sql: "DELETE FROM \(table(track.kind)) WHERE id = ?", arguments: [track.id])
-    // A26: a rating points at a series or an entry, so no cascade reaches it.
-    try db.execute(sql: "DELETE FROM rating WHERE track_kind = ? AND track_id = ?", arguments: [track.kind.rawValue, track.id])
+    try atomically(db) {
+        try db.execute(sql: "DELETE FROM \(table(track.kind)) WHERE id = ?", arguments: [track.id])
+        // A26: a rating points at a series or an entry, so no cascade reaches it.
+        try db.execute(sql: "DELETE FROM rating WHERE track_kind = ? AND track_id = ?", arguments: [track.kind.rawValue, track.id])
+    }
 }
 
 public func renameTrack(_ db: Database, _ track: TrackRef, title: String) throws {
@@ -335,8 +341,10 @@ public func returnTrackToBacklog(_ db: Database, _ track: TrackRef) throws {
     if track.kind == .series {
         let statuses = try String.fetchAll(db, sql: "SELECT status FROM entry WHERE series_id = ?", arguments: [track.id])
         if !statuses.isEmpty && statuses.allSatisfy({ $0 == "done" }) {
-            try db.execute(sql: "UPDATE entry SET status = 'unstarted', started_at = NULL, finished_at = NULL WHERE series_id = ?", arguments: [track.id])
-            try db.execute(sql: "UPDATE series SET paused = 0 WHERE id = ?", arguments: [track.id])
+            try atomically(db) {
+                try db.execute(sql: "UPDATE entry SET status = 'unstarted', started_at = NULL, finished_at = NULL WHERE series_id = ?", arguments: [track.id])
+                try db.execute(sql: "UPDATE series SET paused = 0 WHERE id = ?", arguments: [track.id])
+            }
         } else {
             try db.execute(sql: "UPDATE series SET paused = 1 WHERE id = ?", arguments: [track.id])
         }
@@ -361,11 +369,13 @@ public func setTrackPosition(_ db: Database, seriesId: String, targetOrdinal: In
     }
     let children = try Row.fetchAll(db, sql: "SELECT * FROM entry WHERE series_id = ?", arguments: [seriesId]).map(toEntry)
     let changed = try setPosition(children, targetOrdinal: targetOrdinal, now: now)
-    for e in changed {
-        try db.execute(sql: "UPDATE entry SET status = ?, started_at = ?, finished_at = ? WHERE id = ?",
-                       arguments: [e.status.rawValue, e.startedAt, e.finishedAt, e.id])
+    try atomically(db) {
+        for e in changed {
+            try db.execute(sql: "UPDATE entry SET status = ?, started_at = ?, finished_at = ? WHERE id = ?",
+                           arguments: [e.status.rawValue, e.startedAt, e.finishedAt, e.id])
+        }
+        try db.execute(sql: "UPDATE series SET paused = 0 WHERE id = ?", arguments: [seriesId])
     }
-    try db.execute(sql: "UPDATE series SET paused = 0 WHERE id = ?", arguments: [seriesId])
 }
 
 /// A23: finish a track by hand — the only way an ongoing series reaches Done.
@@ -378,8 +388,10 @@ public func completeTrack(_ db: Database, _ track: TrackRef, now: String) throws
         guard let row = try Row.fetchOne(db, sql: "SELECT * FROM entry WHERE id = ?", arguments: [track.id]) else {
             throw DomainError("Entry \(track.id) not found")
         }
-        for e in completeUnits([toEntry(row)], ongoing: false, now: now).updated { try write(e) }
-        try db.execute(sql: "UPDATE entry SET paused = 0 WHERE id = ?", arguments: [track.id])
+        try atomically(db) {
+            for e in completeUnits([toEntry(row)], ongoing: false, now: now).updated { try write(e) }
+            try db.execute(sql: "UPDATE entry SET paused = 0 WHERE id = ?", arguments: [track.id])
+        }
         return
     }
     guard let series = try Row.fetchOne(db, sql: "SELECT * FROM series WHERE id = ?", arguments: [track.id]) else {
@@ -387,7 +399,9 @@ public func completeTrack(_ db: Database, _ track: TrackRef, now: String) throws
     }
     let children = try Row.fetchAll(db, sql: "SELECT * FROM entry WHERE series_id = ?", arguments: [track.id]).map(toEntry)
     let result = completeUnits(children, ongoing: (series["ongoing"] as Int? ?? 0) == 1, now: now)
-    for e in result.updated { try write(e) }
-    for id in result.removedIds { try db.execute(sql: "DELETE FROM entry WHERE id = ?", arguments: [id]) }
-    try db.execute(sql: "UPDATE series SET ongoing = 0, paused = 0 WHERE id = ?", arguments: [track.id])
+    try atomically(db) {
+        for e in result.updated { try write(e) }
+        for id in result.removedIds { try db.execute(sql: "DELETE FROM entry WHERE id = ?", arguments: [id]) }
+        try db.execute(sql: "UPDATE series SET ongoing = 0, paused = 0 WHERE id = ?", arguments: [track.id])
+    }
 }
