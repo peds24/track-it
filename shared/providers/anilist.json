@@ -1,0 +1,1900 @@
+{
+  "area": "anilist",
+  "generatedBy": "npm run fixtures:record",
+  "cases": [
+    {
+      "name": "search posts a GraphQL query and maps hits to SearchResult, tagged manga",
+      "provider": "anilist",
+      "env": {},
+      "call": "search",
+      "args": [
+        "Monster"
+      ],
+      "responses": [
+        {
+          "body": {
+            "data": {
+              "Page": {
+                "media": [
+                  {
+                    "id": 30001,
+                    "title": {
+                      "romaji": "MONSTER",
+                      "english": "Monster"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($search: String) {\n    Page(perPage: 10) {\n      media(search: $search, type: MANGA) {\n        id\n        title { romaji english }\n        startDate { year }\n        coverImage { large }\n        staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n      }\n    }\n  }\n",
+            "variables": {
+              "search": "Monster"
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "result": [
+        {
+          "id": "30001",
+          "title": "Monster",
+          "category": "manga",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "search falls back to the romaji title when there is no english one",
+      "provider": "anilist",
+      "env": {},
+      "call": "search",
+      "args": [
+        "x"
+      ],
+      "responses": [
+        {
+          "body": {
+            "data": {
+              "Page": {
+                "media": [
+                  {
+                    "id": 1,
+                    "title": {
+                      "romaji": "Only Romaji"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($search: String) {\n    Page(perPage: 10) {\n      media(search: $search, type: MANGA) {\n        id\n        title { romaji english }\n        startDate { year }\n        coverImage { large }\n        staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n      }\n    }\n  }\n",
+            "variables": {
+              "search": "x"
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "result": [
+        {
+          "id": "1",
+          "title": "Only Romaji",
+          "category": "manga",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "search on a blank query never calls the network",
+      "provider": "anilist",
+      "env": {},
+      "call": "search",
+      "args": [
+        "   "
+      ],
+      "responses": [
+        {
+          "body": {}
+        }
+      ],
+      "requests": [],
+      "unusedResponses": 1,
+      "result": []
+    },
+    {
+      "name": "hydrate for a real match reads volumes and a FINISHED status as completed",
+      "provider": "anilist",
+      "env": {},
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "30001",
+          "title": "Monster",
+          "category": "manga",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "data": {
+              "Media": {
+                "volumes": 18,
+                "chapters": 162,
+                "status": "FINISHED"
+              }
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($id: Int) {\n    Media(id: $id, type: MANGA) {\n      volumes\n      chapters\n      status\n      description(asHtml: false)\n      genres\n      startDate { year }\n      endDate { year }\n      coverImage { extraLarge large }\n      staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n    }\n  }\n",
+            "variables": {
+              "id": 30001
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "Monster",
+        "mediaType": "manga",
+        "unitLabel": "volume",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Volume 1"
+          },
+          {
+            "ordinal": 2,
+            "title": "Volume 2"
+          },
+          {
+            "ordinal": 3,
+            "title": "Volume 3"
+          },
+          {
+            "ordinal": 4,
+            "title": "Volume 4"
+          },
+          {
+            "ordinal": 5,
+            "title": "Volume 5"
+          },
+          {
+            "ordinal": 6,
+            "title": "Volume 6"
+          },
+          {
+            "ordinal": 7,
+            "title": "Volume 7"
+          },
+          {
+            "ordinal": 8,
+            "title": "Volume 8"
+          },
+          {
+            "ordinal": 9,
+            "title": "Volume 9"
+          },
+          {
+            "ordinal": 10,
+            "title": "Volume 10"
+          },
+          {
+            "ordinal": 11,
+            "title": "Volume 11"
+          },
+          {
+            "ordinal": 12,
+            "title": "Volume 12"
+          },
+          {
+            "ordinal": 13,
+            "title": "Volume 13"
+          },
+          {
+            "ordinal": 14,
+            "title": "Volume 14"
+          },
+          {
+            "ordinal": 15,
+            "title": "Volume 15"
+          },
+          {
+            "ordinal": 16,
+            "title": "Volume 16"
+          },
+          {
+            "ordinal": 17,
+            "title": "Volume 17"
+          },
+          {
+            "ordinal": 18,
+            "title": "Volume 18"
+          }
+        ],
+        "externalSource": "anilist",
+        "externalId": "30001",
+        "metaLine": [
+          "18 volumes",
+          "Completed"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": null,
+          "releaseYear": null
+        }
+      }
+    },
+    {
+      "name": "hydrate falls back to chapters when a manga has no separate volume count",
+      "provider": "anilist",
+      "env": {},
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "1",
+          "title": "One-shot-ish",
+          "category": "manga",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "data": {
+              "Media": {
+                "volumes": null,
+                "chapters": 42,
+                "status": "FINISHED"
+              }
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($id: Int) {\n    Media(id: $id, type: MANGA) {\n      volumes\n      chapters\n      status\n      description(asHtml: false)\n      genres\n      startDate { year }\n      endDate { year }\n      coverImage { extraLarge large }\n      staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n    }\n  }\n",
+            "variables": {
+              "id": 1
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "One-shot-ish",
+        "mediaType": "manga",
+        "unitLabel": "volume",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Volume 1"
+          },
+          {
+            "ordinal": 2,
+            "title": "Volume 2"
+          },
+          {
+            "ordinal": 3,
+            "title": "Volume 3"
+          },
+          {
+            "ordinal": 4,
+            "title": "Volume 4"
+          },
+          {
+            "ordinal": 5,
+            "title": "Volume 5"
+          },
+          {
+            "ordinal": 6,
+            "title": "Volume 6"
+          },
+          {
+            "ordinal": 7,
+            "title": "Volume 7"
+          },
+          {
+            "ordinal": 8,
+            "title": "Volume 8"
+          },
+          {
+            "ordinal": 9,
+            "title": "Volume 9"
+          },
+          {
+            "ordinal": 10,
+            "title": "Volume 10"
+          },
+          {
+            "ordinal": 11,
+            "title": "Volume 11"
+          },
+          {
+            "ordinal": 12,
+            "title": "Volume 12"
+          },
+          {
+            "ordinal": 13,
+            "title": "Volume 13"
+          },
+          {
+            "ordinal": 14,
+            "title": "Volume 14"
+          },
+          {
+            "ordinal": 15,
+            "title": "Volume 15"
+          },
+          {
+            "ordinal": 16,
+            "title": "Volume 16"
+          },
+          {
+            "ordinal": 17,
+            "title": "Volume 17"
+          },
+          {
+            "ordinal": 18,
+            "title": "Volume 18"
+          },
+          {
+            "ordinal": 19,
+            "title": "Volume 19"
+          },
+          {
+            "ordinal": 20,
+            "title": "Volume 20"
+          },
+          {
+            "ordinal": 21,
+            "title": "Volume 21"
+          },
+          {
+            "ordinal": 22,
+            "title": "Volume 22"
+          },
+          {
+            "ordinal": 23,
+            "title": "Volume 23"
+          },
+          {
+            "ordinal": 24,
+            "title": "Volume 24"
+          },
+          {
+            "ordinal": 25,
+            "title": "Volume 25"
+          },
+          {
+            "ordinal": 26,
+            "title": "Volume 26"
+          },
+          {
+            "ordinal": 27,
+            "title": "Volume 27"
+          },
+          {
+            "ordinal": 28,
+            "title": "Volume 28"
+          },
+          {
+            "ordinal": 29,
+            "title": "Volume 29"
+          },
+          {
+            "ordinal": 30,
+            "title": "Volume 30"
+          },
+          {
+            "ordinal": 31,
+            "title": "Volume 31"
+          },
+          {
+            "ordinal": 32,
+            "title": "Volume 32"
+          },
+          {
+            "ordinal": 33,
+            "title": "Volume 33"
+          },
+          {
+            "ordinal": 34,
+            "title": "Volume 34"
+          },
+          {
+            "ordinal": 35,
+            "title": "Volume 35"
+          },
+          {
+            "ordinal": 36,
+            "title": "Volume 36"
+          },
+          {
+            "ordinal": 37,
+            "title": "Volume 37"
+          },
+          {
+            "ordinal": 38,
+            "title": "Volume 38"
+          },
+          {
+            "ordinal": 39,
+            "title": "Volume 39"
+          },
+          {
+            "ordinal": 40,
+            "title": "Volume 40"
+          },
+          {
+            "ordinal": 41,
+            "title": "Volume 41"
+          },
+          {
+            "ordinal": 42,
+            "title": "Volume 42"
+          }
+        ],
+        "externalSource": "anilist",
+        "externalId": "1",
+        "metaLine": [
+          "42 chapters",
+          "Completed"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": null,
+          "releaseYear": null
+        }
+      }
+    },
+    {
+      "name": "hydrate reads RELEASING as ongoing, ignoring whatever count came back",
+      "provider": "anilist",
+      "env": {},
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "2",
+          "title": "One Piece",
+          "category": "manga",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "data": {
+              "Media": {
+                "volumes": 12,
+                "chapters": 100,
+                "status": "RELEASING"
+              }
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($id: Int) {\n    Media(id: $id, type: MANGA) {\n      volumes\n      chapters\n      status\n      description(asHtml: false)\n      genres\n      startDate { year }\n      endDate { year }\n      coverImage { extraLarge large }\n      staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n    }\n  }\n",
+            "variables": {
+              "id": 2
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": true,
+        "title": "One Piece",
+        "mediaType": "manga",
+        "unitLabel": "volume",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Volume 1"
+          }
+        ],
+        "externalSource": "anilist",
+        "externalId": "2",
+        "metaLine": [
+          "12 volumes",
+          "Ongoing"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": null,
+          "releaseYear": null
+        }
+      }
+    },
+    {
+      "name": "hydrate for an unmatched (hand-typed) title never calls the network",
+      "provider": "anilist",
+      "env": {},
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "anilist",
+          "title": "Some Manga",
+          "category": "manga",
+          "count": 5
+        }
+      ],
+      "responses": [],
+      "requests": [],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "Some Manga",
+        "mediaType": "manga",
+        "unitLabel": "volume",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Volume 1"
+          },
+          {
+            "ordinal": 2,
+            "title": "Volume 2"
+          },
+          {
+            "ordinal": 3,
+            "title": "Volume 3"
+          },
+          {
+            "ordinal": 4,
+            "title": "Volume 4"
+          },
+          {
+            "ordinal": 5,
+            "title": "Volume 5"
+          }
+        ]
+      }
+    },
+    {
+      "name": "hydrate metaLine/blurb (A17): a finished manga gets a closed year range, a volume count, and \"Completed\"",
+      "provider": "anilist",
+      "env": {},
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "30001",
+          "title": "Monster",
+          "category": "manga",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "data": {
+              "Media": {
+                "volumes": 18,
+                "chapters": 162,
+                "status": "FINISHED",
+                "description": "Dr. Tenma sets out on a journey.<br><br>Years later...",
+                "startDate": {
+                  "year": 1994
+                },
+                "endDate": {
+                  "year": 2001
+                }
+              }
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($id: Int) {\n    Media(id: $id, type: MANGA) {\n      volumes\n      chapters\n      status\n      description(asHtml: false)\n      genres\n      startDate { year }\n      endDate { year }\n      coverImage { extraLarge large }\n      staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n    }\n  }\n",
+            "variables": {
+              "id": 30001
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "Monster",
+        "mediaType": "manga",
+        "unitLabel": "volume",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Volume 1"
+          },
+          {
+            "ordinal": 2,
+            "title": "Volume 2"
+          },
+          {
+            "ordinal": 3,
+            "title": "Volume 3"
+          },
+          {
+            "ordinal": 4,
+            "title": "Volume 4"
+          },
+          {
+            "ordinal": 5,
+            "title": "Volume 5"
+          },
+          {
+            "ordinal": 6,
+            "title": "Volume 6"
+          },
+          {
+            "ordinal": 7,
+            "title": "Volume 7"
+          },
+          {
+            "ordinal": 8,
+            "title": "Volume 8"
+          },
+          {
+            "ordinal": 9,
+            "title": "Volume 9"
+          },
+          {
+            "ordinal": 10,
+            "title": "Volume 10"
+          },
+          {
+            "ordinal": 11,
+            "title": "Volume 11"
+          },
+          {
+            "ordinal": 12,
+            "title": "Volume 12"
+          },
+          {
+            "ordinal": 13,
+            "title": "Volume 13"
+          },
+          {
+            "ordinal": 14,
+            "title": "Volume 14"
+          },
+          {
+            "ordinal": 15,
+            "title": "Volume 15"
+          },
+          {
+            "ordinal": 16,
+            "title": "Volume 16"
+          },
+          {
+            "ordinal": 17,
+            "title": "Volume 17"
+          },
+          {
+            "ordinal": 18,
+            "title": "Volume 18"
+          }
+        ],
+        "externalSource": "anilist",
+        "externalId": "30001",
+        "metaLine": [
+          "1994–2001",
+          "18 volumes",
+          "Completed"
+        ],
+        "blurb": "Dr. Tenma sets out on a journey.\n\nYears later...",
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": "Dr. Tenma sets out on a journey.\n\nYears later...",
+          "releaseYear": "1994"
+        }
+      }
+    },
+    {
+      "name": "hydrate metaLine/blurb (A17): an ongoing manga gets an open year range and \"Ongoing\"",
+      "provider": "anilist",
+      "env": {},
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "2",
+          "title": "One Piece",
+          "category": "manga",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "data": {
+              "Media": {
+                "volumes": 12,
+                "status": "RELEASING",
+                "startDate": {
+                  "year": 2018
+                }
+              }
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($id: Int) {\n    Media(id: $id, type: MANGA) {\n      volumes\n      chapters\n      status\n      description(asHtml: false)\n      genres\n      startDate { year }\n      endDate { year }\n      coverImage { extraLarge large }\n      staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n    }\n  }\n",
+            "variables": {
+              "id": 2
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": true,
+        "title": "One Piece",
+        "mediaType": "manga",
+        "unitLabel": "volume",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Volume 1"
+          }
+        ],
+        "externalSource": "anilist",
+        "externalId": "2",
+        "metaLine": [
+          "2018–present",
+          "12 volumes",
+          "Ongoing"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": null,
+          "releaseYear": "2018"
+        }
+      }
+    },
+    {
+      "name": "hydrate metaLine/blurb (A17): falls back to a chapter-labelled count when there is no volume count",
+      "provider": "anilist",
+      "env": {},
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "1",
+          "title": "One-shot-ish",
+          "category": "manga",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "data": {
+              "Media": {
+                "chapters": 42,
+                "status": "FINISHED"
+              }
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($id: Int) {\n    Media(id: $id, type: MANGA) {\n      volumes\n      chapters\n      status\n      description(asHtml: false)\n      genres\n      startDate { year }\n      endDate { year }\n      coverImage { extraLarge large }\n      staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n    }\n  }\n",
+            "variables": {
+              "id": 1
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "One-shot-ish",
+        "mediaType": "manga",
+        "unitLabel": "volume",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Volume 1"
+          },
+          {
+            "ordinal": 2,
+            "title": "Volume 2"
+          },
+          {
+            "ordinal": 3,
+            "title": "Volume 3"
+          },
+          {
+            "ordinal": 4,
+            "title": "Volume 4"
+          },
+          {
+            "ordinal": 5,
+            "title": "Volume 5"
+          },
+          {
+            "ordinal": 6,
+            "title": "Volume 6"
+          },
+          {
+            "ordinal": 7,
+            "title": "Volume 7"
+          },
+          {
+            "ordinal": 8,
+            "title": "Volume 8"
+          },
+          {
+            "ordinal": 9,
+            "title": "Volume 9"
+          },
+          {
+            "ordinal": 10,
+            "title": "Volume 10"
+          },
+          {
+            "ordinal": 11,
+            "title": "Volume 11"
+          },
+          {
+            "ordinal": 12,
+            "title": "Volume 12"
+          },
+          {
+            "ordinal": 13,
+            "title": "Volume 13"
+          },
+          {
+            "ordinal": 14,
+            "title": "Volume 14"
+          },
+          {
+            "ordinal": 15,
+            "title": "Volume 15"
+          },
+          {
+            "ordinal": 16,
+            "title": "Volume 16"
+          },
+          {
+            "ordinal": 17,
+            "title": "Volume 17"
+          },
+          {
+            "ordinal": 18,
+            "title": "Volume 18"
+          },
+          {
+            "ordinal": 19,
+            "title": "Volume 19"
+          },
+          {
+            "ordinal": 20,
+            "title": "Volume 20"
+          },
+          {
+            "ordinal": 21,
+            "title": "Volume 21"
+          },
+          {
+            "ordinal": 22,
+            "title": "Volume 22"
+          },
+          {
+            "ordinal": 23,
+            "title": "Volume 23"
+          },
+          {
+            "ordinal": 24,
+            "title": "Volume 24"
+          },
+          {
+            "ordinal": 25,
+            "title": "Volume 25"
+          },
+          {
+            "ordinal": 26,
+            "title": "Volume 26"
+          },
+          {
+            "ordinal": 27,
+            "title": "Volume 27"
+          },
+          {
+            "ordinal": 28,
+            "title": "Volume 28"
+          },
+          {
+            "ordinal": 29,
+            "title": "Volume 29"
+          },
+          {
+            "ordinal": 30,
+            "title": "Volume 30"
+          },
+          {
+            "ordinal": 31,
+            "title": "Volume 31"
+          },
+          {
+            "ordinal": 32,
+            "title": "Volume 32"
+          },
+          {
+            "ordinal": 33,
+            "title": "Volume 33"
+          },
+          {
+            "ordinal": 34,
+            "title": "Volume 34"
+          },
+          {
+            "ordinal": 35,
+            "title": "Volume 35"
+          },
+          {
+            "ordinal": 36,
+            "title": "Volume 36"
+          },
+          {
+            "ordinal": 37,
+            "title": "Volume 37"
+          },
+          {
+            "ordinal": 38,
+            "title": "Volume 38"
+          },
+          {
+            "ordinal": 39,
+            "title": "Volume 39"
+          },
+          {
+            "ordinal": 40,
+            "title": "Volume 40"
+          },
+          {
+            "ordinal": 41,
+            "title": "Volume 41"
+          },
+          {
+            "ordinal": 42,
+            "title": "Volume 42"
+          }
+        ],
+        "externalSource": "anilist",
+        "externalId": "1",
+        "metaLine": [
+          "42 chapters",
+          "Completed"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": null,
+          "releaseYear": null
+        }
+      }
+    },
+    {
+      "name": "A22/A24 metadata: search hits carry the story author, start year and cover",
+      "provider": "anilist",
+      "env": {},
+      "call": "search",
+      "args": [
+        "Berserk"
+      ],
+      "responses": [
+        {
+          "body": {
+            "data": {
+              "Page": {
+                "media": [
+                  {
+                    "id": 1,
+                    "title": {
+                      "english": "Berserk"
+                    },
+                    "startDate": {
+                      "year": 1989
+                    },
+                    "coverImage": {
+                      "large": "https://a/m.jpg"
+                    },
+                    "staff": {
+                      "edges": [
+                        {
+                          "role": "Art",
+                          "node": {
+                            "name": {
+                              "full": "Someone Else"
+                            }
+                          }
+                        },
+                        {
+                          "role": "Story & Art",
+                          "node": {
+                            "name": {
+                              "full": "Kentaro Miura"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($search: String) {\n    Page(perPage: 10) {\n      media(search: $search, type: MANGA) {\n        id\n        title { romaji english }\n        startDate { year }\n        coverImage { large }\n        staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n      }\n    }\n  }\n",
+            "variables": {
+              "search": "Berserk"
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "result": [
+        {
+          "id": "1",
+          "title": "Berserk",
+          "category": "manga",
+          "count": 1,
+          "creator": "Kentaro Miura",
+          "year": "1989",
+          "thumbnailUrl": "https://a/m.jpg"
+        }
+      ]
+    },
+    {
+      "name": "A22/A24 metadata: details maps cover, author, cleaned description, and year",
+      "provider": "anilist",
+      "env": {},
+      "call": "details",
+      "args": [
+        "1"
+      ],
+      "responses": [
+        {
+          "body": {
+            "data": {
+              "Media": {
+                "description": "Guts.<br><br>Griffith &amp; the Band.",
+                "startDate": {
+                  "year": 1989
+                },
+                "coverImage": {
+                  "large": "https://a/l.jpg"
+                },
+                "staff": {
+                  "edges": [
+                    {
+                      "role": "Art",
+                      "node": {
+                        "name": {
+                          "full": "Someone Else"
+                        }
+                      }
+                    },
+                    {
+                      "role": "Story & Art",
+                      "node": {
+                        "name": {
+                          "full": "Kentaro Miura"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($id: Int) {\n    Media(id: $id, type: MANGA) {\n      volumes\n      chapters\n      status\n      description(asHtml: false)\n      genres\n      startDate { year }\n      endDate { year }\n      coverImage { extraLarge large }\n      staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n    }\n  }\n",
+            "variables": {
+              "id": 1
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "coverUrl": "https://a/l.jpg",
+        "creator": "Kentaro Miura",
+        "description": "Guts.\n\nGriffith & the Band.",
+        "releaseYear": "1989"
+      }
+    },
+    {
+      "name": "A22/A24 metadata: A26: details asks for and carries genres",
+      "provider": "anilist",
+      "env": {},
+      "call": "details",
+      "args": [
+        "1"
+      ],
+      "responses": [
+        {
+          "body": {
+            "data": {
+              "Media": {
+                "genres": [
+                  "Action",
+                  "Drama",
+                  "Fantasy"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($id: Int) {\n    Media(id: $id, type: MANGA) {\n      volumes\n      chapters\n      status\n      description(asHtml: false)\n      genres\n      startDate { year }\n      endDate { year }\n      coverImage { extraLarge large }\n      staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n    }\n  }\n",
+            "variables": {
+              "id": 1
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "coverUrl": null,
+        "creator": null,
+        "description": null,
+        "releaseYear": null,
+        "genres": [
+          "Action",
+          "Drama",
+          "Fantasy"
+        ]
+      }
+    },
+    {
+      "name": "A22/A24 metadata: details returns null on a failed request",
+      "provider": "anilist",
+      "env": {},
+      "call": "details",
+      "args": [
+        "1"
+      ],
+      "responses": [
+        {
+          "status": 500,
+          "body": {}
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($id: Int) {\n    Media(id: $id, type: MANGA) {\n      volumes\n      chapters\n      status\n      description(asHtml: false)\n      genres\n      startDate { year }\n      endDate { year }\n      coverImage { extraLarge large }\n      staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n    }\n  }\n",
+            "variables": {
+              "id": 1
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "result": null
+    },
+    {
+      "name": "Iris parity: search sends the trimmed query as a GraphQL variable",
+      "provider": "anilist",
+      "env": {},
+      "call": "search",
+      "args": [
+        "  Ça & \"Kaiju\" No. 8  "
+      ],
+      "responses": [
+        {
+          "body": {
+            "data": {
+              "Page": {
+                "media": []
+              }
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($search: String) {\n    Page(perPage: 10) {\n      media(search: $search, type: MANGA) {\n        id\n        title { romaji english }\n        startDate { year }\n        coverImage { large }\n        staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n      }\n    }\n  }\n",
+            "variables": {
+              "search": "Ça & \"Kaiju\" No. 8"
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "Iris parity: search on a network error throws",
+      "provider": "anilist",
+      "env": {},
+      "call": "search",
+      "args": [
+        "Berserk"
+      ],
+      "responses": [
+        {
+          "networkError": true
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($search: String) {\n    Page(perPage: 10) {\n      media(search: $search, type: MANGA) {\n        id\n        title { romaji english }\n        startDate { year }\n        coverImage { large }\n        staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n      }\n    }\n  }\n",
+            "variables": {
+              "search": "Berserk"
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "throws": "Network request failed"
+    },
+    {
+      "name": "Iris parity: search on a 500 throws with the status",
+      "provider": "anilist",
+      "env": {},
+      "call": "search",
+      "args": [
+        "Berserk"
+      ],
+      "responses": [
+        {
+          "status": 500,
+          "body": {}
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($search: String) {\n    Page(perPage: 10) {\n      media(search: $search, type: MANGA) {\n        id\n        title { romaji english }\n        startDate { year }\n        coverImage { large }\n        staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n      }\n    }\n  }\n",
+            "variables": {
+              "search": "Berserk"
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "throws": "AniList request failed: 500"
+    },
+    {
+      "name": "Iris parity: hydrate on a 500 throws (no silent fallback)",
+      "provider": "anilist",
+      "env": {},
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "1",
+          "title": "Berserk",
+          "category": "manga",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "status": 500,
+          "body": {}
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($id: Int) {\n    Media(id: $id, type: MANGA) {\n      volumes\n      chapters\n      status\n      description(asHtml: false)\n      genres\n      startDate { year }\n      endDate { year }\n      coverImage { extraLarge large }\n      staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n    }\n  }\n",
+            "variables": {
+              "id": 1
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "throws": "AniList request failed: 500"
+    },
+    {
+      "name": "Iris parity: details on a network error is null",
+      "provider": "anilist",
+      "env": {},
+      "call": "details",
+      "args": [
+        "1"
+      ],
+      "responses": [
+        {
+          "networkError": true
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($id: Int) {\n    Media(id: $id, type: MANGA) {\n      volumes\n      chapters\n      status\n      description(asHtml: false)\n      genres\n      startDate { year }\n      endDate { year }\n      coverImage { extraLarge large }\n      staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n    }\n  }\n",
+            "variables": {
+              "id": 1
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "result": null
+    },
+    {
+      "name": "Iris parity: details with no Media is null",
+      "provider": "anilist",
+      "env": {},
+      "call": "details",
+      "args": [
+        "1"
+      ],
+      "responses": [
+        {
+          "body": {
+            "data": {
+              "Media": null
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($id: Int) {\n    Media(id: $id, type: MANGA) {\n      volumes\n      chapters\n      status\n      description(asHtml: false)\n      genres\n      startDate { year }\n      endDate { year }\n      coverImage { extraLarge large }\n      staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n    }\n  }\n",
+            "variables": {
+              "id": 1
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "result": null
+    },
+    {
+      "name": "Iris parity: a non-numeric id is sent as a null GraphQL variable",
+      "provider": "anilist",
+      "env": {},
+      "call": "details",
+      "args": [
+        "abc"
+      ],
+      "responses": [
+        {
+          "body": {
+            "data": {}
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($id: Int) {\n    Media(id: $id, type: MANGA) {\n      volumes\n      chapters\n      status\n      description(asHtml: false)\n      genres\n      startDate { year }\n      endDate { year }\n      coverImage { extraLarge large }\n      staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n    }\n  }\n",
+            "variables": {
+              "id": null
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "result": null
+    },
+    {
+      "name": "Iris parity: NOT_YET_RELEASED is ongoing; extraLarge beats large; no story credit names the first",
+      "provider": "anilist",
+      "env": {},
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "3",
+          "title": "Upcoming",
+          "category": "manga",
+          "count": 2
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "data": {
+              "Media": {
+                "volumes": 0,
+                "status": "NOT_YET_RELEASED",
+                "startDate": {
+                  "year": 2027
+                },
+                "coverImage": {
+                  "extraLarge": "https://a/xl.jpg",
+                  "large": "https://a/l.jpg"
+                },
+                "staff": {
+                  "edges": [
+                    {
+                      "role": "Art",
+                      "node": {
+                        "name": {
+                          "full": "First"
+                        }
+                      }
+                    },
+                    {
+                      "role": "Original Creator",
+                      "node": {
+                        "name": {
+                          "full": "Second"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "genres": [
+                  "Action",
+                  null,
+                  "Drama"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($id: Int) {\n    Media(id: $id, type: MANGA) {\n      volumes\n      chapters\n      status\n      description(asHtml: false)\n      genres\n      startDate { year }\n      endDate { year }\n      coverImage { extraLarge large }\n      staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n    }\n  }\n",
+            "variables": {
+              "id": 3
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": true,
+        "title": "Upcoming",
+        "mediaType": "manga",
+        "unitLabel": "volume",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Volume 1"
+          }
+        ],
+        "externalSource": "anilist",
+        "externalId": "3",
+        "metaLine": [
+          "2027–present",
+          "Ongoing"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": "https://a/xl.jpg",
+          "creator": "First",
+          "description": null,
+          "releaseYear": "2027",
+          "genres": [
+            "Action",
+            "Drama"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Iris parity: a single volume finished in its start year",
+      "provider": "anilist",
+      "env": {},
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "4",
+          "title": "One Volume",
+          "category": "manga",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "data": {
+              "Media": {
+                "volumes": 1,
+                "chapters": 9,
+                "status": "FINISHED",
+                "startDate": {
+                  "year": 2020
+                },
+                "endDate": {
+                  "year": 2020
+                }
+              }
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($id: Int) {\n    Media(id: $id, type: MANGA) {\n      volumes\n      chapters\n      status\n      description(asHtml: false)\n      genres\n      startDate { year }\n      endDate { year }\n      coverImage { extraLarge large }\n      staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n    }\n  }\n",
+            "variables": {
+              "id": 4
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "One Volume",
+        "mediaType": "manga",
+        "unitLabel": "volume",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Volume 1"
+          }
+        ],
+        "externalSource": "anilist",
+        "externalId": "4",
+        "metaLine": [
+          "2020",
+          "1 volume",
+          "Completed"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": null,
+          "releaseYear": "2020"
+        }
+      }
+    },
+    {
+      "name": "Iris parity: a finished manga with no counts keeps the guess",
+      "provider": "anilist",
+      "env": {},
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "5",
+          "title": "Unknown",
+          "category": "manga",
+          "count": 3
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "data": {
+              "Media": {
+                "status": "CANCELLED",
+                "startDate": {
+                  "year": null
+                },
+                "endDate": {
+                  "year": 2001
+                }
+              }
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($id: Int) {\n    Media(id: $id, type: MANGA) {\n      volumes\n      chapters\n      status\n      description(asHtml: false)\n      genres\n      startDate { year }\n      endDate { year }\n      coverImage { extraLarge large }\n      staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n    }\n  }\n",
+            "variables": {
+              "id": 5
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "Unknown",
+        "mediaType": "manga",
+        "unitLabel": "volume",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Volume 1"
+          },
+          {
+            "ordinal": 2,
+            "title": "Volume 2"
+          },
+          {
+            "ordinal": 3,
+            "title": "Volume 3"
+          }
+        ],
+        "externalSource": "anilist",
+        "externalId": "5",
+        "metaLine": [
+          "Completed"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": null,
+          "releaseYear": null
+        }
+      }
+    },
+    {
+      "name": "Iris parity: loose JSON — a numeric english title drops the hit (no romaji fallback); a null english falls back",
+      "provider": "anilist",
+      "env": {},
+      "call": "search",
+      "args": [
+        "x"
+      ],
+      "responses": [
+        {
+          "body": {
+            "data": {
+              "Page": {
+                "media": [
+                  {
+                    "id": 1,
+                    "title": {
+                      "english": 9,
+                      "romaji": "Nine"
+                    }
+                  },
+                  {
+                    "id": 2,
+                    "title": {}
+                  },
+                  {
+                    "id": 3,
+                    "title": {
+                      "english": null,
+                      "romaji": "Three"
+                    },
+                    "staff": {
+                      "edges": []
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($search: String) {\n    Page(perPage: 10) {\n      media(search: $search, type: MANGA) {\n        id\n        title { romaji english }\n        startDate { year }\n        coverImage { large }\n        staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n      }\n    }\n  }\n",
+            "variables": {
+              "search": "x"
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "result": [
+        {
+          "id": "3",
+          "title": "Three",
+          "category": "manga",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "Iris parity: loose JSON — no Page at all",
+      "provider": "anilist",
+      "env": {},
+      "call": "search",
+      "args": [
+        "x"
+      ],
+      "responses": [
+        {
+          "body": {
+            "data": null
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "https://graphql.anilist.co",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "body": {
+            "query": "\n  query ($search: String) {\n    Page(perPage: 10) {\n      media(search: $search, type: MANGA) {\n        id\n        title { romaji english }\n        startDate { year }\n        coverImage { large }\n        staff(perPage: 4, sort: [RELEVANCE]) { edges { role node { name { full } } } }\n      }\n    }\n  }\n",
+            "variables": {
+              "search": "x"
+            }
+          }
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    }
+  ]
+}
