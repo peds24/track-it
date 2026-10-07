@@ -18,7 +18,8 @@ export function testTitles(source: string): string[] {
       i += 1;
     }
     const lit = /^\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/.exec(source.slice(i));
-    if (lit) titles.push(lit[2]!.split(/[%$]/)[0]!.trim());
+    // Unescape (`draft\\'s` in a single-quoted title is `draft's`).
+    if (lit) titles.push(lit[2]!.replace(/\\(.)/g, '$1').split(/[%$]/)[0]!.trim());
   }
   return titles;
 }

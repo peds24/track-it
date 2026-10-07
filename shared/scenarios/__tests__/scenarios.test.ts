@@ -6,11 +6,18 @@ import * as path from 'path';
 import { normTitle, testTitles } from '../../testTitles';
 import { play } from '../play';
 import type { Scenario } from '../types';
+import { NOT_A_SCENARIO as tracksNot, scenarios as tracks } from '../cases/tracks';
 import { scenarios as whatsNew } from '../cases/whatsNew';
 
-/** Area → its scenarios and the src/data tests they carry over. */
-const AREAS: Record<string, { scenarios: Scenario[]; testFiles: string[] }> = {
+/** Area → its scenarios, the src/data tests they carry over, and any test
+ * titles that cannot be a scenario (each with its reason in the cases file). */
+const AREAS: Record<string, { scenarios: Scenario[]; testFiles: string[]; notAScenario?: string[] }> = {
   whatsNew: { scenarios: whatsNew, testFiles: ['whatsNew.test.ts'] },
+  tracks: {
+    scenarios: tracks,
+    testFiles: ['trackRepo.test.ts', 'trackDetail.test.ts', 'addAndStart.test.ts', 'seriesTitleOrdinal.test.ts'],
+    notAScenario: tracksNot,
+  },
 };
 
 /** src/data tests that are not scenarios yet: they need real providers (I5). */
@@ -20,7 +27,7 @@ const HERE = path.resolve(__dirname, '..');
 const DATA_TESTS = path.resolve(__dirname, '../../../src/data/__tests__');
 const RECORD = process.env.RECORD_FIXTURES === '1';
 
-describe.each(Object.entries(AREAS))('%s', (area, { scenarios, testFiles }) => {
+describe.each(Object.entries(AREAS))('%s', (area, { scenarios, testFiles, notAScenario = [] }) => {
   test('scenario names are unique', () => {
     const names = scenarios.map((s) => s.name);
     expect(names.filter((n, i) => names.indexOf(n) !== i)).toEqual([]);
@@ -30,7 +37,8 @@ describe.each(Object.entries(AREAS))('%s', (area, { scenarios, testFiles }) => {
     const names = scenarios.map((s) => normTitle(s.name));
     const titles = testFiles.flatMap((f) => testTitles(fs.readFileSync(path.join(DATA_TESTS, f), 'utf8')));
     expect(titles.length).toBeGreaterThan(0);
-    expect(titles.filter((t) => !names.some((n) => n.includes(normTitle(t))))).toEqual([]);
+    const exempt = new Set(notAScenario.map(normTitle));
+    expect(titles.filter((t) => !exempt.has(normTitle(t)) && !names.some((n) => n.includes(normTitle(t))))).toEqual([]);
   });
 
   test(RECORD ? 'records shared/scenarios JSON' : 'matches the committed JSON (re-run `npm run fixtures:record` if TS changed on purpose)', async () => {
