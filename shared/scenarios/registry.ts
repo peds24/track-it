@@ -1,13 +1,51 @@
 import { addTrack } from '@/data/addTrack';
+import { backfillMetadata } from '@/data/backfillMetadata';
 import { exportLibrary, importLibrary } from '@/data/backup';
 import * as ratings from '@/data/ratingRepo';
+import { syncSeriesUnit, syncUnitForEntry } from '@/data/syncSeriesUnit';
 import * as tracks from '@/data/trackRepo';
 import { markAnnounced, pendingAnnouncement } from '@/data/whatsNew';
 import type { SqlDriver } from '@/db/driver';
+import type { TrackMetadata } from '@/domain/types';
+import type { MetadataProvider, UnitRecord } from '@/providers/types';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Call = (db: SqlDriver, ...args: any[]) => Promise<unknown>;
 const opt = <T>(v: T | null | undefined): T | undefined => (v === null ? undefined : v);
+
+type StubSpec = { details?: Record<string, TrackMetadata | null | { throws: string }>; unitAt?: Record<string, UnitRecord | null> };
+type Stubs = Record<string, StubSpec>;
+
+/** A provider described as data, so Swift builds the same one (Iris I5). A
+ * source absent from `stubs` resolves to no provider; an id absent from a
+ * map answers null. `calls` records each lookup in order. */
+function stubProvider(spec: StubSpec | undefined, calls: string[]): MetadataProvider | null {
+  if (!spec) return null;
+  const provider: MetadataProvider = {
+    id: 'stub',
+    search: async () => [],
+    hydrate: async () => {
+      throw new Error('stub');
+    },
+  };
+  if (spec.details) {
+    const answers = spec.details;
+    provider.details = async (externalId) => {
+      calls.push(`details:${externalId}`);
+      const answer = answers[externalId];
+      if (answer && 'throws' in answer) throw new Error(answer.throws);
+      return answer ?? null;
+    };
+  }
+  if (spec.unitAt) {
+    const answers = spec.unitAt;
+    provider.unitAt = async (externalId, ordinal) => {
+      calls.push(`unitAt:${externalId}#${ordinal}`);
+      return answers[`${externalId}#${ordinal}`] ?? null;
+    };
+  }
+  return provider;
+}
 
 /** Every repository call a scenario may make. Swift's runner mirrors this table. */
 export const scenarioCalls: Record<string, Call> = {
@@ -48,4 +86,21 @@ export const scenarioCalls: Record<string, Call> = {
   // message is sqlite3_errmsg on both platforms.
   sql: (db, sql: string, params) => db.run(sql, opt(params) ?? []),
   query: (db, sql: string, params) => db.all(sql, opt(params) ?? []),
+  // A22/A25 against stub providers; `sleeps` is the per-source pacing.
+  backfillMetadata: async (db, stubs: Stubs, now: string) => {
+    const calls: string[] = [];
+    const sleeps: number[] = [];
+    const result = await backfillMetadata(db, (source) => stubProvider(stubs[source], calls), () => now, async (ms) => {
+      sleeps.push(ms);
+    });
+    return { ...result, calls, sleeps };
+  },
+  syncSeriesUnit: async (db, seriesId: string, stubs: Stubs) => {
+    const calls: string[] = [];
+    return { changed: await syncSeriesUnit(db, seriesId, (source) => stubProvider(stubs[source], calls)), calls };
+  },
+  syncUnitForEntry: async (db, entryId: string, stubs: Stubs) => {
+    const calls: string[] = [];
+    return { changed: await syncUnitForEntry(db, entryId, (source) => stubProvider(stubs[source], calls)), calls };
+  },
 };

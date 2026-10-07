@@ -1,0 +1,1606 @@
+{
+  "area": "googleBooks",
+  "generatedBy": "npm run fixtures:record",
+  "cases": [
+    {
+      "name": "search matches a typed title against book titles, books only",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "Dune"
+      ],
+      "responses": [
+        {
+          "body": {
+            "items": []
+          }
+        },
+        {
+          "body": {
+            "items": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=intitle%3ADune&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=Dune&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "search routes a scanned ISBN-13 to the isbn: query form",
+      "provider": "google-books-manga",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "9781593090020"
+      ],
+      "responses": [
+        {
+          "body": {
+            "items": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=isbn%3A9781593090020&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "search routes a scanned 10-digit ISBN the same way",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "0143127748"
+      ],
+      "responses": [
+        {
+          "body": {
+            "items": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=isbn%3A0143127748&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "a title that happens to be all digits but the wrong length is not treated as an ISBN",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "12345"
+      ],
+      "responses": [
+        {
+          "body": {
+            "items": []
+          }
+        },
+        {
+          "body": {
+            "items": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=intitle%3A12345&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=12345&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "maps results to SearchResult, tagged with the category this instance was built for",
+      "provider": "google-books-manga",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "Berserk"
+      ],
+      "responses": [
+        {
+          "body": {
+            "items": [
+              {
+                "id": "abc123",
+                "volumeInfo": {
+                  "title": "Berserk, Vol. 1",
+                  "imageLinks": {
+                    "thumbnail": "https://example.com/cover.jpg"
+                  },
+                  "industryIdentifiers": [
+                    {
+                      "type": "ISBN_13",
+                      "identifier": "9780000000000"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=intitle%3ABerserk&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": [
+        {
+          "id": "abc123",
+          "title": "Berserk, Vol. 1",
+          "category": "manga",
+          "count": 1,
+          "thumbnailUrl": "https://example.com/cover.jpg"
+        }
+      ]
+    },
+    {
+      "name": "a comic-tagged instance searches and tags results comic, same as book/manga",
+      "provider": "google-books-comic",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "Saga"
+      ],
+      "responses": [
+        {
+          "body": {
+            "items": [
+              {
+                "id": "saga-tpb-1",
+                "volumeInfo": {
+                  "title": "Saga, Volume 1",
+                  "industryIdentifiers": [
+                    {
+                      "type": "ISBN_13",
+                      "identifier": "9780000000000"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=intitle%3ASaga&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": [
+        {
+          "id": "saga-tpb-1",
+          "title": "Saga, Volume 1",
+          "category": "comic",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "an item with no title is skipped rather than producing a blank result",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "whatever"
+      ],
+      "responses": [
+        {
+          "body": {
+            "items": [
+              {
+                "id": "no-title",
+                "volumeInfo": {}
+              }
+            ]
+          }
+        },
+        {
+          "body": {
+            "items": [
+              {
+                "id": "no-title",
+                "volumeInfo": {}
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=intitle%3Awhatever&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=whatever&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "search fails clearly rather than silently when the API key is missing",
+      "provider": "google-books-book",
+      "env": {},
+      "call": "search",
+      "args": [
+        "Dune"
+      ],
+      "responses": [],
+      "requests": [],
+      "unusedResponses": 0,
+      "throws": "Google Books search needs EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY"
+    },
+    {
+      "name": "search on a blank query never calls the network",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "   "
+      ],
+      "responses": [
+        {
+          "body": {
+            "items": []
+          }
+        }
+      ],
+      "requests": [],
+      "unusedResponses": 1,
+      "result": []
+    },
+    {
+      "name": "hydrate generates numbered volumes the same way ManualProvider does, for a real match",
+      "provider": "google-books-manga",
+      "env": {},
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "abc123",
+          "title": "Berserk",
+          "category": "manga",
+          "count": 3
+        }
+      ],
+      "responses": [],
+      "requests": [],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "Berserk",
+        "mediaType": "manga",
+        "unitLabel": "volume",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Volume 1"
+          },
+          {
+            "ordinal": 2,
+            "title": "Volume 2"
+          },
+          {
+            "ordinal": 3,
+            "title": "Volume 3"
+          }
+        ],
+        "externalSource": "google-books",
+        "externalId": "abc123"
+      }
+    },
+    {
+      "name": "hydrate records no external id for a hand-typed title with no real match",
+      "provider": "google-books-manga",
+      "env": {},
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "google-books",
+          "title": "Berserk",
+          "category": "manga",
+          "count": 3
+        }
+      ],
+      "responses": [],
+      "requests": [],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "Berserk",
+        "mediaType": "manga",
+        "unitLabel": "volume",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Volume 1"
+          },
+          {
+            "ordinal": 2,
+            "title": "Volume 2"
+          },
+          {
+            "ordinal": 3,
+            "title": "Volume 3"
+          }
+        ]
+      }
+    },
+    {
+      "name": "preview (A17, book/comic collection): fetches the volume detail and returns year/pages and the description as blurb",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "preview",
+      "args": [
+        {
+          "id": "piranesi-id",
+          "title": "Piranesi",
+          "category": "book",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "volumeInfo": {
+              "authors": [
+                "Susanna Clarke"
+              ],
+              "publishedDate": "2020-09-15",
+              "pageCount": 245,
+              "description": "A man lives in a House with countless rooms and endless corridors."
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes/piranesi-id?key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "title": "Piranesi",
+        "metaLine": [
+          "2020",
+          "245 pages"
+        ],
+        "blurb": "A man lives in a House with countless rooms and endless corridors.",
+        "metadata": {
+          "coverUrl": null,
+          "creator": "Susanna Clarke",
+          "description": "A man lives in a House with countless rooms and endless corridors.",
+          "releaseYear": "2020"
+        }
+      }
+    },
+    {
+      "name": "missing authors/pageCount/description are simply omitted, not blank entries",
+      "provider": "google-books-comic",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "preview",
+      "args": [
+        {
+          "id": "saga-tpb-1",
+          "title": "Saga, Volume 1",
+          "category": "comic",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "volumeInfo": {
+              "publishedDate": "2018"
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes/saga-tpb-1?key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "title": "Saga, Volume 1",
+        "metaLine": [
+          "2018"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": null,
+          "releaseYear": "2018"
+        }
+      }
+    },
+    {
+      "name": "preview: falls back to just the title when the fetch fails, never throws",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "preview",
+      "args": [
+        {
+          "id": "piranesi-id",
+          "title": "Piranesi",
+          "category": "book",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "status": 500,
+          "body": {}
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes/piranesi-id?key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "title": "Piranesi",
+        "metaLine": [],
+        "blurb": null
+      }
+    },
+    {
+      "name": "preview: falls back to just the title when no API key is configured",
+      "provider": "google-books-book",
+      "env": {},
+      "call": "preview",
+      "args": [
+        {
+          "id": "piranesi-id",
+          "title": "Piranesi",
+          "category": "book",
+          "count": 1
+        }
+      ],
+      "responses": [],
+      "requests": [],
+      "unusedResponses": 0,
+      "result": {
+        "title": "Piranesi",
+        "metaLine": [],
+        "blurb": null
+      }
+    },
+    {
+      "name": "preview: a hand-typed title with no real match never calls the network",
+      "provider": "google-books-book",
+      "env": {},
+      "call": "preview",
+      "args": [
+        {
+          "id": "google-books",
+          "title": "Some Book",
+          "category": "book",
+          "count": 1
+        }
+      ],
+      "responses": [],
+      "requests": [],
+      "unusedResponses": 0,
+      "result": {
+        "title": "Some Book",
+        "metaLine": [],
+        "blurb": null
+      }
+    },
+    {
+      "name": "A22/A24 metadata: search hits carry authors, year, and an https thumbnail",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "Dune"
+      ],
+      "responses": [
+        {
+          "body": {
+            "items": [
+              {
+                "id": "v1",
+                "volumeInfo": {
+                  "title": "Dune",
+                  "authors": [
+                    "Frank Herbert"
+                  ],
+                  "publishedDate": "1965-08-01",
+                  "imageLinks": {
+                    "smallThumbnail": "http://books.google.com/s.jpg",
+                    "thumbnail": "http://books.google.com/t.jpg"
+                  },
+                  "industryIdentifiers": [
+                    {
+                      "type": "ISBN_13",
+                      "identifier": "9780000000000"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=intitle%3ADune&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": [
+        {
+          "id": "v1",
+          "title": "Dune",
+          "category": "book",
+          "count": 1,
+          "creator": "Frank Herbert",
+          "year": "1965",
+          "thumbnailUrl": "https://books.google.com/t.jpg"
+        }
+      ]
+    },
+    {
+      "name": "A22/A24 metadata: details maps the volume to cleaned metadata",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "details",
+      "args": [
+        "v1"
+      ],
+      "responses": [
+        {
+          "body": {
+            "volumeInfo": {
+              "authors": [
+                "Frank Herbert",
+                "Brian Herbert"
+              ],
+              "publishedDate": "1965",
+              "description": "<p>Spice &amp; <i>sand</i>.</p>",
+              "imageLinks": {
+                "thumbnail": "http://books.google.com/t.jpg"
+              }
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes/v1?key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "coverUrl": "https://books.google.com/t.jpg",
+        "creator": "Frank Herbert, Brian Herbert",
+        "description": "Spice & sand.",
+        "releaseYear": "1965"
+      }
+    },
+    {
+      "name": "A26: details flattens BISAC category paths into genres",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "details",
+      "args": [
+        "v1"
+      ],
+      "responses": [
+        {
+          "body": {
+            "volumeInfo": {
+              "categories": [
+                "Fiction / Science Fiction / Space Opera",
+                "Fiction / General"
+              ]
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes/v1?key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "coverUrl": null,
+        "creator": null,
+        "description": null,
+        "releaseYear": null,
+        "genres": [
+          "Fiction",
+          "Science Fiction",
+          "Space Opera"
+        ]
+      }
+    },
+    {
+      "name": "details returns null when the lookup fails, so the backfill retries",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "details",
+      "args": [
+        "v1"
+      ],
+      "responses": [
+        {
+          "status": 500,
+          "body": {}
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes/v1?key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": null
+    },
+    {
+      "name": "details answers with empty metadata when the volume is gone (404), so the backfill stamps it",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "details",
+      "args": [
+        "gone"
+      ],
+      "responses": [
+        {
+          "status": 404,
+          "body": {}
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes/gone?key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "coverUrl": null,
+        "creator": null,
+        "description": null,
+        "releaseYear": null
+      }
+    },
+    {
+      "name": "details returns null with no API key configured",
+      "provider": "google-books-book",
+      "env": {},
+      "call": "details",
+      "args": [
+        "v1"
+      ],
+      "responses": [],
+      "requests": [],
+      "unusedResponses": 0,
+      "result": null
+    },
+    {
+      "name": "A25: drops volumes with no ISBN — journals, reports, proceedings",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "the name of the wind"
+      ],
+      "responses": [
+        {
+          "body": {
+            "items": [
+              {
+                "id": "real",
+                "volumeInfo": {
+                  "title": "The Name of the Wind",
+                  "industryIdentifiers": [
+                    {
+                      "type": "ISBN_13",
+                      "identifier": "9780000000000"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "journal",
+                "volumeInfo": {
+                  "title": "Proceedings of the British Academy"
+                }
+              },
+              {
+                "id": "report",
+                "volumeInfo": {
+                  "title": "Merchant Vessels",
+                  "industryIdentifiers": [
+                    {
+                      "type": "OTHER",
+                      "identifier": "UOM:39015"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=intitle%3Athe%20name%20of%20the%20wind&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": [
+        {
+          "id": "real",
+          "title": "The Name of the Wind",
+          "category": "book",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "A25: drops summaries, study guides and book-club kits of the real book",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "project hail mary"
+      ],
+      "responses": [
+        {
+          "body": {
+            "items": [
+              {
+                "id": "real",
+                "volumeInfo": {
+                  "title": "Project Hail Mary",
+                  "industryIdentifiers": [
+                    {
+                      "type": "ISBN_13",
+                      "identifier": "9780000000000"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "s1",
+                "volumeInfo": {
+                  "title": "Summary and Analysis of Project Hail Mary",
+                  "industryIdentifiers": [
+                    {
+                      "type": "ISBN_13",
+                      "identifier": "9780000000000"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "s2",
+                "volumeInfo": {
+                  "title": "SUMMARY and REVIEW",
+                  "industryIdentifiers": [
+                    {
+                      "type": "ISBN_13",
+                      "identifier": "9780000000000"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "s3",
+                "volumeInfo": {
+                  "title": "Study Guide: Project Hail Mary",
+                  "industryIdentifiers": [
+                    {
+                      "type": "ISBN_13",
+                      "identifier": "9780000000000"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "s4",
+                "volumeInfo": {
+                  "title": "Book Club Kit",
+                  "industryIdentifiers": [
+                    {
+                      "type": "ISBN_13",
+                      "identifier": "9780000000000"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "s5",
+                "volumeInfo": {
+                  "title": "PROJECT HAIL MARY MOVIE REVIEW",
+                  "industryIdentifiers": [
+                    {
+                      "type": "ISBN_13",
+                      "identifier": "9780000000000"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=intitle%3Aproject%20hail%20mary&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": [
+        {
+          "id": "real",
+          "title": "Project Hail Mary",
+          "category": "book",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "A25: lists results with a cover and an author ahead of bare records",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "dune"
+      ],
+      "responses": [
+        {
+          "body": {
+            "items": [
+              {
+                "id": "bare",
+                "volumeInfo": {
+                  "title": "Dune",
+                  "industryIdentifiers": [
+                    {
+                      "type": "ISBN_13",
+                      "identifier": "9780000000000"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "full",
+                "volumeInfo": {
+                  "title": "Dune Messiah",
+                  "industryIdentifiers": [
+                    {
+                      "type": "ISBN_13",
+                      "identifier": "9780000000000"
+                    }
+                  ],
+                  "authors": [
+                    "Frank Herbert"
+                  ],
+                  "imageLinks": {
+                    "thumbnail": "https://x/t.jpg"
+                  }
+                }
+              },
+              {
+                "id": "author-only",
+                "volumeInfo": {
+                  "title": "Dune: House Atreides",
+                  "industryIdentifiers": [
+                    {
+                      "type": "ISBN_13",
+                      "identifier": "9780000000000"
+                    }
+                  ],
+                  "authors": [
+                    "Brian Herbert"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=intitle%3Adune&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": [
+        {
+          "id": "full",
+          "title": "Dune Messiah",
+          "category": "book",
+          "count": 1,
+          "creator": "Frank Herbert",
+          "thumbnailUrl": "https://x/t.jpg"
+        },
+        {
+          "id": "author-only",
+          "title": "Dune: House Atreides",
+          "category": "book",
+          "count": 1,
+          "creator": "Brian Herbert"
+        },
+        {
+          "id": "bare",
+          "title": "Dune",
+          "category": "book",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "A25: collapses the same title by the same author to one result",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "rothfuss"
+      ],
+      "responses": [
+        {
+          "body": {
+            "items": [
+              {
+                "id": "a",
+                "volumeInfo": {
+                  "title": "The Name of the Wind",
+                  "industryIdentifiers": [
+                    {
+                      "type": "ISBN_13",
+                      "identifier": "9780000000000"
+                    }
+                  ],
+                  "authors": [
+                    "Patrick Rothfuss"
+                  ],
+                  "imageLinks": {
+                    "thumbnail": "https://x/a.jpg"
+                  }
+                }
+              },
+              {
+                "id": "b",
+                "volumeInfo": {
+                  "title": "The Name of the Wind",
+                  "industryIdentifiers": [
+                    {
+                      "type": "ISBN_13",
+                      "identifier": "9780000000000"
+                    }
+                  ],
+                  "authors": [
+                    "Patrick Rothfuss"
+                  ],
+                  "imageLinks": {
+                    "thumbnail": "https://x/b.jpg"
+                  }
+                }
+              },
+              {
+                "id": "c",
+                "volumeInfo": {
+                  "title": "The Wise Man’s Fear",
+                  "industryIdentifiers": [
+                    {
+                      "type": "ISBN_13",
+                      "identifier": "9780000000000"
+                    }
+                  ],
+                  "authors": [
+                    "Patrick Rothfuss"
+                  ],
+                  "imageLinks": {
+                    "thumbnail": "https://x/c.jpg"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=intitle%3Arothfuss&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": [
+        {
+          "id": "a",
+          "title": "The Name of the Wind",
+          "category": "book",
+          "count": 1,
+          "creator": "Patrick Rothfuss",
+          "thumbnailUrl": "https://x/a.jpg"
+        },
+        {
+          "id": "c",
+          "title": "The Wise Man’s Fear",
+          "category": "book",
+          "count": 1,
+          "creator": "Patrick Rothfuss",
+          "thumbnailUrl": "https://x/c.jpg"
+        }
+      ]
+    },
+    {
+      "name": "A25: falls back to a plain query when nothing matches by title",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "frank herbert"
+      ],
+      "responses": [
+        {
+          "body": {
+            "items": []
+          }
+        },
+        {
+          "body": {
+            "items": [
+              {
+                "id": "x",
+                "volumeInfo": {
+                  "title": "Dune",
+                  "industryIdentifiers": [
+                    {
+                      "type": "ISBN_13",
+                      "identifier": "9780000000000"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=intitle%3Afrank%20herbert&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=frank%20herbert&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": [
+        {
+          "id": "x",
+          "title": "Dune",
+          "category": "book",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "A25: a scanned ISBN is looked up as-is, with no title fallback",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "9780143127741"
+      ],
+      "responses": [
+        {
+          "body": {
+            "items": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=isbn%3A9780143127741&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "Iris parity: search encodes the query and key like encodeURIComponent",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "k+e/y="
+      },
+      "call": "search",
+      "args": [
+        "L'Étranger: Camus & co. / 2e éd."
+      ],
+      "responses": [
+        {
+          "body": {
+            "items": []
+          }
+        },
+        {
+          "body": {
+            "items": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=intitle%3AL'%C3%89tranger%3A%20Camus%20%26%20co.%20%2F%202e%20%C3%A9d.&printType=books&maxResults=40&key=k%2Be%2Fy%3D",
+          "headers": {},
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=L'%C3%89tranger%3A%20Camus%20%26%20co.%20%2F%202e%20%C3%A9d.&printType=books&maxResults=40&key=k%2Be%2Fy%3D",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "Iris parity: search on a network error throws",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "Dune"
+      ],
+      "responses": [
+        {
+          "networkError": true
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=intitle%3ADune&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "throws": "Network request failed"
+    },
+    {
+      "name": "Iris parity: search on a 500 throws with the status",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "Dune"
+      ],
+      "responses": [
+        {
+          "status": 500,
+          "body": {}
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=intitle%3ADune&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "throws": "Google Books search failed: 500"
+    },
+    {
+      "name": "Iris parity: details on a network error is null",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "details",
+      "args": [
+        "v1"
+      ],
+      "responses": [
+        {
+          "networkError": true
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes/v1?key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": null
+    },
+    {
+      "name": "Iris parity: preview on a 404 falls back to the title",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "preview",
+      "args": [
+        {
+          "id": "v1",
+          "title": "Dune",
+          "category": "book",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "status": 404,
+          "body": {}
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes/v1?key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "title": "Dune",
+        "metaLine": [],
+        "blurb": null
+      }
+    },
+    {
+      "name": "Iris parity: loose JSON — odd field types and a missing items list",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "x"
+      ],
+      "responses": [
+        {
+          "body": {
+            "items": [
+              {
+                "id": "n",
+                "volumeInfo": {
+                  "title": 42,
+                  "industryIdentifiers": [
+                    {
+                      "type": "ISBN_13",
+                      "identifier": "9780000000000"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "seven",
+                "volumeInfo": {
+                  "title": "Seven",
+                  "industryIdentifiers": [
+                    {
+                      "type": "ISBN_13",
+                      "identifier": "9780000000000"
+                    }
+                  ],
+                  "authors": [],
+                  "publishedDate": null,
+                  "imageLinks": null
+                }
+              },
+              {
+                "id": "i10",
+                "volumeInfo": {
+                  "title": "Ten",
+                  "industryIdentifiers": [
+                    {
+                      "type": "ISBN_10"
+                    }
+                  ],
+                  "extra": {
+                    "deep": true
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=intitle%3Ax&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": [
+        {
+          "id": "seven",
+          "title": "Seven",
+          "category": "book",
+          "count": 1
+        },
+        {
+          "id": "i10",
+          "title": "Ten",
+          "category": "book",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "Iris parity: loose JSON — no items at all, then fallback also empty",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "search",
+      "args": [
+        "x"
+      ],
+      "responses": [
+        {
+          "body": {}
+        },
+        {
+          "body": {
+            "items": null
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=intitle%3Ax&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes?q=x&printType=books&maxResults=40&key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "Iris parity: preview with zero pages leaves pages out",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "preview",
+      "args": [
+        {
+          "id": "v1",
+          "title": "Dune",
+          "category": "book",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "volumeInfo": {
+              "pageCount": 0,
+              "publishedDate": "1965"
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes/v1?key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "title": "Dune",
+        "metaLine": [
+          "1965"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": null,
+          "releaseYear": "1965"
+        }
+      }
+    },
+    {
+      "name": "Iris parity: a volume with no volumeInfo answers empty metadata",
+      "provider": "google-books-book",
+      "env": {
+        "GOOGLE_BOOKS_API_KEY": "test-key"
+      },
+      "call": "details",
+      "args": [
+        "v1"
+      ],
+      "responses": [
+        {
+          "body": {}
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://www.googleapis.com/books/v1/volumes/v1?key=test-key",
+          "headers": {},
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "coverUrl": null,
+        "creator": null,
+        "description": null,
+        "releaseYear": null
+      }
+    }
+  ]
+}

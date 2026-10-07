@@ -24,6 +24,16 @@ targets:
     configFiles:
       Debug: Iris/Config/Base.xcconfig
       Release: Iris/Config/Base.xcconfig
+    # Catalogue keys from Secrets.xcconfig (empty without it), read by
+    # ProviderKeys.fromBundle(). xcodegen writes this plist; Xcode merges it
+    # with the generated INFOPLIST_KEY_* entries.
+    info:
+      path: Iris/Info.plist
+      properties:
+        TMDB_API_KEY: $(TMDB_API_KEY)
+        GOOGLE_BOOKS_API_KEY: $(GOOGLE_BOOKS_API_KEY)
+        METRON_USERNAME: $(METRON_USERNAME)
+        METRON_PASSWORD: $(METRON_PASSWORD)
     dependencies:
       - package: IrisCore
     settings:

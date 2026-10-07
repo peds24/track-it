@@ -1,0 +1,2904 @@
+{
+  "area": "metron",
+  "generatedBy": "npm run fixtures:record",
+  "cases": [
+    {
+      "name": "requests carry a Basic auth header built from the configured credentials",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "search",
+      "args": [
+        "saga"
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/?series_name=saga",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "search queries the issue endpoint by series_name, per the current Metron API README",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "search",
+      "args": [
+        "Saga"
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/?series_name=Saga",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "search fails clearly when credentials are not configured",
+      "provider": "metron",
+      "env": {},
+      "call": "search",
+      "args": [
+        "saga"
+      ],
+      "responses": [],
+      "requests": [],
+      "unusedResponses": 0,
+      "throws": "Metron search needs EXPO_PUBLIC_METRON_USERNAME/EXPO_PUBLIC_METRON_PASSWORD"
+    },
+    {
+      "name": "search on a blank query never calls the network",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "search",
+      "args": [
+        "   "
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": []
+          }
+        }
+      ],
+      "requests": [],
+      "unusedResponses": 1,
+      "result": []
+    },
+    {
+      "name": "search maps issue results to SearchResult, tagged comic",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "search",
+      "args": [
+        "Saga"
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": [
+              {
+                "id": 50,
+                "issue": "Saga (2012) #1",
+                "series": {
+                  "id": 15,
+                  "name": "Saga"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/?series_name=Saga",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": [
+        {
+          "id": "50",
+          "title": "Saga (2012) #1",
+          "category": "comic",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "searchByUpc: with an EAN-5 supplied, concatenates it onto the UPC-A for an exact upc match",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "searchByUpc",
+      "args": [
+        "759606095582",
+        "00111"
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/?upc=75960609558200111",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "searchByUpc: with the EAN-5 skipped, falls back to a upc_starts_with prefix match",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "searchByUpc",
+      "args": [
+        "759606095582"
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/?upc_starts_with=759606095582",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "searchByUpc: an empty-string EAN-5 is treated the same as skipped",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "searchByUpc",
+      "args": [
+        "759606095582",
+        ""
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/?upc_starts_with=759606095582",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "hydrate for a real match fetches the issue then its series for a real issue_count",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "50",
+          "title": "Saga (2012) #1",
+          "category": "comic",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "id": 50,
+            "series": {
+              "id": 15,
+              "name": "Saga"
+            }
+          }
+        },
+        {
+          "body": {
+            "issue_count": 66,
+            "year_end": 2024
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/50/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/series/15/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "Saga",
+        "mediaType": "comic",
+        "unitLabel": "issue",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Issue 1"
+          },
+          {
+            "ordinal": 2,
+            "title": "Issue 2"
+          },
+          {
+            "ordinal": 3,
+            "title": "Issue 3"
+          },
+          {
+            "ordinal": 4,
+            "title": "Issue 4"
+          },
+          {
+            "ordinal": 5,
+            "title": "Issue 5"
+          },
+          {
+            "ordinal": 6,
+            "title": "Issue 6"
+          },
+          {
+            "ordinal": 7,
+            "title": "Issue 7"
+          },
+          {
+            "ordinal": 8,
+            "title": "Issue 8"
+          },
+          {
+            "ordinal": 9,
+            "title": "Issue 9"
+          },
+          {
+            "ordinal": 10,
+            "title": "Issue 10"
+          },
+          {
+            "ordinal": 11,
+            "title": "Issue 11"
+          },
+          {
+            "ordinal": 12,
+            "title": "Issue 12"
+          },
+          {
+            "ordinal": 13,
+            "title": "Issue 13"
+          },
+          {
+            "ordinal": 14,
+            "title": "Issue 14"
+          },
+          {
+            "ordinal": 15,
+            "title": "Issue 15"
+          },
+          {
+            "ordinal": 16,
+            "title": "Issue 16"
+          },
+          {
+            "ordinal": 17,
+            "title": "Issue 17"
+          },
+          {
+            "ordinal": 18,
+            "title": "Issue 18"
+          },
+          {
+            "ordinal": 19,
+            "title": "Issue 19"
+          },
+          {
+            "ordinal": 20,
+            "title": "Issue 20"
+          },
+          {
+            "ordinal": 21,
+            "title": "Issue 21"
+          },
+          {
+            "ordinal": 22,
+            "title": "Issue 22"
+          },
+          {
+            "ordinal": 23,
+            "title": "Issue 23"
+          },
+          {
+            "ordinal": 24,
+            "title": "Issue 24"
+          },
+          {
+            "ordinal": 25,
+            "title": "Issue 25"
+          },
+          {
+            "ordinal": 26,
+            "title": "Issue 26"
+          },
+          {
+            "ordinal": 27,
+            "title": "Issue 27"
+          },
+          {
+            "ordinal": 28,
+            "title": "Issue 28"
+          },
+          {
+            "ordinal": 29,
+            "title": "Issue 29"
+          },
+          {
+            "ordinal": 30,
+            "title": "Issue 30"
+          },
+          {
+            "ordinal": 31,
+            "title": "Issue 31"
+          },
+          {
+            "ordinal": 32,
+            "title": "Issue 32"
+          },
+          {
+            "ordinal": 33,
+            "title": "Issue 33"
+          },
+          {
+            "ordinal": 34,
+            "title": "Issue 34"
+          },
+          {
+            "ordinal": 35,
+            "title": "Issue 35"
+          },
+          {
+            "ordinal": 36,
+            "title": "Issue 36"
+          },
+          {
+            "ordinal": 37,
+            "title": "Issue 37"
+          },
+          {
+            "ordinal": 38,
+            "title": "Issue 38"
+          },
+          {
+            "ordinal": 39,
+            "title": "Issue 39"
+          },
+          {
+            "ordinal": 40,
+            "title": "Issue 40"
+          },
+          {
+            "ordinal": 41,
+            "title": "Issue 41"
+          },
+          {
+            "ordinal": 42,
+            "title": "Issue 42"
+          },
+          {
+            "ordinal": 43,
+            "title": "Issue 43"
+          },
+          {
+            "ordinal": 44,
+            "title": "Issue 44"
+          },
+          {
+            "ordinal": 45,
+            "title": "Issue 45"
+          },
+          {
+            "ordinal": 46,
+            "title": "Issue 46"
+          },
+          {
+            "ordinal": 47,
+            "title": "Issue 47"
+          },
+          {
+            "ordinal": 48,
+            "title": "Issue 48"
+          },
+          {
+            "ordinal": 49,
+            "title": "Issue 49"
+          },
+          {
+            "ordinal": 50,
+            "title": "Issue 50"
+          },
+          {
+            "ordinal": 51,
+            "title": "Issue 51"
+          },
+          {
+            "ordinal": 52,
+            "title": "Issue 52"
+          },
+          {
+            "ordinal": 53,
+            "title": "Issue 53"
+          },
+          {
+            "ordinal": 54,
+            "title": "Issue 54"
+          },
+          {
+            "ordinal": 55,
+            "title": "Issue 55"
+          },
+          {
+            "ordinal": 56,
+            "title": "Issue 56"
+          },
+          {
+            "ordinal": 57,
+            "title": "Issue 57"
+          },
+          {
+            "ordinal": 58,
+            "title": "Issue 58"
+          },
+          {
+            "ordinal": 59,
+            "title": "Issue 59"
+          },
+          {
+            "ordinal": 60,
+            "title": "Issue 60"
+          },
+          {
+            "ordinal": 61,
+            "title": "Issue 61"
+          },
+          {
+            "ordinal": 62,
+            "title": "Issue 62"
+          },
+          {
+            "ordinal": 63,
+            "title": "Issue 63"
+          },
+          {
+            "ordinal": 64,
+            "title": "Issue 64"
+          },
+          {
+            "ordinal": 65,
+            "title": "Issue 65"
+          },
+          {
+            "ordinal": 66,
+            "title": "Issue 66"
+          }
+        ],
+        "externalSource": "metron",
+        "externalId": "50",
+        "metaLine": [
+          "66 issues",
+          "Completed"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": null,
+          "releaseYear": null
+        }
+      }
+    },
+    {
+      "name": "hydrate falls back to the given count when the series has no issue_count",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "50",
+          "title": "Saga (2012) #1",
+          "category": "comic",
+          "count": 3
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "id": 50,
+            "series": {
+              "id": 15,
+              "name": "Saga"
+            }
+          }
+        },
+        {
+          "body": {
+            "year_end": 2020
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/50/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/series/15/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "Saga",
+        "mediaType": "comic",
+        "unitLabel": "issue",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Issue 1"
+          },
+          {
+            "ordinal": 2,
+            "title": "Issue 2"
+          },
+          {
+            "ordinal": 3,
+            "title": "Issue 3"
+          }
+        ],
+        "externalSource": "metron",
+        "externalId": "50",
+        "metaLine": [
+          "Completed"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": null,
+          "releaseYear": null
+        }
+      }
+    },
+    {
+      "name": "hydrate reads a null year_end as still-running — ongoing overrides issue_count",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "50",
+          "title": "Saga (2012) #1",
+          "category": "comic",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "id": 50,
+            "series": {
+              "id": 15,
+              "name": "Saga"
+            }
+          }
+        },
+        {
+          "body": {
+            "issue_count": 66,
+            "year_end": null
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/50/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/series/15/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": true,
+        "title": "Saga",
+        "mediaType": "comic",
+        "unitLabel": "issue",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Issue 1"
+          }
+        ],
+        "externalSource": "metron",
+        "externalId": "50",
+        "metaLine": [
+          "66 issues",
+          "Ongoing"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": null,
+          "releaseYear": null
+        }
+      }
+    },
+    {
+      "name": "hydrate reads a real year_end as completed",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "50",
+          "title": "Saga (2012) #1",
+          "category": "comic",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "id": 50,
+            "series": {
+              "id": 15,
+              "name": "Saga"
+            }
+          }
+        },
+        {
+          "body": {
+            "issue_count": 66,
+            "year_end": 2024
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/50/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/series/15/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "Saga",
+        "mediaType": "comic",
+        "unitLabel": "issue",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Issue 1"
+          },
+          {
+            "ordinal": 2,
+            "title": "Issue 2"
+          },
+          {
+            "ordinal": 3,
+            "title": "Issue 3"
+          },
+          {
+            "ordinal": 4,
+            "title": "Issue 4"
+          },
+          {
+            "ordinal": 5,
+            "title": "Issue 5"
+          },
+          {
+            "ordinal": 6,
+            "title": "Issue 6"
+          },
+          {
+            "ordinal": 7,
+            "title": "Issue 7"
+          },
+          {
+            "ordinal": 8,
+            "title": "Issue 8"
+          },
+          {
+            "ordinal": 9,
+            "title": "Issue 9"
+          },
+          {
+            "ordinal": 10,
+            "title": "Issue 10"
+          },
+          {
+            "ordinal": 11,
+            "title": "Issue 11"
+          },
+          {
+            "ordinal": 12,
+            "title": "Issue 12"
+          },
+          {
+            "ordinal": 13,
+            "title": "Issue 13"
+          },
+          {
+            "ordinal": 14,
+            "title": "Issue 14"
+          },
+          {
+            "ordinal": 15,
+            "title": "Issue 15"
+          },
+          {
+            "ordinal": 16,
+            "title": "Issue 16"
+          },
+          {
+            "ordinal": 17,
+            "title": "Issue 17"
+          },
+          {
+            "ordinal": 18,
+            "title": "Issue 18"
+          },
+          {
+            "ordinal": 19,
+            "title": "Issue 19"
+          },
+          {
+            "ordinal": 20,
+            "title": "Issue 20"
+          },
+          {
+            "ordinal": 21,
+            "title": "Issue 21"
+          },
+          {
+            "ordinal": 22,
+            "title": "Issue 22"
+          },
+          {
+            "ordinal": 23,
+            "title": "Issue 23"
+          },
+          {
+            "ordinal": 24,
+            "title": "Issue 24"
+          },
+          {
+            "ordinal": 25,
+            "title": "Issue 25"
+          },
+          {
+            "ordinal": 26,
+            "title": "Issue 26"
+          },
+          {
+            "ordinal": 27,
+            "title": "Issue 27"
+          },
+          {
+            "ordinal": 28,
+            "title": "Issue 28"
+          },
+          {
+            "ordinal": 29,
+            "title": "Issue 29"
+          },
+          {
+            "ordinal": 30,
+            "title": "Issue 30"
+          },
+          {
+            "ordinal": 31,
+            "title": "Issue 31"
+          },
+          {
+            "ordinal": 32,
+            "title": "Issue 32"
+          },
+          {
+            "ordinal": 33,
+            "title": "Issue 33"
+          },
+          {
+            "ordinal": 34,
+            "title": "Issue 34"
+          },
+          {
+            "ordinal": 35,
+            "title": "Issue 35"
+          },
+          {
+            "ordinal": 36,
+            "title": "Issue 36"
+          },
+          {
+            "ordinal": 37,
+            "title": "Issue 37"
+          },
+          {
+            "ordinal": 38,
+            "title": "Issue 38"
+          },
+          {
+            "ordinal": 39,
+            "title": "Issue 39"
+          },
+          {
+            "ordinal": 40,
+            "title": "Issue 40"
+          },
+          {
+            "ordinal": 41,
+            "title": "Issue 41"
+          },
+          {
+            "ordinal": 42,
+            "title": "Issue 42"
+          },
+          {
+            "ordinal": 43,
+            "title": "Issue 43"
+          },
+          {
+            "ordinal": 44,
+            "title": "Issue 44"
+          },
+          {
+            "ordinal": 45,
+            "title": "Issue 45"
+          },
+          {
+            "ordinal": 46,
+            "title": "Issue 46"
+          },
+          {
+            "ordinal": 47,
+            "title": "Issue 47"
+          },
+          {
+            "ordinal": 48,
+            "title": "Issue 48"
+          },
+          {
+            "ordinal": 49,
+            "title": "Issue 49"
+          },
+          {
+            "ordinal": 50,
+            "title": "Issue 50"
+          },
+          {
+            "ordinal": 51,
+            "title": "Issue 51"
+          },
+          {
+            "ordinal": 52,
+            "title": "Issue 52"
+          },
+          {
+            "ordinal": 53,
+            "title": "Issue 53"
+          },
+          {
+            "ordinal": 54,
+            "title": "Issue 54"
+          },
+          {
+            "ordinal": 55,
+            "title": "Issue 55"
+          },
+          {
+            "ordinal": 56,
+            "title": "Issue 56"
+          },
+          {
+            "ordinal": 57,
+            "title": "Issue 57"
+          },
+          {
+            "ordinal": 58,
+            "title": "Issue 58"
+          },
+          {
+            "ordinal": 59,
+            "title": "Issue 59"
+          },
+          {
+            "ordinal": 60,
+            "title": "Issue 60"
+          },
+          {
+            "ordinal": 61,
+            "title": "Issue 61"
+          },
+          {
+            "ordinal": 62,
+            "title": "Issue 62"
+          },
+          {
+            "ordinal": 63,
+            "title": "Issue 63"
+          },
+          {
+            "ordinal": 64,
+            "title": "Issue 64"
+          },
+          {
+            "ordinal": 65,
+            "title": "Issue 65"
+          },
+          {
+            "ordinal": 66,
+            "title": "Issue 66"
+          }
+        ],
+        "externalSource": "metron",
+        "externalId": "50",
+        "metaLine": [
+          "66 issues",
+          "Completed"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": null,
+          "releaseYear": null
+        }
+      }
+    },
+    {
+      "name": "hydrate for an unmatched (hand-typed) title never calls the network",
+      "provider": "metron",
+      "env": {},
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "metron",
+          "title": "Saga",
+          "category": "comic",
+          "count": 5
+        }
+      ],
+      "responses": [],
+      "requests": [],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "Saga",
+        "mediaType": "comic",
+        "unitLabel": "issue",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Issue 1"
+          },
+          {
+            "ordinal": 2,
+            "title": "Issue 2"
+          },
+          {
+            "ordinal": 3,
+            "title": "Issue 3"
+          },
+          {
+            "ordinal": 4,
+            "title": "Issue 4"
+          },
+          {
+            "ordinal": 5,
+            "title": "Issue 5"
+          }
+        ]
+      }
+    },
+    {
+      "name": "hydrate metaLine/blurb (A17): a completed series gets a closed year range and \"Completed\"",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "50",
+          "title": "Saga (2012) #1",
+          "category": "comic",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "id": 50,
+            "series": {
+              "id": 15,
+              "name": "Saga"
+            }
+          }
+        },
+        {
+          "body": {
+            "issue_count": 66,
+            "year_began": 2012,
+            "year_end": 2024,
+            "publisher": {
+              "name": "Image Comics"
+            },
+            "desc": "Romeo and Juliet meets Star Wars meets Game of Thrones."
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/50/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/series/15/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "Saga",
+        "mediaType": "comic",
+        "unitLabel": "issue",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Issue 1"
+          },
+          {
+            "ordinal": 2,
+            "title": "Issue 2"
+          },
+          {
+            "ordinal": 3,
+            "title": "Issue 3"
+          },
+          {
+            "ordinal": 4,
+            "title": "Issue 4"
+          },
+          {
+            "ordinal": 5,
+            "title": "Issue 5"
+          },
+          {
+            "ordinal": 6,
+            "title": "Issue 6"
+          },
+          {
+            "ordinal": 7,
+            "title": "Issue 7"
+          },
+          {
+            "ordinal": 8,
+            "title": "Issue 8"
+          },
+          {
+            "ordinal": 9,
+            "title": "Issue 9"
+          },
+          {
+            "ordinal": 10,
+            "title": "Issue 10"
+          },
+          {
+            "ordinal": 11,
+            "title": "Issue 11"
+          },
+          {
+            "ordinal": 12,
+            "title": "Issue 12"
+          },
+          {
+            "ordinal": 13,
+            "title": "Issue 13"
+          },
+          {
+            "ordinal": 14,
+            "title": "Issue 14"
+          },
+          {
+            "ordinal": 15,
+            "title": "Issue 15"
+          },
+          {
+            "ordinal": 16,
+            "title": "Issue 16"
+          },
+          {
+            "ordinal": 17,
+            "title": "Issue 17"
+          },
+          {
+            "ordinal": 18,
+            "title": "Issue 18"
+          },
+          {
+            "ordinal": 19,
+            "title": "Issue 19"
+          },
+          {
+            "ordinal": 20,
+            "title": "Issue 20"
+          },
+          {
+            "ordinal": 21,
+            "title": "Issue 21"
+          },
+          {
+            "ordinal": 22,
+            "title": "Issue 22"
+          },
+          {
+            "ordinal": 23,
+            "title": "Issue 23"
+          },
+          {
+            "ordinal": 24,
+            "title": "Issue 24"
+          },
+          {
+            "ordinal": 25,
+            "title": "Issue 25"
+          },
+          {
+            "ordinal": 26,
+            "title": "Issue 26"
+          },
+          {
+            "ordinal": 27,
+            "title": "Issue 27"
+          },
+          {
+            "ordinal": 28,
+            "title": "Issue 28"
+          },
+          {
+            "ordinal": 29,
+            "title": "Issue 29"
+          },
+          {
+            "ordinal": 30,
+            "title": "Issue 30"
+          },
+          {
+            "ordinal": 31,
+            "title": "Issue 31"
+          },
+          {
+            "ordinal": 32,
+            "title": "Issue 32"
+          },
+          {
+            "ordinal": 33,
+            "title": "Issue 33"
+          },
+          {
+            "ordinal": 34,
+            "title": "Issue 34"
+          },
+          {
+            "ordinal": 35,
+            "title": "Issue 35"
+          },
+          {
+            "ordinal": 36,
+            "title": "Issue 36"
+          },
+          {
+            "ordinal": 37,
+            "title": "Issue 37"
+          },
+          {
+            "ordinal": 38,
+            "title": "Issue 38"
+          },
+          {
+            "ordinal": 39,
+            "title": "Issue 39"
+          },
+          {
+            "ordinal": 40,
+            "title": "Issue 40"
+          },
+          {
+            "ordinal": 41,
+            "title": "Issue 41"
+          },
+          {
+            "ordinal": 42,
+            "title": "Issue 42"
+          },
+          {
+            "ordinal": 43,
+            "title": "Issue 43"
+          },
+          {
+            "ordinal": 44,
+            "title": "Issue 44"
+          },
+          {
+            "ordinal": 45,
+            "title": "Issue 45"
+          },
+          {
+            "ordinal": 46,
+            "title": "Issue 46"
+          },
+          {
+            "ordinal": 47,
+            "title": "Issue 47"
+          },
+          {
+            "ordinal": 48,
+            "title": "Issue 48"
+          },
+          {
+            "ordinal": 49,
+            "title": "Issue 49"
+          },
+          {
+            "ordinal": 50,
+            "title": "Issue 50"
+          },
+          {
+            "ordinal": 51,
+            "title": "Issue 51"
+          },
+          {
+            "ordinal": 52,
+            "title": "Issue 52"
+          },
+          {
+            "ordinal": 53,
+            "title": "Issue 53"
+          },
+          {
+            "ordinal": 54,
+            "title": "Issue 54"
+          },
+          {
+            "ordinal": 55,
+            "title": "Issue 55"
+          },
+          {
+            "ordinal": 56,
+            "title": "Issue 56"
+          },
+          {
+            "ordinal": 57,
+            "title": "Issue 57"
+          },
+          {
+            "ordinal": 58,
+            "title": "Issue 58"
+          },
+          {
+            "ordinal": 59,
+            "title": "Issue 59"
+          },
+          {
+            "ordinal": 60,
+            "title": "Issue 60"
+          },
+          {
+            "ordinal": 61,
+            "title": "Issue 61"
+          },
+          {
+            "ordinal": 62,
+            "title": "Issue 62"
+          },
+          {
+            "ordinal": 63,
+            "title": "Issue 63"
+          },
+          {
+            "ordinal": 64,
+            "title": "Issue 64"
+          },
+          {
+            "ordinal": 65,
+            "title": "Issue 65"
+          },
+          {
+            "ordinal": 66,
+            "title": "Issue 66"
+          }
+        ],
+        "externalSource": "metron",
+        "externalId": "50",
+        "metaLine": [
+          "Image Comics",
+          "2012–2024",
+          "66 issues",
+          "Completed"
+        ],
+        "blurb": "Romeo and Juliet meets Star Wars meets Game of Thrones.",
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": "Romeo and Juliet meets Star Wars meets Game of Thrones.",
+          "releaseYear": "2012"
+        }
+      }
+    },
+    {
+      "name": "hydrate metaLine/blurb (A17): an ongoing series gets an open year range and \"Ongoing\"",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "50",
+          "title": "Saga (2012) #1",
+          "category": "comic",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "id": 50,
+            "series": {
+              "id": 15,
+              "name": "Saga"
+            }
+          }
+        },
+        {
+          "body": {
+            "issue_count": 72,
+            "year_began": 2012,
+            "year_end": null,
+            "publisher": {
+              "name": "Image Comics"
+            }
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/50/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/series/15/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": true,
+        "title": "Saga",
+        "mediaType": "comic",
+        "unitLabel": "issue",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Issue 1"
+          }
+        ],
+        "externalSource": "metron",
+        "externalId": "50",
+        "metaLine": [
+          "Image Comics",
+          "2012–present",
+          "72 issues",
+          "Ongoing"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": null,
+          "releaseYear": "2012"
+        }
+      }
+    },
+    {
+      "name": "hydrate metaLine/blurb (A17): missing publisher/desc are simply omitted, not blank entries",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "50",
+          "title": "Saga (2012) #1",
+          "category": "comic",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "id": 50,
+            "series": {
+              "id": 15,
+              "name": "Saga"
+            }
+          }
+        },
+        {
+          "body": {
+            "issue_count": 66,
+            "year_end": 2024
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/50/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/series/15/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "Saga",
+        "mediaType": "comic",
+        "unitLabel": "issue",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Issue 1"
+          },
+          {
+            "ordinal": 2,
+            "title": "Issue 2"
+          },
+          {
+            "ordinal": 3,
+            "title": "Issue 3"
+          },
+          {
+            "ordinal": 4,
+            "title": "Issue 4"
+          },
+          {
+            "ordinal": 5,
+            "title": "Issue 5"
+          },
+          {
+            "ordinal": 6,
+            "title": "Issue 6"
+          },
+          {
+            "ordinal": 7,
+            "title": "Issue 7"
+          },
+          {
+            "ordinal": 8,
+            "title": "Issue 8"
+          },
+          {
+            "ordinal": 9,
+            "title": "Issue 9"
+          },
+          {
+            "ordinal": 10,
+            "title": "Issue 10"
+          },
+          {
+            "ordinal": 11,
+            "title": "Issue 11"
+          },
+          {
+            "ordinal": 12,
+            "title": "Issue 12"
+          },
+          {
+            "ordinal": 13,
+            "title": "Issue 13"
+          },
+          {
+            "ordinal": 14,
+            "title": "Issue 14"
+          },
+          {
+            "ordinal": 15,
+            "title": "Issue 15"
+          },
+          {
+            "ordinal": 16,
+            "title": "Issue 16"
+          },
+          {
+            "ordinal": 17,
+            "title": "Issue 17"
+          },
+          {
+            "ordinal": 18,
+            "title": "Issue 18"
+          },
+          {
+            "ordinal": 19,
+            "title": "Issue 19"
+          },
+          {
+            "ordinal": 20,
+            "title": "Issue 20"
+          },
+          {
+            "ordinal": 21,
+            "title": "Issue 21"
+          },
+          {
+            "ordinal": 22,
+            "title": "Issue 22"
+          },
+          {
+            "ordinal": 23,
+            "title": "Issue 23"
+          },
+          {
+            "ordinal": 24,
+            "title": "Issue 24"
+          },
+          {
+            "ordinal": 25,
+            "title": "Issue 25"
+          },
+          {
+            "ordinal": 26,
+            "title": "Issue 26"
+          },
+          {
+            "ordinal": 27,
+            "title": "Issue 27"
+          },
+          {
+            "ordinal": 28,
+            "title": "Issue 28"
+          },
+          {
+            "ordinal": 29,
+            "title": "Issue 29"
+          },
+          {
+            "ordinal": 30,
+            "title": "Issue 30"
+          },
+          {
+            "ordinal": 31,
+            "title": "Issue 31"
+          },
+          {
+            "ordinal": 32,
+            "title": "Issue 32"
+          },
+          {
+            "ordinal": 33,
+            "title": "Issue 33"
+          },
+          {
+            "ordinal": 34,
+            "title": "Issue 34"
+          },
+          {
+            "ordinal": 35,
+            "title": "Issue 35"
+          },
+          {
+            "ordinal": 36,
+            "title": "Issue 36"
+          },
+          {
+            "ordinal": 37,
+            "title": "Issue 37"
+          },
+          {
+            "ordinal": 38,
+            "title": "Issue 38"
+          },
+          {
+            "ordinal": 39,
+            "title": "Issue 39"
+          },
+          {
+            "ordinal": 40,
+            "title": "Issue 40"
+          },
+          {
+            "ordinal": 41,
+            "title": "Issue 41"
+          },
+          {
+            "ordinal": 42,
+            "title": "Issue 42"
+          },
+          {
+            "ordinal": 43,
+            "title": "Issue 43"
+          },
+          {
+            "ordinal": 44,
+            "title": "Issue 44"
+          },
+          {
+            "ordinal": 45,
+            "title": "Issue 45"
+          },
+          {
+            "ordinal": 46,
+            "title": "Issue 46"
+          },
+          {
+            "ordinal": 47,
+            "title": "Issue 47"
+          },
+          {
+            "ordinal": 48,
+            "title": "Issue 48"
+          },
+          {
+            "ordinal": 49,
+            "title": "Issue 49"
+          },
+          {
+            "ordinal": 50,
+            "title": "Issue 50"
+          },
+          {
+            "ordinal": 51,
+            "title": "Issue 51"
+          },
+          {
+            "ordinal": 52,
+            "title": "Issue 52"
+          },
+          {
+            "ordinal": 53,
+            "title": "Issue 53"
+          },
+          {
+            "ordinal": 54,
+            "title": "Issue 54"
+          },
+          {
+            "ordinal": 55,
+            "title": "Issue 55"
+          },
+          {
+            "ordinal": 56,
+            "title": "Issue 56"
+          },
+          {
+            "ordinal": 57,
+            "title": "Issue 57"
+          },
+          {
+            "ordinal": 58,
+            "title": "Issue 58"
+          },
+          {
+            "ordinal": 59,
+            "title": "Issue 59"
+          },
+          {
+            "ordinal": 60,
+            "title": "Issue 60"
+          },
+          {
+            "ordinal": 61,
+            "title": "Issue 61"
+          },
+          {
+            "ordinal": 62,
+            "title": "Issue 62"
+          },
+          {
+            "ordinal": 63,
+            "title": "Issue 63"
+          },
+          {
+            "ordinal": 64,
+            "title": "Issue 64"
+          },
+          {
+            "ordinal": 65,
+            "title": "Issue 65"
+          },
+          {
+            "ordinal": 66,
+            "title": "Issue 66"
+          }
+        ],
+        "externalSource": "metron",
+        "externalId": "50",
+        "metaLine": [
+          "66 issues",
+          "Completed"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": null,
+          "releaseYear": null
+        }
+      }
+    },
+    {
+      "name": "A22/A24 metadata: search hits carry cover date year and cover image",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "u",
+        "METRON_PASSWORD": "p"
+      },
+      "call": "search",
+      "args": [
+        "Saga"
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": [
+              {
+                "id": 7,
+                "issue": "Saga (2012) #1",
+                "series": {
+                  "id": 3,
+                  "name": "Saga"
+                },
+                "cover_date": "2012-03-01",
+                "image": "https://static.metron.cloud/1.jpg"
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/?series_name=Saga",
+          "headers": {
+            "Authorization": "Basic dTpw"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": [
+        {
+          "id": "7",
+          "title": "Saga (2012) #1",
+          "category": "comic",
+          "count": 1,
+          "year": "2012",
+          "thumbnailUrl": "https://static.metron.cloud/1.jpg"
+        }
+      ]
+    },
+    {
+      "name": "A22/A24 metadata: details reads the issue cover and writer, and the series description and year",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "u",
+        "METRON_PASSWORD": "p"
+      },
+      "call": "details",
+      "args": [
+        "7"
+      ],
+      "responses": [
+        {
+          "body": {
+            "id": 7,
+            "series": {
+              "id": 3,
+              "name": "Saga"
+            },
+            "image": "https://static.metron.cloud/1.jpg",
+            "credits": [
+              {
+                "creator": "Brian K. Vaughan",
+                "role": [
+                  {
+                    "name": "Writer"
+                  }
+                ]
+              },
+              {
+                "creator": "Fiona Staples",
+                "role": [
+                  {
+                    "name": "Artist"
+                  },
+                  {
+                    "name": "Cover"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "body": {
+            "issue_count": 54,
+            "year_began": 2012,
+            "year_end": null,
+            "desc": "<p>Space &amp; war.</p>"
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/7/",
+          "headers": {
+            "Authorization": "Basic dTpw"
+          },
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/series/3/",
+          "headers": {
+            "Authorization": "Basic dTpw"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "coverUrl": "https://static.metron.cloud/1.jpg",
+        "creator": "Brian K. Vaughan",
+        "description": "Space & war.",
+        "releaseYear": "2012"
+      }
+    },
+    {
+      "name": "A22/A24 metadata: hydrate carries the same metadata and a cleaned blurb",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "u",
+        "METRON_PASSWORD": "p"
+      },
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "7",
+          "title": "Saga (2012) #1",
+          "category": "comic",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "id": 7,
+            "series": {
+              "id": 3,
+              "name": "Saga"
+            },
+            "image": "https://static.metron.cloud/1.jpg",
+            "credits": [
+              {
+                "creator": "Brian K. Vaughan",
+                "role": [
+                  {
+                    "name": "Writer"
+                  }
+                ]
+              },
+              {
+                "creator": "Fiona Staples",
+                "role": [
+                  {
+                    "name": "Artist"
+                  },
+                  {
+                    "name": "Cover"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "body": {
+            "issue_count": 54,
+            "year_began": 2012,
+            "year_end": null,
+            "desc": "<p>Space &amp; war.</p>"
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/7/",
+          "headers": {
+            "Authorization": "Basic dTpw"
+          },
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/series/3/",
+          "headers": {
+            "Authorization": "Basic dTpw"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": true,
+        "title": "Saga",
+        "mediaType": "comic",
+        "unitLabel": "issue",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Issue 1"
+          }
+        ],
+        "externalSource": "metron",
+        "externalId": "7",
+        "metaLine": [
+          "2012–present",
+          "54 issues",
+          "Ongoing"
+        ],
+        "blurb": "Space & war.",
+        "metadata": {
+          "coverUrl": "https://static.metron.cloud/1.jpg",
+          "creator": "Brian K. Vaughan",
+          "description": "Space & war.",
+          "releaseYear": "2012"
+        }
+      }
+    },
+    {
+      "name": "A22/A24 metadata: A26: details carries the series genres",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "u",
+        "METRON_PASSWORD": "p"
+      },
+      "call": "details",
+      "args": [
+        "7"
+      ],
+      "responses": [
+        {
+          "body": {
+            "id": 7,
+            "series": {
+              "id": 3,
+              "name": "Saga"
+            },
+            "image": "https://static.metron.cloud/1.jpg",
+            "credits": [
+              {
+                "creator": "Brian K. Vaughan",
+                "role": [
+                  {
+                    "name": "Writer"
+                  }
+                ]
+              },
+              {
+                "creator": "Fiona Staples",
+                "role": [
+                  {
+                    "name": "Artist"
+                  },
+                  {
+                    "name": "Cover"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "body": {
+            "issue_count": 54,
+            "year_began": 2012,
+            "year_end": null,
+            "desc": "<p>Space &amp; war.</p>",
+            "genres": [
+              {
+                "id": 1,
+                "name": "Science Fiction"
+              },
+              {
+                "id": 2,
+                "name": "Fantasy"
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/7/",
+          "headers": {
+            "Authorization": "Basic dTpw"
+          },
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/series/3/",
+          "headers": {
+            "Authorization": "Basic dTpw"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "coverUrl": "https://static.metron.cloud/1.jpg",
+        "creator": "Brian K. Vaughan",
+        "description": "Space & war.",
+        "releaseYear": "2012",
+        "genres": [
+          "Science Fiction",
+          "Fantasy"
+        ]
+      }
+    },
+    {
+      "name": "A22/A24 metadata: details returns null when credentials are missing",
+      "provider": "metron",
+      "env": {
+        "METRON_PASSWORD": "p"
+      },
+      "call": "details",
+      "args": [
+        "7"
+      ],
+      "responses": [],
+      "requests": [],
+      "unusedResponses": 0,
+      "result": null
+    },
+    {
+      "name": "A25 unitAt: looks up the series from the stored issue, then the issue by number",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "unitAt",
+      "args": [
+        "7",
+        5
+      ],
+      "responses": [
+        {
+          "body": {
+            "id": 7,
+            "series": {
+              "id": 3,
+              "name": "Saga"
+            }
+          }
+        },
+        {
+          "body": {
+            "results": [
+              {
+                "id": 12,
+                "number": "5",
+                "image": "https://static.metron.cloud/5.jpg",
+                "series": {
+                  "id": 3,
+                  "name": "Saga"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/7/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/?series_id=3&number=5",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "externalId": "12",
+        "number": "5",
+        "coverUrl": "https://static.metron.cloud/5.jpg"
+      }
+    },
+    {
+      "name": "A25 unitAt: null when the series has no issue with that number yet",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "unitAt",
+      "args": [
+        "7",
+        99
+      ],
+      "responses": [
+        {
+          "body": {
+            "id": 7,
+            "series": {
+              "id": 3,
+              "name": "Saga"
+            }
+          }
+        },
+        {
+          "body": {
+            "results": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/7/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/?series_id=3&number=99",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": null
+    },
+    {
+      "name": "A25 unitAt: null rather than throwing when the lookup fails",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "unitAt",
+      "args": [
+        "7",
+        5
+      ],
+      "responses": [
+        {
+          "status": 500,
+          "body": {}
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/7/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": null
+    },
+    {
+      "name": "Iris parity: Basic auth of a non-ASCII password",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "jöe",
+        "METRON_PASSWORD": "pässwörd€"
+      },
+      "call": "search",
+      "args": [
+        "saga"
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/?series_name=saga",
+          "headers": {
+            "Authorization": "Basic asO2ZTpww6Rzc3fDtnJk4oKs"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "Iris parity: Basic auth of an emoji password (UTF-16 surrogates encoded one by one)",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "u",
+        "METRON_PASSWORD": "p😀"
+      },
+      "call": "search",
+      "args": [
+        "saga"
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/?series_name=saga",
+          "headers": {
+            "Authorization": "Basic dTpw7aC97biA"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "Iris parity: Basic auth padded with two \"=\" (4 bytes)",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "ab",
+        "METRON_PASSWORD": "c"
+      },
+      "call": "search",
+      "args": [
+        "saga"
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/?series_name=saga",
+          "headers": {
+            "Authorization": "Basic YWI6Yw=="
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "Iris parity: Basic auth padded with one \"=\" (5 bytes)",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "ab",
+        "METRON_PASSWORD": "cd"
+      },
+      "call": "search",
+      "args": [
+        "saga"
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/?series_name=saga",
+          "headers": {
+            "Authorization": "Basic YWI6Y2Q="
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "Iris parity: search encodes the series name",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "search",
+      "args": [
+        "Spider-Man & Venom: Ça (2018)"
+      ],
+      "responses": [
+        {
+          "body": {
+            "results": []
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/?series_name=Spider-Man%20%26%20Venom%3A%20%C3%87a%20(2018)",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": []
+    },
+    {
+      "name": "Iris parity: search on a network error throws",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "search",
+      "args": [
+        "Saga"
+      ],
+      "responses": [
+        {
+          "networkError": true
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/?series_name=Saga",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "throws": "Network request failed"
+    },
+    {
+      "name": "Iris parity: search on a 500 throws with the status",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "search",
+      "args": [
+        "Saga"
+      ],
+      "responses": [
+        {
+          "status": 500,
+          "body": {}
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/?series_name=Saga",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "throws": "Metron request failed: 500"
+    },
+    {
+      "name": "Iris parity: hydrate on a failed series lookup throws",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "50",
+          "title": "Saga (2012) #1",
+          "category": "comic",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "id": 50,
+            "series": {
+              "id": 15,
+              "name": "Saga"
+            }
+          }
+        },
+        {
+          "status": 500,
+          "body": {}
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/50/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/series/15/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "throws": "Metron request failed: 500"
+    },
+    {
+      "name": "Iris parity: details on a network error is null",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "details",
+      "args": [
+        "7"
+      ],
+      "responses": [
+        {
+          "networkError": true
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/7/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": null
+    },
+    {
+      "name": "Iris parity: a writer credited twice is named once; \"Story\" counts as writing",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "details",
+      "args": [
+        "7"
+      ],
+      "responses": [
+        {
+          "body": {
+            "id": 7,
+            "series": {
+              "id": 3,
+              "name": "Saga"
+            },
+            "credits": [
+              {
+                "creator": "A",
+                "role": [
+                  {
+                    "name": "Writer"
+                  }
+                ]
+              },
+              {
+                "creator": "B",
+                "role": [
+                  {
+                    "name": "Story"
+                  }
+                ]
+              },
+              {
+                "creator": "A",
+                "role": [
+                  {
+                    "name": "writer"
+                  }
+                ]
+              },
+              {
+                "creator": "",
+                "role": [
+                  {
+                    "name": "Writer"
+                  }
+                ]
+              },
+              {
+                "role": [
+                  {
+                    "name": "Writer"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "body": {
+            "year_began": 2012
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/7/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/series/3/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "coverUrl": null,
+        "creator": "A, B",
+        "description": null,
+        "releaseYear": "2012"
+      }
+    },
+    {
+      "name": "Iris parity: a series ending the year it began reads as one year",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "hydrate",
+      "args": [
+        {
+          "id": "50",
+          "title": "Saga (2012) #1",
+          "category": "comic",
+          "count": 1
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "id": 50,
+            "series": {
+              "id": 15,
+              "name": "Saga"
+            }
+          }
+        },
+        {
+          "body": {
+            "issue_count": 1,
+            "year_began": 2012,
+            "year_end": 2012
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/50/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/series/15/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "ongoing": false,
+        "title": "Saga",
+        "mediaType": "comic",
+        "unitLabel": "issue",
+        "entries": [
+          {
+            "ordinal": 1,
+            "title": "Issue 1"
+          }
+        ],
+        "externalSource": "metron",
+        "externalId": "50",
+        "metaLine": [
+          "2012",
+          "1 issue",
+          "Completed"
+        ],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": null,
+          "description": null,
+          "releaseYear": "2012"
+        }
+      }
+    },
+    {
+      "name": "Iris parity: loose JSON — a series with no name, an issue with a null image",
+      "provider": "metron",
+      "env": {
+        "METRON_USERNAME": "user",
+        "METRON_PASSWORD": "pass"
+      },
+      "call": "unitAt",
+      "args": [
+        "7",
+        5
+      ],
+      "responses": [
+        {
+          "body": {
+            "id": 7,
+            "series": {
+              "id": 3
+            }
+          }
+        },
+        {
+          "body": {
+            "results": [
+              {
+                "id": 12,
+                "number": "5",
+                "image": null
+              }
+            ]
+          }
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/7/",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        },
+        {
+          "method": "GET",
+          "url": "https://metron.cloud/api/issue/?series_id=3&number=5",
+          "headers": {
+            "Authorization": "Basic dXNlcjpwYXNz"
+          },
+          "body": null
+        }
+      ],
+      "unusedResponses": 0,
+      "result": {
+        "externalId": "12",
+        "number": "5",
+        "coverUrl": null
+      }
+    }
+  ]
+}

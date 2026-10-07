@@ -4,7 +4,7 @@ import XCTest
 /// Iris I4 / A29: every recorded data-layer scenario replays identically on GRDB.
 final class ScenarioTests: XCTestCase {
     static let pending: Set<String> = []
-    static let ported: Set<String> = ["whatsNew", "tracks", "progress", "ratings", "backup"]
+    static let ported: Set<String> = ["whatsNew", "tracks", "progress", "ratings", "backup", "backfill", "sync"]
 
     private func check(_ area: String, _ calls: [String: ScenarioCall]) async throws {
         let failures = try await runScenarios(area, calls)
@@ -19,10 +19,13 @@ final class ScenarioTests: XCTestCase {
 
     /// Every area gets the full table: a ratings scenario also adds tracks, etc.
     private static let core = trackCalls.merging(ratingCalls) { a, _ in a }.merging(whatsNewCalls) { a, _ in a }.merging(sqlCalls) { a, _ in a }
+        .merging(providerScenarioCalls) { a, _ in a }
     func testWhatsNew() async throws { try await check("whatsNew", Self.core) }
     func testTracks() async throws { try await check("tracks", Self.core) }
     func testProgress() async throws { try await check("progress", Self.core) }
     func testRatings() async throws { try await check("ratings", Self.core) }
     func testBackup() async throws { try await check("backup", Self.core) }
+    func testBackfill() async throws { try await check("backfill", Self.core) }
+    func testSync() async throws { try await check("sync", Self.core) }
     func testEveryScenarioAreaIsPorted() { XCTAssertEqual(Self.pending, []) }
 }

@@ -1,0 +1,2077 @@
+{
+  "area": "backfill",
+  "generatedBy": "npm run fixtures:record",
+  "timezone": "UTC",
+  "scenarios": [
+    {
+      "name": "fills and stamps a matched row",
+      "steps": [
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n     VALUES ('e1', NULL, 'Dune', NULL, 'book', 'unstarted', ?, ?, 'gb1')",
+            [
+              "2026-09-01T12:00:00.000Z",
+              "google-books"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "backfillMetadata",
+          "args": [
+            {
+              "google-books": {
+                "details": {
+                  "gb1": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001"
+                  }
+                }
+              }
+            },
+            "2026-09-22T12:00:00.000Z"
+          ],
+          "result": {
+            "filled": 1,
+            "skipped": 0,
+            "failed": 0,
+            "calls": [
+              "details:gb1"
+            ],
+            "sleeps": []
+          }
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT * FROM entry ORDER BY id",
+            []
+          ],
+          "result": [
+            {
+              "id": "#1",
+              "series_id": null,
+              "title": "Dune",
+              "ordinal": null,
+              "media_type": "book",
+              "status": "unstarted",
+              "started_at": null,
+              "finished_at": null,
+              "created_at": "2026-09-01T12:00:00.000Z",
+              "paused": 0,
+              "external_source": "google-books",
+              "external_id": "gb1",
+              "cover_url": "https://c/1.jpg",
+              "creator": "Author",
+              "description": "Text.",
+              "release_year": "2001",
+              "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+              "genres_json": "[]"
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "google-books",
+            "external_id": "gb1",
+            "cover_url": "https://c/1.jpg",
+            "creator": "Author",
+            "description": "Text.",
+            "release_year": "2001",
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "A26: a row A22 already filled is revisited once for its genres, keeping everything else",
+      "steps": [
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n     VALUES ('e1', NULL, 'Dune', NULL, 'book', 'unstarted', ?, ?, 'gb1')",
+            [
+              "2026-09-01T12:00:00.000Z",
+              "google-books"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET creator = 'Frank Herbert', metadata_checked_at = ?",
+            [
+              "2026-09-01T12:00:00.000Z"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "backfillMetadata",
+          "args": [
+            {
+              "google-books": {
+                "details": {
+                  "gb1": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001",
+                    "genres": [
+                      "Science Fiction",
+                      "Space Opera"
+                    ]
+                  }
+                }
+              }
+            },
+            "2026-09-22T12:00:00.000Z"
+          ],
+          "result": {
+            "filled": 1,
+            "skipped": 0,
+            "failed": 0,
+            "calls": [
+              "details:gb1"
+            ],
+            "sleeps": []
+          }
+        },
+        {
+          "call": "backfillMetadata",
+          "args": [
+            {
+              "google-books": {
+                "details": {
+                  "gb1": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001",
+                    "genres": [
+                      "Science Fiction",
+                      "Space Opera"
+                    ]
+                  }
+                }
+              }
+            },
+            "2026-09-22T12:00:00.000Z"
+          ],
+          "result": {
+            "filled": 0,
+            "skipped": 0,
+            "failed": 0,
+            "calls": [],
+            "sleeps": []
+          }
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT * FROM entry ORDER BY id",
+            []
+          ],
+          "result": [
+            {
+              "id": "#1",
+              "series_id": null,
+              "title": "Dune",
+              "ordinal": null,
+              "media_type": "book",
+              "status": "unstarted",
+              "started_at": null,
+              "finished_at": null,
+              "created_at": "2026-09-01T12:00:00.000Z",
+              "paused": 0,
+              "external_source": "google-books",
+              "external_id": "gb1",
+              "cover_url": "https://c/1.jpg",
+              "creator": "Frank Herbert",
+              "description": "Text.",
+              "release_year": "2001",
+              "metadata_checked_at": "2026-09-01T12:00:00.000Z",
+              "genres_json": "[\"Science Fiction\",\"Space Opera\"]"
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "google-books",
+            "external_id": "gb1",
+            "cover_url": "https://c/1.jpg",
+            "creator": "Frank Herbert",
+            "description": "Text.",
+            "release_year": "2001",
+            "metadata_checked_at": "2026-09-01T12:00:00.000Z",
+            "genres_json": "[\"Science Fiction\",\"Space Opera\"]"
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a failed lookup leaves the row unstamped so it retries next launch",
+      "steps": [
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n     VALUES ('e1', NULL, 'Dune', NULL, 'book', 'unstarted', ?, ?, 'gb1')",
+            [
+              "2026-09-01T12:00:00.000Z",
+              "google-books"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "backfillMetadata",
+          "args": [
+            {
+              "google-books": {
+                "details": {
+                  "gb1": null
+                }
+              }
+            },
+            "2026-09-22T12:00:00.000Z"
+          ],
+          "result": {
+            "filled": 0,
+            "skipped": 0,
+            "failed": 1,
+            "calls": [
+              "details:gb1"
+            ],
+            "sleeps": []
+          }
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT * FROM entry ORDER BY id",
+            []
+          ],
+          "result": [
+            {
+              "id": "#1",
+              "series_id": null,
+              "title": "Dune",
+              "ordinal": null,
+              "media_type": "book",
+              "status": "unstarted",
+              "started_at": null,
+              "finished_at": null,
+              "created_at": "2026-09-01T12:00:00.000Z",
+              "paused": 0,
+              "external_source": "google-books",
+              "external_id": "gb1",
+              "cover_url": null,
+              "creator": null,
+              "description": null,
+              "release_year": null,
+              "metadata_checked_at": null,
+              "genres_json": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "google-books",
+            "external_id": "gb1",
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a provider that throws anyway is treated as a failed lookup, not a crash",
+      "steps": [
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n     VALUES ('e1', NULL, 'Dune', NULL, 'book', 'unstarted', ?, ?, 'gb1')",
+            [
+              "2026-09-01T12:00:00.000Z",
+              "google-books"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "backfillMetadata",
+          "args": [
+            {
+              "google-books": {
+                "details": {
+                  "gb1": {
+                    "throws": "offline"
+                  }
+                }
+              }
+            },
+            "2026-09-22T12:00:00.000Z"
+          ],
+          "result": {
+            "filled": 0,
+            "skipped": 0,
+            "failed": 1,
+            "calls": [
+              "details:gb1"
+            ],
+            "sleeps": []
+          }
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT * FROM entry ORDER BY id",
+            []
+          ],
+          "result": [
+            {
+              "id": "#1",
+              "series_id": null,
+              "title": "Dune",
+              "ordinal": null,
+              "media_type": "book",
+              "status": "unstarted",
+              "started_at": null,
+              "finished_at": null,
+              "created_at": "2026-09-01T12:00:00.000Z",
+              "paused": 0,
+              "external_source": "google-books",
+              "external_id": "gb1",
+              "cover_url": null,
+              "creator": null,
+              "description": null,
+              "release_year": null,
+              "metadata_checked_at": null,
+              "genres_json": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "google-books",
+            "external_id": "gb1",
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "an unknown source is stamped and skipped",
+      "steps": [
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n     VALUES ('e1', NULL, 'Dune', NULL, 'book', 'unstarted', ?, ?, 'gb1')",
+            [
+              "2026-09-01T12:00:00.000Z",
+              "retired-provider"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "backfillMetadata",
+          "args": [
+            {},
+            "2026-09-22T12:00:00.000Z"
+          ],
+          "result": {
+            "filled": 0,
+            "skipped": 1,
+            "failed": 0,
+            "calls": [],
+            "sleeps": []
+          }
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT * FROM entry ORDER BY id",
+            []
+          ],
+          "result": [
+            {
+              "id": "#1",
+              "series_id": null,
+              "title": "Dune",
+              "ordinal": null,
+              "media_type": "book",
+              "status": "unstarted",
+              "started_at": null,
+              "finished_at": null,
+              "created_at": "2026-09-01T12:00:00.000Z",
+              "paused": 0,
+              "external_source": "retired-provider",
+              "external_id": "gb1",
+              "cover_url": null,
+              "creator": null,
+              "description": null,
+              "release_year": null,
+              "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+              "genres_json": "[]"
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "retired-provider",
+            "external_id": "gb1",
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "hand-typed tracks, series children, and already-checked rows are never queried",
+      "steps": [
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Notes",
+              "category": "book",
+              "count": 1
+            },
+            "2026-09-01T12:00:00.000Z"
+          ],
+          "result": {
+            "kind": "entry",
+            "id": "#1"
+          }
+        },
+        {
+          "call": "addTrack",
+          "args": [
+            {
+              "title": "Berserk",
+              "category": "manga",
+              "count": 2
+            },
+            "2026-09-01T12:00:00.000Z"
+          ],
+          "result": {
+            "kind": "series",
+            "id": "#2"
+          }
+        },
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id, metadata_checked_at, genres_json)\n         VALUES ('done1', NULL, 'Known', NULL, 'book', 'unstarted', ?, 'google-books', 'gb2', ?, '[]')",
+            [
+              "2026-09-01T12:00:00.000Z",
+              "2026-09-01T12:00:00.000Z"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "backfillMetadata",
+          "args": [
+            {
+              "google-books": {
+                "details": {
+                  "gb2": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001"
+                  }
+                }
+              }
+            },
+            "2026-09-22T12:00:00.000Z"
+          ],
+          "result": {
+            "filled": 0,
+            "skipped": 0,
+            "failed": 0,
+            "calls": [],
+            "sleeps": []
+          }
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#2",
+            "title": "Berserk",
+            "media_type": "manga",
+            "unit_label": "volume",
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Notes",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#2",
+            "title": "Volume 1",
+            "ordinal": 1,
+            "media_type": "volume",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#2",
+            "title": "Volume 2",
+            "ordinal": 2,
+            "media_type": "volume",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#5",
+            "series_id": null,
+            "title": "Known",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "google-books",
+            "external_id": "gb2",
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": "2026-09-01T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a matched series is filled on its series row",
+      "steps": [
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO series (id, title, media_type, unit_label, created_at, external_source, external_id)\n         VALUES ('s1', 'Severance', 'show', 'episode', ?, 'tmdb', '95396')",
+            [
+              "2026-09-01T12:00:00.000Z"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "backfillMetadata",
+          "args": [
+            {
+              "tmdb": {
+                "details": {
+                  "95396": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001"
+                  }
+                }
+              }
+            },
+            "2026-09-22T12:00:00.000Z"
+          ],
+          "result": {
+            "filled": 1,
+            "skipped": 0,
+            "failed": 0,
+            "calls": [
+              "details:95396"
+            ],
+            "sleeps": []
+          }
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT * FROM series",
+            []
+          ],
+          "result": [
+            {
+              "id": "#1",
+              "title": "Severance",
+              "media_type": "show",
+              "unit_label": "episode",
+              "created_at": "2026-09-01T12:00:00.000Z",
+              "external_source": "tmdb",
+              "external_id": "95396",
+              "ongoing": 0,
+              "paused": 0,
+              "seasons_json": null,
+              "cover_url": "https://c/1.jpg",
+              "creator": "Author",
+              "description": "Text.",
+              "release_year": "2001",
+              "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+              "genres_json": "[]"
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Severance",
+            "media_type": "show",
+            "unit_label": "episode",
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "external_source": "tmdb",
+            "external_id": "95396",
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": "https://c/1.jpg",
+            "creator": "Author",
+            "description": "Text.",
+            "release_year": "2001",
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "entry": [],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "existing values are never overwritten by the backfill",
+      "steps": [
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n     VALUES ('e1', NULL, 'Dune', NULL, 'book', 'unstarted', ?, ?, 'gb1')",
+            [
+              "2026-09-01T12:00:00.000Z",
+              "google-books"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET creator = 'Kept'",
+            []
+          ],
+          "result": null
+        },
+        {
+          "call": "backfillMetadata",
+          "args": [
+            {
+              "google-books": {
+                "details": {
+                  "gb1": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001"
+                  }
+                }
+              }
+            },
+            "2026-09-22T12:00:00.000Z"
+          ],
+          "result": {
+            "filled": 1,
+            "skipped": 0,
+            "failed": 0,
+            "calls": [
+              "details:gb1"
+            ],
+            "sleeps": []
+          }
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT * FROM entry ORDER BY id",
+            []
+          ],
+          "result": [
+            {
+              "id": "#1",
+              "series_id": null,
+              "title": "Dune",
+              "ordinal": null,
+              "media_type": "book",
+              "status": "unstarted",
+              "started_at": null,
+              "finished_at": null,
+              "created_at": "2026-09-01T12:00:00.000Z",
+              "paused": 0,
+              "external_source": "google-books",
+              "external_id": "gb1",
+              "cover_url": "https://c/1.jpg",
+              "creator": "Kept",
+              "description": "Text.",
+              "release_year": "2001",
+              "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+              "genres_json": "[]"
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "google-books",
+            "external_id": "gb1",
+            "cover_url": "https://c/1.jpg",
+            "creator": "Kept",
+            "description": "Text.",
+            "release_year": "2001",
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "per-source pacing: two metron rows wait once, 3500 ms, between the lookups",
+      "steps": [
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n       VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)",
+            [
+              "row-a",
+              "row-a",
+              "2026-09-01T12:00:00.000Z",
+              "metron",
+              "x-row-a"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n       VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)",
+            [
+              "row-b",
+              "row-b",
+              "2026-09-01T12:00:00.000Z",
+              "metron",
+              "x-row-b"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "backfillMetadata",
+          "args": [
+            {
+              "metron": {
+                "details": {
+                  "x-row-a": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001"
+                  },
+                  "x-row-b": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001"
+                  }
+                }
+              }
+            },
+            "2026-09-22T12:00:00.000Z"
+          ],
+          "result": {
+            "filled": 2,
+            "skipped": 0,
+            "failed": 0,
+            "calls": [
+              "details:x-#1",
+              "details:x-#2"
+            ],
+            "sleeps": [
+              3500
+            ]
+          }
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "#1",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "metron",
+            "external_id": "x-#1",
+            "cover_url": "https://c/1.jpg",
+            "creator": "Author",
+            "description": "Text.",
+            "release_year": "2001",
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          },
+          {
+            "id": "#2",
+            "series_id": null,
+            "title": "#2",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "metron",
+            "external_id": "x-#2",
+            "cover_url": "https://c/1.jpg",
+            "creator": "Author",
+            "description": "Text.",
+            "release_year": "2001",
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "per-source pacing: anilist rows are spaced 2000 ms apart",
+      "steps": [
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n       VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)",
+            [
+              "row-a",
+              "row-a",
+              "2026-09-01T12:00:00.000Z",
+              "anilist",
+              "x-row-a"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n       VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)",
+            [
+              "row-b",
+              "row-b",
+              "2026-09-01T12:00:00.000Z",
+              "anilist",
+              "x-row-b"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n       VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)",
+            [
+              "row-c",
+              "row-c",
+              "2026-09-01T12:00:00.000Z",
+              "anilist",
+              "x-row-c"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "backfillMetadata",
+          "args": [
+            {
+              "anilist": {
+                "details": {
+                  "x-row-a": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001"
+                  },
+                  "x-row-b": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001"
+                  },
+                  "x-row-c": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001"
+                  }
+                }
+              }
+            },
+            "2026-09-22T12:00:00.000Z"
+          ],
+          "result": {
+            "filled": 3,
+            "skipped": 0,
+            "failed": 0,
+            "calls": [
+              "details:x-#1",
+              "details:x-#2",
+              "details:x-#3"
+            ],
+            "sleeps": [
+              2000,
+              2000
+            ]
+          }
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "#1",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "anilist",
+            "external_id": "x-#1",
+            "cover_url": "https://c/1.jpg",
+            "creator": "Author",
+            "description": "Text.",
+            "release_year": "2001",
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          },
+          {
+            "id": "#2",
+            "series_id": null,
+            "title": "#2",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "anilist",
+            "external_id": "x-#2",
+            "cover_url": "https://c/1.jpg",
+            "creator": "Author",
+            "description": "Text.",
+            "release_year": "2001",
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          },
+          {
+            "id": "#3",
+            "series_id": null,
+            "title": "#3",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "anilist",
+            "external_id": "x-#3",
+            "cover_url": "https://c/1.jpg",
+            "creator": "Author",
+            "description": "Text.",
+            "release_year": "2001",
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "per-source pacing: google-books and tmdb are not paced, and a lone row never waits",
+      "steps": [
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n       VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)",
+            [
+              "row-a",
+              "row-a",
+              "2026-09-01T12:00:00.000Z",
+              "google-books",
+              "x-row-a"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n       VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)",
+            [
+              "row-b",
+              "row-b",
+              "2026-09-01T12:00:00.000Z",
+              "google-books",
+              "x-row-b"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n       VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)",
+            [
+              "row-c",
+              "row-c",
+              "2026-09-01T12:00:00.000Z",
+              "tmdb",
+              "x-row-c"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n       VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)",
+            [
+              "row-d",
+              "row-d",
+              "2026-09-01T12:00:00.000Z",
+              "tmdb",
+              "x-row-d"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n       VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)",
+            [
+              "row-e",
+              "row-e",
+              "2026-09-01T12:00:00.000Z",
+              "metron",
+              "x-row-e"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "backfillMetadata",
+          "args": [
+            {
+              "google-books": {
+                "details": {
+                  "x-row-a": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001"
+                  },
+                  "x-row-b": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001"
+                  }
+                }
+              },
+              "tmdb": {
+                "details": {
+                  "x-row-c": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001"
+                  },
+                  "x-row-d": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001"
+                  }
+                }
+              },
+              "metron": {
+                "details": {
+                  "x-row-e": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001"
+                  }
+                }
+              }
+            },
+            "2026-09-22T12:00:00.000Z"
+          ],
+          "result": {
+            "filled": 5,
+            "skipped": 0,
+            "failed": 0,
+            "calls": [
+              "details:x-#1",
+              "details:x-#2",
+              "details:x-#3",
+              "details:x-#4",
+              "details:x-#5"
+            ],
+            "sleeps": []
+          }
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "#1",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "google-books",
+            "external_id": "x-#1",
+            "cover_url": "https://c/1.jpg",
+            "creator": "Author",
+            "description": "Text.",
+            "release_year": "2001",
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          },
+          {
+            "id": "#2",
+            "series_id": null,
+            "title": "#2",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "google-books",
+            "external_id": "x-#2",
+            "cover_url": "https://c/1.jpg",
+            "creator": "Author",
+            "description": "Text.",
+            "release_year": "2001",
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          },
+          {
+            "id": "#3",
+            "series_id": null,
+            "title": "#3",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "tmdb",
+            "external_id": "x-#3",
+            "cover_url": "https://c/1.jpg",
+            "creator": "Author",
+            "description": "Text.",
+            "release_year": "2001",
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          },
+          {
+            "id": "#4",
+            "series_id": null,
+            "title": "#4",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "tmdb",
+            "external_id": "x-#4",
+            "cover_url": "https://c/1.jpg",
+            "creator": "Author",
+            "description": "Text.",
+            "release_year": "2001",
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          },
+          {
+            "id": "#5",
+            "series_id": null,
+            "title": "#5",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "metron",
+            "external_id": "x-#5",
+            "cover_url": "https://c/1.jpg",
+            "creator": "Author",
+            "description": "Text.",
+            "release_year": "2001",
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "per-source pacing: the gap is per source: interleaved sources each pace only against themselves",
+      "steps": [
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n       VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)",
+            [
+              "row-a",
+              "row-a",
+              "2026-09-01T12:00:00.000Z",
+              "metron",
+              "x-row-a"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n       VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)",
+            [
+              "row-b",
+              "row-b",
+              "2026-09-01T12:00:00.000Z",
+              "anilist",
+              "x-row-b"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n       VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)",
+            [
+              "row-c",
+              "row-c",
+              "2026-09-01T12:00:00.000Z",
+              "metron",
+              "x-row-c"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n       VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)",
+            [
+              "row-d",
+              "row-d",
+              "2026-09-01T12:00:00.000Z",
+              "anilist",
+              "x-row-d"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "backfillMetadata",
+          "args": [
+            {
+              "metron": {
+                "details": {
+                  "x-row-a": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001"
+                  },
+                  "x-row-c": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001"
+                  }
+                }
+              },
+              "anilist": {
+                "details": {
+                  "x-row-b": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001"
+                  },
+                  "x-row-d": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001"
+                  }
+                }
+              }
+            },
+            "2026-09-22T12:00:00.000Z"
+          ],
+          "result": {
+            "filled": 4,
+            "skipped": 0,
+            "failed": 0,
+            "calls": [
+              "details:x-#1",
+              "details:x-#2",
+              "details:x-#3",
+              "details:x-#4"
+            ],
+            "sleeps": [
+              3500,
+              2000
+            ]
+          }
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "#1",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "metron",
+            "external_id": "x-#1",
+            "cover_url": "https://c/1.jpg",
+            "creator": "Author",
+            "description": "Text.",
+            "release_year": "2001",
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          },
+          {
+            "id": "#2",
+            "series_id": null,
+            "title": "#2",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "anilist",
+            "external_id": "x-#2",
+            "cover_url": "https://c/1.jpg",
+            "creator": "Author",
+            "description": "Text.",
+            "release_year": "2001",
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          },
+          {
+            "id": "#3",
+            "series_id": null,
+            "title": "#3",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "metron",
+            "external_id": "x-#3",
+            "cover_url": "https://c/1.jpg",
+            "creator": "Author",
+            "description": "Text.",
+            "release_year": "2001",
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          },
+          {
+            "id": "#4",
+            "series_id": null,
+            "title": "#4",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "anilist",
+            "external_id": "x-#4",
+            "cover_url": "https://c/1.jpg",
+            "creator": "Author",
+            "description": "Text.",
+            "release_year": "2001",
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "per-source pacing: skipped rows (no provider) never sleep",
+      "steps": [
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n       VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)",
+            [
+              "row-a",
+              "row-a",
+              "2026-09-01T12:00:00.000Z",
+              "metron",
+              "x-row-a"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n       VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)",
+            [
+              "row-b",
+              "row-b",
+              "2026-09-01T12:00:00.000Z",
+              "metron",
+              "x-row-b"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "backfillMetadata",
+          "args": [
+            {},
+            "2026-09-22T12:00:00.000Z"
+          ],
+          "result": {
+            "filled": 0,
+            "skipped": 2,
+            "failed": 0,
+            "calls": [],
+            "sleeps": []
+          }
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "#1",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "metron",
+            "external_id": "x-#1",
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          },
+          {
+            "id": "#2",
+            "series_id": null,
+            "title": "#2",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "metron",
+            "external_id": "x-#2",
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "Iris parity: a failed metron lookup still paces the next one; a source with no details is skipped unpaced",
+      "steps": [
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n       VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)",
+            [
+              "row-a",
+              "row-a",
+              "2026-09-01T12:00:00.000Z",
+              "metron",
+              "x-row-a"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n       VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)",
+            [
+              "row-b",
+              "row-b",
+              "2026-09-01T12:00:00.000Z",
+              "metron",
+              "x-row-b"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n       VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)",
+            [
+              "row-c",
+              "row-c",
+              "2026-09-01T12:00:00.000Z",
+              "tmdb",
+              "x-row-c"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n       VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)",
+            [
+              "row-d",
+              "row-d",
+              "2026-09-01T12:00:00.000Z",
+              "anilist",
+              "x-row-d"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "backfillMetadata",
+          "args": [
+            {
+              "metron": {
+                "details": {
+                  "x-row-a": {
+                    "throws": "offline"
+                  },
+                  "x-row-b": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001"
+                  }
+                }
+              },
+              "tmdb": {},
+              "anilist": {
+                "details": {}
+              }
+            },
+            "2026-09-22T12:00:00.000Z"
+          ],
+          "result": {
+            "filled": 1,
+            "skipped": 1,
+            "failed": 2,
+            "calls": [
+              "details:x-#1",
+              "details:x-#2",
+              "details:x-#4"
+            ],
+            "sleeps": [
+              3500
+            ]
+          }
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT id, metadata_checked_at, genres_json FROM entry ORDER BY id",
+            []
+          ],
+          "result": [
+            {
+              "id": "#1",
+              "metadata_checked_at": null,
+              "genres_json": null
+            },
+            {
+              "id": "#2",
+              "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+              "genres_json": "[]"
+            },
+            {
+              "id": "#3",
+              "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+              "genres_json": "[]"
+            },
+            {
+              "id": "#4",
+              "metadata_checked_at": null,
+              "genres_json": null
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "#1",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "metron",
+            "external_id": "x-#1",
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#2",
+            "series_id": null,
+            "title": "#2",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "metron",
+            "external_id": "x-#2",
+            "cover_url": "https://c/1.jpg",
+            "creator": "Author",
+            "description": "Text.",
+            "release_year": "2001",
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          },
+          {
+            "id": "#3",
+            "series_id": null,
+            "title": "#3",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "tmdb",
+            "external_id": "x-#3",
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          },
+          {
+            "id": "#4",
+            "series_id": null,
+            "title": "#4",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "anilist",
+            "external_id": "x-#4",
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "Iris parity: series rows are looked up before standalone entries, and nulls in metadata fill nothing",
+      "steps": [
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at, external_source, external_id)\n       VALUES (?, NULL, ?, NULL, 'book', 'unstarted', ?, ?, ?)",
+            [
+              "row-e",
+              "row-e",
+              "2026-09-01T12:00:00.000Z",
+              "anilist",
+              "x-row-e"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO series (id, title, media_type, unit_label, created_at, external_source, external_id)\n         VALUES ('s1', 'Berserk', 'manga', 'volume', ?, 'anilist', '1')",
+            [
+              "2026-09-01T12:00:00.000Z"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "backfillMetadata",
+          "args": [
+            {
+              "anilist": {
+                "details": {
+                  "1": {
+                    "coverUrl": null,
+                    "creator": null,
+                    "description": null,
+                    "releaseYear": null,
+                    "genres": []
+                  },
+                  "x-row-e": {
+                    "coverUrl": "https://c/1.jpg",
+                    "creator": "Author",
+                    "description": "Text.",
+                    "releaseYear": "2001"
+                  }
+                }
+              }
+            },
+            "2026-09-22T12:00:00.000Z"
+          ],
+          "result": {
+            "filled": 2,
+            "skipped": 0,
+            "failed": 0,
+            "calls": [
+              "details:1",
+              "details:x-#1"
+            ],
+            "sleeps": [
+              2000
+            ]
+          }
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT id, cover_url, creator, metadata_checked_at, genres_json FROM series",
+            []
+          ],
+          "result": [
+            {
+              "id": "#2",
+              "cover_url": null,
+              "creator": null,
+              "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+              "genres_json": "[]"
+            }
+          ]
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT id, cover_url, creator, metadata_checked_at, genres_json FROM entry",
+            []
+          ],
+          "result": [
+            {
+              "id": "#1",
+              "cover_url": "https://c/1.jpg",
+              "creator": "Author",
+              "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+              "genres_json": "[]"
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#2",
+            "title": "Berserk",
+            "media_type": "manga",
+            "unit_label": "volume",
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "external_source": "anilist",
+            "external_id": "1",
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "entry": [
+          {
+            "id": "#1",
+            "series_id": null,
+            "title": "#1",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": "anilist",
+            "external_id": "x-#1",
+            "cover_url": "https://c/1.jpg",
+            "creator": "Author",
+            "description": "Text.",
+            "release_year": "2001",
+            "metadata_checked_at": "2026-09-22T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    }
+  ]
+}

@@ -6,9 +6,11 @@ import * as path from 'path';
 import { normTitle, testTitles } from '../../testTitles';
 import { play } from '../play';
 import type { Scenario } from '../types';
+import { scenarios as backfill } from '../cases/backfill';
 import { NOT_A_SCENARIO as backupNot, scenarios as backup } from '../cases/backup';
 import { scenarios as progress } from '../cases/progress';
 import { scenarios as ratings } from '../cases/ratings';
+import { scenarios as sync } from '../cases/sync';
 import { NOT_A_SCENARIO as tracksNot, scenarios as tracks } from '../cases/tracks';
 import { scenarios as whatsNew } from '../cases/whatsNew';
 
@@ -24,12 +26,15 @@ const AREAS: Record<string, { scenarios: Scenario[]; testFiles: string[]; notASc
   progress: {
     scenarios: progress,
     testFiles: ['advanceTrack.test.ts', 'oneTapAdvance.test.ts', 'ongoing.test.ts', 'setTrackPosition.test.ts', 'completeTrack.test.ts', 'trackActions.test.ts'],
-  },  ratings: { scenarios: ratings, testFiles: ['ratingRepo.test.ts'] },
+  },
+  ratings: { scenarios: ratings, testFiles: ['ratingRepo.test.ts'] },
   backup: { scenarios: backup, testFiles: ['backup.test.ts'], notAScenario: backupNot },
+  backfill: { scenarios: backfill, testFiles: ['backfillMetadata.test.ts'] },
+  sync: { scenarios: sync, testFiles: ['syncSeriesUnit.test.ts'] },
 };
 
-/** src/data tests that are not scenarios yet: they need real providers (I5). */
-const LATER = ['backfillMetadata.test.ts', 'syncSeriesUnit.test.ts'];
+/** src/data tests that are not scenarios yet (none since I5 added stub providers). */
+const LATER: string[] = [];
 
 const HERE = path.resolve(__dirname, '..');
 const DATA_TESTS = path.resolve(__dirname, '../../../src/data/__tests__');

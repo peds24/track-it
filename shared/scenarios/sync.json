@@ -1,0 +1,1750 @@
+{
+  "area": "sync",
+  "generatedBy": "npm run fixtures:record",
+  "timezone": "UTC",
+  "scenarios": [
+    {
+      "name": "after an advance, the series shows the issue now being read",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Saga",
+              "mediaType": "comic",
+              "unitLabel": "issue",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Issue 1"
+                },
+                {
+                  "ordinal": 2,
+                  "title": "Issue 2"
+                },
+                {
+                  "ordinal": 3,
+                  "title": "Issue 3"
+                }
+              ],
+              "externalSource": "metron",
+              "externalId": "101",
+              "metadata": {
+                "coverUrl": "https://static.metron.cloud/1.jpg",
+                "creator": "BKV",
+                "description": null,
+                "releaseYear": "2012"
+              }
+            },
+            "2026-09-01T12:00:00.000Z",
+            1
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT id FROM entry WHERE ordinal = ?",
+            [
+              1
+            ]
+          ],
+          "result": [
+            {
+              "id": "#2"
+            }
+          ]
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT id FROM entry WHERE ordinal = ?",
+            [
+              2
+            ]
+          ],
+          "result": [
+            {
+              "id": "#3"
+            }
+          ]
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT id FROM entry WHERE ordinal = ?",
+            [
+              3
+            ]
+          ],
+          "result": [
+            {
+              "id": "#4"
+            }
+          ]
+        },
+        {
+          "call": "advanceEntry",
+          "args": [
+            {
+              "$ref": 1,
+              "path": "0.id"
+            },
+            "2026-09-02T12:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "syncSeriesUnit",
+          "args": [
+            {
+              "$ref": 0
+            },
+            {
+              "metron": {
+                "unitAt": {
+                  "101#2": {
+                    "externalId": "102",
+                    "number": "2",
+                    "coverUrl": "https://static.metron.cloud/2.jpg"
+                  }
+                }
+              }
+            }
+          ],
+          "result": {
+            "changed": true,
+            "calls": [
+              "unitAt:101#2"
+            ]
+          }
+        },
+        {
+          "call": "getTrackDetail",
+          "args": [
+            "series",
+            {
+              "$ref": 0
+            }
+          ],
+          "result": {
+            "summary": {
+              "kind": "series",
+              "id": "#1",
+              "title": "Saga",
+              "category": "comic",
+              "shelf": "currently",
+              "createdAt": "2026-09-01T12:00:00.000Z",
+              "progress": {
+                "done": 1,
+                "total": 3
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "in_progress",
+              "nextEntryId": "#3",
+              "nextEntryTitle": "Issue 2",
+              "lastAdvancedAt": "2026-09-02T12:00:00.000Z",
+              "completionDrops": null
+            },
+            "metadata": {
+              "coverUrl": "https://static.metron.cloud/2.jpg",
+              "creator": "BKV",
+              "description": null,
+              "releaseYear": "2012"
+            },
+            "timeline": {
+              "addedAt": "2026-09-01T12:00:00.000Z",
+              "startedAt": "2026-09-01T12:00:00.000Z",
+              "finishedAt": null
+            },
+            "unitLabel": "issue"
+          }
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT external_id, cover_url FROM series",
+            []
+          ],
+          "result": [
+            {
+              "external_id": "102",
+              "cover_url": "https://static.metron.cloud/2.jpg"
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Saga",
+            "media_type": "comic",
+            "unit_label": "issue",
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "external_source": "metron",
+            "external_id": "102",
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": "https://static.metron.cloud/2.jpg",
+            "creator": "BKV",
+            "description": null,
+            "release_year": "2012",
+            "metadata_checked_at": "2026-09-01T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "media_type": "issue",
+            "status": "done",
+            "started_at": "2026-09-01T12:00:00.000Z",
+            "finished_at": "2026-09-02T12:00:00.000Z",
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "media_type": "issue",
+            "status": "in_progress",
+            "started_at": "2026-09-02T12:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "uses the catalogue's own issue number in the unit title",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Saga",
+              "mediaType": "comic",
+              "unitLabel": "issue",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Issue 1"
+                },
+                {
+                  "ordinal": 2,
+                  "title": "Issue 2"
+                },
+                {
+                  "ordinal": 3,
+                  "title": "Issue 3"
+                }
+              ],
+              "externalSource": "metron",
+              "externalId": "101",
+              "metadata": {
+                "coverUrl": "https://static.metron.cloud/1.jpg",
+                "creator": "BKV",
+                "description": null,
+                "releaseYear": "2012"
+              }
+            },
+            "2026-09-01T12:00:00.000Z",
+            1
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT id FROM entry WHERE ordinal = ?",
+            [
+              1
+            ]
+          ],
+          "result": [
+            {
+              "id": "#2"
+            }
+          ]
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT id FROM entry WHERE ordinal = ?",
+            [
+              2
+            ]
+          ],
+          "result": [
+            {
+              "id": "#3"
+            }
+          ]
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT id FROM entry WHERE ordinal = ?",
+            [
+              3
+            ]
+          ],
+          "result": [
+            {
+              "id": "#4"
+            }
+          ]
+        },
+        {
+          "call": "advanceEntry",
+          "args": [
+            {
+              "$ref": 1,
+              "path": "0.id"
+            },
+            "2026-09-02T12:00:00.000Z"
+          ],
+          "result": null
+        },
+        {
+          "call": "syncSeriesUnit",
+          "args": [
+            {
+              "$ref": 0
+            },
+            {
+              "metron": {
+                "unitAt": {
+                  "101#2": {
+                    "externalId": "150",
+                    "number": "1.1",
+                    "coverUrl": null
+                  }
+                }
+              }
+            }
+          ],
+          "result": {
+            "changed": true,
+            "calls": [
+              "unitAt:101#2"
+            ]
+          }
+        },
+        {
+          "call": "getTrackDetail",
+          "args": [
+            "series",
+            {
+              "$ref": 0
+            }
+          ],
+          "result": {
+            "summary": {
+              "kind": "series",
+              "id": "#1",
+              "title": "Saga",
+              "category": "comic",
+              "shelf": "currently",
+              "createdAt": "2026-09-01T12:00:00.000Z",
+              "progress": {
+                "done": 1,
+                "total": 3
+              },
+              "ongoing": false,
+              "paused": false,
+              "seasons": null,
+              "nextEntryStatus": "in_progress",
+              "nextEntryId": "#3",
+              "nextEntryTitle": "Issue 1.1",
+              "lastAdvancedAt": "2026-09-02T12:00:00.000Z",
+              "completionDrops": null
+            },
+            "metadata": {
+              "coverUrl": "https://static.metron.cloud/1.jpg",
+              "creator": "BKV",
+              "description": null,
+              "releaseYear": "2012"
+            },
+            "timeline": {
+              "addedAt": "2026-09-01T12:00:00.000Z",
+              "startedAt": "2026-09-01T12:00:00.000Z",
+              "finishedAt": null
+            },
+            "unitLabel": "issue"
+          }
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT ordinal, title FROM entry ORDER BY ordinal",
+            []
+          ],
+          "result": [
+            {
+              "ordinal": 1,
+              "title": "Issue 1"
+            },
+            {
+              "ordinal": 2,
+              "title": "Issue 1.1"
+            },
+            {
+              "ordinal": 3,
+              "title": "Issue 3"
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Saga",
+            "media_type": "comic",
+            "unit_label": "issue",
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "external_source": "metron",
+            "external_id": "150",
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": "https://static.metron.cloud/1.jpg",
+            "creator": "BKV",
+            "description": null,
+            "release_year": "2012",
+            "metadata_checked_at": "2026-09-01T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "media_type": "issue",
+            "status": "done",
+            "started_at": "2026-09-01T12:00:00.000Z",
+            "finished_at": "2026-09-02T12:00:00.000Z",
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Issue 1.1",
+            "ordinal": 2,
+            "media_type": "issue",
+            "status": "in_progress",
+            "started_at": "2026-09-02T12:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a finished series settles on its last issue",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Saga",
+              "mediaType": "comic",
+              "unitLabel": "issue",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Issue 1"
+                },
+                {
+                  "ordinal": 2,
+                  "title": "Issue 2"
+                },
+                {
+                  "ordinal": 3,
+                  "title": "Issue 3"
+                }
+              ],
+              "externalSource": "metron",
+              "externalId": "101",
+              "metadata": {
+                "coverUrl": "https://static.metron.cloud/1.jpg",
+                "creator": "BKV",
+                "description": null,
+                "releaseYear": "2012"
+              }
+            },
+            "2026-09-01T12:00:00.000Z",
+            1
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "sql",
+          "args": [
+            "UPDATE entry SET status = 'done', finished_at = ?",
+            [
+              "2026-09-02T12:00:00.000Z"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "syncSeriesUnit",
+          "args": [
+            {
+              "$ref": 0
+            },
+            {
+              "metron": {
+                "unitAt": {}
+              }
+            }
+          ],
+          "result": {
+            "changed": false,
+            "calls": [
+              "unitAt:101#3"
+            ]
+          }
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Saga",
+            "media_type": "comic",
+            "unit_label": "issue",
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "external_source": "metron",
+            "external_id": "101",
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": "https://static.metron.cloud/1.jpg",
+            "creator": "BKV",
+            "description": null,
+            "release_year": "2012",
+            "metadata_checked_at": "2026-09-01T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "media_type": "issue",
+            "status": "done",
+            "started_at": "2026-09-01T12:00:00.000Z",
+            "finished_at": "2026-09-02T12:00:00.000Z",
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "media_type": "issue",
+            "status": "done",
+            "started_at": null,
+            "finished_at": "2026-09-02T12:00:00.000Z",
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "media_type": "issue",
+            "status": "done",
+            "started_at": null,
+            "finished_at": "2026-09-02T12:00:00.000Z",
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "nothing changes when the catalogue has no such issue, or the lookup failed",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Saga",
+              "mediaType": "comic",
+              "unitLabel": "issue",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Issue 1"
+                },
+                {
+                  "ordinal": 2,
+                  "title": "Issue 2"
+                },
+                {
+                  "ordinal": 3,
+                  "title": "Issue 3"
+                }
+              ],
+              "externalSource": "metron",
+              "externalId": "101",
+              "metadata": {
+                "coverUrl": "https://static.metron.cloud/1.jpg",
+                "creator": "BKV",
+                "description": null,
+                "releaseYear": "2012"
+              }
+            },
+            "2026-09-01T12:00:00.000Z",
+            1
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "syncSeriesUnit",
+          "args": [
+            {
+              "$ref": 0
+            },
+            {
+              "metron": {
+                "unitAt": {}
+              }
+            }
+          ],
+          "result": {
+            "changed": false,
+            "calls": [
+              "unitAt:101#1"
+            ]
+          }
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT external_id, cover_url FROM series",
+            []
+          ],
+          "result": [
+            {
+              "external_id": "101",
+              "cover_url": "https://static.metron.cloud/1.jpg"
+            }
+          ]
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT ordinal, title FROM entry ORDER BY ordinal",
+            []
+          ],
+          "result": [
+            {
+              "ordinal": 1,
+              "title": "Issue 1"
+            },
+            {
+              "ordinal": 2,
+              "title": "Issue 2"
+            },
+            {
+              "ordinal": 3,
+              "title": "Issue 3"
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Saga",
+            "media_type": "comic",
+            "unit_label": "issue",
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "external_source": "metron",
+            "external_id": "101",
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": "https://static.metron.cloud/1.jpg",
+            "creator": "BKV",
+            "description": null,
+            "release_year": "2012",
+            "metadata_checked_at": "2026-09-01T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "media_type": "issue",
+            "status": "in_progress",
+            "started_at": "2026-09-01T12:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a hand-typed series is never looked up",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Saga",
+              "mediaType": "comic",
+              "unitLabel": "issue",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Issue 1"
+                },
+                {
+                  "ordinal": 2,
+                  "title": "Issue 2"
+                },
+                {
+                  "ordinal": 3,
+                  "title": "Issue 3"
+                }
+              ],
+              "metadata": {
+                "coverUrl": "https://static.metron.cloud/1.jpg",
+                "creator": "BKV",
+                "description": null,
+                "releaseYear": "2012"
+              }
+            },
+            "2026-09-01T12:00:00.000Z",
+            1
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "syncSeriesUnit",
+          "args": [
+            {
+              "$ref": 0
+            },
+            {
+              "metron": {
+                "unitAt": {
+                  "101#1": {
+                    "externalId": "9",
+                    "number": "9",
+                    "coverUrl": null
+                  }
+                }
+              }
+            }
+          ],
+          "result": {
+            "changed": false,
+            "calls": []
+          }
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Saga",
+            "media_type": "comic",
+            "unit_label": "issue",
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "external_source": null,
+            "external_id": null,
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": "https://static.metron.cloud/1.jpg",
+            "creator": "BKV",
+            "description": null,
+            "release_year": "2012",
+            "metadata_checked_at": "2026-09-01T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "media_type": "issue",
+            "status": "in_progress",
+            "started_at": "2026-09-01T12:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "a source without per-unit records (TMDB, AniList) is skipped",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Saga",
+              "mediaType": "comic",
+              "unitLabel": "issue",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Issue 1"
+                },
+                {
+                  "ordinal": 2,
+                  "title": "Issue 2"
+                },
+                {
+                  "ordinal": 3,
+                  "title": "Issue 3"
+                }
+              ],
+              "externalSource": "anilist",
+              "externalId": "101",
+              "metadata": {
+                "coverUrl": "https://static.metron.cloud/1.jpg",
+                "creator": "BKV",
+                "description": null,
+                "releaseYear": "2012"
+              }
+            },
+            "2026-09-01T12:00:00.000Z",
+            1
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "syncSeriesUnit",
+          "args": [
+            {
+              "$ref": 0
+            },
+            {
+              "anilist": {}
+            }
+          ],
+          "result": {
+            "changed": false,
+            "calls": []
+          }
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Saga",
+            "media_type": "comic",
+            "unit_label": "issue",
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "external_source": "anilist",
+            "external_id": "101",
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": "https://static.metron.cloud/1.jpg",
+            "creator": "BKV",
+            "description": null,
+            "release_year": "2012",
+            "metadata_checked_at": "2026-09-01T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "media_type": "issue",
+            "status": "in_progress",
+            "started_at": "2026-09-01T12:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "syncUnitForEntry finds the series from one of its units, and ignores a standalone entry",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Saga",
+              "mediaType": "comic",
+              "unitLabel": "issue",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Issue 1"
+                },
+                {
+                  "ordinal": 2,
+                  "title": "Issue 2"
+                },
+                {
+                  "ordinal": 3,
+                  "title": "Issue 3"
+                }
+              ],
+              "externalSource": "metron",
+              "externalId": "101",
+              "metadata": {
+                "coverUrl": "https://static.metron.cloud/1.jpg",
+                "creator": "BKV",
+                "description": null,
+                "releaseYear": "2012"
+              }
+            },
+            "2026-09-01T12:00:00.000Z",
+            1
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT id FROM entry WHERE ordinal = ?",
+            [
+              1
+            ]
+          ],
+          "result": [
+            {
+              "id": "#2"
+            }
+          ]
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT id FROM entry WHERE ordinal = ?",
+            [
+              2
+            ]
+          ],
+          "result": [
+            {
+              "id": "#3"
+            }
+          ]
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT id FROM entry WHERE ordinal = ?",
+            [
+              3
+            ]
+          ],
+          "result": [
+            {
+              "id": "#4"
+            }
+          ]
+        },
+        {
+          "call": "syncUnitForEntry",
+          "args": [
+            {
+              "$ref": 1,
+              "path": "0.id"
+            },
+            {
+              "metron": {
+                "unitAt": {
+                  "101#1": {
+                    "externalId": "101",
+                    "number": "1",
+                    "coverUrl": "https://static.metron.cloud/1.jpg"
+                  }
+                }
+              }
+            }
+          ],
+          "result": {
+            "changed": false,
+            "calls": [
+              "unitAt:101#1"
+            ]
+          }
+        },
+        {
+          "call": "sql",
+          "args": [
+            "INSERT INTO entry (id, series_id, title, ordinal, media_type, status, created_at) VALUES ('standalone-b', NULL, 'Dune', NULL, 'book', 'unstarted', ?)",
+            [
+              "2026-09-01T12:00:00.000Z"
+            ]
+          ],
+          "result": null
+        },
+        {
+          "call": "syncUnitForEntry",
+          "args": [
+            "standalone-b",
+            {
+              "metron": {
+                "unitAt": {}
+              }
+            }
+          ],
+          "result": {
+            "changed": false,
+            "calls": []
+          }
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Saga",
+            "media_type": "comic",
+            "unit_label": "issue",
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "external_source": "metron",
+            "external_id": "101",
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": "https://static.metron.cloud/1.jpg",
+            "creator": "BKV",
+            "description": null,
+            "release_year": "2012",
+            "metadata_checked_at": "2026-09-01T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "media_type": "issue",
+            "status": "in_progress",
+            "started_at": "2026-09-01T12:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#5",
+            "series_id": null,
+            "title": "Dune",
+            "ordinal": null,
+            "media_type": "book",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "Iris parity: an unknown source resolves to no provider; an unknown series or entry is no change",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Saga",
+              "mediaType": "comic",
+              "unitLabel": "issue",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Issue 1"
+                },
+                {
+                  "ordinal": 2,
+                  "title": "Issue 2"
+                },
+                {
+                  "ordinal": 3,
+                  "title": "Issue 3"
+                }
+              ],
+              "externalSource": "retired-provider",
+              "externalId": "101",
+              "metadata": {
+                "coverUrl": "https://static.metron.cloud/1.jpg",
+                "creator": "BKV",
+                "description": null,
+                "releaseYear": "2012"
+              }
+            },
+            "2026-09-01T12:00:00.000Z",
+            1
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "syncSeriesUnit",
+          "args": [
+            {
+              "$ref": 0
+            },
+            {}
+          ],
+          "result": {
+            "changed": false,
+            "calls": []
+          }
+        },
+        {
+          "call": "syncSeriesUnit",
+          "args": [
+            "no-such-series",
+            {
+              "metron": {
+                "unitAt": {}
+              }
+            }
+          ],
+          "result": {
+            "changed": false,
+            "calls": []
+          }
+        },
+        {
+          "call": "syncUnitForEntry",
+          "args": [
+            "no-such-entry",
+            {
+              "metron": {
+                "unitAt": {}
+              }
+            }
+          ],
+          "result": {
+            "changed": false,
+            "calls": []
+          }
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Saga",
+            "media_type": "comic",
+            "unit_label": "issue",
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "external_source": "retired-provider",
+            "external_id": "101",
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": "https://static.metron.cloud/1.jpg",
+            "creator": "BKV",
+            "description": null,
+            "release_year": "2012",
+            "metadata_checked_at": "2026-09-01T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "media_type": "issue",
+            "status": "in_progress",
+            "started_at": "2026-09-01T12:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    },
+    {
+      "name": "Iris parity: a new cover alone counts as a change; the title keeps the unit label",
+      "steps": [
+        {
+          "call": "createSeriesTrack",
+          "args": [
+            {
+              "title": "Saga",
+              "mediaType": "comic",
+              "unitLabel": "issue",
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "title": "Issue 1"
+                },
+                {
+                  "ordinal": 2,
+                  "title": "Issue 2"
+                },
+                {
+                  "ordinal": 3,
+                  "title": "Issue 3"
+                }
+              ],
+              "externalSource": "metron",
+              "externalId": "101",
+              "metadata": {
+                "coverUrl": "https://static.metron.cloud/1.jpg",
+                "creator": "BKV",
+                "description": null,
+                "releaseYear": "2012"
+              }
+            },
+            "2026-09-01T12:00:00.000Z",
+            1
+          ],
+          "result": "#1"
+        },
+        {
+          "call": "syncSeriesUnit",
+          "args": [
+            {
+              "$ref": 0
+            },
+            {
+              "metron": {
+                "unitAt": {
+                  "101#1": {
+                    "externalId": "101",
+                    "number": "1",
+                    "coverUrl": "https://static.metron.cloud/1b.jpg"
+                  }
+                }
+              }
+            }
+          ],
+          "result": {
+            "changed": true,
+            "calls": [
+              "unitAt:101#1"
+            ]
+          }
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT external_id, cover_url FROM series",
+            []
+          ],
+          "result": [
+            {
+              "external_id": "101",
+              "cover_url": "https://static.metron.cloud/1b.jpg"
+            }
+          ]
+        },
+        {
+          "call": "query",
+          "args": [
+            "SELECT ordinal, title FROM entry ORDER BY ordinal",
+            []
+          ],
+          "result": [
+            {
+              "ordinal": 1,
+              "title": "Issue 1"
+            },
+            {
+              "ordinal": 2,
+              "title": "Issue 2"
+            },
+            {
+              "ordinal": 3,
+              "title": "Issue 3"
+            }
+          ]
+        }
+      ],
+      "dump": {
+        "series": [
+          {
+            "id": "#1",
+            "title": "Saga",
+            "media_type": "comic",
+            "unit_label": "issue",
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "external_source": "metron",
+            "external_id": "101",
+            "ongoing": 0,
+            "paused": 0,
+            "seasons_json": null,
+            "cover_url": "https://static.metron.cloud/1b.jpg",
+            "creator": "BKV",
+            "description": null,
+            "release_year": "2012",
+            "metadata_checked_at": "2026-09-01T12:00:00.000Z",
+            "genres_json": "[]"
+          }
+        ],
+        "entry": [
+          {
+            "id": "#2",
+            "series_id": "#1",
+            "title": "Issue 1",
+            "ordinal": 1,
+            "media_type": "issue",
+            "status": "in_progress",
+            "started_at": "2026-09-01T12:00:00.000Z",
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#3",
+            "series_id": "#1",
+            "title": "Issue 2",
+            "ordinal": 2,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          },
+          {
+            "id": "#4",
+            "series_id": "#1",
+            "title": "Issue 3",
+            "ordinal": 3,
+            "media_type": "issue",
+            "status": "unstarted",
+            "started_at": null,
+            "finished_at": null,
+            "created_at": "2026-09-01T12:00:00.000Z",
+            "paused": 0,
+            "external_source": null,
+            "external_id": null,
+            "cover_url": null,
+            "creator": null,
+            "description": null,
+            "release_year": null,
+            "metadata_checked_at": null,
+            "genres_json": null
+          }
+        ],
+        "rating": [],
+        "app_meta": []
+      }
+    }
+  ]
+}

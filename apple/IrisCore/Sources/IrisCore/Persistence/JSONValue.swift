@@ -55,3 +55,23 @@ extension JSONValue {
         }
     }
 }
+
+/// Reading catalogue responses the way the TS providers do: optional
+/// chaining that yields nothing on a missing key or a wrong-typed value.
+extension JSONValue {
+    /// `value?.key` — nil when this isn't an object or the key is absent.
+    public subscript(key: String) -> JSONValue? { object?[key] }
+    var array: [JSONValue]? { if case let .array(a) = self { a } else { nil } }
+    var number: Double? { if case let .number(n) = self { n } else { nil } }
+    var bool: Bool? { if case let .bool(b) = self { b } else { nil } }
+    /// JS truthiness: false, 0, NaN, "" and null are falsy.
+    var truthy: Bool {
+        switch self {
+        case .null: false
+        case let .bool(b): b
+        case let .number(n): n != 0 && !n.isNaN
+        case let .string(s): !s.isEmpty
+        case .array, .object: true
+        }
+    }
+}

@@ -1,5 +1,27 @@
 # DEVLOG
 
+## 2026-10-07 — Iris I5: catalogue providers
+
+- `apple/IrisCore/Sources/IrisCore/Providers/` ports TMDB, Google Books,
+  Metron and AniList; 180 recorded provider calls in `shared/providers/`
+  replay with identical requests and results. The backfill and issue sync
+  are ported too, with their scenarios.
+- **Why record requests, not just results**: a provider is mostly the
+  request it builds — URL encoding, Metron's Basic auth, AniList's GraphQL
+  text. A Swift port that got any of it wrong would still pass a
+  result-only test, then fail against the real API.
+- **Why loose JSON (`JSONValue`) instead of Codable models**: the TS
+  providers read responses with optional chaining and truthiness, so a
+  missing or wrong-typed field degrades rather than failing the decode.
+  Typed models would turn those into errors.
+- **Quirks kept on purpose**: Metron's hand-rolled base64 encodes each UTF-16
+  surrogate on its own (an emoji password differs from standard UTF-8), and
+  a non-numeric AniList id is sent as `null`. Both platforms do the same,
+  so the stored credentials work on both.
+- **Gotcha**: the scenario id normaliser replaces ids by substring, so the
+  TS tests' one-letter row ids (`a`, `e`) rewrote JSON keys (`f#1iled`). The
+  scenarios use distinctive ids instead.
+
 ## 2026-10-07 — Iris I4: persistence on GRDB
 
 - `apple/IrisCore/Sources/IrisCore/Persistence/` ports `src/db` and the
