@@ -37,6 +37,18 @@ final class GalleryTests: XCTestCase {
         }
     }
 
+    @MainActor
+    func testSheetPresentsAndDismisses() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-IrisGallery", "YES"]
+        app.launch()
+        app.buttons["gallery.IrisSheet"].tap()
+        app.buttons["sheet.present"].tap()
+        XCTAssertTrue(app.staticTexts["sheet.body"].waitForExistence(timeout: 5))
+        app.swipeDown(velocity: .fast)
+        XCTAssertTrue(app.staticTexts["sheet.body"].waitForNonExistence(timeout: 5))
+    }
+
     /// A Gallery page's root, whatever element type SwiftUI gives it (a scroll view, usually).
     @MainActor
     static func page(_ name: String, in app: XCUIApplication) -> XCUIElement {

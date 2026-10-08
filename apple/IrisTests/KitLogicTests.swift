@@ -72,4 +72,15 @@ final class KitLogicTests: XCTestCase {
         XCTAssertNil(IrisShelfRow.Model.titleLineLimit(isAccessibilitySize: true))
         XCTAssertEqual(IrisShelfRow.Model.titleLineLimit(isAccessibilitySize: false), 2)
     }
+
+    // MARK: Glass & motion
+    func testGlassFallsBackUnderReduceTransparency() {
+        XCTAssertEqual(IrisGlassStyle.regular.resolved(reduceTransparency: false), .glass(.regular))
+        XCTAssertEqual(IrisGlassStyle.clear.resolved(reduceTransparency: true), .fallback(.clear))
+    }
+
+    func testMotionFadesUnderReduceMotion() {
+        XCTAssertEqual(IrisMotion.animation(IrisTokens.Motion.bouncy, reduceMotion: false), IrisTokens.Motion.bouncy)
+        XCTAssertEqual(IrisMotion.animation(IrisTokens.Motion.bouncy, reduceMotion: true), .easeInOut(duration: 0.2))
+    }
 }

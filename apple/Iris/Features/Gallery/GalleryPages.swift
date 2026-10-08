@@ -76,7 +76,18 @@ struct GalleryPage: View {
                     VStack { comparisonPair }
                 }
             }
-        default: Text(component.rawValue)
+        case .IrisSheet:
+            GallerySheetDemo()
+        case .IrisSymbol:
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 96))], spacing: IrisTokens.Space.lg) {
+                ForEach(IrisSymbol.allCases, id: \.self) { s in
+                    VStack(spacing: IrisTokens.Space.xs) {
+                        s.image.font(IrisTokens.Typography.title2.font).foregroundStyle(IrisTokens.Colors.accent).frame(height: 32)
+                        Text(s.rawValue).font(IrisTokens.Typography.caption1.font).foregroundStyle(IrisTokens.Colors.secondaryLabel)
+                    }
+                }
+            }
+        case .IrisShelfRow: EmptyView() // rendered as a List in body
         }
     }
 }
@@ -115,6 +126,32 @@ extension GallerySample {
         .init(title: "Saga", category: .comic, detail: "Finished", progress: nil, coverURL: nil, accessory: .rating(score: 8.7, sentiment: .liked)),
         .init(title: "Arrival", category: .movie, detail: "Watched", progress: nil, coverURL: nil, accessory: .rate),
     ]
+}
+
+struct GallerySheetDemo: View {
+    @State private var shown = false
+    var body: some View {
+        VStack(alignment: .leading, spacing: IrisTokens.Space.lg) {
+            IrisPrimaryButton("Show sheet", symbol: .add) { shown = true }.accessibilityIdentifier("sheet.present")
+            Text("Glass on a busy background").font(IrisTokens.Typography.footnote.font).foregroundStyle(IrisTokens.Colors.secondaryLabel)
+            HStack(spacing: IrisTokens.Space.lg) {
+                Text("regular").padding().irisGlass(.regular, in: .capsule)
+                Text("clear").padding().irisGlass(.clear, in: .capsule)
+            }
+            .padding(IrisTokens.Space.xl)
+            .background(LinearGradient(colors: IrisCore.Category.allCases.map(\.tint), startPoint: .leading, endPoint: .trailing),
+                        in: .rect(cornerRadius: IrisTokens.Radius.card))
+        }
+        .irisSheet(isPresented: $shown) {
+            NavigationStack {
+                Text("A medium-detent sheet. Drag up for large.")
+                    .accessibilityIdentifier("sheet.body")
+                    .padding()
+                    .navigationTitle("IrisSheet")
+                    .navigationBarTitleDisplayMode(.inline)
+            }
+        }
+    }
 }
 
 /// A captioned group of states on a Gallery page.

@@ -49,7 +49,6 @@ private struct PressScale: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
-            // Task 6 replaces this with IrisMotion.animation(IrisTokens.Motion.snappy, reduceMotion: reduceMotion).
-            .animation(reduceMotion ? .easeInOut(duration: 0.2) : IrisTokens.Motion.snappy, value: configuration.isPressed)
+            .animation(IrisMotion.animation(IrisTokens.Motion.snappy, reduceMotion: reduceMotion), value: configuration.isPressed)
     }
 }

@@ -63,8 +63,7 @@ struct IrisProgress: View {
             }
         }
         .frame(height: 4)
-        // Task 6 replaces this with IrisMotion.animation(IrisTokens.Motion.smooth, reduceMotion: reduceMotion).
-        .animation(reduceMotion ? .easeInOut(duration: 0.2) : IrisTokens.Motion.smooth, value: value)
+        .animation(IrisMotion.animation(IrisTokens.Motion.smooth, reduceMotion: reduceMotion), value: value)
         .accessibilityElement()
         .accessibilityLabel("Progress")
         .accessibilityValue(value.accessibilityValue)
