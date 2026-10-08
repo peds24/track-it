@@ -5,6 +5,7 @@ import GRDB
 public struct RowRating: Equatable, Sendable {
     public let score: Double
     public let sentiment: Sentiment
+    public init(score: Double, sentiment: Sentiment) { self.score = score; self.sentiment = sentiment }
 }
 
 /// The app's one door to the library (I7). It wraps the GRDB queue, so the app
