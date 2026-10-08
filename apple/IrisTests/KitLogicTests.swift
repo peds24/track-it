@@ -43,4 +43,13 @@ final class KitLogicTests: XCTestCase {
         XCTAssertEqual(IrisProgress.Value.seasons([]).accessibilityValue, "0 of 0")
         XCTAssertEqual(IrisProgress.Value.seasons([]).segmentFractions.count, 0)
     }
+
+    // MARK: IrisRatingBadge
+    func testRatingBadgeStyleAndLabel() {
+        XCTAssertEqual(IrisRatingBadge.style(for: .liked), .init(fill: .accent, ink: .onAccent))
+        XCTAssertEqual(IrisRatingBadge.style(for: .fine), .init(fill: .fill, ink: .label))
+        XCTAssertEqual(IrisRatingBadge.style(for: .disliked), .init(fill: .destructiveTint, ink: .destructive))
+        XCTAssertEqual(IrisRatingBadge.accessibilityLabel(score: 8.45), "Rated \(formatScore(8.45)) out of 10")
+        XCTAssertEqual(IrisRatingBadge.accessibilityLabel(score: 10), "Rated 10.0 out of 10")
+    }
 }

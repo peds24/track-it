@@ -42,6 +42,23 @@ struct GalleryPage: View {
         case .IrisCategoryChip:
             GallerySection(title: "Regular") { VStack(alignment: .leading) { ForEach(IrisCore.Category.allCases, id: \.self) { IrisCategoryChip($0) } } }
             GallerySection(title: "Compact") { VStack(alignment: .leading) { ForEach(IrisCore.Category.allCases, id: \.self) { IrisCategoryChip($0, compact: true) } } }
+        case .IrisPrimaryButton:
+            GallerySection(title: "Default") { IrisPrimaryButton("Add", symbol: .add) {}.accessibilityIdentifier("primary") }
+            GallerySection(title: "Full width") { IrisPrimaryButton("Rate it", symbol: .rate, fullWidth: true) {}.accessibilityIdentifier("primary") }
+            GallerySection(title: "In progress") { IrisPrimaryButton("Adding…", inProgress: true) {}.accessibilityIdentifier("primary") }
+            GallerySection(title: "Disabled") { IrisPrimaryButton("Add", symbol: .add) {}.disabled(true).accessibilityIdentifier("primary") }
+        case .IrisRatingBadge:
+            GallerySection(title: "Liked · fine · disliked") {
+                HStack { IrisRatingBadge(score: 9.2, sentiment: .liked); IrisRatingBadge(score: 5.5, sentiment: .fine); IrisRatingBadge(score: 2.1, sentiment: .disliked) }
+            }
+            GallerySection(title: "Bounds") { HStack { IrisRatingBadge(score: 10, sentiment: .liked); IrisRatingBadge(score: 0, sentiment: .disliked) } }
+        case .IrisEmptyState:
+            GallerySection(title: "With action") {
+                IrisEmptyState("Nothing in progress", symbol: .emptyShelf, message: "Start something from Backlog and it shows up here.", actionTitle: "Add a track") {}
+            }
+            GallerySection(title: "Without action") {
+                IrisEmptyState("No results", symbol: .search, message: "Try a different title, or add it by hand.")
+            }
         default: Text(component.rawValue)
         }
     }
