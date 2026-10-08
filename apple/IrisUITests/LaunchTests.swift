@@ -5,11 +5,14 @@ final class LaunchTests: XCTestCase {
         continueAfterFailure = false
     }
 
-    /// I0's "done when": the app launches in the simulator.
+    /// I7: the app opens on the three shelves, Currently first.
     @MainActor
-    func testLaunchShowsIrisNavigationBar() {
+    func testLaunchShowsTheThreeShelves() {
         let app = XCUIApplication()
         app.launch()
-        XCTAssertTrue(app.navigationBars["Iris"].waitForExistence(timeout: 10))
+        for tab in ["Currently", "Backlog", "Done"] {
+            XCTAssertTrue(app.tabBars.buttons[tab].waitForExistence(timeout: 10), tab)
+        }
+        XCTAssertTrue(app.navigationBars["Currently"].exists)
     }
 }

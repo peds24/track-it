@@ -1,33 +1,70 @@
 import IrisCore
 import SwiftUI
 
-/// Placeholder until I7 builds the shelves. Imports IrisCore so the
-/// package link is exercised from the very first build.
+/// The three shelves (I7), each its own navigation stack.
 struct RootView: View {
+    @State private var shelves: Shelves? = nil
+    @State private var openError: String?
+
+    var body: some View {
+        Group {
+            if let shelves {
+                ShelfTabs(shelves: shelves)
+            } else if let openError {
+                IrisEmptyState("Couldn't open your library", symbol: .emptyShelf, message: openError)
+            } else {
+                Color.clear
+            }
+        }
+        .task {
+            guard shelves == nil, openError == nil else { return }
+            switch AppLibrary.make() {
+            case let .success(library): shelves = Shelves(library: library)
+            case let .failure(error): openError = ShelfModel.message(error)
+            }
+        }
+    }
+}
+
+/// One model per tab, kept for the app's lifetime so each list stays live.
+@MainActor
+final class Shelves {
+    let currently: ShelfModel, backlog: ShelfModel, done: ShelfModel
+    init(library: Library) {
+        currently = ShelfModel(shelf: .currently, library: library, registry: AppLibrary.registry)
+        backlog = ShelfModel(shelf: .backlog, library: library, registry: AppLibrary.registry)
+        done = ShelfModel(shelf: .done, library: library, registry: AppLibrary.registry)
+    }
+}
+
+private struct ShelfTabs: View {
+    let shelves: Shelves
     #if DEBUG
     @State private var showsGallery = GalleryLaunchOptions.current.opensGallery
     #endif
 
     var body: some View {
-        NavigationStack {
-            ContentUnavailableView {
-                Label("Iris", systemImage: "camera.aperture")
-                    .foregroundStyle(IrisTokens.Colors.accent)
-            } description: {
-                Text("Schema v\(IrisSchema.version)")
+        TabView {
+            Tab("Currently", systemImage: "play.circle") {
+                NavigationStack {
+                    ShelfView(model: shelves.currently)
+                    #if DEBUG
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button("Gallery", systemImage: IrisSymbol.gallery.systemName) { showsGallery = true }
+                                    .accessibilityIdentifier("gallery.open")
+                            }
+                        }
+                        .navigationDestination(isPresented: $showsGallery) { GalleryView() }
+                    #endif
+                }
             }
-            .navigationTitle("Iris")
-            #if DEBUG
-            .toolbar {
-                Button("Gallery", systemImage: IrisSymbol.gallery.systemName) { showsGallery = true }
-                    .accessibilityIdentifier("gallery.open")
+            Tab("Backlog", systemImage: "tray") {
+                NavigationStack { ShelfView(model: shelves.backlog) }
             }
-            .navigationDestination(isPresented: $showsGallery) { GalleryView() }
-            #endif
+            Tab("Done", systemImage: "checkmark.circle") {
+                NavigationStack { ShelfView(model: shelves.done) }
+            }
         }
     }
-}
-
-#Preview {
-    RootView()
 }
