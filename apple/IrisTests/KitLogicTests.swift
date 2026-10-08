@@ -52,4 +52,24 @@ final class KitLogicTests: XCTestCase {
         XCTAssertEqual(IrisRatingBadge.accessibilityLabel(score: 8.45), "Rated \(formatScore(8.45)) out of 10")
         XCTAssertEqual(IrisRatingBadge.accessibilityLabel(score: 10), "Rated 10.0 out of 10")
     }
+
+    // MARK: IrisShelfRow
+    func testShelfRowAccessibility() {
+        var m = IrisShelfRow.Model(title: "Severance", category: .show, detail: "S2 Ep 4 of 10",
+                                   progress: .flat(done: 13, total: 19), coverURL: nil,
+                                   accessory: .action(title: "Done", symbol: .advance, accessibilityName: "Mark Episode 14 watched"))
+        XCTAssertEqual(m.accessibilityLabel, "Severance, Show, S2 Ep 4 of 10")
+        XCTAssertEqual(m.accessoryActionName, "Mark Episode 14 watched")
+        m.accessory = .rate
+        XCTAssertEqual(m.accessoryActionName, "Rate Severance")
+        m.accessory = .rating(score: 8, sentiment: .liked)
+        XCTAssertNil(m.accessoryActionName)
+        m.accessory = .none
+        XCTAssertNil(m.accessoryActionName)
+    }
+
+    func testShelfRowTitleNeverTruncatesAtAccessibilitySizes() {
+        XCTAssertNil(IrisShelfRow.Model.titleLineLimit(isAccessibilitySize: true))
+        XCTAssertEqual(IrisShelfRow.Model.titleLineLimit(isAccessibilitySize: false), 2)
+    }
 }

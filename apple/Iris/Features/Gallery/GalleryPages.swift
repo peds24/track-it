@@ -6,6 +6,16 @@ struct GalleryPage: View {
     let component: GalleryComponent
 
     var body: some View {
+        if component == .IrisShelfRow {
+            // A real inset-grouped list, so rows render as they will on a shelf.
+            List(GallerySample.rows, id: \.title) { m in IrisShelfRow(m, onOpen: {}) }
+                .listStyle(.insetGrouped)
+        } else {
+            scrollingPage
+        }
+    }
+
+    private var scrollingPage: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: IrisTokens.Space.xxl) {
                 content
@@ -59,6 +69,13 @@ struct GalleryPage: View {
             GallerySection(title: "Without action") {
                 IrisEmptyState("No results", symbol: .search, message: "Try a different title, or add it by hand.")
             }
+        case .IrisComparisonCard:
+            GallerySection(title: "Which did you prefer?") {
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .top) { comparisonPair }
+                    VStack { comparisonPair }
+                }
+            }
         default: Text(component.rawValue)
         }
     }
@@ -73,6 +90,31 @@ enum GallerySample {
             .overlay(Text("SAMPLE").font(.system(size: 28, weight: .heavy)).foregroundStyle(.white))
         return ImageRenderer(content: art).uiImage.map(Image.init(uiImage:)) ?? Image(systemName: "photo")
     }()
+}
+
+extension GalleryPage {
+    @ViewBuilder var comparisonPair: some View {
+        IrisComparisonCard(title: "Arrival", subtitle: "Denis Villeneuve", coverURL: nil, category: .movie, chosen: true) {}
+        IrisComparisonCard(title: "Interstellar", subtitle: "Christopher Nolan", coverURL: nil, category: .movie) {}
+    }
+}
+
+extension GallerySample {
+    static let rows: [IrisShelfRow.Model] = [
+        // First, so the AX5 screenshot shows a long title wrapping in full.
+        .init(title: "The Lord of the Rings: The Fellowship of the Ring (Extended Edition)", category: .movie, detail: "Not started",
+              progress: nil, coverURL: nil,
+              accessory: .action(title: "Watched", symbol: .start, accessibilityName: "Mark The Lord of the Rings: The Fellowship of the Ring (Extended Edition) watched")),
+        .init(title: "Severance", category: .show, detail: "S2 Ep 4 of 10",
+              progress: .seasons([.init(number: 1, episodeCount: 9, done: 9), .init(number: 2, episodeCount: 10, done: 3)]), coverURL: nil,
+              accessory: .action(title: "Done", symbol: .advance, accessibilityName: "Mark Episode 13 watched")),
+        .init(title: "Dune", category: .book, detail: "Reading", progress: .flat(done: 120, total: 412), coverURL: nil,
+              accessory: .action(title: "Done", symbol: .advance, accessibilityName: "Mark Dune read")),
+        .init(title: "One Piece", category: .manga, detail: "Paused · Volume 31", progress: .flat(done: 30, total: 108), coverURL: nil,
+              accessory: .action(title: "Resume", symbol: .start, accessibilityName: "Resume One Piece")),
+        .init(title: "Saga", category: .comic, detail: "Finished", progress: nil, coverURL: nil, accessory: .rating(score: 8.7, sentiment: .liked)),
+        .init(title: "Arrival", category: .movie, detail: "Watched", progress: nil, coverURL: nil, accessory: .rate),
+    ]
 }
 
 /// A captioned group of states on a Gallery page.
