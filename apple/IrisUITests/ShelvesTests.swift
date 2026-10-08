@@ -94,12 +94,11 @@ final class ShelvesTests: XCTestCase {
         XCTAssertTrue(row("Dune Messiah", in: app).waitForExistence(timeout: 5))
     }
 
-    /// §5.6–5.7 and contrast: Apple's audit on every shelf. Only system chrome
-    /// is excused. Issues are collected, not thrown one by one, so a run reports
-    /// them all. Text size and clipping (§5.5) are checked by the AX5
-    /// screenshots instead: the audit's simulated size change flagged whichever
-    /// rows sat lowest on screen, differently each run, while the real AX5
-    /// rendering wraps them in full.
+    /// §5.6–5.7 and contrast: Apple's audit on every shelf at the default
+    /// size. Only system chrome is excused. Text size (§5.5) is checked by the
+    /// AX5 screenshots of every screenful instead: the audit's Dynamic Type and
+    /// clipping checks flagged rows that render whole (I7 review). Issues are collected, not thrown
+    /// one by one, so a run reports them all.
     @MainActor func testEveryShelfPassesTheAccessibilityAudit() throws {
         let app = launch()
         var found: [String] = []
@@ -108,13 +107,56 @@ final class ShelvesTests: XCTestCase {
             XCTAssertTrue(app.navigationBars[tab].waitForExistence(timeout: 5))
             try app.performAccessibilityAudit(for: [.sufficientElementDescription, .hitRegion, .contrast]) { issue in
                 let type = issue.element?.elementType
-                if type != .tabBar && type != .navigationBar {
-                    found.append("\(tab): \(issue.compactDescription) | \(issue.element.map { "\($0.label) \($0.frame)" } ?? "no element")")
-                }
+                if type != .tabBar && type != .navigationBar { found.append(Self.describe(tab, issue)) }
                 return true
             }
         }
         XCTAssertEqual(found, [], found.joined(separator: "\n"))
+    }
+
+    private static func describe(_ where: String, _ issue: XCUIAccessibilityAuditIssue) -> String {
+        "\(`where`): \(issue.compactDescription) | \(issue.element.map { "\($0.label) \($0.frame)" } ?? "no element")"
+    }
+
+    /// The rest of an AX5 list, one screenful at a time: <tab>-ax5-p2.png, p3…
+    @MainActor private func capturePages(of tab: String, in app: XCUIApplication, to dir: URL?) throws {
+        let list = app.collectionViews.firstMatch
+        for page in 2...8 {
+            let before = list.cells.firstMatch.frame
+            list.swipeUp(velocity: .slow)
+            sleep(1)
+            if list.cells.firstMatch.frame == before { return } // the end
+            try save("\(tab)-ax5-p\(page)", to: dir)
+        }
+    }
+
+    /// Review Focus 4: a confirmation carrying the longest title, at AX5.
+    @MainActor private func captureDeleteDialog(in app: XCUIApplication, to dir: URL?) throws {
+        app.tabBars.buttons["Backlog"].tap()
+        let lotr = row("The Lord of the Rings: The Fellowship of the Ring (Extended Edition)", in: app)
+        Self.scrollUntilHittable(lotr, in: app)
+        lotr.press(forDuration: 1.2)
+        app.buttons["Delete…"].tap()
+        XCTAssertTrue(app.staticTexts["Delete The Lord of the Rings: The Fellowship of the Ring (Extended Edition)?"].waitForExistence(timeout: 5))
+        sleep(1)
+        try save("Backlog-ax5-delete", to: dir)
+    }
+
+    @MainActor private static func scrollUntilHittable(_ element: XCUIElement, in app: XCUIApplication) {
+        var swipes = 0
+        while !(element.exists && element.isHittable) && swipes < 10 {
+            app.collectionViews.firstMatch.swipeUp(velocity: .slow)
+            swipes += 1
+        }
+    }
+
+    @MainActor private func save(_ name: String, to dir: URL?) throws {
+        let shot = XCUIScreen.main.screenshot()
+        let attachment = XCTAttachment(screenshot: shot)
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        if let dir { try shot.pngRepresentation.write(to: dir.appendingPathComponent("\(name).png")) }
     }
 
     /// Light, dark and AX5 renderings of each tab. Always attached to the
@@ -123,7 +165,8 @@ final class ShelvesTests: XCTestCase {
         let variants: [(name: String, args: [String])] = [
             ("light", ["-IrisColorScheme", "light"]),
             ("dark", ["-IrisColorScheme", "dark"]),
-            ("ax5", ["-IrisColorScheme", "light", "-IrisDynamicType", "accessibility5"]),
+            // The system text size, as a user who set AX5 in Settings has it.
+            ("ax5", ["-IrisColorScheme", "light", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]),
         ]
         let dir = ProcessInfo.processInfo.environment["IRIS_SHELF_SCREENSHOT_DIR"].map(URL.init(fileURLWithPath:))
         for variant in variants {
@@ -138,7 +181,10 @@ final class ShelvesTests: XCTestCase {
                 attachment.lifetime = .keepAlways
                 add(attachment)
                 if let dir { try shot.pngRepresentation.write(to: dir.appendingPathComponent("\(tab)-\(variant.name).png")) }
+                // §5.5 evidence: at AX5, every screenful, not just the first rows.
+                if variant.name == "ax5" { try capturePages(of: tab, in: app, to: dir) }
             }
+            if variant.name == "ax5" { try captureDeleteDialog(in: app, to: dir) }
             app.terminate()
         }
     }

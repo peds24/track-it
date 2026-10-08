@@ -165,4 +165,19 @@ final class ShelfModelTests: XCTestCase {
         XCTAssertEqual(fake.observed.map(\.1), [nil, .book])
         XCTAssertEqual(fake.observed.map(\.0), [.backlog, .backlog])
     }
+
+    /// Review I-1: after a failed observation the shelf must come back to life
+    /// the next time it appears (TS reloads on focus), not stay frozen.
+    func testAShelfRecoversFromAFailedObservation() async {
+        let fake = FakeLibrary()
+        let model = ShelfModel(shelf: .currently, library: fake, registry: nil)
+        model.start()
+        fake.send(.failure(DomainError("disk I/O error")))
+        await settle(model) { model.failure != nil }
+        model.start()                               // the view's .task on next appearance
+        fake.send(.success([t("s1")]))
+        await settle(model) { !model.tracks.isEmpty }
+        XCTAssertEqual(model.tracks.map(\.id), ["s1"])
+        XCTAssertEqual(fake.observed.count, 2, "start() resubscribes after a failure")
+    }
 }

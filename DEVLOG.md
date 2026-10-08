@@ -20,8 +20,13 @@
   glyphs inside text, accent text on its own tint (~3.4:1) and white on the
   accent badge all failed 4.5:1. They are now label-coloured; the accent
   stays on glyphs and fills. The audit's Dynamic Type and clipping checks
-  are not run: they flagged whichever rows sat under the floating tab bar,
-  differently each run; the AX5 screenshots cover that instead.
+  are not run: at the default size they flag the lowest visible content
+  (the simulated growth pushes it off screen), and at AX5 they flag Done
+  rows that render whole. Instead, `screens/*-ax5*.png` captures every
+  screenful of each tab at the system AX5 setting, plus a delete dialog.
+- **Review fix**: a failed observation used to freeze its shelf until
+  relaunch; the model now forgets the dead stream, so the next appearance
+  resubscribes, as TS reloads on focus.
 - **Gotchas**: the audit stops at its first issue unless the handler
   collects them; `Progress` clashes with Foundation's as `Category` does
   with Objective-C's; read-mode units take two advances, and an ongoing

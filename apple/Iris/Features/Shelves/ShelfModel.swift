@@ -85,7 +85,14 @@ final class ShelfModel {
                 guard let self else { return }
                 switch result {
                 case let .success(value): self.tracks = value; self.loaded = true
-                case let .failure(error): self.failure = Failure(title: "Could not load your tracks", message: Self.message(error))
+                case let .failure(error):
+                    self.failure = Failure(title: "Could not load your tracks", message: Self.message(error))
+                    // The stream has ended; forget it so the next appearance's
+                    // start() subscribes again (TS reloads on focus), rather than
+                    // leaving a shelf that silently stops updating.
+                    self.observers.forEach { $0.cancel() }
+                    self.observers = []
+                    return
                 }
             }
         })
