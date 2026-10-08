@@ -1,5 +1,32 @@
 # DEVLOG
 
+## 2026-10-08 — Iris I7: shelves
+
+- The app opens on Currently / Backlog / Done over the real library. A
+  leading full swipe commits (advance, start, resume), the trailing swipe
+  holds Pause/Backlog and Delete, the context menu the rest; Delete,
+  Complete and Done→Backlog confirm with the Android copy.
+- **Why fixtures for UI text**: the row text ("S2 Ep 5 of 10", "Paused ·
+  Volume 31", the completion message) is logic, but it lived in a React
+  component. Moving it to `src/ui/trackLabels.ts` let the recorder load
+  it, and a `trackLabels` module now holds the Swift port to it.
+- **Why `Library` hides GRDB**: the app target imports only IrisCore, so a
+  future storage change touches one file. Shelves observe through
+  `ValueObservation`, so an advance that moves a track from Currently to
+  Done updates both tabs with no reload calls.
+- **`DatabaseQueue`, not `DatabasePool`**: one user, one writer, a small
+  library; serialised reads keep observation simple.
+- **Apple's accessibility audit changed the kit**: grey detail text, tinted
+  glyphs inside text, accent text on its own tint (~3.4:1) and white on the
+  accent badge all failed 4.5:1. They are now label-coloured; the accent
+  stays on glyphs and fills. The audit's Dynamic Type and clipping checks
+  are not run: they flagged whichever rows sat under the floating tab bar,
+  differently each run; the AX5 screenshots cover that instead.
+- **Gotchas**: the audit stops at its first issue unless the handler
+  collects them; `Progress` clashes with Foundation's as `Category` does
+  with Objective-C's; read-mode units take two advances, and an ongoing
+  series has no progress total, which a seed loop must not rely on.
+
 ## 2026-10-08 — Iris I6: component kit + Gallery
 
 - `design/iris/components.md` specifies the ten components once, for every

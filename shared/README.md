@@ -50,6 +50,11 @@ rounding, ASCII \d/\w/\b, UTF-16 indexing) live in
 `apple/IrisCore/Sources/IrisCore/Domain/JSCompat.swift` and `ISODate.swift`,
 each pinned by a "Swift parity" fixture.
 
+**`src/ui` modules (I7).** `trackLabels` records the pure row text in
+`src/ui/trackLabels.ts` and `src/ui/completionMessage.ts`, so iOS rows read
+exactly as Android rows. Its `testFiles` list is empty: the matching tests
+render components, so the coverage-by-title check skips it.
+
 ## scenarios/ (Iris I4, A29)
 
 The data layer's corpus. `scenarios/cases/<area>.ts` holds scenarios —
