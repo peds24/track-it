@@ -61,6 +61,10 @@ struct ShelfView: View {
                                 Spacer()
                                 Text("\(section.tracks.count)").monospacedDigit()
                             }
+                            // Label colour, not the default grey: the audit found that too faint.
+                            .font(IrisTokens.Typography.headline.font)
+                            .foregroundStyle(IrisTokens.Colors.label)
+                            .textCase(nil)
                             .accessibilityElement(children: .combine)
                         }
                     }

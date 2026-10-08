@@ -13,7 +13,7 @@ uses it and this file says only how it must behave.
 
 ## IrisShelfRow
 **Purpose.** One track on a shelf: what it is, where you are, and the one thing to do next.
-**Anatomy.** Leading `IrisCover` (row size, 2:3). A text column with the title (`headline`) and a detail line (`subheadline`, `color.secondaryLabel`) prefixed by the compact `IrisCategoryChip`, set inline so chip and detail wrap as one line of text. An optional `IrisProgress` under the text. A trailing accessory: an action button (`IrisSymbol` + short verb, e.g. "Done", "Start", "Resume", "Watched"), an `IrisRatingBadge`, a "Rate" button, or nothing. Insets: `space.lg` horizontal, `space.md` vertical.
+**Anatomy.** Leading `IrisCover` (row size, 2:3). A text column with the title (`headline`) and a detail line (`subheadline`, `color.label`, regular weight) prefixed by the compact `IrisCategoryChip`, set inline so chip and detail wrap as one line of text. The detail is not grey: `color.secondaryLabel` at this size fails a 4.5:1 contrast check (I7, Apple's accessibility audit). An optional `IrisProgress` under the text. A trailing accessory: an action button (`IrisSymbol` in `color.accent` + short verb in `color.label`, semibold, on a `color.fill` capsule; e.g. "Done", "Start", "Resume", "Watched"), an `IrisRatingBadge`, a "Rate" button, or nothing. Accent-coloured text is avoided here: on its own tint it is about 3.4:1. Insets: `space.lg` horizontal, `space.md` vertical.
 **States.** Default; with progress (flat or season-segmented); finished and rated; finished and unrated; long title; no cover. At accessibility text sizes the row stacks: cover, then title, then the detail, progress and accessory full-width below. The title never truncates at accessibility sizes, and wraps to at most 2 lines otherwise.
 **Behaviour.** Tapping the row opens the track. Tapping the accessory runs it, with a success haptic, and never opens the row. Swipe and context actions belong to the list, not the row (§5.2).
 **Accessibility.** The row is one element. Its label is "<title>, <category>, <detail>"; its value is the rating ("Rated 8.7 out of 10") when the accessory is a rating badge, otherwise the progress. Its default action opens the track. The accessory is also a named custom action (e.g. "Mark Episode 4 watched"). Accessory hit target is ≥ 44×44 pt.
@@ -34,7 +34,7 @@ uses it and this file says only how it must behave.
 
 ## IrisCategoryChip
 **Purpose.** Names a track's category at a glance.
-**Anatomy.** The category symbol in the category tint, then the label (`caption1` semibold, `color.secondaryLabel`). Regular size sits in a capsule of `color.fill`; compact has no capsule.
+**Anatomy.** The category symbol in the category tint, then the label (`caption1` semibold, `color.secondaryLabel`). Regular size sits in a capsule of `color.fill`; compact has no capsule. Inline in a row's detail line, the symbol and label take the line's colour (`color.label`): tinted glyphs inside text fail contrast, and the row's cover already carries the tint.
 **States.** One per category × {regular, compact}.
 **Behaviour.** Static.
 **Accessibility.** Its label is the category name ("Show"). Compact chips inside a row are folded into the row's label.
@@ -62,7 +62,7 @@ uses it and this file says only how it must behave.
 
 ## IrisRatingBadge
 **Purpose.** A finished track's score out of 10 (A26).
-**Anatomy.** A capsule holding `formatScore(score)` in `subheadline` semibold, monospaced digits. Colours depend on sentiment: liked is `color.accent` fill with `color.onAccent` text; fine is `color.fill` with `color.label`; disliked is `color.destructive` at 15% with `color.destructive` text. Minimum width 44 pt.
+**Anatomy.** A capsule holding `formatScore(score)` in `subheadline` semibold, monospaced digits. The fill depends on sentiment and the text is always `color.label`: liked is `color.accent` at 22%, fine is `color.fill`, disliked is `color.destructive` at 15%. White on the accent, or tinted text on its own tint, falls under 4.5:1 (I7 audit). Minimum width 44 pt.
 **States.** liked, fine, disliked.
 **Behaviour.** Static.
 **Accessibility.** Its label is "Rated <score> out of 10".

@@ -95,7 +95,10 @@ struct IrisShelfRow: View {
     private var text: some View {
         VStack(alignment: .leading, spacing: IrisTokens.Space.xs) {
             // One wrapping line, so a long detail flows instead of squeezing a column.
-            Text("\(IrisCategoryChip.inline(model.category)) \(Text("·").foregroundStyle(IrisTokens.Colors.tertiaryLabel)) \(Text(model.detail).foregroundStyle(IrisTokens.Colors.secondaryLabel))")
+            // Label colour: secondary grey at this size fails Apple's contrast
+            // audit (I7). The semibold title over regular detail keeps the order.
+            Text("\(IrisCategoryChip.inline(model.category)) · \(model.detail)")
+                .foregroundStyle(IrisTokens.Colors.label)
                 .font(IrisTokens.Typography.subheadline.font)
                 .fixedSize(horizontal: false, vertical: true)
             if let progress = model.progress { IrisProgress(progress).padding(.top, IrisTokens.Space.xxs) }
@@ -112,16 +115,20 @@ struct IrisShelfRow: View {
     }
 
     private func accessoryButton(_ title: String, symbol: IrisSymbol) -> some View {
+        // Label-coloured text on a neutral capsule, only the glyph in accent:
+        // accent text on its own tint is ~3.4:1, under the 4.5:1 the audit wants (I7).
         Button(action: commit) {
-            Label(title, systemImage: symbol.systemName)
-                .labelStyle(.titleAndIcon)
-                .font(IrisTokens.Typography.subheadline.font.weight(.semibold))
-                .lineLimit(1)
+            HStack(spacing: IrisTokens.Space.xs) {
+                symbol.image.foregroundStyle(IrisTokens.Colors.accent)
+                Text(title).foregroundStyle(IrisTokens.Colors.label)
+            }
+            .font(IrisTokens.Typography.subheadline.font.weight(.semibold))
+            .lineLimit(1)
+            .padding(.horizontal, IrisTokens.Space.md)
+            .padding(.vertical, IrisTokens.Space.sm)
+            .background(IrisTokens.Colors.fill, in: Capsule())
         }
-        .buttonStyle(.bordered)
-        .buttonBorderShape(.capsule)
-        .controlSize(.regular)
-        .tint(IrisTokens.Colors.accent)
+        .buttonStyle(.plain)
         .frame(minWidth: 44, minHeight: 44)
         .contentShape(Rectangle())
     }

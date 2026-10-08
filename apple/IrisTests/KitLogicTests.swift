@@ -48,9 +48,10 @@ final class KitLogicTests: XCTestCase {
 
     // MARK: IrisRatingBadge
     func testRatingBadgeStyleAndLabel() {
-        XCTAssertEqual(IrisRatingBadge.style(for: .liked), .init(fill: .accent, ink: .onAccent))
+        // Label ink for every sentiment: white on the iOS 26 accent is ~3.6:1 (I7 audit).
+        XCTAssertEqual(IrisRatingBadge.style(for: .liked), .init(fill: .accentTint, ink: .label))
         XCTAssertEqual(IrisRatingBadge.style(for: .fine), .init(fill: .fill, ink: .label))
-        XCTAssertEqual(IrisRatingBadge.style(for: .disliked), .init(fill: .destructiveTint, ink: .destructive))
+        XCTAssertEqual(IrisRatingBadge.style(for: .disliked), .init(fill: .destructiveTint, ink: .label))
         XCTAssertEqual(IrisRatingBadge.accessibilityLabel(score: 8.45), "Rated \(formatScore(8.45)) out of 10")
         XCTAssertEqual(IrisRatingBadge.accessibilityLabel(score: 10), "Rated 10.0 out of 10")
     }

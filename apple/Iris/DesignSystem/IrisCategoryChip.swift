@@ -10,7 +10,9 @@ struct IrisCategoryChip: View {
     /// The compact chip as text, for running inline with other text (a shelf
     /// row's detail line) so it wraps with it instead of claiming a column.
     static func inline(_ category: IrisCore.Category) -> Text {
-        Text("\(Text(category.symbol.image).foregroundStyle(category.tint)) \(Text(category.label).fontWeight(.semibold).foregroundStyle(IrisTokens.Colors.secondaryLabel))")
+        // The glyph takes the text colour: inside Text it is judged as text, and
+        // the category tints fail contrast there. The row's cover carries the tint.
+        Text("\(Text(category.symbol.image)) \(Text(category.label).fontWeight(.semibold))")
     }
 
     var body: some View {
