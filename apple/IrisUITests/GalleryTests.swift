@@ -49,6 +49,25 @@ final class GalleryTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["sheet.body"].waitForNonExistence(timeout: 5))
     }
 
+    /// §5.7 / contract: a tap anywhere in the accessory's 44 pt target runs
+    /// the accessory — just above its smaller capsule too — and never opens the row.
+    @MainActor
+    func testRowAccessoryHitTargetNeverOpensTheRow() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-IrisGallery", "YES"]
+        app.launch()
+        app.buttons["gallery.IrisShelfRow"].tap()
+        let row = app.descendants(matching: .any).matching(identifier: "row.interactive").firstMatch
+        Self.scrollTo(app.staticTexts["row.counts"], in: app)
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        // The accessory sits at the trailing edge, vertically centred; 19 pt
+        // above centre is inside a 44 pt target but outside a ~32 pt capsule.
+        let f = row.frame
+        app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: f.maxX - 30, dy: f.midY - 19)).tap()
+        XCTAssertTrue(app.staticTexts["row.counts"].waitForExistence(timeout: 2))
+        XCTAssertEqual(app.staticTexts["row.counts"].label, "accessory 1 · open 0")
+    }
+
     /// A Gallery page's root, whatever element type SwiftUI gives it (a scroll view, usually).
     @MainActor
     static func page(_ name: String, in app: XCUIApplication) -> XCUIElement {

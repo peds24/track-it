@@ -6,6 +6,10 @@ struct IrisCover: View {
     enum Size {
         case row, card, hero
         var baseWidth: CGFloat { switch self { case .row: 48; case .card: 120; case .hero: 180 } }
+        /// Grows with text size, up to a cap that keeps two cards side by side
+        /// and a hero inside an iPhone's width at accessibility sizes.
+        var maxWidth: CGFloat { switch self { case .row: 72; case .card: 160; case .hero: 240 } }
+        func width(scale: CGFloat) -> CGFloat { min(baseWidth * scale, maxWidth) }
     }
 
     let url: String?
@@ -31,7 +35,7 @@ struct IrisCover: View {
         AsyncImage(url: Self.resolvedURL(url)) { phase in
             IrisCoverArt(image: phase.image, title: title, category: category, size: size)
         }
-        .frame(width: size.baseWidth * scale)
+        .frame(width: size.width(scale: scale))
         .accessibilityHidden(decorative)
         .accessibilityLabel(decorative ? "" : "Cover of \(title)")
     }

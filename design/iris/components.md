@@ -13,14 +13,14 @@ uses it and this file says only how it must behave.
 
 ## IrisShelfRow
 **Purpose.** One track on a shelf: what it is, where you are, and the one thing to do next.
-**Anatomy.** Leading `IrisCover` (row size, 2:3). A text column with the title (`headline`) and a detail line (`subheadline`, `color.secondaryLabel`) prefixed by an `IrisCategoryChip` (compact). An optional `IrisProgress` under the text. A trailing accessory: an action button (`IrisSymbol` + short verb, e.g. "Done", "Start", "Resume", "Watched"), an `IrisRatingBadge`, a "Rate" button, or nothing. Insets: `space.lg` horizontal, `space.md` vertical.
-**States.** Default; with progress (flat or season-segmented); finished and rated; finished and unrated; long title; no cover. At accessibility text sizes the row stacks: cover and title on top, then the detail, progress and accessory full-width below. The title never truncates at accessibility sizes, and wraps to at most 2 lines otherwise.
+**Anatomy.** Leading `IrisCover` (row size, 2:3). A text column with the title (`headline`) and a detail line (`subheadline`, `color.secondaryLabel`) prefixed by the compact `IrisCategoryChip`, set inline so chip and detail wrap as one line of text. An optional `IrisProgress` under the text. A trailing accessory: an action button (`IrisSymbol` + short verb, e.g. "Done", "Start", "Resume", "Watched"), an `IrisRatingBadge`, a "Rate" button, or nothing. Insets: `space.lg` horizontal, `space.md` vertical.
+**States.** Default; with progress (flat or season-segmented); finished and rated; finished and unrated; long title; no cover. At accessibility text sizes the row stacks: cover, then title, then the detail, progress and accessory full-width below. The title never truncates at accessibility sizes, and wraps to at most 2 lines otherwise.
 **Behaviour.** Tapping the row opens the track. Tapping the accessory runs it, with a success haptic, and never opens the row. Swipe and context actions belong to the list, not the row (§5.2).
-**Accessibility.** The row is one element. Its label is "<title>, <category>, <detail>", its value is the progress, and its default action opens the track. The accessory is also a named custom action (e.g. "Mark Episode 4 watched"). Accessory hit target is ≥ 44×44 pt.
+**Accessibility.** The row is one element. Its label is "<title>, <category>, <detail>"; its value is the rating ("Rated 8.7 out of 10") when the accessory is a rating badge, otherwise the progress. Its default action opens the track. The accessory is also a named custom action (e.g. "Mark Episode 4 watched"). Accessory hit target is ≥ 44×44 pt.
 
 ## IrisCover
 **Purpose.** A track's cover art, or a deliberate stand-in when there is none.
-**Anatomy.** A 2:3 rectangle with `radius.control` continuous corners, the image filled and cropped. Fallback: the category tint at 18% opacity behind the title's initials (`initialsOf`) in the category tint, `title3` weight bold; at row size, the category symbol instead of initials. Sizes: `row` 48 pt wide, `card` 120 pt, `hero` 180 pt, all widths scaled with text size.
+**Anatomy.** A 2:3 rectangle with `radius.control` continuous corners, the image filled and cropped. Fallback: the category tint at 18% opacity behind the title's initials (`initialsOf`) in the category tint, `title3` weight bold; at row size, the category symbol instead of initials. Sizes: `row` 48 pt wide, `card` 120 pt, `hero` 180 pt, each scaled with text size up to a cap (`row` 72, `card` 160, `hero` 240) so covers never overflow a phone's width.
 **States.** Loading and failed both show the fallback (never a spinner or a blank). Loaded shows the image.
 **Behaviour.** `http://` URLs are upgraded to `https://` before loading. An empty or unparseable URL is treated as none.
 **Accessibility.** Decorative inside a row or card (hidden). Standalone (hero), its label is "Cover of <title>".
@@ -30,7 +30,7 @@ uses it and this file says only how it must behave.
 **Anatomy.** A 4 pt capsule track in `color.fill` with the fill in `color.accent`. Season mode splits the track into one segment per season, each with flex equal to its episode count (minimum 1) and `space.xxs` gaps.
 **States.** Flat (`done of total`); seasons (a list of `{number, episodeCount, done}`).
 **Behaviour.** The fraction is clamped to 0…1. A total of 0 or less shows an empty track, and so does a season with 0 episodes. Changes animate with `motion.smooth` (a fade under Reduce Motion).
-**Accessibility.** Not separately focusable inside a row. Its value is "<done> of <total>". In season mode the value is "Season <current>, <done> of <total> episodes", where `current` is the first season not finished.
+**Accessibility.** Not separately focusable inside a row. Its value is "<done> of <total>", with `done` clamped to 0…total like the bar. In season mode the value is "Season <current>, <done> of <total> episodes", where `current` is the first season not finished.
 
 ## IrisCategoryChip
 **Purpose.** Names a track's category at a glance.
@@ -73,6 +73,9 @@ uses it and this file says only how it must behave.
 **States.** Default, pressed (scales to 0.97 with `motion.snappy`, no scale under Reduce Motion), chosen (a 2 pt `color.accent` border, set by the caller).
 **Behaviour.** Tapping chooses this side, with a selection haptic.
 **Accessibility.** A button labelled "<title>" with hint "Choose this one".
+
+## Materials (glass)
+Not a component; the rule every glass surface follows. Floating controls use the platform glass (`glass.regular` or `glass.clear`). Under Reduce Transparency, or where glass isn't available, they use the solid fallback: the glass tint composited over `color.secondaryGroupedBackground`, which is opaque, plus the 1 px glass border. The token's blur is for platforms that composite blur themselves; it is never used under Reduce Transparency.
 
 ## IrisSymbol
 **Purpose.** Every icon, named for its purpose, so each platform draws its own glyph.

@@ -8,8 +8,11 @@ struct GalleryPage: View {
     var body: some View {
         if component == .IrisShelfRow {
             // A real inset-grouped list, so rows render as they will on a shelf.
-            List(GallerySample.rows, id: \.title) { m in IrisShelfRow(m, onOpen: {}) }
-                .listStyle(.insetGrouped)
+            List {
+                ForEach(GallerySample.rows, id: \.title) { m in IrisShelfRow(m, onOpen: {}) }
+                GalleryRowTapProbe()
+            }
+            .listStyle(.insetGrouped)
         } else {
             scrollingPage
         }
@@ -30,17 +33,21 @@ struct GalleryPage: View {
         switch component {
         case .IrisCover:
             GallerySection(title: "Fallback — row, card, card (non-Latin)") {
-                HStack(alignment: .top, spacing: IrisTokens.Space.lg) {
-                    IrisCover(url: nil, title: "Dune", category: .book, size: .row)
-                    IrisCover(url: nil, title: "Severance", category: .show, size: .card)
-                    IrisCover(url: "", title: "進撃の巨人", category: .manga, size: .card)
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .top, spacing: IrisTokens.Space.lg) { coverFallbacks }
+                    VStack(alignment: .leading, spacing: IrisTokens.Space.lg) { coverFallbacks }
                 }
+            }
+            GallerySection(title: "Hero (standalone, read as \"Cover of …\")") {
+                IrisCover(url: nil, title: "Project Hail Mary", category: .book, size: .hero, decorative: false)
             }
             GallerySection(title: "Loaded") {
                 IrisCoverArt(image: GallerySample.cover, title: "Sample", category: .movie, size: .card).frame(width: 120)
             }
             GallerySection(title: "Every category") {
-                HStack { ForEach(IrisCore.Category.allCases, id: \.self) { IrisCover(url: nil, title: $0.label, category: $0, size: .row) } }
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 48 * 1.5), alignment: .leading)], alignment: .leading) {
+                    ForEach(IrisCore.Category.allCases, id: \.self) { IrisCover(url: nil, title: $0.label, category: $0, size: .row) }
+                }
             }
         case .IrisProgress:
             GallerySection(title: "Flat 3 of 10") { IrisProgress(.flat(done: 3, total: 10)) }
@@ -104,6 +111,12 @@ enum GallerySample {
 }
 
 extension GalleryPage {
+    @ViewBuilder var coverFallbacks: some View {
+        IrisCover(url: nil, title: "Dune", category: .book, size: .row)
+        IrisCover(url: nil, title: "Severance", category: .show, size: .card)
+        IrisCover(url: "", title: "進撃の巨人", category: .manga, size: .card)
+    }
+
     @ViewBuilder var comparisonPair: some View {
         IrisComparisonCard(title: "Arrival", subtitle: "Denis Villeneuve", coverURL: nil, category: .movie, chosen: true) {}
         IrisComparisonCard(title: "Interstellar", subtitle: "Christopher Nolan", coverURL: nil, category: .movie) {}
@@ -150,6 +163,21 @@ struct GallerySheetDemo: View {
                     .navigationTitle("IrisSheet")
                     .navigationBarTitleDisplayMode(.inline)
             }
+        }
+    }
+}
+
+/// A row that counts what a tap did, for GalleryTests' hit-target check.
+struct GalleryRowTapProbe: View {
+    @State private var accessory = 0
+    @State private var open = 0
+    var body: some View {
+        Section("Tap probe") {
+            IrisShelfRow(.init(title: "Probe", category: .show, detail: "Tap test", progress: nil, coverURL: nil,
+                               accessory: .action(title: "Done", symbol: .advance, accessibilityName: "Mark probe watched")),
+                         onOpen: { open += 1 }, onAccessory: { accessory += 1 })
+                .accessibilityIdentifier("row.interactive")
+            Text("accessory \(accessory) · open \(open)").accessibilityIdentifier("row.counts")
         }
     }
 }

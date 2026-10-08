@@ -14,6 +14,13 @@ struct IrisShelfRow: View {
 
         var accessibilityLabel: String { "\(title), \(category.label), \(detail)" }
 
+        /// The badge is hidden inside the row element, so its score is the
+        /// row's value; otherwise the progress.
+        var accessibilityValue: String {
+            if case let .rating(score, _) = accessory { return IrisRatingBadge.accessibilityLabel(score: score) }
+            return progress?.accessibilityValue ?? ""
+        }
+
         /// The accessory's VoiceOver custom action; nil when it does nothing.
         var accessoryActionName: String? {
             switch accessory {
@@ -69,7 +76,7 @@ struct IrisShelfRow: View {
         .sensoryFeedback(.success, trigger: commits)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(model.accessibilityLabel)
-        .accessibilityValue(model.progress?.accessibilityValue ?? "")
+        .accessibilityValue(model.accessibilityValue)
         .accessibilityAddTraits(.isButton)
         .accessibilityAction(.default, onOpen)
         .modifier(AccessoryAction(name: model.accessoryActionName, perform: commit))

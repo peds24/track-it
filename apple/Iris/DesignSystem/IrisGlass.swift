@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Liquid Glass, or the token fallback under Reduce Transparency (§5.9).
 enum IrisGlassStyle: Equatable {
@@ -7,6 +8,20 @@ enum IrisGlassStyle: Equatable {
     func resolved(reduceTransparency: Bool) -> Resolved { reduceTransparency ? .fallback(self) : .glass(self) }
 
     var fallback: IrisTokens.GlassFallback { self == .regular ? IrisTokens.Glass.regular : IrisTokens.Glass.clear }
+
+    /// The fallback tint composited over the grouped secondary background,
+    /// so it is opaque: Reduce Transparency asks for a solid surface, not a
+    /// see-through wash.
+    var solidFallback: Color {
+        let tint = UIColor(fallback.tint), base = UIColor(IrisTokens.Colors.secondaryGroupedBackground)
+        return Color(uiColor: UIColor { traits in
+            var (tr, tg, tb, ta): (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 0)
+            var (br, bg, bb, ba): (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 0)
+            tint.resolvedColor(with: traits).getRed(&tr, green: &tg, blue: &tb, alpha: &ta)
+            base.resolvedColor(with: traits).getRed(&br, green: &bg, blue: &bb, alpha: &ba)
+            return UIColor(red: tr * ta + br * (1 - ta), green: tg * ta + bg * (1 - ta), blue: tb * ta + bb * (1 - ta), alpha: 1)
+        })
+    }
 }
 
 enum IrisMotion {
@@ -25,11 +40,11 @@ private struct IrisGlassModifier<S: Shape>: ViewModifier {
         switch style.resolved(reduceTransparency: reduceTransparency) {
         case .glass(.regular): content.glassEffect(.regular, in: shape)
         case .glass(.clear): content.glassEffect(.clear, in: shape)
-        // Opacity, not blur: Reduce Transparency asks for a solid surface.
+        // Solid, not blur: Reduce Transparency asks for an opaque surface.
         // The token's blur value is for platforms that composite their own.
         case let .fallback(s):
             content
-                .background(s.fallback.tint, in: shape)
+                .background(s.solidFallback, in: shape)
                 .overlay(shape.stroke(s.fallback.border, lineWidth: 1))
         }
     }

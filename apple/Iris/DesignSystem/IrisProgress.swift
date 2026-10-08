@@ -23,13 +23,17 @@ struct IrisProgress: View {
 
         var accessibilityValue: String {
             switch self {
-            case let .flat(done, total): return "\(done) of \(total)"
+            // Clamped like the bar, so VoiceOver never reads "12 of 10".
+            case let .flat(done, total): return "\(Self.clampedCount(done, total)) of \(max(total, 0))"
             case let .seasons(s):
-                let done = s.reduce(0) { $0 + $1.done }, total = s.reduce(0) { $0 + $1.episodeCount }
+                let done = s.reduce(0) { $0 + Self.clampedCount($1.done, $1.episodeCount) }
+                let total = s.reduce(0) { $0 + max($1.episodeCount, 0) }
                 guard let current = s.first(where: { $0.done < $0.episodeCount }) ?? s.last else { return "0 of 0" }
                 return "Season \(current.number), \(done) of \(total) episodes"
             }
         }
+
+        private static func clampedCount(_ done: Int, _ total: Int) -> Int { min(max(done, 0), max(total, 0)) }
 
         private static func clamped(_ done: Int, _ total: Int) -> Double {
             total > 0 ? min(1, max(0, Double(done) / Double(total))) : 0

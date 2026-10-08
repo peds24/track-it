@@ -74,8 +74,9 @@ debug-only Gallery opens from the swatch toolbar button, or with
 `-IrisGallery YES` (plus `-IrisColorScheme dark`, `-IrisDynamicType
 accessibility5`). `apple/scripts/screenshots.sh` writes the 30 reference
 PNGs into `docs/design/iris/`, and `docs/design/iris.html` shows them.
-Jest and XCTest fail if the component names, the symbol table, or the
-PNGs drift. No decision reversed, so the next amendment is still **A30**.
+Jest and XCTest fail if the component names or the symbol table drift,
+or a PNG is missing (they don't check a PNG is current: rerun the script
+after a visual change). No decision reversed, so the next amendment is still **A30**.
 Next is I7 (shelves).
 Plans go in `docs/superpowers/plans/`. Toolchain on this Mac: Xcode 27.0, Swift 6.4,
 `xcodegen` at `/opt/homebrew/bin`.

@@ -1,4 +1,5 @@
 import IrisCore
+import UIKit
 import XCTest
 @testable import Iris
 
@@ -82,5 +83,42 @@ final class KitLogicTests: XCTestCase {
     func testMotionFadesUnderReduceMotion() {
         XCTAssertEqual(IrisMotion.animation(IrisTokens.Motion.bouncy, reduceMotion: false), IrisTokens.Motion.bouncy)
         XCTAssertEqual(IrisMotion.animation(IrisTokens.Motion.bouncy, reduceMotion: true), .easeInOut(duration: 0.2))
+    }
+
+    // MARK: Review fixes
+    func testProgressAccessibilityValueIsClamped() {
+        XCTAssertEqual(IrisProgress.Value.flat(done: 12, total: 10).accessibilityValue, "10 of 10")
+        XCTAssertEqual(IrisProgress.Value.flat(done: -1, total: 10).accessibilityValue, "0 of 10")
+        XCTAssertEqual(IrisProgress.Value.flat(done: 3, total: 0).accessibilityValue, "0 of 0")
+        let over = IrisProgress.Value.seasons([.init(number: 1, episodeCount: 10, done: 10), .init(number: 2, episodeCount: 8, done: 15)])
+        XCTAssertEqual(over.accessibilityValue, "Season 2, 18 of 18 episodes")
+    }
+
+    func testRatedRowVoicesTheScore() {
+        var m = IrisShelfRow.Model(title: "Saga", category: .comic, detail: "Finished", progress: nil, coverURL: nil,
+                                   accessory: .rating(score: 8.7, sentiment: .liked))
+        XCTAssertEqual(m.accessibilityValue, IrisRatingBadge.accessibilityLabel(score: 8.7))
+        m.accessory = .none
+        m.progress = .flat(done: 3, total: 10)
+        XCTAssertEqual(m.accessibilityValue, "3 of 10")
+        m.progress = nil
+        XCTAssertEqual(m.accessibilityValue, "")
+    }
+
+    func testCoverWidthIsCappedAtLargeTextSizes() {
+        XCTAssertEqual(IrisCover.Size.card.width(scale: 1), 120)
+        XCTAssertEqual(IrisCover.Size.row.width(scale: 2.67), 72)
+        XCTAssertEqual(IrisCover.Size.card.width(scale: 2.67), 160)
+        XCTAssertEqual(IrisCover.Size.hero.width(scale: 2.67), 240)
+    }
+
+    func testGlassFallbackIsOpaqueInBothAppearances() {
+        for style in [IrisGlassStyle.regular, .clear] {
+            for ui in [UIUserInterfaceStyle.light, .dark] {
+                var a: CGFloat = 0
+                UIColor(style.solidFallback).resolvedColor(with: UITraitCollection(userInterfaceStyle: ui)).getRed(nil, green: nil, blue: nil, alpha: &a)
+                XCTAssertEqual(a, 1, accuracy: 0.001, "\(style) \(ui.rawValue)")
+            }
+        }
     }
 }

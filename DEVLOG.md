@@ -13,10 +13,14 @@
 - **Why three name lists and tests between them**: `components.md`'s
   headings, Swift's `GalleryComponent`, and the generator's `COMPONENTS`
   must agree, and every component must have its PNGs. A component added in
-  one place without the others turns jest or XCTest red.
-- **Glass fallback is a tint, not a blur**: Reduce Transparency asks for an
-  opaque surface. The token's `blur` is for platforms that composite their
-  own blur.
+  one place without the others turns jest or XCTest red. The tests check
+  that the PNGs exist, not that they are current: regenerate them after a
+  visual change.
+- **Glass fallback is solid, not a blur**: Reduce Transparency asks for an
+  opaque surface, so the fallback is the glass tint composited over the
+  grouped secondary background. The final review caught that the first
+  version painted the bare 35–70% tint. The token's `blur` is for
+  platforms that composite their own blur.
 - **Screenshots through `TEST_RUNNER_` env**: xcodebuild passes
   `TEST_RUNNER_IRIS_SCREENSHOT_DIR` to the UI-test runner as
   `IRIS_SCREENSHOT_DIR`. The simulator runner can write host paths, so the
