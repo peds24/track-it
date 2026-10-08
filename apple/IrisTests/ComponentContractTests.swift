@@ -55,4 +55,16 @@ final class ComponentContractTests: XCTestCase {
         XCTAssertEqual(IrisCore.Category.allCases.map(\.plural), ["shows", "movies", "books", "comics", "manga"])
         XCTAssertEqual(IrisCore.Category.allCases.map(\.symbol), [.show, .movie, .book, .comic, .manga])
     }
+
+    func testGalleryHasAPagePerContractComponent() throws {
+        XCTAssertEqual(GalleryComponent.allCases.map(\.rawValue), try Self.componentHeadings())
+    }
+
+    func testLaunchOptionsParse() {
+        XCTAssertEqual(GalleryLaunchOptions(defaults: [:]), GalleryLaunchOptions(opensGallery: false, colorScheme: nil, dynamicTypeSize: nil))
+        let o = GalleryLaunchOptions(defaults: ["IrisGallery": "YES", "IrisColorScheme": "dark", "IrisDynamicType": "accessibility5"])
+        XCTAssertEqual(o, GalleryLaunchOptions(opensGallery: true, colorScheme: .dark, dynamicTypeSize: .accessibility5))
+        XCTAssertEqual(GalleryLaunchOptions(defaults: ["IrisColorScheme": "sepia", "IrisDynamicType": "huge"]).colorScheme, nil)
+        XCTAssertEqual(GalleryLaunchOptions(defaults: ["IrisGallery": true]).opensGallery, true)
+    }
 }
