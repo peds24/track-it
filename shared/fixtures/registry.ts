@@ -42,6 +42,8 @@ import {
   isStandaloneMediaType,
 } from '@/domain/validate';
 import { announcementFor } from '@/domain/whatsNew';
+import { completionMessage } from '@/ui/completionMessage';
+import { canEditPosition, positionLabel, rowAction, seasonPositionLabel, verbFor } from '@/ui/trackLabels';
 
 /** A whole ranking session as one vector: the opponents asked, in order,
  * and where the candidate lands. Not a TS export; Swift mirrors it (I3). */
@@ -108,6 +110,12 @@ export const registry: Record<string, AnyFn> = {
   formatScore,
   rankingScenario,
   announcementFor,
+  verbFor,
+  positionLabel,
+  seasonPositionLabel,
+  canEditPosition,
+  rowAction,
+  completionMessage,
 };
 
 /** JSON-safe, deterministic: Maps become objects (insertion order), undefined becomes null at the top level. */

@@ -2,16 +2,13 @@ import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { TrackSummary } from '@/data/trackRepo';
 import { formatScore } from '@/domain/rating';
-import { currentSeason, seasonSegments } from '@/domain/seasons';
 import type { Category } from '@/domain/types';
+import { seasonSegments } from '@/domain/seasons';
 import { font, layout, radius, useTheme, type Palette } from '@/ui/theme';
 
-const READ_CATEGORIES: readonly Category[] = ['book', 'comic', 'manga'];
+import { canEditPosition, hasSeasonProgress, positionLabel, rowAction, seasonPositionLabel } from '@/ui/trackLabels';
 
-/** "watched" vs "read" is presentation only — the database stores neither. */
-function verbFor(category: Category): string {
-  return READ_CATEGORIES.includes(category) ? 'read' : 'watched';
-}
+export { canEditPosition, positionLabel, seasonPositionLabel } from '@/ui/trackLabels';
 
 export const KIND_LABEL: Record<Category, string> = {
   show: 'SHOW',
@@ -21,70 +18,6 @@ export const KIND_LABEL: Record<Category, string> = {
   manga: 'MANGA',
 };
 
-/**
- * The middle of the meta line: where you are, in words. Derived from shelf and
- * mode, matching the mockups — "Next Episode 4", "Not started", "Reading",
- * "Watched", "Finished".
- */
-export function positionLabel(track: TrackSummary): string {
-  const read = READ_CATEGORIES.includes(track.category);
-  if (track.shelf === 'done') {
-    if (track.kind === 'series') return 'Finished';
-    return read ? 'Read' : 'Watched';
-  }
-  if (track.shelf === 'backlog') {
-    // A6: paused keeps the row pointed at wherever it was left, rather than
-    // reporting "Not started" for something that plainly was.
-    if (track.paused && track.nextEntryTitle && track.nextEntryTitle !== track.title) {
-      return `Paused · ${track.nextEntryTitle}`;
-    }
-    if (track.paused) return 'Paused';
-    return 'Not started';
-  }
-  if (track.nextEntryTitle && track.nextEntryTitle !== track.title) {
-    if (!read) return `Watching ${track.nextEntryTitle}`;
-    const verb = track.nextEntryStatus === 'in_progress' ? 'Reading' : 'Next';
-    return `${verb} ${track.nextEntryTitle}`;
-  }
-  return read ? 'Reading' : 'Watching';
-}
-
-/**
- * A11/A13: a show gets season treatment (this label, and the segmented bar
- * below) whenever it has real progress worth showing correctly — actively
- * being watched, or paused with something already underway. A13 widened
- * this from "Currently only": a paused show still has genuine progress,
- * and "Paused" alone hid exactly what a segmented bar exists to convey. A
- * show that has never been started (backlog, not paused) is excluded on
- * purpose — there is no season position to report yet.
- */
-function hasSeasonProgress(track: TrackSummary): boolean {
-  const eligible = track.shelf === 'currently' || (track.shelf === 'backlog' && track.paused);
-  return eligible && !!track.seasons && track.seasons.length > 0 && !!track.progress;
-}
-
-/**
- * Replaces the whole-series `positionLabel` when `hasSeasonProgress` — "S3
- * Ep 15 of 24" instead of "Watching Episode 61", or "Paused · S3 Ep 15 of
- * 24" instead of a bare "Paused" once a show has season data.
- */
-export function seasonPositionLabel(track: TrackSummary): string | null {
-  if (!hasSeasonProgress(track) || !track.progress) return null;
-  const current = currentSeason(track.seasons!, track.progress.done);
-  if (!current) return null;
-  const seasonText = `S${current.number} Ep ${current.nextEpisode} of ${current.episodeCount}`;
-  return track.paused ? `Paused · ${seasonText}` : seasonText;
-}
-
-export function canEditPosition(track: TrackSummary): boolean {
-  return (
-    track.kind === 'series' &&
-    track.shelf === 'currently' &&
-    !track.ongoing &&
-    track.progress !== null &&
-    track.progress.total > 0
-  );
-}
 
 export function TrackRow({
   track,
@@ -109,7 +42,7 @@ export function TrackRow({
 }) {
   const palette = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
-  const { nextEntryId, nextEntryTitle, progress } = track;
+  const { nextEntryId, progress } = track;
 
   // A15: renaming is a lightweight in-place edit, not a confirm-and-refetch
   // flow — externalSource/externalId (and a show's seasons) live in
@@ -126,9 +59,7 @@ export function TrackRow({
     if (trimmed.length > 0 && trimmed !== track.title) onRename(track, trimmed);
   }
 
-  const resuming = track.shelf === 'backlog' && track.paused;
-  const starting = track.shelf === 'backlog' && !track.paused;
-  const startLabel = track.category === 'movie' ? 'Watched' : 'Start';
+  const action = rowAction(track);
   const editable = onEditProgress !== undefined && canEditPosition(track);
 
   const fraction =
@@ -225,26 +156,18 @@ export function TrackRow({
         )}
       </Pressable>
 
-      {nextEntryId && nextEntryTitle && (
+      {action && (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={
-            resuming
-              ? `Resume ${track.title}`
-              : starting
-                ? `${startLabel} ${track.title}`
-                : `Mark ${nextEntryTitle} ${verbFor(track.category)}`
-          }
+          accessibilityLabel={action.accessibilityLabel}
           accessibilityHint={editable ? 'Hold to set which unit you are on' : undefined}
-          onPress={() => (resuming ? onResume(track) : onAdvance(nextEntryId))}
+          onPress={() => (action.kind === 'resume' ? onResume(track) : onAdvance(action.entryId))}
           onLongPress={editable ? () => onEditProgress?.(track) : undefined}
           android_ripple={{ color: palette.primaryContainer }}
           style={({ pressed }) => [styles.advance, pressed && styles.advancePressed]}
         >
           {({ pressed }) => (
-            <Text style={[styles.advanceText, pressed && styles.advanceTextPressed]}>
-              {resuming ? 'Resume' : starting ? startLabel : 'Done'}
-            </Text>
+            <Text style={[styles.advanceText, pressed && styles.advanceTextPressed]}>{action.label}</Text>
           )}
         </Pressable>
       )}

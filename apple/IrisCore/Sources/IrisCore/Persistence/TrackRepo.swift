@@ -33,6 +33,20 @@ public struct TrackSummary: Codable, Equatable, Sendable {
     public var lastAdvancedAt: String?
     /// A23: the unit completing this track would remove, if any.
     public var completionDrops: String?
+
+    public init(
+        kind: TrackKind, id: String, title: String, category: Category, shelf: Shelf, createdAt: String,
+        progress: Progress?, ongoing: Bool = false, paused: Bool = false, seasons: [SeasonBoundary]? = nil,
+        nextEntryStatus: Status? = nil, nextEntryId: String? = nil, nextEntryTitle: String? = nil,
+        lastAdvancedAt: String? = nil, completionDrops: String? = nil
+    ) {
+        self.kind = kind; self.id = id; self.title = title; self.category = category; self.shelf = shelf
+        self.createdAt = createdAt; self.progress = progress; self.ongoing = ongoing; self.paused = paused
+        self.seasons = seasons; self.nextEntryStatus = nextEntryStatus; self.nextEntryId = nextEntryId
+        self.nextEntryTitle = nextEntryTitle; self.lastAdvancedAt = lastAdvancedAt; self.completionDrops = completionDrops
+    }
+
+    public var ref: TrackRef { TrackRef(kind: kind, id: id) }
 }
 
 public struct TrackDetail: Codable, Equatable, Sendable {

@@ -3,15 +3,17 @@ import SwiftUI
 
 /// A finished track's score out of 10 (components.md § IrisRatingBadge, A26).
 struct IrisRatingBadge: View {
-    enum Fill: Equatable { case accent, fill, destructiveTint }
-    enum Ink: Equatable { case onAccent, label, destructive }
+    enum Fill: Equatable { case accentTint, fill, destructiveTint }
+    /// One ink: white on the iOS 26 accent, or accent/red text on their own
+    /// tints, all fall under 4.5:1 (I7 accessibility audit).
+    enum Ink: Equatable { case label }
     struct Style: Equatable { let fill: Fill; let ink: Ink }
 
     static func style(for sentiment: Sentiment) -> Style {
         switch sentiment {
-        case .liked: Style(fill: .accent, ink: .onAccent)
+        case .liked: Style(fill: .accentTint, ink: .label)
         case .fine: Style(fill: .fill, ink: .label)
-        case .disliked: Style(fill: .destructiveTint, ink: .destructive)
+        case .disliked: Style(fill: .destructiveTint, ink: .label)
         }
     }
 
@@ -35,7 +37,7 @@ struct IrisRatingBadge: View {
 
     private static func color(_ fill: Fill) -> Color {
         switch fill {
-        case .accent: IrisTokens.Colors.accent
+        case .accentTint: IrisTokens.Colors.accent.opacity(0.22)
         case .fill: IrisTokens.Colors.fill
         case .destructiveTint: IrisTokens.Colors.destructive.opacity(0.15)
         }
@@ -43,9 +45,7 @@ struct IrisRatingBadge: View {
 
     private static func color(_ ink: Ink) -> Color {
         switch ink {
-        case .onAccent: IrisTokens.Colors.onAccent
         case .label: IrisTokens.Colors.label
-        case .destructive: IrisTokens.Colors.destructive
         }
     }
 }

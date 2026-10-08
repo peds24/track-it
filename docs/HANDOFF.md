@@ -77,7 +77,24 @@ PNGs into `docs/design/iris/`, and `docs/design/iris.html` shows them.
 Jest and XCTest fail if the component names or the symbol table drift,
 or a PNG is missing (they don't check a PNG is current: rerun the script
 after a visual change). No decision reversed, so the next amendment is still **A30**.
-Next is I7 (shelves).
+**I7 done** — the app opens on three shelves (Currently / Backlog / Done:
+the user kept the Android names) over the real library at Application
+Support/Iris/library.sqlite. `IrisCore.Library` wraps GRDB (the app never
+imports it): live shelf and rating streams plus the six row actions.
+`DatabaseQueue` is kept, not a pool (the I4 open item; one writer). Rename
+strips U+0000 (the other I4 item). Row text comes from
+`src/ui/trackLabels.ts` (moved out of `TrackRow.tsx` on `iris`; Android gets
+the move at I13), held by the new `shared/fixtures/trackLabels.json`, the
+first `src/ui` fixture module. DEBUG `-IrisSeed demo` runs on a seeded
+in-memory library. Apple's accessibility audit runs per tab; it drove kit
+colour changes (detail lines, row buttons and badges in the label colour —
+see `components.md`). Shelf screenshots: `docs/design/iris/screens/` — at AX5, every screenful of each tab (`*-ax5-p<n>.png`) plus a delete dialog; read them after a layout change, since the audit's Dynamic Type checks gave false positives and are off. Deferred from the I7 review (see DEVLOG): the haptic fires before a write succeeds, the assembled detail line isn't fixture-held, no empty-string fixture cases, rename alert title, Library opened on the main actor, and the system delete dialog is cramped at AX5.
+For I8: a row tap pushes `TrackPlaceholderView(ref:)` via
+`navigationDestination(item:)` — replace it with the detail screen; the
+position editor (A12) is I8's too. Not yet on iOS: covers on rows
+(`TrackSummary` has none on either platform), Add (I9), Rate/Rankings and
+the finish prompt (I10), the feedback mail and "?" help sheet (I12). Next is
+I8 (track detail).
 Plans go in `docs/superpowers/plans/`. Toolchain on this Mac: Xcode 27.0, Swift 6.4,
 `xcodegen` at `/opt/homebrew/bin`.
 

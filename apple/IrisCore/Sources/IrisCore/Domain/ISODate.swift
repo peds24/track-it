@@ -53,3 +53,13 @@ func isoDate(_ s: String, calendar: Calendar) -> Date? {
     guard let wall = cal.date(from: comps) else { return nil }
     return wall.addingTimeInterval(-Double(p.offsetSeconds ?? 0))
 }
+
+/// `date.toISOString()`: UTC, milliseconds, a trailing Z, the shape every
+/// stored timestamp has (I7: the app's "now").
+public func toISOString(_ date: Date) -> String {
+    var cal = Calendar(identifier: .gregorian)
+    cal.timeZone = TimeZone(identifier: "UTC")!
+    let c = cal.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
+    let millis = Int((date.timeIntervalSince1970 * 1000).rounded(.down)) - Int((date.timeIntervalSince1970).rounded(.down)) * 1000
+    return String(format: "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ", c.year!, c.month!, c.day!, c.hour!, c.minute!, c.second!, (millis + 1000) % 1000)
+}
