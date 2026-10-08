@@ -25,12 +25,16 @@
     .box { width: 120px; height: 80px; background: var(--iris-color-secondary-grouped-background); border: 1px solid var(--iris-color-separator); display: grid; place-items: center; }
     .stage { padding: var(--iris-space-xl); border-radius: var(--iris-radius-card); background: linear-gradient(135deg, var(--iris-color-category-show), var(--iris-color-category-movie), var(--iris-color-category-manga)); display: flex; gap: var(--iris-space-lg); flex-wrap: wrap; }
     .glass { padding: var(--iris-space-lg) var(--iris-space-xl); border-radius: var(--iris-radius-sheet); }
+    .component { margin: 0 0 var(--iris-space-xxl); }
+    .shots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--iris-space-md); margin-top: var(--iris-space-sm); }
+    .shots img { width: 100%; height: auto; border-radius: var(--iris-radius-card); border: 1px solid var(--iris-color-separator); }
+    @media (max-width: 600px) { .shots { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
   <main>
     <h1 class="iris-type-large-title">Iris tokens</h1>
-    <p class="iris-type-subheadline">Generated from <code>design/iris/tokens.json</code>. Component specimens arrive in I6.</p>
+    <p class="iris-type-subheadline">Generated from <code>design/iris/tokens.json</code>. Components are specified in <code>design/iris/components.md</code>; the renderings at the end are the iOS reference (I6), captured by <code>apple/scripts/screenshots.sh</code>.</p>
     <section>
       <h2 class="iris-type-title3">Colour</h2>
       <div class="themes">
@@ -118,6 +122,49 @@
         <div class="glass" style="backdrop-filter: blur(var(--iris-glass-clear-blur)); -webkit-backdrop-filter: blur(var(--iris-glass-clear-blur)); background: var(--iris-glass-clear-tint); border: 1px solid var(--iris-glass-clear-border)"><code>glass.clear</code></div>
         </div>
       </div>
+    </section>
+    <section>
+      <h2 class="iris-type-title3">Components — iOS reference</h2>
+      <figure class="component">
+        <figcaption class="iris-type-headline">IrisShelfRow</figcaption>
+        <div class="shots"><img src="iris/IrisShelfRow-light.png" alt="IrisShelfRow, light appearance" loading="lazy"><img src="iris/IrisShelfRow-dark.png" alt="IrisShelfRow, dark appearance" loading="lazy"><img src="iris/IrisShelfRow-ax5.png" alt="IrisShelfRow, accessibility text size 5" loading="lazy"></div>
+      </figure>
+      <figure class="component">
+        <figcaption class="iris-type-headline">IrisCover</figcaption>
+        <div class="shots"><img src="iris/IrisCover-light.png" alt="IrisCover, light appearance" loading="lazy"><img src="iris/IrisCover-dark.png" alt="IrisCover, dark appearance" loading="lazy"><img src="iris/IrisCover-ax5.png" alt="IrisCover, accessibility text size 5" loading="lazy"></div>
+      </figure>
+      <figure class="component">
+        <figcaption class="iris-type-headline">IrisProgress</figcaption>
+        <div class="shots"><img src="iris/IrisProgress-light.png" alt="IrisProgress, light appearance" loading="lazy"><img src="iris/IrisProgress-dark.png" alt="IrisProgress, dark appearance" loading="lazy"><img src="iris/IrisProgress-ax5.png" alt="IrisProgress, accessibility text size 5" loading="lazy"></div>
+      </figure>
+      <figure class="component">
+        <figcaption class="iris-type-headline">IrisCategoryChip</figcaption>
+        <div class="shots"><img src="iris/IrisCategoryChip-light.png" alt="IrisCategoryChip, light appearance" loading="lazy"><img src="iris/IrisCategoryChip-dark.png" alt="IrisCategoryChip, dark appearance" loading="lazy"><img src="iris/IrisCategoryChip-ax5.png" alt="IrisCategoryChip, accessibility text size 5" loading="lazy"></div>
+      </figure>
+      <figure class="component">
+        <figcaption class="iris-type-headline">IrisPrimaryButton</figcaption>
+        <div class="shots"><img src="iris/IrisPrimaryButton-light.png" alt="IrisPrimaryButton, light appearance" loading="lazy"><img src="iris/IrisPrimaryButton-dark.png" alt="IrisPrimaryButton, dark appearance" loading="lazy"><img src="iris/IrisPrimaryButton-ax5.png" alt="IrisPrimaryButton, accessibility text size 5" loading="lazy"></div>
+      </figure>
+      <figure class="component">
+        <figcaption class="iris-type-headline">IrisSheet</figcaption>
+        <div class="shots"><img src="iris/IrisSheet-light.png" alt="IrisSheet, light appearance" loading="lazy"><img src="iris/IrisSheet-dark.png" alt="IrisSheet, dark appearance" loading="lazy"><img src="iris/IrisSheet-ax5.png" alt="IrisSheet, accessibility text size 5" loading="lazy"></div>
+      </figure>
+      <figure class="component">
+        <figcaption class="iris-type-headline">IrisEmptyState</figcaption>
+        <div class="shots"><img src="iris/IrisEmptyState-light.png" alt="IrisEmptyState, light appearance" loading="lazy"><img src="iris/IrisEmptyState-dark.png" alt="IrisEmptyState, dark appearance" loading="lazy"><img src="iris/IrisEmptyState-ax5.png" alt="IrisEmptyState, accessibility text size 5" loading="lazy"></div>
+      </figure>
+      <figure class="component">
+        <figcaption class="iris-type-headline">IrisRatingBadge</figcaption>
+        <div class="shots"><img src="iris/IrisRatingBadge-light.png" alt="IrisRatingBadge, light appearance" loading="lazy"><img src="iris/IrisRatingBadge-dark.png" alt="IrisRatingBadge, dark appearance" loading="lazy"><img src="iris/IrisRatingBadge-ax5.png" alt="IrisRatingBadge, accessibility text size 5" loading="lazy"></div>
+      </figure>
+      <figure class="component">
+        <figcaption class="iris-type-headline">IrisComparisonCard</figcaption>
+        <div class="shots"><img src="iris/IrisComparisonCard-light.png" alt="IrisComparisonCard, light appearance" loading="lazy"><img src="iris/IrisComparisonCard-dark.png" alt="IrisComparisonCard, dark appearance" loading="lazy"><img src="iris/IrisComparisonCard-ax5.png" alt="IrisComparisonCard, accessibility text size 5" loading="lazy"></div>
+      </figure>
+      <figure class="component">
+        <figcaption class="iris-type-headline">IrisSymbol</figcaption>
+        <div class="shots"><img src="iris/IrisSymbol-light.png" alt="IrisSymbol, light appearance" loading="lazy"><img src="iris/IrisSymbol-dark.png" alt="IrisSymbol, dark appearance" loading="lazy"><img src="iris/IrisSymbol-ax5.png" alt="IrisSymbol, accessibility text size 5" loading="lazy"></div>
+      </figure>
     </section>
   </main>
 </body>

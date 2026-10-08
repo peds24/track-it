@@ -30,4 +30,11 @@ TEST_RUNNER_IRIS_SCREENSHOT_DIR="$OUT" TEST_RUNNER_IRIS_SCREENSHOT_ONLY="${1:-}"
   -only-testing:IrisUITests/GalleryTests/testCaptureGalleryScreenshots \
   -quiet
 
+# Half the simulator's 3x size: plenty for a reference page, a third of the bytes.
+for png in "$OUT"/Iris*-{light,dark,ax5}.png; do
+  [[ -f "$png" ]] || continue
+  h=$(sips -g pixelHeight "$png" | awk '/pixelHeight/ {print $2}')
+  (( h > 1400 )) && sips --resampleHeight $((h / 2)) "$png" >/dev/null
+done
+
 echo "✓ Screenshots in $OUT"

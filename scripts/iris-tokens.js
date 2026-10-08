@@ -10,6 +10,14 @@ const crypto = require('crypto');
 
 const ROOT = path.resolve(__dirname, '..');
 const SOURCE = 'design/iris/tokens.json';
+// The components in design/iris/components.md, in order (I6). iris.html shows
+// each one's iOS reference screenshots from docs/design/iris/.
+const COMPONENTS = [
+  'IrisShelfRow', 'IrisCover', 'IrisProgress', 'IrisCategoryChip', 'IrisPrimaryButton',
+  'IrisSheet', 'IrisEmptyState', 'IrisRatingBadge', 'IrisComparisonCard', 'IrisSymbol',
+];
+const SHOT_VARIANTS = { light: 'light appearance', dark: 'dark appearance', ax5: 'accessibility text size 5' };
+
 const OUTPUTS = {
   swift: 'apple/Iris/DesignSystem/IrisTokens.swift',
   ts: 'src/ui/iris/tokens.ts',
@@ -218,6 +226,14 @@ function renderHtml(t, hash) {
         `background: var(--iris-glass-${kebab(n)}-tint); border: 1px solid var(--iris-glass-${kebab(n)}-border)"><code>glass.${n}</code></div>`,
     )
     .join('\n        ');
+  const components = COMPONENTS.map(
+    (c) => `<figure class="component">
+        <figcaption class="iris-type-headline">${c}</figcaption>
+        <div class="shots">${Object.entries(SHOT_VARIANTS)
+          .map(([v, label]) => `<img src="iris/${c}-${v}.png" alt="${c}, ${label}" loading="lazy">`)
+          .join('')}</div>
+      </figure>`,
+  ).join('\n      ');
   return `<!DOCTYPE html>
 ${header('<!--', ' -->', hash)}<html lang="en">
 <head>
@@ -243,12 +259,16 @@ ${header('<!--', ' -->', hash)}<html lang="en">
     .box { width: 120px; height: 80px; background: var(--iris-color-secondary-grouped-background); border: 1px solid var(--iris-color-separator); display: grid; place-items: center; }
     .stage { padding: var(--iris-space-xl); border-radius: var(--iris-radius-card); background: linear-gradient(135deg, var(--iris-color-category-show), var(--iris-color-category-movie), var(--iris-color-category-manga)); display: flex; gap: var(--iris-space-lg); flex-wrap: wrap; }
     .glass { padding: var(--iris-space-lg) var(--iris-space-xl); border-radius: var(--iris-radius-sheet); }
+    .component { margin: 0 0 var(--iris-space-xxl); }
+    .shots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--iris-space-md); margin-top: var(--iris-space-sm); }
+    .shots img { width: 100%; height: auto; border-radius: var(--iris-radius-card); border: 1px solid var(--iris-color-separator); }
+    @media (max-width: 600px) { .shots { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
   <main>
     <h1 class="iris-type-large-title">Iris tokens</h1>
-    <p class="iris-type-subheadline">Generated from <code>${SOURCE}</code>. Component specimens arrive in I6.</p>
+    <p class="iris-type-subheadline">Generated from <code>${SOURCE}</code>. Components are specified in <code>design/iris/components.md</code>; the renderings at the end are the iOS reference (I6), captured by <code>apple/scripts/screenshots.sh</code>.</p>
     <section>
       <h2 class="iris-type-title3">Colour</h2>
       <div class="themes">
@@ -284,6 +304,10 @@ ${header('<!--', ' -->', hash)}<html lang="en">
         ${glass}
         </div>
       </div>
+    </section>
+    <section>
+      <h2 class="iris-type-title3">Components — iOS reference</h2>
+      ${components}
     </section>
   </main>
 </body>
@@ -332,5 +356,5 @@ function main(argv, root = ROOT) {
   return 0;
 }
 
-module.exports = { generate, parseColor, main, OUTPUTS, SOURCE };
+module.exports = { generate, parseColor, main, OUTPUTS, SOURCE, COMPONENTS };
 if (require.main === module) process.exit(main(process.argv.slice(2)));
