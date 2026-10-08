@@ -13,6 +13,7 @@ Xcode 27+, an iOS 26 simulator runtime, and `xcodegen` (`brew install xcodegen`)
     apple/scripts/test.sh               # IrisCore + UI tests (simulator "iPhone 17")
     apple/scripts/test.sh --core-only   # IrisCore only, no simulator
     IRIS_SIM="iPhone 17 Pro" apple/scripts/test.sh
+    apple/scripts/screenshots.sh        # regenerate docs/design/iris/*.png from the Gallery
 
 To work in Xcode: `xcodegen generate --spec apple/project.yml --project apple && open apple/Iris.xcodeproj`.
 **Never commit `Iris.xcodeproj`**: edit `project.yml` and regenerate.
@@ -48,3 +49,10 @@ won't work.
   `Iris/Config/Secrets.xcconfig` (git-ignored) via Info.plist.
 - Never hand-edit `Iris/DesignSystem/IrisTokens.swift`. Edit
   `design/iris/tokens.json` and run `npm run tokens` from the repo root.
+- The kit in `Iris/DesignSystem/` implements `design/iris/components.md`.
+  Change both together: `ComponentContractTests` and jest check the names,
+  the symbol table and the screenshots. After a visual change, run
+  `apple/scripts/screenshots.sh` and commit the PNGs. The Gallery
+  (`Iris/Features/Gallery/`) is wrapped in `#if DEBUG`; keep it that way.
+- In the app target, write `IrisCore.Category`; bare `Category` is
+  Objective-C's.

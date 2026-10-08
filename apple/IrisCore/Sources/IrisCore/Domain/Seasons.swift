@@ -3,6 +3,10 @@ public struct SeasonSegment: Codable, Equatable, Sendable {
     public let number: Int
     public let episodeCount: Int
     public let done: Int
+
+    public init(number: Int, episodeCount: Int, done: Int) {
+        self.number = number; self.episodeCount = episodeCount; self.done = done
+    }
 }
 
 public struct CurrentSeason: Codable, Equatable, Sendable {

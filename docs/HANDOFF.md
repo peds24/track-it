@@ -1,6 +1,6 @@
 # Track It — session handoff
 
-**Last updated:** 6 October 2026
+**Last updated:** 8 October 2026
 
 Where the project stands, what is unmerged, and what bit us — so the next
 session does not rediscover any of it. Newest section is at the top; older
@@ -61,7 +61,23 @@ scenarios now replay. Keys: `apple/Iris/Config/Secrets.xcconfig`
 (git-ignored; copy `Secrets.example.xcconfig`) → `Info.plist` →
 `ProviderKeys.fromBundle()`. **Still open for I7** (from I4):
 DatabasePool (WAL) vs DatabaseQueue, GRDB truncating strings at NUL, and
-the `Category` name clashing with Objective-C's. Next is I6 (app shell).
+the `Category` name clashing with Objective-C's. In the app target,
+spell it `IrisCore.Category`: plain `Category` resolves to the ObjC type.
+**I6 done** — the component kit. `design/iris/components.md` is the
+platform-neutral contract for the ten components (plus the SF Symbol ↔
+Material Symbol table), and `apple/Iris/DesignSystem/` holds the SwiftUI
+reference rendering. Components are presentational. I7 builds an
+`IrisShelfRow.Model` (title, category, detail line, `IrisProgress.Value`,
+cover URL, `Accessory`) from a `TrackSummary`; the TS `positionLabel` /
+`seasonPositionLabel` logic in `src/ui/TrackRow.tsx` is I7's to port. The
+debug-only Gallery opens from the swatch toolbar button, or with
+`-IrisGallery YES` (plus `-IrisColorScheme dark`, `-IrisDynamicType
+accessibility5`). `apple/scripts/screenshots.sh` writes the 30 reference
+PNGs into `docs/design/iris/`, and `docs/design/iris.html` shows them.
+Jest and XCTest fail if the component names or the symbol table drift,
+or a PNG is missing (they don't check a PNG is current: rerun the script
+after a visual change). No decision reversed, so the next amendment is still **A30**.
+Next is I7 (shelves).
 Plans go in `docs/superpowers/plans/`. Toolchain on this Mac: Xcode 27.0, Swift 6.4,
 `xcodegen` at `/opt/homebrew/bin`.
 

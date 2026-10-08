@@ -1,5 +1,38 @@
 # DEVLOG
 
+## 2026-10-08 — Iris I6: component kit + Gallery
+
+- `design/iris/components.md` specifies the ten components once, for every
+  platform. `apple/Iris/DesignSystem/` is the SwiftUI reference rendering,
+  and a DEBUG-only Gallery shows every state. 30 screenshots (light, dark,
+  AX5) sit in `docs/design/iris/`, shown by `iris.html`.
+- **Why presentational components**: what a row's detail line says
+  ("S3 Ep 15 of 24", "Paused · Volume 31") is shelf logic. It ports with
+  I7's shelves, next to the data that feeds it, rather than hiding inside
+  the kit.
+- **Why three name lists and tests between them**: `components.md`'s
+  headings, Swift's `GalleryComponent`, and the generator's `COMPONENTS`
+  must agree, and every component must have its PNGs. A component added in
+  one place without the others turns jest or XCTest red. The tests check
+  that the PNGs exist, not that they are current: regenerate them after a
+  visual change.
+- **Glass fallback is solid, not a blur**: Reduce Transparency asks for an
+  opaque surface, so the fallback is the glass tint composited over the
+  grouped secondary background. The final review caught that the first
+  version painted the bare 35–70% tint. The token's `blur` is for
+  platforms that composite their own blur.
+- **Screenshots through `TEST_RUNNER_` env**: xcodebuild passes
+  `TEST_RUNNER_IRIS_SCREENSHOT_DIR` to the UI-test runner as
+  `IRIS_SCREENSHOT_DIR`. The simulator runner can write host paths, so the
+  test saves PNGs straight into the repo. The script fixes the status bar
+  at 9:41 and halves the 3x captures.
+- **Gotchas found by looking, not by tests**: a `.bordered` button in a
+  List row hid its own title until given `.labelStyle(.titleAndIcon)`, and
+  a 44 pt frame on the label (not the button) clipped it. An HStack of chip
+  + detail split "Show" into "Sho w"; the detail line is now one wrapping
+  `Text` with the chip inlined. And `Category` in the app target resolves
+  to Objective-C's, so the kit says `IrisCore.Category`.
+
 ## 2026-10-07 — Iris I5: catalogue providers
 
 - `apple/IrisCore/Sources/IrisCore/Providers/` ports TMDB, Google Books,

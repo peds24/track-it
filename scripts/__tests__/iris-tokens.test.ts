@@ -8,6 +8,7 @@ type Gen = {
   main(argv: string[], root?: string): number;
   OUTPUTS: Record<'swift' | 'ts' | 'css' | 'html', string>;
   SOURCE: string;
+  COMPONENTS: string[];
 };
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const gen: Gen = require('../iris-tokens');
@@ -136,5 +137,29 @@ describe('the committed outputs', () => {
       expect({ file: rel, exists: fs.existsSync(file) }).toEqual({ file: rel, exists: true });
       expect({ file: rel, upToDate: fs.readFileSync(file, 'utf8') === out[key as keyof typeof out] }).toEqual({ file: rel, upToDate: true });
     }
+  });
+});
+
+describe('component reference renderings (I6)', () => {
+  const ROOT = path.join(__dirname, '..', '..');
+  const VARIANTS = ['light', 'dark', 'ax5'];
+
+  test('COMPONENTS matches the headings in design/iris/components.md', () => {
+    const md = fs.readFileSync(path.join(ROOT, 'design/iris/components.md'), 'utf8');
+    const headings = md.split('\n').filter((l) => l.startsWith('## Iris')).map((l) => l.slice(3).trim());
+    expect(gen.COMPONENTS).toEqual(headings);
+  });
+
+  test('every component has committed light, dark and AX5 screenshots', () => {
+    const missing = gen.COMPONENTS.flatMap((c) => VARIANTS.map((v) => `docs/design/iris/${c}-${v}.png`)).filter(
+      (p) => !fs.existsSync(path.join(ROOT, p)),
+    );
+    expect(missing).toEqual([]);
+  });
+
+  test('iris.html shows every component screenshot', () => {
+    const { html } = gen.generate(fs.readFileSync(path.join(ROOT, 'design/iris/tokens.json'), 'utf8'));
+    for (const c of gen.COMPONENTS) for (const v of VARIANTS) expect(html).toContain(`iris/${c}-${v}.png`);
+    expect(html).not.toContain('Component specimens arrive in I6');
   });
 });
