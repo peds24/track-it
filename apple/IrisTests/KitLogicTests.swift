@@ -3,6 +3,7 @@ import UIKit
 import XCTest
 @testable import Iris
 
+@MainActor
 final class KitLogicTests: XCTestCase {
     // MARK: IrisCover
     func testCoverURLResolution() {
