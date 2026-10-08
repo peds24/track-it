@@ -18,6 +18,7 @@ import { cases as seasons } from '../cases/seasons';
 import { cases as seriesTitle } from '../cases/seriesTitle';
 import { cases as shelf } from '../cases/shelf';
 import { cases as validate } from '../cases/validate';
+import { cases as trackLabels } from '../cases/trackLabels';
 import { cases as whatsNew } from '../cases/whatsNew';
 
 /** Module → its authored cases and the src/domain tests they extract from. */
@@ -32,6 +33,8 @@ const MODULES: Record<string, { cases: FixtureCase[]; testFiles: string[] }> = {
   seasons: { cases: seasons, testFiles: ['seasons.test.ts'] },
   rating: { cases: rating, testFiles: ['rating.test.ts'] },
   whatsNew: { cases: whatsNew, testFiles: ['whatsNew.test.ts'] },
+  // src/ui: Iris rows must say what Android rows say (I7).
+  trackLabels: { cases: trackLabels, testFiles: [] },
 };
 
 const FIXTURES = path.resolve(__dirname, '..');
@@ -103,7 +106,8 @@ test('rankingScenario walks a session to placement', () => {
 });
 
 
-describe.each(Object.entries(MODULES))('%s coverage by title', (module, { cases, testFiles }) => {
+// src/ui modules have no title list to cover: their tests render components.
+describe.each(Object.entries(MODULES).filter(([, m]) => m.testFiles.length > 0))('%s coverage by title', (module, { cases, testFiles }) => {
   test('every src/domain test has a fixture case named after it', () => {
     const names = cases.map((c) => norm(c.name));
     const titles = testFiles.flatMap((f) => testTitles(fs.readFileSync(path.join(DOMAIN_TESTS, f), 'utf8')));

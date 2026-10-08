@@ -33,6 +33,7 @@ public func shelfForSeries(_ children: [Entry], paused: Bool = false) -> Shelf {
 public struct Progress: Codable, Equatable, Sendable {
     public let done: Int
     public let total: Int
+    public init(done: Int, total: Int) { self.done = done; self.total = total }
 }
 
 public func progressFor(_ children: [Entry]) -> Progress {
