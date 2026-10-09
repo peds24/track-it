@@ -30,11 +30,15 @@ struct RootView: View {
 @MainActor
 final class Shelves {
     let currently: ShelfModel, backlog: ShelfModel, done: ShelfModel
+    private let library: Library
     init(library: Library) {
+        self.library = library
         currently = ShelfModel(shelf: .currently, library: library, registry: AppLibrary.registry)
         backlog = ShelfModel(shelf: .backlog, library: library, registry: AppLibrary.registry)
         done = ShelfModel(shelf: .done, library: library, registry: AppLibrary.registry)
     }
+
+    func detail(_ ref: TrackRef) -> DetailModel { DetailModel(ref: ref, library: library, registry: AppLibrary.registry) }
 }
 
 private struct ShelfTabs: View {
@@ -47,7 +51,7 @@ private struct ShelfTabs: View {
         TabView {
             Tab("Currently", systemImage: "play.circle") {
                 NavigationStack {
-                    ShelfView(model: shelves.currently)
+                    ShelfView(model: shelves.currently, makeDetail: shelves.detail)
                     #if DEBUG
                         .toolbar {
                             ToolbarItem(placement: .topBarTrailing) {
@@ -60,10 +64,10 @@ private struct ShelfTabs: View {
                 }
             }
             Tab("Backlog", systemImage: "tray") {
-                NavigationStack { ShelfView(model: shelves.backlog) }
+                NavigationStack { ShelfView(model: shelves.backlog, makeDetail: shelves.detail) }
             }
             Tab("Done", systemImage: "checkmark.circle") {
-                NavigationStack { ShelfView(model: shelves.done) }
+                NavigationStack { ShelfView(model: shelves.done, makeDetail: shelves.detail) }
             }
         }
     }
