@@ -28,12 +28,14 @@ public func seedDemoLibrary(_ library: Library) throws {
 
     try library.write { db in
         // Done
-        let hailMary = try createStandaloneTrack(db, StandaloneInput(title: "Project Hail Mary", category: .book), now: now())
+        let hailMary = try createStandaloneTrack(db, StandaloneInput(title: "Project Hail Mary", category: .book,
+            metadata: TrackMetadata(creator: "Andy Weir", releaseYear: "2021")), now: now())
         let first = try firstEntryOf(db, TrackRef(kind: .entry, id: hailMary)).id
         try advanceEntry(db, entryId: first, now: now())
         try advanceEntry(db, entryId: first, now: now())
         try saveRating(db, RatableTrack(kind: .entry, id: hailMary, category: .book), sentiment: .liked, indexInBucket: 0, now: now())
-        let interstellar = try createStandaloneTrack(db, StandaloneInput(title: "Interstellar", category: .movie), now: now())
+        let interstellar = try createStandaloneTrack(db, StandaloneInput(title: "Interstellar", category: .movie,
+            metadata: TrackMetadata(creator: "Christopher Nolan", releaseYear: "2014")), now: now())
         try advanceEntry(db, entryId: try firstEntryOf(db, TrackRef(kind: .entry, id: interstellar)).id, now: now())
 
         // Backlog
@@ -46,11 +48,13 @@ public func seedDemoLibrary(_ library: Library) throws {
         // Currently
         let saga = try createSeriesTrack(db, SeriesDraft(title: "Saga", mediaType: .comic, unitLabel: .issue, entries: units("Issue", 3), ongoing: true), now: now())
         try advanceSeries(db, saga, done: 3)
-        let dune = try createStandaloneTrack(db, StandaloneInput(title: "Dune", category: .book), now: now())
+        let dune = try createStandaloneTrack(db, StandaloneInput(title: "Dune", category: .book,
+            metadata: TrackMetadata(creator: "Frank Herbert", description: demoDescription, releaseYear: "1965")), now: now())
         try advanceEntry(db, entryId: try firstEntryOf(db, TrackRef(kind: .entry, id: dune)).id, now: now())
         let severance = try createSeriesTrack(db, SeriesDraft(
             title: "Severance", mediaType: .show, unitLabel: .episode, entries: units("Episode", 19),
-            seasons: [SeasonBoundary(number: 1, episodeCount: 9), SeasonBoundary(number: 2, episodeCount: 10)]
+            seasons: [SeasonBoundary(number: 1, episodeCount: 9), SeasonBoundary(number: 2, episodeCount: 10)],
+            metadata: TrackMetadata(creator: "Dan Erickson", releaseYear: "2022")
         ), now: now())
         try advanceSeries(db, severance, done: 13)
     }
@@ -63,3 +67,18 @@ private func nextEntryToAdvance(_ db: Database, _ seriesId: String) throws -> St
     }
     return id
 }
+
+/// Long enough to need Show more on the detail screen (A26). Written for the
+/// demo; not a publisher's blurb.
+private let demoDescription = """
+A desert planet, a noble house sent to govern it, and the one resource the whole empire runs on. \
+When the house is betrayed within a year of arriving, its heir escapes into the deep desert with his mother \
+and finds a people who have been waiting a long time for someone like him.
+
+The book follows him as he learns their ways: how to walk without rhythm so the sand does not answer, \
+how to keep every drop of water a body gives, how to read a storm. Each lesson pulls him further from \
+the life he was raised for and closer to a future he can see but does not want.
+
+It is a story about ecology and empire, about prophecy as a tool, and about what it costs to become the \
+thing other people need you to be. Read slowly; the appendices are worth it.
+"""

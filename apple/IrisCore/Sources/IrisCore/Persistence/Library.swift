@@ -8,6 +8,13 @@ public struct RowRating: Equatable, Sendable {
     public init(score: Double, sentiment: Sentiment) { self.score = score; self.sentiment = sentiment }
 }
 
+/// One track as its detail screen shows it (I8): the detail and, once rated, its rating.
+public struct TrackPage: Equatable, Sendable {
+    public let detail: TrackDetail
+    public let rating: RatingSummary?
+    public init(detail: TrackDetail, rating: RatingSummary?) { self.detail = detail; self.rating = rating }
+}
+
 /// The app's one door to the library (I7). It wraps the GRDB queue, so the app
 /// target never imports GRDB. Every write is one repository call, as in TS.
 /// A `DatabaseQueue`, not a pool: one user, one writer, a small library.
@@ -54,6 +61,28 @@ public final class Library: Sendable {
                 continuation.finish()
             }
             continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+
+    /// One track now, then again after any change to it; nil once it no longer exists (I8).
+    public func detail(_ ref: TrackRef) -> AsyncStream<Result<TrackPage?, Error>> {
+        let observation = ValueObservation.tracking { db -> TrackPage? in
+            guard let detail = try getTrackDetail(db, kind: ref.kind, id: ref.id) else { return nil }
+            return TrackPage(detail: detail, rating: try getRating(db, ref))
+        }
+        return stream(observation)
+    }
+
+    /// A12: put a series at `ordinal` (the unit you are on).
+    public func setPosition(seriesId: String, ordinal: Int, now: Date) async throws {
+        try await queue.write { try setTrackPosition($0, seriesId: seriesId, targetOrdinal: ordinal, now: toISOString(now)) }
+    }
+
+    /// A25 after a series moves (advance or set position): never throws, never blocks the move.
+    public func syncAfterMove(seriesId: String, registry: ProviderRegistry?) async -> Bool {
+        guard let registry else { return false }
+        return await syncSeriesUnit(queue, seriesId: seriesId) { source, category in
+            registry.provider(forSource: source, category: category)
         }
     }
 
