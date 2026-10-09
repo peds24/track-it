@@ -1,0 +1,891 @@
+{
+  "module": "addFlow",
+  "generatedBy": "npm run fixtures:record",
+  "timezone": "UTC",
+  "cases": [
+    {
+      "name": "addCatalogueKey: show no mode",
+      "fn": "addCatalogueKey",
+      "args": [
+        "show",
+        null
+      ],
+      "expect": "show"
+    },
+    {
+      "name": "addIsSeries: show no mode",
+      "fn": "addIsSeries",
+      "args": [
+        "show",
+        null
+      ],
+      "expect": true
+    },
+    {
+      "name": "addBarcodeTypes: show no mode",
+      "fn": "addBarcodeTypes",
+      "args": [
+        "show",
+        null
+      ],
+      "expect": null
+    },
+    {
+      "name": "addCatalogueKey: movie no mode",
+      "fn": "addCatalogueKey",
+      "args": [
+        "movie",
+        null
+      ],
+      "expect": "movie"
+    },
+    {
+      "name": "addIsSeries: movie no mode",
+      "fn": "addIsSeries",
+      "args": [
+        "movie",
+        null
+      ],
+      "expect": false
+    },
+    {
+      "name": "addBarcodeTypes: movie no mode",
+      "fn": "addBarcodeTypes",
+      "args": [
+        "movie",
+        null
+      ],
+      "expect": null
+    },
+    {
+      "name": "addCatalogueKey: book no mode",
+      "fn": "addCatalogueKey",
+      "args": [
+        "book",
+        null
+      ],
+      "expect": "book"
+    },
+    {
+      "name": "addIsSeries: book no mode",
+      "fn": "addIsSeries",
+      "args": [
+        "book",
+        null
+      ],
+      "expect": false
+    },
+    {
+      "name": "addBarcodeTypes: book no mode",
+      "fn": "addBarcodeTypes",
+      "args": [
+        "book",
+        null
+      ],
+      "expect": [
+        "ean13",
+        "ean8"
+      ]
+    },
+    {
+      "name": "addCatalogueKey: comic no mode",
+      "fn": "addCatalogueKey",
+      "args": [
+        "comic",
+        null
+      ],
+      "expect": "comic"
+    },
+    {
+      "name": "addIsSeries: comic no mode",
+      "fn": "addIsSeries",
+      "args": [
+        "comic",
+        null
+      ],
+      "expect": true
+    },
+    {
+      "name": "addBarcodeTypes: comic no mode",
+      "fn": "addBarcodeTypes",
+      "args": [
+        "comic",
+        null
+      ],
+      "expect": null
+    },
+    {
+      "name": "addCatalogueKey: comic single",
+      "fn": "addCatalogueKey",
+      "args": [
+        "comic",
+        "single"
+      ],
+      "expect": "comic"
+    },
+    {
+      "name": "addIsSeries: comic single",
+      "fn": "addIsSeries",
+      "args": [
+        "comic",
+        "single"
+      ],
+      "expect": true
+    },
+    {
+      "name": "addBarcodeTypes: comic single",
+      "fn": "addBarcodeTypes",
+      "args": [
+        "comic",
+        "single"
+      ],
+      "expect": [
+        "upc_a"
+      ]
+    },
+    {
+      "name": "addCatalogueKey: comic collection",
+      "fn": "addCatalogueKey",
+      "args": [
+        "comic",
+        "collection"
+      ],
+      "expect": "comic-collection"
+    },
+    {
+      "name": "addIsSeries: comic collection",
+      "fn": "addIsSeries",
+      "args": [
+        "comic",
+        "collection"
+      ],
+      "expect": false
+    },
+    {
+      "name": "addBarcodeTypes: comic collection",
+      "fn": "addBarcodeTypes",
+      "args": [
+        "comic",
+        "collection"
+      ],
+      "expect": [
+        "ean13",
+        "ean8"
+      ]
+    },
+    {
+      "name": "addCatalogueKey: manga no mode",
+      "fn": "addCatalogueKey",
+      "args": [
+        "manga",
+        null
+      ],
+      "expect": "manga"
+    },
+    {
+      "name": "addIsSeries: manga no mode",
+      "fn": "addIsSeries",
+      "args": [
+        "manga",
+        null
+      ],
+      "expect": true
+    },
+    {
+      "name": "addBarcodeTypes: manga no mode",
+      "fn": "addBarcodeTypes",
+      "args": [
+        "manga",
+        null
+      ],
+      "expect": [
+        "ean13",
+        "ean8"
+      ]
+    },
+    {
+      "name": "confirmPrimaryLabel: show",
+      "fn": "confirmPrimaryLabel",
+      "args": [
+        "show"
+      ],
+      "expect": "Start watching"
+    },
+    {
+      "name": "manualPrimaryLabel: show",
+      "fn": "manualPrimaryLabel",
+      "args": [
+        "show"
+      ],
+      "expect": "Start"
+    },
+    {
+      "name": "confirmPrimaryLabel: movie",
+      "fn": "confirmPrimaryLabel",
+      "args": [
+        "movie"
+      ],
+      "expect": "Watched"
+    },
+    {
+      "name": "manualPrimaryLabel: movie",
+      "fn": "manualPrimaryLabel",
+      "args": [
+        "movie"
+      ],
+      "expect": "Watched"
+    },
+    {
+      "name": "confirmPrimaryLabel: book",
+      "fn": "confirmPrimaryLabel",
+      "args": [
+        "book"
+      ],
+      "expect": "Start reading"
+    },
+    {
+      "name": "manualPrimaryLabel: book",
+      "fn": "manualPrimaryLabel",
+      "args": [
+        "book"
+      ],
+      "expect": "Start"
+    },
+    {
+      "name": "confirmPrimaryLabel: comic",
+      "fn": "confirmPrimaryLabel",
+      "args": [
+        "comic"
+      ],
+      "expect": "Start reading"
+    },
+    {
+      "name": "manualPrimaryLabel: comic",
+      "fn": "manualPrimaryLabel",
+      "args": [
+        "comic"
+      ],
+      "expect": "Start"
+    },
+    {
+      "name": "confirmPrimaryLabel: manga",
+      "fn": "confirmPrimaryLabel",
+      "args": [
+        "manga"
+      ],
+      "expect": "Start reading"
+    },
+    {
+      "name": "manualPrimaryLabel: manga",
+      "fn": "manualPrimaryLabel",
+      "args": [
+        "manga"
+      ],
+      "expect": "Start"
+    },
+    {
+      "name": "addSaveTitle: a pick with a scanned volume",
+      "fn": "addSaveTitle",
+      "args": [
+        {
+          "title": "Attack on Titan"
+        },
+        30,
+        "attack"
+      ],
+      "expect": "Attack on Titan #30"
+    },
+    {
+      "name": "addSaveTitle: a pick without one",
+      "fn": "addSaveTitle",
+      "args": [
+        {
+          "title": "Dune"
+        },
+        null,
+        "dun"
+      ],
+      "expect": "Dune"
+    },
+    {
+      "name": "addSaveTitle: nothing picked keeps the typed text as is",
+      "fn": "addSaveTitle",
+      "args": [
+        null,
+        null,
+        "  Pluribus "
+      ],
+      "expect": "  Pluribus "
+    },
+    {
+      "name": "addTrackInput: a typed comic issue starts at its number",
+      "fn": "addTrackInput",
+      "args": [
+        {
+          "comicMode": "single",
+          "picked": null,
+          "draft": null,
+          "previewMetadata": null,
+          "category": "comic",
+          "saveTitle": "Saga #12"
+        }
+      ],
+      "expect": {
+        "title": "Saga",
+        "category": "comic",
+        "count": 1,
+        "ongoing": true,
+        "startAtOrdinal": 12
+      }
+    },
+    {
+      "name": "addTrackInput: a typed manga volume",
+      "fn": "addTrackInput",
+      "args": [
+        {
+          "comicMode": null,
+          "picked": null,
+          "draft": null,
+          "previewMetadata": null,
+          "category": "manga",
+          "saveTitle": "Berserk #3"
+        }
+      ],
+      "expect": {
+        "title": "Berserk",
+        "category": "manga",
+        "count": 1,
+        "ongoing": true,
+        "startAtOrdinal": 3
+      }
+    },
+    {
+      "name": "addTrackInput: a typed manga with no number",
+      "fn": "addTrackInput",
+      "args": [
+        {
+          "comicMode": null,
+          "picked": null,
+          "draft": null,
+          "previewMetadata": null,
+          "category": "manga",
+          "saveTitle": "Berserk"
+        }
+      ],
+      "expect": {
+        "title": "Berserk",
+        "category": "manga",
+        "count": 1,
+        "ongoing": true
+      }
+    },
+    {
+      "name": "addTrackInput: a typed book is trimmed",
+      "fn": "addTrackInput",
+      "args": [
+        {
+          "comicMode": null,
+          "picked": null,
+          "draft": null,
+          "previewMetadata": null,
+          "category": "book",
+          "saveTitle": "  Dune  "
+        }
+      ],
+      "expect": {
+        "title": "Dune",
+        "category": "book",
+        "count": 1,
+        "ongoing": false
+      }
+    },
+    {
+      "name": "addTrackInput: a typed book keeps a \"#\" in its title",
+      "fn": "addTrackInput",
+      "args": [
+        {
+          "comicMode": null,
+          "picked": null,
+          "draft": null,
+          "previewMetadata": null,
+          "category": "book",
+          "saveTitle": "Book #2"
+        }
+      ],
+      "expect": {
+        "title": "Book #2",
+        "category": "book",
+        "count": 1,
+        "ongoing": false
+      }
+    },
+    {
+      "name": "addTrackInput: a comic collection pick is standalone from Google Books",
+      "fn": "addTrackInput",
+      "args": [
+        {
+          "comicMode": "collection",
+          "picked": {
+            "id": "gb-saga-1",
+            "title": "Saga, Volume One",
+            "category": "comic",
+            "count": 1,
+            "creator": "Brian K. Vaughan",
+            "year": "2012"
+          },
+          "draft": null,
+          "previewMetadata": null,
+          "category": "comic",
+          "saveTitle": "Saga, Volume One"
+        }
+      ],
+      "expect": {
+        "title": "Saga, Volume One",
+        "category": "comic",
+        "count": 1,
+        "ongoing": false,
+        "match": {
+          "id": "gb-saga-1",
+          "title": "Saga, Volume One",
+          "category": "comic",
+          "count": 1,
+          "creator": "Brian K. Vaughan",
+          "year": "2012"
+        },
+        "standalone": true,
+        "externalSource": "google-books"
+      }
+    },
+    {
+      "name": "addTrackInput: a comic single pick",
+      "fn": "addTrackInput",
+      "args": [
+        {
+          "comicMode": "single",
+          "picked": {
+            "id": "metron-1",
+            "title": "Saga",
+            "category": "comic",
+            "count": 66,
+            "ongoing": true,
+            "creator": "Brian K. Vaughan",
+            "year": "2012"
+          },
+          "draft": null,
+          "previewMetadata": null,
+          "category": "comic",
+          "saveTitle": "Saga"
+        }
+      ],
+      "expect": {
+        "title": "Saga",
+        "category": "comic",
+        "count": 1,
+        "ongoing": true,
+        "match": {
+          "id": "metron-1",
+          "title": "Saga",
+          "category": "comic",
+          "count": 66,
+          "ongoing": true,
+          "creator": "Brian K. Vaughan",
+          "year": "2012"
+        }
+      }
+    },
+    {
+      "name": "addTrackInput: a show with its draft",
+      "fn": "addTrackInput",
+      "args": [
+        {
+          "comicMode": null,
+          "picked": {
+            "id": "tmdb-63639",
+            "title": "The Expanse",
+            "category": "show",
+            "count": 62,
+            "year": "2015"
+          },
+          "draft": {
+            "title": "The Expanse",
+            "mediaType": "show",
+            "unitLabel": "episode",
+            "entries": [
+              {
+                "ordinal": 1,
+                "title": "Episode 1"
+              },
+              {
+                "ordinal": 2,
+                "title": "Episode 2"
+              }
+            ],
+            "externalSource": "tmdb",
+            "externalId": "63639",
+            "seasons": [
+              {
+                "number": 1,
+                "episodeCount": 2
+              }
+            ],
+            "metaLine": [
+              "2015",
+              "1 season"
+            ],
+            "blurb": "A detective and a captain uncover a conspiracy.",
+            "metadata": {
+              "coverUrl": null,
+              "creator": "Mark Fergus",
+              "description": null,
+              "releaseYear": "2015"
+            }
+          },
+          "previewMetadata": null,
+          "category": "show",
+          "saveTitle": "The Expanse"
+        }
+      ],
+      "expect": {
+        "title": "The Expanse",
+        "category": "show",
+        "count": 1,
+        "ongoing": true,
+        "match": {
+          "id": "tmdb-63639",
+          "title": "The Expanse",
+          "category": "show",
+          "count": 62,
+          "year": "2015"
+        },
+        "draft": {
+          "title": "The Expanse",
+          "mediaType": "show",
+          "unitLabel": "episode",
+          "entries": [
+            {
+              "ordinal": 1,
+              "title": "Episode 1"
+            },
+            {
+              "ordinal": 2,
+              "title": "Episode 2"
+            }
+          ],
+          "externalSource": "tmdb",
+          "externalId": "63639",
+          "seasons": [
+            {
+              "number": 1,
+              "episodeCount": 2
+            }
+          ],
+          "metaLine": [
+            "2015",
+            "1 season"
+          ],
+          "blurb": "A detective and a captain uncover a conspiracy.",
+          "metadata": {
+            "coverUrl": null,
+            "creator": "Mark Fergus",
+            "description": null,
+            "releaseYear": "2015"
+          }
+        }
+      }
+    },
+    {
+      "name": "addTrackInput: a series pick whose hydrate failed has no draft",
+      "fn": "addTrackInput",
+      "args": [
+        {
+          "comicMode": null,
+          "picked": null,
+          "draft": null,
+          "previewMetadata": null,
+          "category": "show",
+          "saveTitle": "The Expanse"
+        }
+      ],
+      "expect": {
+        "title": "The Expanse",
+        "category": "show",
+        "count": 1,
+        "ongoing": true
+      }
+    },
+    {
+      "name": "addTrackInput: a movie keeps its preview metadata",
+      "fn": "addTrackInput",
+      "args": [
+        {
+          "comicMode": null,
+          "picked": {
+            "id": "tmdb-329865",
+            "title": "Arrival",
+            "category": "movie",
+            "count": 1,
+            "creator": "Denis Villeneuve",
+            "year": "2016"
+          },
+          "draft": null,
+          "previewMetadata": {
+            "coverUrl": null,
+            "creator": "Denis Villeneuve",
+            "description": null,
+            "releaseYear": "2016"
+          },
+          "category": "movie",
+          "saveTitle": "Arrival"
+        }
+      ],
+      "expect": {
+        "title": "Arrival",
+        "category": "movie",
+        "count": 1,
+        "ongoing": false,
+        "match": {
+          "id": "tmdb-329865",
+          "title": "Arrival",
+          "category": "movie",
+          "count": 1,
+          "creator": "Denis Villeneuve",
+          "year": "2016"
+        },
+        "metadata": {
+          "coverUrl": null,
+          "creator": "Denis Villeneuve",
+          "description": null,
+          "releaseYear": "2016"
+        }
+      }
+    },
+    {
+      "name": "addTrackInput: a series ignores preview metadata",
+      "fn": "addTrackInput",
+      "args": [
+        {
+          "comicMode": null,
+          "picked": null,
+          "draft": null,
+          "previewMetadata": {
+            "creator": "x"
+          },
+          "category": "show",
+          "saveTitle": "The Expanse"
+        }
+      ],
+      "expect": {
+        "title": "The Expanse",
+        "category": "show",
+        "count": 1,
+        "ongoing": true
+      }
+    },
+    {
+      "name": "matchSummary: a series with its draft",
+      "fn": "matchSummary",
+      "args": [
+        true,
+        {
+          "title": "The Expanse",
+          "mediaType": "show",
+          "unitLabel": "episode",
+          "entries": [
+            {
+              "ordinal": 1,
+              "title": "Episode 1"
+            },
+            {
+              "ordinal": 2,
+              "title": "Episode 2"
+            }
+          ],
+          "externalSource": "tmdb",
+          "externalId": "63639",
+          "seasons": [
+            {
+              "number": 1,
+              "episodeCount": 2
+            }
+          ],
+          "metaLine": [
+            "2015",
+            "1 season"
+          ],
+          "blurb": "A detective and a captain uncover a conspiracy.",
+          "metadata": {
+            "coverUrl": null,
+            "creator": "Mark Fergus",
+            "description": null,
+            "releaseYear": "2015"
+          }
+        },
+        null
+      ],
+      "expect": {
+        "title": "The Expanse",
+        "metaLine": [
+          "2015",
+          "1 season"
+        ],
+        "blurb": "A detective and a captain uncover a conspiracy.",
+        "metadata": {
+          "coverUrl": null,
+          "creator": "Mark Fergus",
+          "description": null,
+          "releaseYear": "2015"
+        }
+      }
+    },
+    {
+      "name": "matchSummary: a series still hydrating",
+      "fn": "matchSummary",
+      "args": [
+        true,
+        null,
+        {
+          "title": "Arrival",
+          "metaLine": [
+            "2016",
+            "1h 56m"
+          ],
+          "blurb": "A linguist is asked to talk to visitors.",
+          "metadata": {
+            "coverUrl": null,
+            "creator": "Denis Villeneuve",
+            "description": null,
+            "releaseYear": "2016"
+          }
+        }
+      ],
+      "expect": null
+    },
+    {
+      "name": "matchSummary: a standalone with its preview",
+      "fn": "matchSummary",
+      "args": [
+        false,
+        null,
+        {
+          "title": "Arrival",
+          "metaLine": [
+            "2016",
+            "1h 56m"
+          ],
+          "blurb": "A linguist is asked to talk to visitors.",
+          "metadata": {
+            "coverUrl": null,
+            "creator": "Denis Villeneuve",
+            "description": null,
+            "releaseYear": "2016"
+          }
+        }
+      ],
+      "expect": {
+        "title": "Arrival",
+        "metaLine": [
+          "2016",
+          "1h 56m"
+        ],
+        "blurb": "A linguist is asked to talk to visitors.",
+        "metadata": {
+          "coverUrl": null,
+          "creator": "Denis Villeneuve",
+          "description": null,
+          "releaseYear": "2016"
+        }
+      }
+    },
+    {
+      "name": "matchSummary: a standalone still previewing",
+      "fn": "matchSummary",
+      "args": [
+        false,
+        {
+          "title": "The Expanse",
+          "mediaType": "show",
+          "unitLabel": "episode",
+          "entries": [
+            {
+              "ordinal": 1,
+              "title": "Episode 1"
+            },
+            {
+              "ordinal": 2,
+              "title": "Episode 2"
+            }
+          ],
+          "externalSource": "tmdb",
+          "externalId": "63639",
+          "seasons": [
+            {
+              "number": 1,
+              "episodeCount": 2
+            }
+          ],
+          "metaLine": [
+            "2015",
+            "1 season"
+          ],
+          "blurb": "A detective and a captain uncover a conspiracy.",
+          "metadata": {
+            "coverUrl": null,
+            "creator": "Mark Fergus",
+            "description": null,
+            "releaseYear": "2015"
+          }
+        },
+        null
+      ],
+      "expect": null
+    },
+    {
+      "name": "matchSummary: a draft without metaLine or blurb",
+      "fn": "matchSummary",
+      "args": [
+        true,
+        {
+          "title": "The Expanse",
+          "mediaType": "show",
+          "unitLabel": "episode",
+          "entries": [
+            {
+              "ordinal": 1,
+              "title": "Episode 1"
+            },
+            {
+              "ordinal": 2,
+              "title": "Episode 2"
+            }
+          ],
+          "externalSource": "tmdb",
+          "externalId": "63639",
+          "seasons": [
+            {
+              "number": 1,
+              "episodeCount": 2
+            }
+          ],
+          "metadata": {
+            "coverUrl": null,
+            "creator": "Mark Fergus",
+            "description": null,
+            "releaseYear": "2015"
+          }
+        },
+        null
+      ],
+      "expect": {
+        "title": "The Expanse",
+        "metaLine": [],
+        "blurb": null,
+        "metadata": {
+          "coverUrl": null,
+          "creator": "Mark Fergus",
+          "description": null,
+          "releaseYear": "2015"
+        }
+      }
+    }
+  ]
+}

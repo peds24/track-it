@@ -42,6 +42,7 @@ import {
   isStandaloneMediaType,
 } from '@/domain/validate';
 import { announcementFor } from '@/domain/whatsNew';
+import { addBarcodeTypes, addCatalogueKey, addIsSeries, addSaveTitle, addTrackInput, confirmPrimaryLabel, manualPrimaryLabel, matchSummary } from '@/ui/addFlow';
 import { completionMessage } from '@/ui/completionMessage';
 import { detailMeta, detailPrimaryLabel, detailStats, positionEdit, progressCaption } from '@/ui/trackDetail';
 import { canEditPosition, positionLabel, rowAction, seasonPositionLabel, verbFor } from '@/ui/trackLabels';
@@ -122,6 +123,14 @@ export const registry: Record<string, AnyFn> = {
   progressCaption,
   detailStats,
   positionEdit,
+  addCatalogueKey,
+  addIsSeries,
+  addBarcodeTypes,
+  confirmPrimaryLabel,
+  manualPrimaryLabel,
+  addSaveTitle,
+  addTrackInput,
+  matchSummary,
 };
 
 /** JSON-safe, deterministic: Maps become objects (insertion order), undefined becomes null at the top level. */
