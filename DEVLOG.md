@@ -22,6 +22,11 @@
   contrast; and the audit flagged Dune's pinned button alone, with pixels
   identical to Severance's passing one. That button's contrast is excused,
   on the strength of the token test.
+- **Review fixes**: the audit now scrolls every screenful (it had only seen
+  the first, missing Show more's blue text and 18 pt hit area, now
+  label-coloured with a 44 pt label frame); the main button no longer plays
+  a second haptic over the kit's own; and our own delete no longer flashes
+  "not found" while the screen pops.
 
 ## 2026-10-08 — Iris I7: shelves
 

@@ -105,7 +105,7 @@ Its text and the editor's input rules are in `src/ui/trackDetail.ts`
 a new `color.accentFill` token (#0071E3 / #0066CC) fills
 `IrisPrimaryButton`, now a solid `.borderedProminent` capsule — white on the
 iOS 26 system blue, or on `.glassProminent`, failed 4.5:1. Android and web
-inherit `accentFill` at I13. Detail screenshots: `screens/Detail-*`. Next is
+inherit `accentFill` at I13. Detail screenshots: `screens/Detail-*`. Deferred from the I8 review: no test for finishing the last unit from the detail screen, missing seasoned-show editor fixture cases (`'0'`, `'3a'`, `' 3 '`), the editor's grey footer (never audited), a double-tap advancing twice (as on Android), stale `-p<n>` screenshots when a run captures fewer pages, and a blank dialog if the track is deleted elsewhere while it's open. Next is
 I9 (Add: search, provider results, barcode scan, add-to-Watched → rate
 prompt).
 Plans go in `docs/superpowers/plans/`. Toolchain on this Mac: Xcode 27.0, Swift 6.4,

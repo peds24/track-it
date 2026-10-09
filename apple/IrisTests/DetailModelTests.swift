@@ -79,7 +79,7 @@ final class DetailModelTests: XCTestCase {
         let (model, fake) = await loaded(page())
         await model.primary()
         XCTAssertEqual(fake.calls, [.advance("e4"), .sync("t1")])
-        XCTAssertEqual(model.commits, 1)
+        XCTAssertEqual(model.commits, 0, "the primary button's haptic is the kit's own; a second would double it")
     }
 
     func testPrimaryResumesAPausedTrack() async {
@@ -154,5 +154,22 @@ final class DetailModelTests: XCTestCase {
         XCTAssertTrue(DetailModel.isDestructive(.moveToBacklog))
         XCTAssertTrue(DetailModel.isDestructive(.delete))
         XCTAssertEqual(DetailModel.missingMessage, "This track couldn’t be found — it may have been deleted.")
+    }
+
+    /// Review: after a delete the observation's nil must not flash the
+    /// not-found state while the screen pops.
+    func testADeletedTrackDoesNotFlashNotFoundWhilePopping() async {
+        let (model, fake) = await loaded(page())
+        await model.confirm(.delete)
+        XCTAssertTrue(model.dismissed)
+        fake.send(.success(nil))
+        for _ in 0..<50 { await Task.yield() }
+        XCTAssertEqual(model.state, .loaded(page()))
+    }
+
+    func testCompleteStillBumpsTheHapticTrigger() async {
+        let (model, _) = await loaded(page())
+        await model.confirm(.complete)
+        XCTAssertEqual(model.commits, 1)
     }
 }

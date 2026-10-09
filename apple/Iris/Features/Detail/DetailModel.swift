@@ -37,12 +37,14 @@ final class DetailModel {
     var editing = false
     /// Turns true once the track is deleted; the view pops.
     private(set) var dismissed = false
-    /// Bumped by a successful advance or completion: a haptic trigger.
+    /// Bumped by a successful completion (confirmed from a dialog): a haptic trigger.
     private(set) var commits = 0
 
     @ObservationIgnored private let library: any DetailLibrary
     @ObservationIgnored private let registry: ProviderRegistry?
     @ObservationIgnored private var observer: Task<Void, Never>?
+    /// Set while our own delete runs: its nil page must not flash "not found" as we pop.
+    @ObservationIgnored private var deleting = false
 
     init(ref: TrackRef, library: any DetailLibrary, registry: ProviderRegistry?) {
         self.ref = ref
@@ -66,7 +68,7 @@ final class DetailModel {
                 guard let self else { return }
                 switch result {
                 case let .success(page?): self.state = .loaded(page)
-                case .success(nil): self.state = .missing
+                case .success(nil): if !self.deleting && !self.dismissed { self.state = .missing }
                 case .failure:
                     // TS shows the not-found state for a failed read; keep a page
                     // already on screen. Forget the ended stream so the next
@@ -88,8 +90,8 @@ final class DetailModel {
             await run("Could not resume") { try await $0.resume(track.ref) }
             return
         }
+        // No `commits` bump: IrisPrimaryButton plays its own haptic on the tap.
         guard await run("Could not update", { try await $0.advance(entryId: next, now: Date()) }) else { return }
-        commits += 1
         if track.kind == .series { _ = await library.syncAfterMove(seriesId: track.id, registry: registry) }
     }
 
@@ -115,7 +117,9 @@ final class DetailModel {
         case .moveToBacklog:
             await run("Could not move") { try await $0.returnToBacklog(track.ref) }
         case .delete:
+            deleting = true
             if await run("Could not delete", { try await $0.delete(track.ref) }) { dismissed = true }
+            deleting = false
         }
     }
 

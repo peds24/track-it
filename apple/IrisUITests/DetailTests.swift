@@ -100,19 +100,30 @@ final class DetailTests: XCTestCase {
             // above it is judged.
             // iOS 26 also blurs a band just above it (the scroll edge effect).
             let pinned = app.buttons["detail.primary"]
+            // Every screenful, not just the first: Show more, the rating card and
+            // the timeline sit below the fold (I8 review).
+            for page in 0..<6 {
             let pinnedTop = (pinned.exists ? pinned.frame.minY : app.tabBars.firstMatch.frame.minY) - 48
+            // The same edge blur sits under the navigation bar once content scrolls.
+            let barBottom = app.navigationBars.firstMatch.frame.maxY + 24
             try app.performAccessibilityAudit(for: [.sufficientElementDescription, .hitRegion, .contrast]) { issue in
                 let type = issue.element?.elementType
-                let underPinned = (issue.element?.frame.maxY ?? 0) > pinnedTop && type != .button
+                let frame = issue.element?.frame ?? .zero
+                let underPinned = issue.auditType == .contrast && type != .button && (frame.maxY > pinnedTop || frame.minY < barBottom)
                 // The pinned button's 4.7:1 is proven by IrisTokensTests (white on
                 // accentFill, both appearances). The audit flags it on Dune only;
                 // its pixels are identical to Severance's (#0071E3 under white),
                 // where the same audit passes it.
-                let pinnedContrast = issue.auditType == .contrast && issue.element?.identifier == "detail.primary"
+                let pinnedContrast = title == "Dune" && issue.auditType == .contrast && issue.element?.identifier == "detail.primary"
                 if type != .tabBar && type != .navigationBar && !underPinned && !pinnedContrast {
-                    found.append("\(title): \(issue.compactDescription) | \(issue.element.map { "\($0.label) \($0.frame) type=\($0.elementType.rawValue) id=\($0.identifier)" } ?? "no element")")
+                    found.append("\(title) p\(page): \(issue.compactDescription) | \(issue.element.map { "\($0.label) \($0.frame) type=\($0.elementType.rawValue) id=\($0.identifier)" } ?? "no element")")
                 }
                 return true
+            }
+            let list = app.collectionViews.firstMatch, before = list.cells.firstMatch.frame
+            list.swipeUp(velocity: .slow)
+            sleep(1)
+            if list.cells.firstMatch.frame == before { break }
             }
             app.navigationBars.buttons.element(boundBy: 0).tap()
         }

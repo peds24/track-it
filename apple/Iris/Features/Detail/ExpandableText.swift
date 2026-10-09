@@ -31,13 +31,19 @@ struct ExpandableText: View {
                         .onGeometryChange(for: CGFloat.self, of: \.size.height) { fullHeight = $0 }
                 }
             if Self.overflows(fullHeight: fullHeight, clampedHeight: clampedHeight) {
-                Button(expanded ? "Show less" : "Show more") {
+                Button {
                     withAnimation(IrisTokens.Motion.smooth) { expanded.toggle() }
+                } label: {
+                    // Label colour, not accent: system blue text is ~3.5:1 (I8 review).
+                    // The 44 pt frame is inside the label, so it is the hit area.
+                    Text(expanded ? "Show less" : "Show more")
+                        .font(IrisTokens.Typography.subheadline.font.weight(.semibold))
+                        .foregroundStyle(IrisTokens.Colors.label)
+                        .underline()
+                        .frame(minWidth: 44, minHeight: 44, alignment: .leading)
+                        .contentShape(Rectangle())
                 }
-                .font(IrisTokens.Typography.subheadline.font.weight(.semibold))
-                .foregroundStyle(IrisTokens.Colors.accent)
                 .buttonStyle(.plain)
-                .frame(minHeight: 44)
                 .accessibilityIdentifier("detail.showMore")
             }
         }
