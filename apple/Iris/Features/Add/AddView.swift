@@ -8,6 +8,9 @@ struct AddView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var path: [Step] = []
     @State private var scanning = false
+    /// A scanned code, routed once the scanner has closed: an alert presented
+    /// while the cover is still dismissing is dropped (the EAN-5 prompt was).
+    @State private var scannedCode: String?
     @State private var ean5 = ""
 
     enum Step: Hashable { case comicMode, search, confirm }
@@ -127,16 +130,28 @@ struct AddView: View {
         .safeAreaInset(edge: .bottom) {
             saveButtons(primary: manualPrimaryLabel(category), enabled: !jsTrim(model.query).isEmpty)
         }
-        .fullScreenCover(isPresented: $scanning) {
+        .fullScreenCover(isPresented: $scanning, onDismiss: {
+            guard let code = scannedCode else { return }
+            scannedCode = nil
+            Task { await model.scanned(code) }
+        }) {
             BarcodeScanner(kinds: model.barcodeKinds ?? [], onCode: { code in
+                scannedCode = code
                 scanning = false
-                Task { await model.scanned(code) }
             }, onCancel: { scanning = false })
         }
         .alert("5-digit issue code?", isPresented: Binding(get: { model.pendingUPC != nil }, set: { if !$0 { model.pendingUPC = nil } })) {
             TextField("12345", text: $ean5).keyboardType(.numberPad)
-            Button("Search") { let code = ean5; ean5 = ""; Task { await model.submitEAN5(code) } }
-            Button("Skip", role: .cancel) { ean5 = ""; Task { await model.submitEAN5(nil) } }
+            Button("Search") {
+                let code = ean5, upc = model.pendingUPC
+                ean5 = ""
+                Task { await model.submitEAN5(code, upc: upc) }
+            }
+            Button("Skip", role: .cancel) {
+                let upc = model.pendingUPC
+                ean5 = ""
+                Task { await model.submitEAN5(nil, upc: upc) }
+            }
         } message: {
             Text("The small 5-digit barcode next to the main one identifies the exact issue. Skip to see all matching issues.")
         }

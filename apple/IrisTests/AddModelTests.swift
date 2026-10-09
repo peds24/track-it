@@ -233,4 +233,16 @@ final class AddModelTests: XCTestCase {
         model.leaveSearch(); model.choose(.comic); XCTAssertNil(model.barcodeKinds)
         model.chooseComicMode(.single); XCTAssertEqual(model.barcodeKinds, [.upcA])
     }
+
+    /// The alert clears pendingUPC as it closes; the captured code still searches.
+    func testTheEAN5PromptStillSearchesAfterTheAlertClearedItsCode() async {
+        let (model, cat, _) = make()
+        model.choose(.comic); model.chooseComicMode(.single)
+        await model.scanned("0761941333509")
+        let upc = model.pendingUPC
+        model.pendingUPC = nil            // what the alert's dismissal does
+        await model.submitEAN5(nil, upc: upc)
+        XCTAssertEqual(cat.upcCalls.last?.0, "761941333509")
+        XCTAssertFalse(model.results.isEmpty)
+    }
 }

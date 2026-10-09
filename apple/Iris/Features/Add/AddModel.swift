@@ -181,8 +181,10 @@ final class AddModel {
     }
 
     /// A9: search the scanned UPC, with the EAN-5 only when it is five digits.
-    func submitEAN5(_ code: String?) async {
-        guard let upc = pendingUPC else { return }
+    /// `upc` is the code captured when the prompt's button was tapped: the
+    /// alert's dismissal clears `pendingUPC` before this runs.
+    func submitEAN5(_ code: String?, upc captured: String? = nil) async {
+        guard let upc = captured ?? pendingUPC else { return }
         pendingUPC = nil
         let trimmed = code.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         do {
