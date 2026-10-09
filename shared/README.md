@@ -50,9 +50,10 @@ rounding, ASCII \d/\w/\b, UTF-16 indexing) live in
 `apple/IrisCore/Sources/IrisCore/Domain/JSCompat.swift` and `ISODate.swift`,
 each pinned by a "Swift parity" fixture.
 
-**`src/ui` modules (I7).** `trackLabels` records the pure row text in
+**`src/ui` modules (I7, I8).** `trackLabels` records the pure row text in
 `src/ui/trackLabels.ts` and `src/ui/completionMessage.ts`, so iOS rows read
-exactly as Android rows. Its `testFiles` list is empty: the matching tests
+exactly as Android rows; `trackDetail` records the detail screen's text and
+the position editor's input rules from `src/ui/trackDetail.ts`. Its `testFiles` list is empty: the matching tests
 render components, so the coverage-by-title check skips it.
 
 ## scenarios/ (Iris I4, A29)

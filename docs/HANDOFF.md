@@ -93,8 +93,21 @@ For I8: a row tap pushes `TrackPlaceholderView(ref:)` via
 `navigationDestination(item:)` — replace it with the detail screen; the
 position editor (A12) is I8's too. Not yet on iOS: covers on rows
 (`TrackSummary` has none on either platform), Add (I9), Rate/Rankings and
-the finish prompt (I10), the feedback mail and "?" help sheet (I12). Next is
-I8 (track detail).
+the finish prompt (I10), the feedback mail and "?" help sheet (I12). **I8 done** — a shelf row opens the track's own screen (A22): hero
+cover, credit and meta line, where you are, the timeline, a rating card
+(display only — Rate it / Re-rank / Rankings are I10's), the description
+with Show more, the main action pinned at the bottom, and Edit position
+(A12) / Complete / Pause or Move to Backlog / Delete in the toolbar menu.
+Its text and the editor's input rules are in `src/ui/trackDetail.ts`
+(moved on `iris` from the detail screen and ProgressEditor), held by
+`shared/fixtures/trackDetail.json`, the second `src/ui` fixture module.
+`Library.detail(_:)` streams one track (nil once deleted). **Kit change:**
+a new `color.accentFill` token (#0071E3 / #0066CC) fills
+`IrisPrimaryButton`, now a solid `.borderedProminent` capsule — white on the
+iOS 26 system blue, or on `.glassProminent`, failed 4.5:1. Android and web
+inherit `accentFill` at I13. Detail screenshots: `screens/Detail-*`. Next is
+I9 (Add: search, provider results, barcode scan, add-to-Watched → rate
+prompt).
 Plans go in `docs/superpowers/plans/`. Toolchain on this Mac: Xcode 27.0, Swift 6.4,
 `xcodegen` at `/opt/homebrew/bin`.
 

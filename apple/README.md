@@ -55,7 +55,9 @@ won't work.
   `apple/scripts/screenshots.sh` and commit the PNGs. The Gallery
   (`Iris/Features/Gallery/`) is wrapped in `#if DEBUG`; keep it that way.
 - `IrisCore/Presentation` ports the pure row text in `src/ui/trackLabels.ts`
-  and `completionMessage.ts`, held by `shared/fixtures/trackLabels.json`.
+  and `completionMessage.ts` (`shared/fixtures/trackLabels.json`), and the
+  detail screen's text and editor rules in `src/ui/trackDetail.ts`
+  (`shared/fixtures/trackDetail.json`).
 - DEBUG launch arguments: `-IrisSeed demo` (a seeded in-memory library),
   `-IrisGallery YES`, `-IrisColorScheme dark`, `-IrisDynamicType accessibility5`.
 - In the app target, write `IrisCore.Category` and `IrisCore.Progress`; bare
