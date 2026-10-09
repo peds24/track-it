@@ -55,6 +55,10 @@ public struct TrackDetail: Codable, Equatable, Sendable {
     public var timeline: Timeline
     /// nil for a standalone track.
     public var unitLabel: UnitLabel?
+
+    public init(summary: TrackSummary, metadata: TrackMetadata, timeline: Timeline, unitLabel: UnitLabel?) {
+        self.summary = summary; self.metadata = metadata; self.timeline = timeline; self.unitLabel = unitLabel
+    }
 }
 
 public struct FirstEntry: Codable, Equatable, Sendable {
