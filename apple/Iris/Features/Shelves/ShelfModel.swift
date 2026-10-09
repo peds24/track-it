@@ -66,7 +66,8 @@ final class ShelfModel {
 
     @ObservationIgnored private let library: any ShelfLibrary
     @ObservationIgnored private let registry: ProviderRegistry?
-    @ObservationIgnored private var observers: [Task<Void, Never>] = []
+    /// "tracks" and "scores"; cancelled when the model goes (see TaskBag).
+    @ObservationIgnored private let observers = TaskBag()
 
     init(shelf: Shelf, library: any ShelfLibrary, registry: ProviderRegistry?) {
         self.shelf = shelf
@@ -74,13 +75,11 @@ final class ShelfModel {
         self.registry = registry
     }
 
-    isolated deinit { observers.forEach { $0.cancel() } }
-
     /// Begins observing; calling it again is a no-op.
     func start() {
-        guard observers.isEmpty else { return }
+        guard !observers.has("tracks") else { return }
         let tracks = library.tracks(shelf: shelf, category: category)
-        observers.append(Task { [weak self] in
+        observers.set("tracks", Task { [weak self] in
             for await result in tracks {
                 guard let self else { return }
                 switch result {
@@ -90,15 +89,14 @@ final class ShelfModel {
                     // The stream has ended; forget it so the next appearance's
                     // start() subscribes again (TS reloads on focus), rather than
                     // leaving a shelf that silently stops updating.
-                    self.observers.forEach { $0.cancel() }
-                    self.observers = []
+                    self.observers.cancelAll()
                     return
                 }
             }
         })
         guard shelf == .done else { return }
         let scores = library.scores()
-        observers.append(Task { [weak self] in
+        observers.set("scores", Task { [weak self] in
             for await value in scores {
                 guard let self else { return }
                 self.ratings = value
@@ -107,8 +105,7 @@ final class ShelfModel {
     }
 
     private func restart() {
-        observers.forEach { $0.cancel() }
-        observers = []
+        observers.cancelAll()
         start()
     }
 

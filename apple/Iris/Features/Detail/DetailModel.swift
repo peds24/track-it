@@ -42,7 +42,8 @@ final class DetailModel {
 
     @ObservationIgnored private let library: any DetailLibrary
     @ObservationIgnored private let registry: ProviderRegistry?
-    @ObservationIgnored private var observer: Task<Void, Never>?
+    /// "page"; cancelled when the model goes (see TaskBag).
+    @ObservationIgnored private let observer = TaskBag()
     /// Set while our own delete runs: its nil page must not flash "not found" as we pop.
     @ObservationIgnored private var deleting = false
 
@@ -52,8 +53,6 @@ final class DetailModel {
         self.registry = registry
     }
 
-    isolated deinit { observer?.cancel() }
-
     var track: TrackSummary? {
         if case let .loaded(page) = state { return page.detail.summary }
         return nil
@@ -61,9 +60,9 @@ final class DetailModel {
 
     /// Begins observing; a no-op while already observing.
     func start() {
-        guard observer == nil else { return }
+        guard !observer.has("page") else { return }
         let pages = library.detail(ref)
-        observer = Task { [weak self] in
+        observer.set("page", Task { [weak self] in
             for await result in pages {
                 guard let self else { return }
                 switch result {
@@ -74,11 +73,11 @@ final class DetailModel {
                     // already on screen. Forget the ended stream so the next
                     // appearance subscribes again.
                     if case .loading = self.state { self.state = .missing }
-                    self.observer = nil
+                    self.observer.cancel("page")
                     return
                 }
             }
-        }
+        })
     }
 
     // MARK: Actions

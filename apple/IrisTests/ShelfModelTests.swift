@@ -180,4 +180,13 @@ final class ShelfModelTests: XCTestCase {
         XCTAssertEqual(model.tracks.map(\.id), ["s1"])
         XCTAssertEqual(fake.observed.count, 2, "start() resubscribes after a failure")
     }
+
+    /// A model released from a synchronous context must not crash (its
+    /// `isolated deinit` did: malloc "pointer being freed was not allocated").
+    func testReleasingAStartedModelSynchronouslyIsSafe() {
+        var model: AnyObject? = { let m = ShelfModel(shelf: .currently, library: FakeLibrary(), registry: nil); m.start(); return m }()
+        XCTAssertNotNil(model)
+        model = nil
+        XCTAssertNil(model)
+    }
 }

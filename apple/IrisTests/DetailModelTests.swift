@@ -172,4 +172,13 @@ final class DetailModelTests: XCTestCase {
         await model.confirm(.complete)
         XCTAssertEqual(model.commits, 1)
     }
+
+    /// A model released from a synchronous context must not crash (its
+    /// `isolated deinit` did: malloc "pointer being freed was not allocated").
+    func testReleasingAStartedModelSynchronouslyIsSafe() {
+        var model: AnyObject? = { let m = DetailModel(ref: TrackRef(kind: .series, id: "t1"), library: FakeDetailLibrary(), registry: nil); m.start(); return m }()
+        XCTAssertNotNil(model)
+        model = nil
+        XCTAssertNil(model)
+    }
 }
