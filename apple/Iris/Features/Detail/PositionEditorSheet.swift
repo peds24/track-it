@@ -23,12 +23,10 @@ struct PositionEditorSheet: View {
             Form {
                 Section {
                     if edit.seasoned {
-                        field("Season", text: $season, placeholder: edit.seasonPlaceholder, total: edit.seasonCount)
-                            .accessibilityIdentifier("editor.season")
+                        field("Season", text: $season, placeholder: edit.seasonPlaceholder, total: edit.seasonCount, id: "editor.season")
                     }
-                    field(edit.unitWord, text: $unit, placeholder: edit.unitPlaceholder, total: edit.unitTotal)
+                    field(edit.unitWord, text: $unit, placeholder: edit.unitPlaceholder, total: edit.unitTotal, id: "editor.unit")
                         .focused($unitFocused)
-                        .accessibilityIdentifier("editor.unit")
                 } footer: {
                     Text(track.title)
                 }
@@ -47,13 +45,14 @@ struct PositionEditorSheet: View {
         }
     }
 
-    private func field(_ label: String, text: Binding<String>, placeholder: Int?, total: Int?) -> some View {
+    private func field(_ label: String, text: Binding<String>, placeholder: Int?, total: Int?, id: String) -> some View {
         LabeledContent(label) {
             HStack(spacing: IrisTokens.Space.sm) {
                 TextField(placeholder.map(String.init) ?? "", text: text)
                     .keyboardType(.numberPad)
                     .multilineTextAlignment(.trailing)
                     .accessibilityLabel("\(label) number")
+                    .accessibilityIdentifier(id)
                 Text(total.map { "of \($0)" } ?? "—")
                     .foregroundStyle(IrisTokens.Colors.label)
                     .monospacedDigit()

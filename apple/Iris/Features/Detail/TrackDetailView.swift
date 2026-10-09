@@ -77,7 +77,7 @@ struct TrackDetailView: View {
                 .listRowBackground(Color.clear)
             }
 
-            Section("Progress") {
+            Section {
                 VStack(alignment: .leading, spacing: IrisTokens.Space.sm) {
                     Text(seasonPositionLabel(track) ?? positionLabel(track)).font(IrisTokens.Typography.headline.font)
                     if let caption = progressCaption(track, unitLabel: page.detail.unitLabel) {
@@ -87,36 +87,45 @@ struct TrackDetailView: View {
                     if let p = track.progress, p.total > 0 { IrisProgress(.flat(done: p.done, total: p.total)) }
                 }
                 .padding(.vertical, IrisTokens.Space.xs)
+                // One element: the 4 pt bar alone is too small a hit region (I8 audit).
+                .accessibilityElement(children: .combine)
+            } header: {
+                Self.header("Progress")
             }
 
             Section {
                 ForEach(detailStats(page.detail.timeline, now: now), id: \.label) { stat in
-                    LabeledContent(stat.label, value: stat.value)
+                    LabeledContent(stat.label) {
+                        Text(stat.value).foregroundStyle(IrisTokens.Colors.label)
+                    }
                 }
             } header: {
-                Text("Timeline")
+                Self.header("Timeline")
             } footer: {
-                if let activity = activityLine(track.category, timeline: page.detail.timeline, now: now) { Text(activity) }
+                if let activity = activityLine(track.category, timeline: page.detail.timeline, now: now) {
+                    Text(activity).foregroundStyle(IrisTokens.Colors.label)
+                }
             }
 
             if page.rating != nil || track.shelf == .done {
-                Section("Rating") { ratingCard(page.rating, track) }
+                Section { ratingCard(page.rating, track) } header: { Self.header("Rating") }
             }
 
             if let description = cleanDescription(metadata.description) {
-                Section("About") { ExpandableText(text: description) }
+                Section { ExpandableText(text: description) } header: { Self.header("About") }
             }
         }
         .listStyle(.insetGrouped)
+        // Before the inset: applied after it, the list's identifier replaces the button's.
+        .accessibilityIdentifier("detail.\(track.id)")
         .safeAreaInset(edge: .bottom) {
             if let label = detailPrimaryLabel(track) {
                 IrisPrimaryButton(label, fullWidth: true) { Task { await model.primary() } }
+                    .accessibilityIdentifier("detail.primary")
                     .padding(.horizontal, IrisTokens.Space.lg)
                     .padding(.bottom, IrisTokens.Space.sm)
-                    .accessibilityIdentifier("detail.primary")
             }
         }
-        .accessibilityIdentifier("detail.\(track.id)")
     }
 
     @ViewBuilder private func ratingCard(_ rating: RatingSummary?, _ track: TrackSummary) -> some View {
@@ -133,6 +142,14 @@ struct TrackDetailView: View {
             Text("Not rated yet. Rank it against the other \(track.category.plural) you’ve finished.")
                 .font(IrisTokens.Typography.subheadline.font)
         }
+    }
+
+    /// Section headers in the label colour: the default grey fails 4.5:1 (I7/I8 audit).
+    static func header(_ title: String) -> some View {
+        Text(title)
+            .font(IrisTokens.Typography.headline.font)
+            .foregroundStyle(IrisTokens.Colors.label)
+            .textCase(nil)
     }
 
     /// SENTIMENT_LABEL in src/ui/rating.ts.
