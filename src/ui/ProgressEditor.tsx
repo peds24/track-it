@@ -1,23 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { TrackSummary } from '@/data/trackRepo';
-import { ordinalFor, positionIn } from '@/domain/seasons';
-import type { UnitLabel } from '@/domain/types';
-import { unitLabelFor } from '@/providers/manual';
+import { positionEdit } from '@/ui/trackDetail';
 import { elevation, font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
-
-const UNIT_WORD: Record<UnitLabel, string> = {
-  episode: 'Episode',
-  issue: 'Issue',
-  volume: 'Volume',
-};
-
-function typed(value: string): number | null {
-  const trimmed = value.trim();
-  if (trimmed === '') return null;
-  if (!/^\d+$/.test(trimmed)) return null;
-  return Number(trimmed);
-}
 
 export function ProgressEditor({
   track,
@@ -42,35 +27,11 @@ export function ProgressEditor({
 
   if (track === null || track.progress === null) return null;
 
-  const total = track.progress.total;
-  const unit = unitLabelFor(track.category) ?? 'episode';
-  const unitWord = UNIT_WORD[unit];
-
-  const currentOrdinal = track.progress.done + 1;
-
-  const seasons = track.seasons && track.seasons.length > 0 ? track.seasons : null;
-  const at = seasons ? positionIn(seasons, currentOrdinal) : null;
-  const seasoned = seasons !== null && at !== null;
-
-  const seasonNumber = seasoned ? (typed(season) ?? at.season) : null;
-  const seasonTotal =
-    seasoned && seasonNumber !== null
-      ? (seasons.find((s) => s.number === seasonNumber)?.episodeCount ?? null)
-      : null;
-
-  const unitTotal = seasoned ? seasonTotal : total;
-  const unitPlaceholder = seasoned ? at.episode : currentOrdinal;
-
-  const typedUnit = typed(unitValue);
-  const target = (() => {
-    if (typedUnit === null) return null;
-    if (seasoned) {
-      if (seasonNumber === null) return null;
-      const flat = ordinalFor(seasons, seasonNumber, typedUnit);
-      return flat !== null && flat <= total ? flat : null;
-    }
-    return typedUnit >= 1 && typedUnit <= total ? typedUnit : null;
-  })();
+  const { unitWord, seasoned, seasonPlaceholder, seasonCount, unitPlaceholder, unitTotal, target } = positionEdit(
+    track,
+    season,
+    unitValue,
+  );
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onCancel}>
@@ -87,7 +48,7 @@ export function ProgressEditor({
               <TextInput
                 style={styles.input}
                 accessibilityLabel="Season number"
-                placeholder={String(at.season)}
+                placeholder={String(seasonPlaceholder)}
                 placeholderTextColor={c.onSurfaceVariant}
                 value={season}
                 onChangeText={setSeason}
@@ -97,7 +58,7 @@ export function ProgressEditor({
                 selectionColor={c.primaryContainer}
                 underlineColorAndroid="transparent"
               />
-              <Text style={styles.total}>{`of ${seasons.length}`}</Text>
+              <Text style={styles.total}>{`of ${seasonCount}`}</Text>
             </View>
           )}
 
