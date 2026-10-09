@@ -77,4 +77,20 @@ final class IrisTokensTests: XCTestCase {
         c.getRed(&r, green: &g, blue: &b, alpha: &a)
         return [r, g, b, a].map { (Double($0) * 1000).rounded() / 1000 }
     }
+
+    /// I8: white text on a prominent fill must reach 4.5:1 in both appearances
+    /// (the iOS 26 system blue reaches ~3.5:1, which Apple's audit fails).
+    func testWhiteOnTheAccentFillPassesContrast() {
+        for style in [UIUserInterfaceStyle.light, .dark] {
+            let fill = rgba(UIColor(IrisTokens.Colors.accentFill).resolvedColor(with: UITraitCollection(userInterfaceStyle: style)))
+            let ratio = Self.contrast(white: 1.0, against: fill)
+            XCTAssertGreaterThanOrEqual(ratio, 4.5, "white on accentFill (\(style == .dark ? "dark" : "light")) is \(ratio):1")
+        }
+    }
+
+    private static func contrast(white: Double, against c: [Double]) -> Double {
+        func lin(_ v: Double) -> Double { v <= 0.03928 ? v / 12.92 : pow((v + 0.055) / 1.055, 2.4) }
+        let l = 0.2126 * lin(c[0]) + 0.7152 * lin(c[1]) + 0.0722 * lin(c[2])
+        return (white + 0.05) / (l + 0.05)
+    }
 }

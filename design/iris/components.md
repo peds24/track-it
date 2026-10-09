@@ -41,7 +41,7 @@ uses it and this file says only how it must behave.
 
 ## IrisPrimaryButton
 **Purpose.** The one prominent action on a screen or sheet ("Add", "Rate it").
-**Anatomy.** The platform's prominent button: on iOS 26, `.glassProminent` tinted `color.accent`, label `headline`, optional leading `IrisSymbol`, full-width option. Minimum height 50 pt.
+**Anatomy.** The platform's prominent button: on iOS, `.borderedProminent` (capsule) tinted `color.accentFill` — solid, not `.glassProminent`, whose translucent tint drops white text under 4.5:1 — label `headline`, optional leading `IrisSymbol`, full-width option. Minimum height 50 pt. `color.accentFill` is a deeper blue than `color.accent` so white text on it reaches 4.5:1 in both appearances (I8); `color.accent` stays the tint for glyphs and links.
 **States.** Enabled, disabled, pressed, in progress (a spinner replaces the symbol and the button is disabled).
 **Behaviour.** Success haptic on activation.
 **Accessibility.** Its label is the title. While in progress the value is "In progress".

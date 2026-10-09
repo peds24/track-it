@@ -27,8 +27,12 @@ struct IrisPrimaryButton: View {
             .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: 50)
             .padding(.horizontal, IrisTokens.Space.lg)
         }
-        .buttonStyle(.glassProminent)
-        .tint(IrisTokens.Colors.accent)
+        // Solid, not .glassProminent: glass renders the tint translucent, which
+        // drops white text below 4.5:1 (I8 audit).
+        .buttonStyle(.borderedProminent)
+        .buttonBorderShape(.capsule)
+        // accentFill, not accent: white on the iOS 26 system blue is ~3.5:1 (I8 audit).
+        .tint(IrisTokens.Colors.accentFill)
         .disabled(inProgress)
         .sensoryFeedback(.success, trigger: taps)
         .accessibilityValue(inProgress ? "In progress" : "")
