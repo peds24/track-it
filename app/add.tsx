@@ -6,13 +6,23 @@ import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View 
 import { addTrack } from '@/data/addTrack';
 import { advanceEntry, firstEntryOf } from '@/data/trackRepo';
 import { cleanDescription, creatorLine } from '@/domain/formatters';
-import { parseSeriesTitle, stripBareTrailingNumber } from '@/domain/seriesTitle';
+import { stripBareTrailingNumber } from '@/domain/seriesTitle';
 import type { Category } from '@/domain/types';
 import { GoogleBooksProvider } from '@/providers/googleBooks';
 import { MetronProvider } from '@/providers/metron';
-import { unitLabelFor } from '@/providers/manual';
 import { providerFor } from '@/providers/registry';
 import type { MatchPreview, SearchResult, SeriesDraft } from '@/providers/types';
+import {
+  addBarcodeTypes,
+  addCatalogueKey,
+  addIsSeries,
+  addSaveTitle,
+  addTrackInput,
+  confirmPrimaryLabel,
+  manualPrimaryLabel,
+  matchSummary as matchSummary_,
+  type ComicMode,
+} from '@/ui/addFlow';
 import { CoverImage } from '@/ui/CoverImage';
 import { ExpandableText } from '@/ui/ExpandableText';
 import { offerRatingIfFinished } from '@/ui/rating';
@@ -25,12 +35,6 @@ import { elevation, font, layout, radius, space, useTheme, type Palette } from '
  * only catalogues single issues, so collections are Google Books' job.
  * Show/movie have no retail barcode at all — TMDB is search-by-title
  * only (D5/A9). */
-const ISBN_BARCODE_TYPES: BarcodeType[] = ['ean13', 'ean8'];
-const BARCODE_TYPES: Partial<Record<Category, BarcodeType[]>> = {
-  book: ISBN_BARCODE_TYPES,
-  manga: ISBN_BARCODE_TYPES,
-};
-const COMIC_SINGLE_ISSUE_BARCODE: BarcodeType[] = ['upc_a'];
 
 /**
  * A14: comic collections (TPB, hardcover, omnibus) are matched by title
@@ -55,25 +59,20 @@ const CATEGORIES: readonly {
   { value: 'manga', label: 'Manga', iconName: 'library-outline' },
 ];
 
-type ComicMode = 'single' | 'collection';
 
 /** The registry (D10) is a strict one-provider-per-category map, which
  * can't express "comic, but the collection sub-path" — this resolves the
  * one exception directly rather than growing the registry's interface for
  * a single category's internal split. */
 function providerForAdd(category: Category, comicMode: ComicMode | null) {
-  return category === 'comic' && comicMode === 'collection' ? googleBooksComic : providerFor(category);
+  const key = addCatalogueKey(category, comicMode);
+  return key === 'comic-collection' ? googleBooksComic : providerFor(key);
 }
 
 /** A11's confirm screen: what the primary button says once a real match is
  * matched, per medium (D2's own "Watched"-not-"Start" case for a movie
  * carries over unchanged; A17 gives reading media a name of their own
  * rather than the generic "Start"). */
-function primaryLabel(category: Category): string {
-  if (category === 'movie') return 'Watched';
-  if (category === 'show') return 'Start watching';
-  return 'Start reading';
-}
 
 export default function AddTrackScreen() {
   const db = useDatabase();
@@ -125,39 +124,15 @@ export default function AddTrackScreen() {
   const scanHandled = useRef(false);
   const allowLeave = useRef(false);
 
-  // A16: a comic collection is excluded here even though `comic`'s own
-  // category has a series unit label — it tracks as one standalone item,
-  // like a book, so it takes the exact same no-count, no-confirm-step path
-  // book/movie already do. This is what let A14's `autoConfirms` workaround
-  // (Google Books can never return a real count to confirm) go away
-  // entirely: there is no confirm step to skip once this is false.
-  const isCollectionComic = category === 'comic' && comicMode === 'collection';
-  const isSeries = category !== null && unitLabelFor(category) !== null && !isCollectionComic;
+  // A16: a comic collection tracks as one standalone item (see addIsSeries).
+  const isSeries = category !== null && addIsSeries(category, comicMode);
   // A17: the confirm screen's data, however it was fetched — `hydrate()`'s
   // own metaLine/blurb for a series match, `preview()`'s for a standalone
   // one. `null` means either there's no picked match, or its lookup hasn't
   // resolved yet (see `hydrating`/`previewing`) or failed outright.
-  const matchSummary: MatchPreview | null = isSeries
-    ? confirmedDraft
-      ? {
-          title: confirmedDraft.title,
-          metaLine: confirmedDraft.metaLine ?? [],
-          blurb: confirmedDraft.blurb ?? null,
-          metadata: confirmedDraft.metadata,
-        }
-      : null
-    : previewData;
+  const matchSummary: MatchPreview | null = matchSummary_(isSeries, confirmedDraft, previewData);
   const checkingMatch = picked !== null && matchSummary === null && (isSeries ? hydrating : previewing);
-  const barcodeTypes =
-    category === 'comic'
-      ? comicMode === 'single'
-        ? COMIC_SINGLE_ISSUE_BARCODE
-        : comicMode === 'collection'
-          ? ISBN_BARCODE_TYPES
-          : undefined
-      : category
-        ? BARCODE_TYPES[category]
-        : undefined;
+  const barcodeTypes: BarcodeType[] | undefined = category ? (addBarcodeTypes(category, comicMode) ?? undefined) : undefined;
 
   useEffect(() => {
     if (!category) {
@@ -312,11 +287,7 @@ export default function AddTrackScreen() {
    * own "#N" pattern reads the ordinal back out at save time — reusing it
    * means startAtOrdinal needs no separate plumbing through
    * addTrack/createSeriesTrack for the scan case. */
-  const saveTitle = picked
-    ? pickedOrdinal !== null
-      ? `${picked.title} #${pickedOrdinal}`
-      : picked.title
-    : title;
+  const saveTitle = addSaveTitle(picked, pickedOrdinal, title);
 
   async function handleScanPress(): Promise<void> {
     if (!category) return;
@@ -414,42 +385,18 @@ export default function AddTrackScreen() {
       // `saveTitle` by this point. A16: a comic collection has no series to
       // start partway through — its title (e.g. "Saga, Volume 1") keeps
       // its number, the same as a book's title always has.
-      const { title: finalTitle, ordinal } =
-        (category === 'comic' && !isCollectionComic) || category === 'manga'
-          ? parseSeriesTitle(saveTitle)
-          : { title: saveTitle.trim(), ordinal: null };
-
-      // A11: a confirmed match is passed straight through as a ready draft —
-      // no second hydrate, no manual count to validate. Only reached once
-      // the confirm screen's own primary/secondary button was tapped (A17),
-      // so there is no override case left to rebuild locally here.
-      const draft: SeriesDraft | undefined = isSeries && confirmedDraft ? confirmedDraft : undefined;
-
+      const input = addTrackInput({
+        category,
+        comicMode,
+        saveTitle,
+        picked,
+        draft: confirmedDraft,
+        previewMetadata: previewData?.metadata ?? null,
+      });
+      const finalTitle = input.title;
       const created = await addTrack(
         db,
-        {
-          title: finalTitle,
-          category,
-          // A25: no count to type any more. A hand-typed series (or one whose
-          // match failed to load) is tracked as ongoing (A4) — it grows a unit
-          // at a time as you go, and Complete (A23) finishes it. A confirmed
-          // match brings its real count on `draft` and ignores both.
-          count: 1,
-          ongoing: isSeries,
-          match: picked ?? undefined,
-          startAtOrdinal: ordinal ?? undefined,
-          draft,
-          // A16: a comic collection tracks as a standalone item — the
-          // registry's `comic` entry stays Metron (the single-issue
-          // default), so a Google Books match needs its real source
-          // recorded explicitly rather than picking up Metron's id.
-          standalone: isCollectionComic || undefined,
-          externalSource: isCollectionComic ? googleBooksComic.id : undefined,
-          // A22: a standalone match's metadata was already fetched by the
-          // confirm screen's preview() — stored now, no second request. A
-          // series carries its own on `draft.metadata`.
-          metadata: !isSeries ? (previewData?.metadata ?? undefined) : undefined,
-        },
+        input,
         now,
       );
       if (startNow) {
@@ -610,7 +557,7 @@ export default function AddTrackScreen() {
               accessibilityRole="button"
               android_ripple={{ color: palette.onPrimary + '33' }}
             >
-              <Text style={styles.saveText}>{primaryLabel(category)}</Text>
+              <Text style={styles.saveText}>{confirmPrimaryLabel(category)}</Text>
             </Pressable>
             <Pressable
               style={styles.saveSecondary}
@@ -684,7 +631,7 @@ export default function AddTrackScreen() {
           accessibilityRole="button"
           android_ripple={{ color: palette.onPrimary + '33' }}
         >
-          <Text style={styles.saveText}>{category === 'movie' ? 'Watched' : 'Start'}</Text>
+          <Text style={styles.saveText}>{manualPrimaryLabel(category)}</Text>
         </Pressable>
         <Pressable
           style={styles.saveSecondary}
