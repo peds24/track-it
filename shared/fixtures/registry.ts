@@ -43,6 +43,7 @@ import {
 } from '@/domain/validate';
 import { announcementFor } from '@/domain/whatsNew';
 import { completionMessage } from '@/ui/completionMessage';
+import { detailMeta, detailPrimaryLabel, detailStats, positionEdit, progressCaption } from '@/ui/trackDetail';
 import { canEditPosition, positionLabel, rowAction, seasonPositionLabel, verbFor } from '@/ui/trackLabels';
 
 /** A whole ranking session as one vector: the opponents asked, in order,
@@ -116,6 +117,11 @@ export const registry: Record<string, AnyFn> = {
   canEditPosition,
   rowAction,
   completionMessage,
+  detailMeta,
+  detailPrimaryLabel,
+  progressCaption,
+  detailStats,
+  positionEdit,
 };
 
 /** JSON-safe, deterministic: Maps become objects (insertion order), undefined becomes null at the top level. */

@@ -1,0 +1,1262 @@
+{
+  "module": "trackDetail",
+  "generatedBy": "npm run fixtures:record",
+  "timezone": "UTC",
+  "cases": [
+    {
+      "name": "detailMeta: a show with a year",
+      "fn": "detailMeta",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "show",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 3,
+            "total": 10
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "2022"
+      ],
+      "expect": "SHOW · 2022"
+    },
+    {
+      "name": "detailMeta: a movie with a year",
+      "fn": "detailMeta",
+      "args": [
+        {
+          "kind": "entry",
+          "id": "s1",
+          "title": "Arrival",
+          "category": "movie",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 3,
+            "total": 10
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "2016"
+      ],
+      "expect": "MOVIE · 2016"
+    },
+    {
+      "name": "detailMeta: a book with no year",
+      "fn": "detailMeta",
+      "args": [
+        {
+          "kind": "entry",
+          "id": "s1",
+          "title": "Dune",
+          "category": "book",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 3,
+            "total": 10
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        null
+      ],
+      "expect": "BOOK"
+    },
+    {
+      "name": "detailMeta: an ongoing comic",
+      "fn": "detailMeta",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Saga",
+          "category": "comic",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 3,
+            "total": 10
+          },
+          "ongoing": true,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "2012"
+      ],
+      "expect": "COMIC · 2012 · Ongoing"
+    },
+    {
+      "name": "detailMeta: a manga with an empty year",
+      "fn": "detailMeta",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "One Piece",
+          "category": "manga",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 3,
+            "total": 10
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        ""
+      ],
+      "expect": "MANGA"
+    },
+    {
+      "name": "detailPrimaryLabel: watching a show",
+      "fn": "detailPrimaryLabel",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "show",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 3,
+            "total": 10
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        }
+      ],
+      "expect": "Mark Episode 4 watched"
+    },
+    {
+      "name": "detailPrimaryLabel: reading a manga",
+      "fn": "detailPrimaryLabel",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "One Piece",
+          "category": "manga",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 3,
+            "total": 10
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Volume 31",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        }
+      ],
+      "expect": "Mark Volume 31 read"
+    },
+    {
+      "name": "detailPrimaryLabel: a backlog movie",
+      "fn": "detailPrimaryLabel",
+      "args": [
+        {
+          "kind": "entry",
+          "id": "s1",
+          "title": "Arrival",
+          "category": "movie",
+          "shelf": "backlog",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": null,
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Arrival",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        }
+      ],
+      "expect": "Watched"
+    },
+    {
+      "name": "detailPrimaryLabel: a backlog book",
+      "fn": "detailPrimaryLabel",
+      "args": [
+        {
+          "kind": "entry",
+          "id": "s1",
+          "title": "Dune",
+          "category": "book",
+          "shelf": "backlog",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": null,
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Dune",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        }
+      ],
+      "expect": "Start"
+    },
+    {
+      "name": "detailPrimaryLabel: a paused series",
+      "fn": "detailPrimaryLabel",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "show",
+          "shelf": "backlog",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 3,
+            "total": 10
+          },
+          "ongoing": false,
+          "paused": true,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        }
+      ],
+      "expect": "Resume"
+    },
+    {
+      "name": "detailPrimaryLabel: a finished track",
+      "fn": "detailPrimaryLabel",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "show",
+          "shelf": "done",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 3,
+            "total": 10
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": null,
+          "nextEntryId": null,
+          "nextEntryTitle": null,
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        }
+      ],
+      "expect": null
+    },
+    {
+      "name": "detailPrimaryLabel: an empty next entry id",
+      "fn": "detailPrimaryLabel",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "show",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 3,
+            "total": 10
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        }
+      ],
+      "expect": null
+    },
+    {
+      "name": "progressCaption: episodes",
+      "fn": "progressCaption",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "show",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 13,
+            "total": 19
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "episode"
+      ],
+      "expect": "13 of 19 episodes"
+    },
+    {
+      "name": "progressCaption: issues",
+      "fn": "progressCaption",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "comic",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 3,
+            "total": 4
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "issue"
+      ],
+      "expect": "3 of 4 issues"
+    },
+    {
+      "name": "progressCaption: volumes",
+      "fn": "progressCaption",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "manga",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 30,
+            "total": 108
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "volume"
+      ],
+      "expect": "30 of 108 volumes"
+    },
+    {
+      "name": "progressCaption: a total of one",
+      "fn": "progressCaption",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "show",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 0,
+            "total": 1
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "episode"
+      ],
+      "expect": "0 of 1 episode"
+    },
+    {
+      "name": "progressCaption: no progress",
+      "fn": "progressCaption",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "show",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": null,
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "episode"
+      ],
+      "expect": null
+    },
+    {
+      "name": "progressCaption: no unit (a standalone)",
+      "fn": "progressCaption",
+      "args": [
+        {
+          "kind": "entry",
+          "id": "s1",
+          "title": "Severance",
+          "category": "book",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 3,
+            "total": 10
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        null
+      ],
+      "expect": null
+    },
+    {
+      "name": "detailStats: added today",
+      "fn": "detailStats",
+      "args": [
+        {
+          "addedAt": "2026-10-08T09:00:00.000Z",
+          "startedAt": null,
+          "finishedAt": null
+        },
+        "2026-10-08T12:00:00.000Z"
+      ],
+      "expect": [
+        [
+          "Added",
+          "Oct 8, 2026 · today"
+        ]
+      ]
+    },
+    {
+      "name": "detailStats: added yesterday, started today",
+      "fn": "detailStats",
+      "args": [
+        {
+          "addedAt": "2026-10-07T09:00:00.000Z",
+          "startedAt": "2026-10-08T08:00:00.000Z",
+          "finishedAt": null
+        },
+        "2026-10-08T12:00:00.000Z"
+      ],
+      "expect": [
+        [
+          "Added",
+          "Oct 7, 2026 · yesterday"
+        ],
+        [
+          "Started",
+          "Oct 8, 2026 · today"
+        ]
+      ]
+    },
+    {
+      "name": "detailStats: all three, weeks apart",
+      "fn": "detailStats",
+      "args": [
+        {
+          "addedAt": "2026-08-29T09:00:00.000Z",
+          "startedAt": "2026-09-01T09:00:00.000Z",
+          "finishedAt": "2026-10-02T09:00:00.000Z"
+        },
+        "2026-10-08T12:00:00.000Z"
+      ],
+      "expect": [
+        [
+          "Added",
+          "Aug 29, 2026 · 6 weeks ago"
+        ],
+        [
+          "Started",
+          "Sep 1, 2026 · 5 weeks ago"
+        ],
+        [
+          "Finished",
+          "Oct 2, 2026"
+        ]
+      ]
+    },
+    {
+      "name": "positionEdit: flat, nothing typed",
+      "fn": "positionEdit",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "One Piece",
+          "category": "manga",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 3,
+            "total": 10
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "",
+        ""
+      ],
+      "expect": {
+        "unitWord": "Volume",
+        "seasoned": false,
+        "seasonPlaceholder": null,
+        "seasonCount": null,
+        "unitPlaceholder": 4,
+        "unitTotal": 10,
+        "target": null
+      }
+    },
+    {
+      "name": "positionEdit: flat, a padded number",
+      "fn": "positionEdit",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "One Piece",
+          "category": "manga",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 3,
+            "total": 10
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "",
+        " 3 "
+      ],
+      "expect": {
+        "unitWord": "Volume",
+        "seasoned": false,
+        "seasonPlaceholder": null,
+        "seasonCount": null,
+        "unitPlaceholder": 4,
+        "unitTotal": 10,
+        "target": 3
+      }
+    },
+    {
+      "name": "positionEdit: flat, not digits",
+      "fn": "positionEdit",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "One Piece",
+          "category": "manga",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 3,
+            "total": 10
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "",
+        "3a"
+      ],
+      "expect": {
+        "unitWord": "Volume",
+        "seasoned": false,
+        "seasonPlaceholder": null,
+        "seasonCount": null,
+        "unitPlaceholder": 4,
+        "unitTotal": 10,
+        "target": null
+      }
+    },
+    {
+      "name": "positionEdit: flat, zero",
+      "fn": "positionEdit",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "One Piece",
+          "category": "manga",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 3,
+            "total": 10
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "",
+        "0"
+      ],
+      "expect": {
+        "unitWord": "Volume",
+        "seasoned": false,
+        "seasonPlaceholder": null,
+        "seasonCount": null,
+        "unitPlaceholder": 4,
+        "unitTotal": 10,
+        "target": null
+      }
+    },
+    {
+      "name": "positionEdit: flat, beyond the total",
+      "fn": "positionEdit",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "One Piece",
+          "category": "manga",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 3,
+            "total": 10
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "",
+        "11"
+      ],
+      "expect": {
+        "unitWord": "Volume",
+        "seasoned": false,
+        "seasonPlaceholder": null,
+        "seasonCount": null,
+        "unitPlaceholder": 4,
+        "unitTotal": 10,
+        "target": null
+      }
+    },
+    {
+      "name": "positionEdit: flat, the last",
+      "fn": "positionEdit",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "One Piece",
+          "category": "manga",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 3,
+            "total": 10
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "",
+        "10"
+      ],
+      "expect": {
+        "unitWord": "Volume",
+        "seasoned": false,
+        "seasonPlaceholder": null,
+        "seasonCount": null,
+        "unitPlaceholder": 4,
+        "unitTotal": 10,
+        "target": 10
+      }
+    },
+    {
+      "name": "positionEdit: flat, a fullwidth digit",
+      "fn": "positionEdit",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "One Piece",
+          "category": "manga",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 3,
+            "total": 10
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "",
+        "３"
+      ],
+      "expect": {
+        "unitWord": "Volume",
+        "seasoned": false,
+        "seasonPlaceholder": null,
+        "seasonCount": null,
+        "unitPlaceholder": 4,
+        "unitTotal": 10,
+        "target": null
+      }
+    },
+    {
+      "name": "positionEdit: seasons, nothing typed",
+      "fn": "positionEdit",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "show",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 13,
+            "total": 19
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": [
+            {
+              "number": 1,
+              "episodeCount": 9
+            },
+            {
+              "number": 2,
+              "episodeCount": 10
+            }
+          ],
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "",
+        ""
+      ],
+      "expect": {
+        "unitWord": "Episode",
+        "seasoned": true,
+        "seasonPlaceholder": 2,
+        "seasonCount": 2,
+        "unitPlaceholder": 5,
+        "unitTotal": 10,
+        "target": null
+      }
+    },
+    {
+      "name": "positionEdit: seasons, a season that does not exist",
+      "fn": "positionEdit",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "show",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 13,
+            "total": 19
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": [
+            {
+              "number": 1,
+              "episodeCount": 9
+            },
+            {
+              "number": 2,
+              "episodeCount": 10
+            }
+          ],
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "3",
+        "1"
+      ],
+      "expect": {
+        "unitWord": "Episode",
+        "seasoned": true,
+        "seasonPlaceholder": 2,
+        "seasonCount": 2,
+        "unitPlaceholder": 5,
+        "unitTotal": null,
+        "target": null
+      }
+    },
+    {
+      "name": "positionEdit: seasons, an episode beyond its season",
+      "fn": "positionEdit",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "show",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 13,
+            "total": 19
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": [
+            {
+              "number": 1,
+              "episodeCount": 9
+            },
+            {
+              "number": 2,
+              "episodeCount": 10
+            }
+          ],
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "2",
+        "11"
+      ],
+      "expect": {
+        "unitWord": "Episode",
+        "seasoned": true,
+        "seasonPlaceholder": 2,
+        "seasonCount": 2,
+        "unitPlaceholder": 5,
+        "unitTotal": 10,
+        "target": null
+      }
+    },
+    {
+      "name": "positionEdit: seasons, season 2 episode 5",
+      "fn": "positionEdit",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "show",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 13,
+            "total": 19
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": [
+            {
+              "number": 1,
+              "episodeCount": 9
+            },
+            {
+              "number": 2,
+              "episodeCount": 10
+            }
+          ],
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "2",
+        "5"
+      ],
+      "expect": {
+        "unitWord": "Episode",
+        "seasoned": true,
+        "seasonPlaceholder": 2,
+        "seasonCount": 2,
+        "unitPlaceholder": 5,
+        "unitTotal": 10,
+        "target": 14
+      }
+    },
+    {
+      "name": "positionEdit: seasons, season 1 episode 9",
+      "fn": "positionEdit",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "show",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 13,
+            "total": 19
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": [
+            {
+              "number": 1,
+              "episodeCount": 9
+            },
+            {
+              "number": 2,
+              "episodeCount": 10
+            }
+          ],
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "1",
+        "9"
+      ],
+      "expect": {
+        "unitWord": "Episode",
+        "seasoned": true,
+        "seasonPlaceholder": 2,
+        "seasonCount": 2,
+        "unitPlaceholder": 5,
+        "unitTotal": 9,
+        "target": 9
+      }
+    },
+    {
+      "name": "positionEdit: seasons, the current season by default",
+      "fn": "positionEdit",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "show",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 13,
+            "total": 19
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": [
+            {
+              "number": 1,
+              "episodeCount": 9
+            },
+            {
+              "number": 2,
+              "episodeCount": 10
+            }
+          ],
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "",
+        "5"
+      ],
+      "expect": {
+        "unitWord": "Episode",
+        "seasoned": true,
+        "seasonPlaceholder": 2,
+        "seasonCount": 2,
+        "unitPlaceholder": 5,
+        "unitTotal": 10,
+        "target": 14
+      }
+    },
+    {
+      "name": "positionEdit: seasons, a typed season shows its own total",
+      "fn": "positionEdit",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "show",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 13,
+            "total": 19
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": [
+            {
+              "number": 1,
+              "episodeCount": 9
+            },
+            {
+              "number": 2,
+              "episodeCount": 10
+            }
+          ],
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "1",
+        ""
+      ],
+      "expect": {
+        "unitWord": "Episode",
+        "seasoned": true,
+        "seasonPlaceholder": 2,
+        "seasonCount": 2,
+        "unitPlaceholder": 5,
+        "unitTotal": 9,
+        "target": null
+      }
+    },
+    {
+      "name": "positionEdit: a show without seasons",
+      "fn": "positionEdit",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "show",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 3,
+            "total": 10
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "",
+        "4"
+      ],
+      "expect": {
+        "unitWord": "Episode",
+        "seasoned": false,
+        "seasonPlaceholder": null,
+        "seasonCount": null,
+        "unitPlaceholder": 4,
+        "unitTotal": 10,
+        "target": 4
+      }
+    },
+    {
+      "name": "positionEdit: Swift parity: a season too long for an Int",
+      "fn": "positionEdit",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "show",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 13,
+            "total": 19
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": [
+            {
+              "number": 1,
+              "episodeCount": 9
+            },
+            {
+              "number": 2,
+              "episodeCount": 10
+            }
+          ],
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "99999999999999999999",
+        "5"
+      ],
+      "expect": {
+        "unitWord": "Episode",
+        "seasoned": true,
+        "seasonPlaceholder": 2,
+        "seasonCount": 2,
+        "unitPlaceholder": 5,
+        "unitTotal": null,
+        "target": null
+      }
+    },
+    {
+      "name": "positionEdit: Swift parity: a unit too long for an Int",
+      "fn": "positionEdit",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "One Piece",
+          "category": "manga",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 3,
+            "total": 10
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": null,
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "",
+        "99999999999999999999"
+      ],
+      "expect": {
+        "unitWord": "Volume",
+        "seasoned": false,
+        "seasonPlaceholder": null,
+        "seasonCount": null,
+        "unitPlaceholder": 4,
+        "unitTotal": 10,
+        "target": null
+      }
+    }
+  ]
+}
