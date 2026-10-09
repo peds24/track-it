@@ -57,8 +57,11 @@ won't work.
 - `IrisCore/Presentation` ports the pure row text in `src/ui/trackLabels.ts`
   and `completionMessage.ts` (`shared/fixtures/trackLabels.json`), and the
   detail screen's text and editor rules in `src/ui/trackDetail.ts`
-  (`shared/fixtures/trackDetail.json`).
+  (`shared/fixtures/trackDetail.json`), and the Add flow's rules in
+  `src/ui/addFlow.ts` (`shared/fixtures/addFlow.json`).
 - DEBUG launch arguments: `-IrisSeed demo` (a seeded in-memory library),
+  `-IrisCatalogue demo` (canned catalogue answers, no network), `-IrisScan <code>`
+  (stands in for the camera),
   `-IrisGallery YES`, `-IrisColorScheme dark`, `-IrisDynamicType accessibility5`.
 - In the app target, write `IrisCore.Category` and `IrisCore.Progress`; bare
   `Category` is Objective-C's and `Progress` is Foundation's.

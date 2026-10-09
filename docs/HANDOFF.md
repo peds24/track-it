@@ -105,9 +105,23 @@ Its text and the editor's input rules are in `src/ui/trackDetail.ts`
 a new `color.accentFill` token (#0071E3 / #0066CC) fills
 `IrisPrimaryButton`, now a solid `.borderedProminent` capsule — white on the
 iOS 26 system blue, or on `.glassProminent`, failed 4.5:1. Android and web
-inherit `accentFill` at I13. Detail screenshots: `screens/Detail-*`. Deferred from the I8 review: no test for finishing the last unit from the detail screen, missing seasoned-show editor fixture cases (`'0'`, `'3a'`, `' 3 '`), the editor's grey footer (never audited), a double-tap advancing twice (as on Android), stale `-p<n>` screenshots when a run captures fewer pages, and a blank dialog if the track is deleted elsewhere while it's open. Next is
-I9 (Add: search, provider results, barcode scan, add-to-Watched → rate
-prompt).
+inherit `accentFill` at I13. Detail screenshots: `screens/Detail-*`. Deferred from the I8 review: no test for finishing the last unit from the detail screen, missing seasoned-show editor fixture cases (`'0'`, `'3a'`, `' 3 '`), the editor's grey footer (never audited), a double-tap advancing twice (as on Android), stale `-p<n>` screenshots when a run captures fewer pages, and a blank dialog if the track is deleted elsewhere while it's open. **I9 done** — a + on Currently and Backlog opens the Add sheet:
+category (and Single issue / Collection for a comic), a `.searchable`
+catalogue search, VisionKit barcode scan (EAN-13/EAN-8; UPC-A arrives as
+EAN-13 and is normalised to 12 digits for Metron; a single issue asks for
+its EAN-5), a confirm screen from hydrate/preview, then Start/Watched or
+Add to backlog, or add by hand. The rules are in `src/ui/addFlow.ts`
+(moved on `iris` from `app/add.tsx`), held by `shared/fixtures/addFlow.json`,
+the third `src/ui` fixture module. DEBUG `-IrisCatalogue demo` answers from
+canned data and `-IrisScan <code>` stands in for the camera (the simulator
+has none). Real search was checked by hand in the simulator against all
+five catalogues, using the user's keys in the git-ignored
+`apple/Iris/Config/Secrets.xcconfig`, created locally from `.env`. **The add-to-Watched rate prompt is
+I10's** (user's call), with every other "rate it now?" prompt. Also fixed:
+`isolated deinit` on an @Observable @MainActor model crashed (malloc) when
+released synchronously — ShelfModel, DetailModel and AddModel now cancel
+through `TaskBag` in a plain deinit. Next is I10 (Rate + Rankings, and all
+rate prompts).
 Plans go in `docs/superpowers/plans/`. Toolchain on this Mac: Xcode 27.0, Swift 6.4,
 `xcodegen` at `/opt/homebrew/bin`.
 

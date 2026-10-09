@@ -1,5 +1,30 @@
 # DEVLOG
 
+## 2026-10-09 — Iris I9: Add
+
+- The Add sheet: categories → comic mode → search or scan → confirm →
+  save, Android's flow with iOS idioms (a sheet, `.searchable`, a toolbar
+  scan button, VisionKit).
+- **Third `src/ui` fixture module** (`addFlow`): which catalogue answers,
+  what is a series, which barcodes, the button labels and the exact
+  addTrack input. The catalogue key is the category (or `comic-collection`),
+  not a provider id — `tmdb` and `google-books` each answer two categories.
+- **Stale answers**: each search/hydrate/preview runs in its own task, cancelled
+  when a newer one starts, and its answer lands only if it still matches the
+  screen; tests hold and release fake answers to prove it.
+- **No network in tests**: a canned `DemoCatalogue` (IrisCore) and a DEBUG
+  `-IrisScan` stand-in. Real search was checked by hand against all five
+  catalogues with real keys.
+- **`isolated deinit` crash**: an @Observable @MainActor model with an
+  `isolated deinit` crashed with "pointer being freed was not allocated" when
+  released synchronously (async release was fine, which is why I7/I8's UI
+  tests never saw it). Models now keep tasks in a lock-guarded `TaskBag` and
+  cancel from a plain deinit.
+- **Gotchas**: an alert raised while a `fullScreenCover` is dismissing is
+  dropped (scans are routed from `onDismiss`); an alert's own dismissal clears
+  its binding before its button's action runs (the EAN-5 buttons capture the
+  code first); VisionKit reports UPC-A as EAN-13 with a leading 0.
+
 ## 2026-10-09 — Iris I8: track detail
 
 - A row opens the detail screen (A22): cover, credit, position, timeline,
