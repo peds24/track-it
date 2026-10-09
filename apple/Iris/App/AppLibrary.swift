@@ -24,6 +24,15 @@ enum AppLibrary {
         }
     }
 
+    /// Where the Add sheet searches: the real catalogues, or (DEBUG
+    /// `-IrisCatalogue demo`) canned answers with no network.
+    static var addCatalogue: any AddCatalogue {
+        #if DEBUG
+        if UserDefaults.standard.string(forKey: "IrisCatalogue") == "demo" { return DemoAddCatalogue() }
+        #endif
+        return LiveAddCatalogue(registry: registry)
+    }
+
     /// Catalogue lookups after an advance (A25); keys come from Secrets.xcconfig.
     static let registry = ProviderRegistry(keys: .fromBundle(), http: URLSessionHTTPClient())
 }

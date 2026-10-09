@@ -39,6 +39,8 @@ final class Shelves {
     }
 
     func detail(_ ref: TrackRef) -> DetailModel { DetailModel(ref: ref, library: library, registry: AppLibrary.registry) }
+
+    func add() -> AddModel { AddModel(catalogue: AppLibrary.addCatalogue, library: library) }
 }
 
 private struct ShelfTabs: View {
@@ -51,7 +53,7 @@ private struct ShelfTabs: View {
         TabView {
             Tab("Currently", systemImage: "play.circle") {
                 NavigationStack {
-                    ShelfView(model: shelves.currently, makeDetail: shelves.detail)
+                    ShelfView(model: shelves.currently, makeDetail: shelves.detail, makeAdd: shelves.add)
                     #if DEBUG
                         .toolbar {
                             ToolbarItem(placement: .topBarTrailing) {
@@ -64,10 +66,10 @@ private struct ShelfTabs: View {
                 }
             }
             Tab("Backlog", systemImage: "tray") {
-                NavigationStack { ShelfView(model: shelves.backlog, makeDetail: shelves.detail) }
+                NavigationStack { ShelfView(model: shelves.backlog, makeDetail: shelves.detail, makeAdd: shelves.add) }
             }
             Tab("Done", systemImage: "checkmark.circle") {
-                NavigationStack { ShelfView(model: shelves.done, makeDetail: shelves.detail) }
+                NavigationStack { ShelfView(model: shelves.done, makeDetail: shelves.detail, makeAdd: nil) }
             }
         }
     }
