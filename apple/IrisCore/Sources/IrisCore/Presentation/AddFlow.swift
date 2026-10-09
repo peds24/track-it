@@ -86,3 +86,12 @@ public func matchSummary(isSeries: Bool, draft: SeriesDraft?, preview: MatchPrev
     guard let draft else { return nil }
     return MatchPreview(title: draft.title, metaLine: draft.metaLine ?? [], blurb: draft.blurb, metadata: draft.metadata)
 }
+
+/// Swift-only (no TS twin): VisionKit reports a UPC-A barcode as a 13-digit
+/// EAN-13 with a leading 0, where TS's expo-camera gave the 12-digit UPC-A
+/// Metron's search expects (A9). Drop that 0 when scanning for UPC-A only.
+public func normalizedBarcode(_ payload: String, for kinds: [BarcodeKind]) -> String {
+    let code = payload.trimmingCharacters(in: .whitespacesAndNewlines)
+    if kinds == [.upcA], code.count == 13, code.hasPrefix("0") { return String(code.dropFirst()) }
+    return code
+}

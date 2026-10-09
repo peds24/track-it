@@ -86,6 +86,24 @@ public final class Library: Sendable {
         }
     }
 
+    /// I9: add a track, then (startNow) advance its first entry unless it is
+    /// already in progress — the Add screen's handleSave order. `hydrate` is the
+    /// catalogue's, for a series with no confirmed draft.
+    public func add(
+        _ input: AddTrackInput, startNow: Bool, now: Date,
+        hydrate: @Sendable (SearchResult) async throws -> SeriesDraft
+    ) async throws -> TrackRef {
+        let stamp = toISOString(now)
+        let ref = try await addTrack(queue, input, now: stamp, hydrate: hydrate)
+        if startNow {
+            try await queue.write { db in
+                let first = try firstEntryOf(db, ref)
+                if first.status != .inProgress { try advanceEntry(db, entryId: first.id, now: stamp) }
+            }
+        }
+        return ref
+    }
+
     public func advance(entryId: String, now: Date) async throws {
         try await queue.write { try advanceEntry($0, entryId: entryId, now: toISOString(now)) }
     }
