@@ -18,6 +18,7 @@ import { cases as seasons } from '../cases/seasons';
 import { cases as seriesTitle } from '../cases/seriesTitle';
 import { cases as shelf } from '../cases/shelf';
 import { cases as validate } from '../cases/validate';
+import { cases as trackDetail } from '../cases/trackDetail';
 import { cases as trackLabels } from '../cases/trackLabels';
 import { cases as whatsNew } from '../cases/whatsNew';
 
@@ -35,6 +36,7 @@ const MODULES: Record<string, { cases: FixtureCase[]; testFiles: string[] }> = {
   whatsNew: { cases: whatsNew, testFiles: ['whatsNew.test.ts'] },
   // src/ui: Iris rows must say what Android rows say (I7).
   trackLabels: { cases: trackLabels, testFiles: [] },
+  trackDetail: { cases: trackDetail, testFiles: [] },
 };
 
 const FIXTURES = path.resolve(__dirname, '..');

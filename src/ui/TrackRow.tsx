@@ -6,17 +6,9 @@ import type { Category } from '@/domain/types';
 import { seasonSegments } from '@/domain/seasons';
 import { font, layout, radius, useTheme, type Palette } from '@/ui/theme';
 
-import { canEditPosition, hasSeasonProgress, positionLabel, rowAction, seasonPositionLabel } from '@/ui/trackLabels';
+import { canEditPosition, hasSeasonProgress, KIND_LABEL, positionLabel, rowAction, seasonPositionLabel } from '@/ui/trackLabels';
 
-export { canEditPosition, positionLabel, seasonPositionLabel } from '@/ui/trackLabels';
-
-export const KIND_LABEL: Record<Category, string> = {
-  show: 'SHOW',
-  movie: 'MOVIE',
-  book: 'BOOK',
-  comic: 'COMIC',
-  manga: 'MANGA',
-};
+export { canEditPosition, KIND_LABEL, positionLabel, seasonPositionLabel } from '@/ui/trackLabels';
 
 
 export function TrackRow({

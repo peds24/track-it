@@ -14,7 +14,7 @@ import {
 } from '@/data/trackRepo';
 import { getRating } from '@/data/ratingRepo';
 import { syncSeriesUnit } from '@/data/syncSeriesUnit';
-import { activityLine, cleanDescription, creatorLine, formatDate, formatRelative } from '@/domain/formatters';
+import { activityLine, cleanDescription, creatorLine } from '@/domain/formatters';
 import { formatScore, type RatingSummary } from '@/domain/rating';
 import { completionMessage } from '@/ui/completionMessage';
 import { CoverImage } from '@/ui/CoverImage';
@@ -22,10 +22,10 @@ import { ExpandableText } from '@/ui/ExpandableText';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { ProgressEditor } from '@/ui/ProgressEditor';
 import { CATEGORY_PLURAL, offerRatingIfFinished, rateHref, SENTIMENT_LABEL, sentimentColors } from '@/ui/rating';
-import { canEditPosition, KIND_LABEL, positionLabel, seasonPositionLabel } from '@/ui/TrackRow';
+import { canEditPosition, positionLabel, seasonPositionLabel } from '@/ui/TrackRow';
+import { detailMeta, detailPrimaryLabel, detailStats, progressCaption } from '@/ui/trackDetail';
 import { elevation, font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
 
-const READ = new Set(['book', 'comic', 'manga']);
 
 /**
  * A22: one track, in full — modelled on Longbox's comic detail screen: cover,
@@ -104,22 +104,13 @@ export default function TrackDetailScreen() {
   const now = new Date().toISOString();
   const description = cleanDescription(metadata.description);
   const credit = creatorLine(track.category, metadata.creator);
-  const meta = [KIND_LABEL[track.category], metadata.releaseYear, track.ongoing ? 'Ongoing' : null]
-    .filter((s): s is string => !!s)
-    .join(' · ');
+  const meta = detailMeta(track, metadata.releaseYear);
   const position = seasonPositionLabel(track) ?? positionLabel(track);
   const fraction = track.progress && track.progress.total > 0 ? track.progress.done / track.progress.total : null;
   const activity = activityLine(track.category, timeline, now);
 
   const resuming = track.shelf === 'backlog' && track.paused;
-  const starting = track.shelf === 'backlog' && !track.paused;
-  const primaryLabel = resuming
-    ? 'Resume'
-    : starting
-      ? track.category === 'movie'
-        ? 'Watched'
-        : 'Start'
-      : `Mark ${track.nextEntryTitle} ${READ.has(track.category) ? 'read' : 'watched'}`;
+  const primaryLabel = detailPrimaryLabel(track);
 
   function confirmComplete() {
     Alert.alert(`Mark ${track.title} complete?`, completionMessage(track), [
@@ -162,9 +153,8 @@ export default function TrackDetailScreen() {
     ]);
   }
 
-  const stats: [string, string][] = [['Added', `${formatDate(timeline.addedAt)} · ${formatRelative(timeline.addedAt, now)}`]];
-  if (timeline.startedAt) stats.push(['Started', `${formatDate(timeline.startedAt)} · ${formatRelative(timeline.startedAt, now)}`]);
-  if (timeline.finishedAt) stats.push(['Finished', formatDate(timeline.finishedAt)]);
+  const stats = detailStats(timeline, now);
+  const caption = progressCaption(track, unitLabel);
 
   return (
     <View style={styles.screen}>
@@ -180,9 +170,7 @@ export default function TrackDetailScreen() {
 
         <View style={styles.card}>
           <Text style={styles.position}>{position}</Text>
-          {track.progress && unitLabel && (
-            <Text style={styles.muted}>{`${track.progress.done} of ${track.progress.total} ${unitLabel}${track.progress.total === 1 ? '' : 's'}`}</Text>
-          )}
+          {caption && <Text style={styles.muted}>{caption}</Text>}
           {fraction !== null && (
             <View style={styles.progressTrack}>
               <View style={[styles.progressFill, { width: `${Math.min(1, fraction) * 100}%` }]} />

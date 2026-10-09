@@ -6,6 +6,8 @@ import SwiftUI
 /// everything else is in the context menu. Destructive steps confirm first.
 struct ShelfView: View {
     @Bindable var model: ShelfModel
+    /// Builds the detail screen's model for a tapped row (I8).
+    let makeDetail: @MainActor (TrackRef) -> DetailModel
 
     @State private var opened: TrackRef?
     @State private var renaming: TrackSummary?
@@ -17,7 +19,7 @@ struct ShelfView: View {
         content
             .navigationTitle(Self.title(model.shelf))
             .toolbar { filterMenu }
-            .navigationDestination(item: $opened) { TrackPlaceholderView(ref: $0) }
+            .navigationDestination(item: $opened) { TrackDetailView(model: makeDetail($0)) }
             .confirmationDialog(
                 model.pending.map(ShelfModel.dialogTitle) ?? "",
                 isPresented: Binding(get: { model.pending != nil }, set: { if !$0 { model.pending = nil } }),

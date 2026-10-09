@@ -88,4 +88,62 @@ final class LibraryTests: XCTestCase {
         XCTAssertTrue(onePiece.paused)
         XCTAssertEqual(positionLabel(onePiece), "Paused · Volume 31")
     }
+
+    // MARK: One track (I8)
+
+    private func seededRef(_ library: Library, _ title: String, _ shelf: Shelf) throws -> TrackRef {
+        try XCTUnwrap(library.snapshot(shelf: shelf).first { $0.title == title }).ref
+    }
+
+    func testDetailFollowsAnAdvance() async throws {
+        let library = try Library.inMemory()
+        try seedDemoLibrary(library)
+        let ref = try seededRef(library, "Severance", .currently)
+        var pages = library.detail(ref).makeAsyncIterator()
+        guard case .success(let first?)? = await pages.next() else { return XCTFail("no page") }
+        XCTAssertEqual(first.detail.summary.progress, Progress(done: 13, total: 19))
+        try await library.advance(entryId: XCTUnwrap(first.detail.summary.nextEntryId), now: Date())
+        guard case .success(let after?)? = await pages.next() else { return XCTFail("no update") }
+        XCTAssertEqual(after.detail.summary.progress, Progress(done: 14, total: 19))
+    }
+
+    func testDetailBecomesNilOnceDeleted() async throws {
+        let library = try Library.inMemory()
+        try seedDemoLibrary(library)
+        let ref = try seededRef(library, "Dune", .currently)
+        var pages = library.detail(ref).makeAsyncIterator()
+        guard case .success(.some)? = await pages.next() else { return XCTFail("no page") }
+        try await library.delete(ref)
+        guard case .success(let gone)? = await pages.next() else { return XCTFail("no update") }
+        XCTAssertNil(gone)
+    }
+
+    func testARatedTrackCarriesItsRating() async throws {
+        let library = try Library.inMemory()
+        try seedDemoLibrary(library)
+        var pages = library.detail(try seededRef(library, "Project Hail Mary", .done)).makeAsyncIterator()
+        guard case .success(let page?)? = await pages.next() else { return XCTFail("no page") }
+        XCTAssertEqual(page.rating?.sentiment, .liked)
+        XCTAssertEqual(page.rating?.rank, 1)
+        XCTAssertEqual(page.rating?.outOf, 1)
+    }
+
+    func testSetPositionMovesASeries() async throws {
+        let library = try Library.inMemory()
+        try seedDemoLibrary(library)
+        let ref = try seededRef(library, "Severance", .currently)
+        try await library.setPosition(seriesId: ref.id, ordinal: 3, now: Date())
+        let severance = try XCTUnwrap(library.snapshot(shelf: .currently).first { $0.id == ref.id })
+        XCTAssertEqual(severance.progress, Progress(done: 2, total: 19))
+    }
+
+    func testTheSeedCarriesMetadataForTheDetailScreen() async throws {
+        let library = try Library.inMemory()
+        try seedDemoLibrary(library)
+        var pages = library.detail(try seededRef(library, "Dune", .currently)).makeAsyncIterator()
+        guard case .success(let page?)? = await pages.next() else { return XCTFail("no page") }
+        XCTAssertEqual(page.detail.metadata.creator, "Frank Herbert")
+        XCTAssertEqual(page.detail.metadata.releaseYear, "1965")
+        XCTAssertGreaterThan(page.detail.metadata.description?.count ?? 0, 600)
+    }
 }

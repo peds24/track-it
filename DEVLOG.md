@@ -1,5 +1,33 @@
 # DEVLOG
 
+## 2026-10-09 — Iris I8: track detail
+
+- A row opens the detail screen (A22): cover, credit, position, timeline,
+  rating card, description with Show more, the position editor (A12) and
+  every action. The main action is pinned at the bottom; the rest are in a
+  toolbar menu, the iOS place for secondary actions, where Android has a
+  row of buttons.
+- **Second `src/ui` fixture module**: the detail screen's text and the
+  editor's rules moved to `src/ui/trackDetail.ts`, so iOS refuses exactly
+  the position input Android refuses. Two Swift-parity cases pin digits too
+  long for an `Int`: JS still reads a number, which matches no season,
+  while a naive `Int()` parse would fall back to the current season.
+- **`accentFill`**: Apple's audit failed white on the iOS 26 system blue
+  (~3.5:1), and `.glassProminent` lightens its tint further. A deeper blue
+  token fills prominent buttons; `IrisPrimaryButton` is solid. A unit test
+  computes the ratio in both appearances.
+- **Audit gotchas**: a list's `.accessibilityIdentifier` applied after
+  `.safeAreaInset` replaces the inset button's own; content under the
+  pinned button and iOS 26's scroll-edge blur above it reads as failing
+  contrast; and the audit flagged Dune's pinned button alone, with pixels
+  identical to Severance's passing one. That button's contrast is excused,
+  on the strength of the token test.
+- **Review fixes**: the audit now scrolls every screenful (it had only seen
+  the first, missing Show more's blue text and 18 pt hit area, now
+  label-coloured with a 44 pt label frame); the main button no longer plays
+  a second haptic over the kit's own; and our own delete no longer flashes
+  "not found" while the screen pops.
+
 ## 2026-10-08 — Iris I7: shelves
 
 - The app opens on Currently / Backlog / Done over the real library. A

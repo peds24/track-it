@@ -5,6 +5,15 @@ import type { Category } from '@/domain/types';
 // Pure row text, shared by TrackRow and (through shared/fixtures/trackLabels.json)
 // the Iris iOS rows, so the two platforms can't drift. No React imports.
 
+/** The medium in capitals: the row's meta line and the detail screen's. */
+export const KIND_LABEL: Record<Category, string> = {
+  show: 'SHOW',
+  movie: 'MOVIE',
+  book: 'BOOK',
+  comic: 'COMIC',
+  manga: 'MANGA',
+};
+
 const READ_CATEGORIES: readonly Category[] = ['book', 'comic', 'manga'];
 
 /** "watched" vs "read" is presentation only — the database stores neither. */

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Regenerate the Iris kit's reference screenshots (spec §4.3, §8 I6) into
 # docs/design/iris/: <Component>-{light,dark,ax5}.png from the debug Gallery,
-# and (full runs only) screens/<Tab>-{light,dark,ax5}.png of the shelves.
+# and (full runs only) screens/<Tab>-{light,dark,ax5}.png of the shelves plus
+# screens/Detail-<Track>-{light,dark,ax5}.png of the detail screen.
 #   apple/scripts/screenshots.sh                         # all ten components
 #   apple/scripts/screenshots.sh IrisCover,IrisProgress  # just these
 #   IRIS_SIM="iPhone 17 Pro" apple/scripts/screenshots.sh
@@ -41,10 +42,18 @@ if [[ -z "${1:-}" ]]; then
     -derivedDataPath "$APPLE_DIR/DerivedData" \
     -only-testing:IrisUITests/ShelvesTests/testCaptureShelfScreenshots \
     -quiet
+  # The detail screen (I8): three tracks, every AX5 screenful, the position editor.
+  TEST_RUNNER_IRIS_DETAIL_SCREENSHOT_DIR="$OUT/screens" xcodebuild test \
+    -project "$APPLE_DIR/Iris.xcodeproj" \
+    -scheme Iris \
+    -destination "platform=iOS Simulator,name=$SIM" \
+    -derivedDataPath "$APPLE_DIR/DerivedData" \
+    -only-testing:IrisUITests/DetailTests/testCaptureDetailScreenshots \
+    -quiet
 fi
 
 # Half the simulator's 3x size: plenty for a reference page, a third of the bytes.
-for png in "$OUT"/Iris*-{light,dark,ax5}.png "$OUT"/screens/*-{light,dark,ax5}.png; do
+for png in "$OUT"/Iris*-{light,dark,ax5}.png "$OUT"/screens/*.png; do
   [[ -f "$png" ]] || continue
   h=$(sips -g pixelHeight "$png" | awk '/pixelHeight/ {print $2}')
   (( h > 1400 )) && sips --resampleHeight $((h / 2)) "$png" >/dev/null
