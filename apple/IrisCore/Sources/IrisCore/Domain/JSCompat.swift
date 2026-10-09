@@ -5,7 +5,7 @@ import Foundation
 // on Node 22, 2026-10-06; see docs/superpowers/plans/2026-10-06-iris-i3-domain.md.
 
 /// `String.prototype.trim`: Unicode whitespace and line terminators, plus BOM.
-func jsTrim(_ s: String) -> String {
+public func jsTrim(_ s: String) -> String {
     s.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "\u{FEFF}")))
 }
 
