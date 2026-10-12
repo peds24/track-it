@@ -129,6 +129,24 @@ final class AddTests: XCTestCase {
         XCTAssertFalse(row("The Martian", in: app).waitForExistence(timeout: 2))
     }
 
+    /// Review C1: a match whose hydrate fails returns to search with the note
+    /// and the title in the box (A11), never a stuck "Checking…".
+    @MainActor func testAMatchThatFailsToLoadFallsBackToTheSearch() {
+        let app = launch()
+        openAdd("show", in: app)
+        search("Unreachable", in: app)
+        let hit = app.buttons["add.result.demo-unreachable"]
+        XCTAssertTrue(hit.waitForExistence(timeout: 5))
+        hit.tap()
+        XCTAssertTrue(app.staticTexts["Couldn’t load that match — it’ll be tracked as you go."].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["Checking…"].exists)
+        XCTAssertEqual(app.searchFields.firstMatch.value as? String, "The Unreachable")
+        app.buttons["add.save.backlog"].tap()
+        XCTAssertTrue(app.navigationBars["Currently"].waitForExistence(timeout: 5))
+        app.tabBars.buttons["Backlog"].tap()
+        XCTAssertTrue(row("The Unreachable", in: app).waitForExistence(timeout: 5))
+    }
+
     @MainActor func testAShowOffersNoScan() {
         let app = launch()
         openAdd("show", in: app)

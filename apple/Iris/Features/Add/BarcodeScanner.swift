@@ -37,15 +37,23 @@ struct BarcodeScanner: View {
     }
 
     @ViewBuilder private var content: some View {
-        if access == .denied || access == .restricted {
+        // isAvailable stays false until camera access is granted, so it is only
+        // checked once access is known; isSupported (the hardware) is checked first.
+        if !DataScannerViewController.isSupported {
+            Self.unavailable
+        } else if access == .denied || access == .restricted {
             IrisEmptyState("Camera access needed", symbol: .scan, message: "Camera access is needed to scan a barcode.")
-        } else if !DataScannerViewController.isSupported || !DataScannerViewController.isAvailable {
-            IrisEmptyState("Scanning isn’t available", symbol: .scan, message: "This device can’t scan barcodes. Type the title instead.")
-        } else if access == .authorized {
-            DataScanner(symbologies: Self.symbologies(kinds)) { onCode(normalizedBarcode($0, for: kinds)) }
-        } else {
+        } else if access != .authorized {
             ProgressView()
+        } else if !DataScannerViewController.isAvailable {
+            Self.unavailable
+        } else {
+            DataScanner(symbologies: Self.symbologies(kinds)) { onCode(normalizedBarcode($0, for: kinds)) }
         }
+    }
+
+    private static var unavailable: some View {
+        IrisEmptyState("Scanning isn’t available on this device", symbol: .scan, message: "Type the title instead.")
     }
 
     /// UPC-A is read as EAN-13 by Vision, so both ISBN and single-issue scans use .ean13.

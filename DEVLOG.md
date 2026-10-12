@@ -24,6 +24,12 @@
   dropped (scans are routed from `onDismiss`); an alert's own dismissal clears
   its binding before its button's action runs (the EAN-5 buttons capture the
   code first); VisionKit reports UPC-A as EAN-13 with a leading 0.
+- **Review fixes**: a series match whose hydrate failed while its confirm
+  screen was open left you on "Checking…" — the view now pops confirm when
+  the pick clears, and a query the model writes itself no longer counts as
+  an edit (which had erased the note in the same pass); scan and EAN-5
+  answers now drop if you moved on while they were out; and the scanner no
+  longer claims the device can't scan before camera access is granted.
 
 ## 2026-10-09 — Iris I8: track detail
 

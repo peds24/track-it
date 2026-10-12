@@ -31,6 +31,10 @@ final class AddModel {
     /// "search" and "match"; cancelled when the model goes (see TaskBag).
     @ObservationIgnored private let tasks = TaskBag()
     @ObservationIgnored private var searchGeneration = 0
+    /// Set when the model itself writes `query` (the hydrate fallback): the
+    /// view's onChange then searches but must not treat it as the user's edit,
+    /// which would erase the note before it shows (TS's onChangeText rule).
+    @ObservationIgnored private var queryWrittenByModel = false
     @ObservationIgnored private let catalogue: any AddCatalogue
     @ObservationIgnored private let library: any AddLibrary
     @ObservationIgnored private let debounce: Duration
@@ -83,10 +87,14 @@ final class AddModel {
 
     /// The box changed: debounced search (300 ms in the app), as TS's effect.
     func queryChanged() {
+        let edited = !queryWrittenByModel
+        queryWrittenByModel = false
         if jsTrim(query).isEmpty { results = [] }
-        unpick()
-        scannedOrdinal = nil
-        hydrateFailed = false
+        if edited {
+            unpick()
+            scannedOrdinal = nil
+            hydrateFailed = false
+        }
         tasks.cancel("search")
         searchGeneration += 1
         let generation = searchGeneration
@@ -123,7 +131,9 @@ final class AddModel {
                 } catch {
                     guard !Task.isCancelled, self.picked == result else { return }
                     // A11: tracked as you go — the title goes back in the box.
-                    self.query = self.pickedOrdinal.map { "\(result.title) #\($0)" } ?? result.title
+                    let fallback = self.pickedOrdinal.map { "\(result.title) #\($0)" } ?? result.title
+                    if fallback != self.query { self.queryWrittenByModel = true }
+                    self.query = fallback
                     self.picked = nil
                     self.pickedOrdinal = nil
                     self.hydrateFailed = true
@@ -159,22 +169,32 @@ final class AddModel {
         }
         tasks.cancel("search")
         searchGeneration += 1
+        let generation = searchGeneration
+        // Applied only if nothing moved on while the lookups were out.
+        let current = { [weak self] in self?.searchGeneration == generation }
         do {
             if category == .manga {
-                if let raw = try await catalogue.mangaISBN(code).first?.title, !raw.isEmpty {
+                let raw = try await catalogue.mangaISBN(code).first?.title
+                guard current() else { return }
+                if let raw, !raw.isEmpty {
                     let parsed = stripBareTrailingNumber(raw)
+                    let hits = try await catalogue.search(parsed.title, key: key)
+                    guard current() else { return }
                     scannedOrdinal = parsed.ordinal
-                    results = Array(try await catalogue.search(parsed.title, key: key).prefix(20))
+                    results = Array(hits.prefix(20))
                 } else {
                     scannedOrdinal = nil
                     results = []
                 }
             } else {
-                results = Array(try await catalogue.search(code, key: key).prefix(20))
+                let hits = try await catalogue.search(code, key: key)
+                guard current() else { return }
+                results = Array(hits.prefix(20))
             }
             unpick()
             hydrateFailed = false
         } catch {
+            guard current() else { return }
             scannedOrdinal = nil
             results = []
         }
@@ -187,11 +207,17 @@ final class AddModel {
         guard let upc = captured ?? pendingUPC else { return }
         pendingUPC = nil
         let trimmed = code.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        tasks.cancel("search")
+        searchGeneration += 1
+        let generation = searchGeneration
         do {
-            results = Array(try await catalogue.comicUPC(upc, ean5: trimmed?.count == 5 ? trimmed : nil).prefix(20))
+            let hits = try await catalogue.comicUPC(upc, ean5: trimmed?.count == 5 ? trimmed : nil)
+            guard generation == searchGeneration else { return }   // the user moved on
+            results = Array(hits.prefix(20))
             unpick()
             hydrateFailed = false
         } catch {
+            guard generation == searchGeneration else { return }
             results = []
         }
     }

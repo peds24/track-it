@@ -31,7 +31,9 @@ public struct DemoProvider: PreviewingProvider {
         switch key {
         case .category(.show):
             [SearchResult(id: "demo-expanse", title: "The Expanse", category: .show, count: 23, creator: "Mark Fergus", year: "2015"),
-             SearchResult(id: "demo-andor", title: "Andor", category: .show, count: 24, creator: "Tony Gilroy", year: "2022")]
+             SearchResult(id: "demo-andor", title: "Andor", category: .show, count: 24, creator: "Tony Gilroy", year: "2022"),
+             // Its hydrate always fails: the Add flow's "tracked as you go" fallback (A11).
+             SearchResult(id: "demo-unreachable", title: "The Unreachable", category: .show, count: 8, year: "2025")]
         case .category(.movie):
             [SearchResult(id: "demo-dune2", title: "Dune: Part Two", category: .movie, count: 1, creator: "Denis Villeneuve", year: "2024"),
              SearchResult(id: "demo-arrival", title: "Arrival", category: .movie, count: 1, creator: "Denis Villeneuve", year: "2016")]
@@ -53,6 +55,7 @@ public struct DemoProvider: PreviewingProvider {
     }
 
     public func hydrate(_ result: SearchResult) async throws -> SeriesDraft {
+        if result.id == "demo-unreachable" { throw DomainError("The demo catalogue can't reach this one") }
         var draft = try generateEntries(result.id == id ? result : SearchResult(
             id: result.id, title: result.title, category: result.category, count: result.count ?? 3,
             ongoing: result.ongoing, creator: result.creator, year: result.year))

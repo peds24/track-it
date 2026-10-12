@@ -27,6 +27,11 @@ struct AddView: View {
                 }
         }
         .onChange(of: model.saved) { _, saved in if saved != nil { dismiss() } }
+        // A pick the model cleared (a failed hydrate, A11) takes the confirm
+        // screen with it, back to the search — confirm is state in TS, not a push.
+        .onChange(of: model.picked) { _, picked in
+            if picked == nil, path.last == .confirm { path.removeLast() }
+        }
         .alert(item: $model.failure) { Alert(title: Text($0.title), message: Text($0.message)) }
     }
 

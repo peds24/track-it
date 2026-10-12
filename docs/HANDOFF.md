@@ -120,7 +120,7 @@ five catalogues, using the user's keys in the git-ignored
 I10's** (user's call), with every other "rate it now?" prompt. Also fixed:
 `isolated deinit` on an @Observable @MainActor model crashed (malloc) when
 released synchronously — ShelfModel, DetailModel and AddModel now cancel
-through `TaskBag` in a plain deinit. Next is I10 (Rate + Rankings, and all
+through `TaskBag` in a plain deinit. Deferred from the I9 review: a double tap can push a step twice, the EAN-5 field has no length limit, DataScanner never stops scanning on teardown, two orphaned comments in `app/add.tsx`, and a failed advance after a successful add reports "Could not add track" (a retry duplicates; Android does the same). Next is I10 (Rate + Rankings, and all
 rate prompts).
 Plans go in `docs/superpowers/plans/`. Toolchain on this Mac: Xcode 27.0, Swift 6.4,
 `xcodegen` at `/opt/homebrew/bin`.

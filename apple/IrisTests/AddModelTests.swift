@@ -51,8 +51,11 @@ final class FakeCatalogue: AddCatalogue, @unchecked Sendable {
     func mangaISBN(_ isbn: String) async throws -> [SearchResult] {
         [SearchResult(id: "gb", title: mangaTitle, category: .manga, count: 1)]
     }
+    var holdUPC = false
     func comicUPC(_ upc: String, ean5: String?) async throws -> [SearchResult] {
+        if holdUPC { hold("upc") }        // held before the call is visible to the test
         lock.withLock { upcCalls.append((upc, ean5)) }
+        if holdUPC { await wait("upc") }
         return [SearchResult(id: "issue", title: "Saga", category: .comic, count: nil, ongoing: true)]
     }
 }
@@ -244,5 +247,54 @@ final class AddModelTests: XCTestCase {
         await model.submitEAN5(nil, upc: upc)
         XCTAssertEqual(cat.upcCalls.last?.0, "761941333509")
         XCTAssertFalse(model.results.isEmpty)
+    }
+
+    /// Review C1: the fallback writes the box from code; the view's onChange then
+    /// calls queryChanged(), which must search without erasing the note.
+    func testTheHydrateFallbackSurvivesTheViewsQueryChange() async {
+        let (model, cat, _) = make()
+        cat.hydrateFails = true
+        cat.answers["The Expanse"] = [hit("e", "The Expanse")]
+        model.choose(.show)
+        model.pick(hit("e", "The Expanse"))
+        await settle { model.hydrateFailed }
+        model.queryChanged()                       // what .onChange(of: query) does
+        await settle { !model.results.isEmpty }
+        XCTAssertTrue(model.hydrateFailed, "the note must still show")
+        XCTAssertEqual(cat.searches.last?.0, "The Expanse", "the fallback title is searched, as TS's effect does")
+        model.query = "The Expanse 2"; model.queryChanged()   // a real edit clears it
+        XCTAssertFalse(model.hydrateFailed)
+    }
+
+    /// Review I2: a scan whose answer arrives after the user moved on is dropped.
+    func testALateScanAnswerAfterSwitchingCategoryIsDropped() async {
+        let (model, cat, _) = make()
+        cat.answers["Attack on Titan"] = [hit("aot", "Attack on Titan", .manga)]
+        cat.hold("search:Attack on Titan")
+        model.choose(.manga)
+        let scan = Task { await model.scanned("9781612620244") }
+        await settle { cat.searches.contains { $0.0 == "Attack on Titan" } }
+        model.leaveSearch()
+        model.choose(.book)
+        cat.release("search:Attack on Titan")
+        await scan.value
+        XCTAssertEqual(model.results, [])
+        XCTAssertNil(model.pickedOrdinal)
+    }
+
+    /// Review I2: a late EAN-5 answer can't clear a pick made meanwhile.
+    func testALateUPCAnswerDoesNotClearANewPick() async {
+        let (model, cat, _) = make()
+        cat.holdUPC = true
+        model.choose(.comic); model.chooseComicMode(.single)
+        await model.scanned("0761941333509")
+        let upc = model.pendingUPC
+        let lookup = Task { await model.submitEAN5(nil, upc: upc) }
+        await settle { cat.upcCalls.count == 1 }
+        model.query = "Saga"; model.queryChanged()
+        model.pick(hit("typed", "Saga", .comic))
+        cat.release("upc")
+        await lookup.value
+        XCTAssertEqual(model.picked?.id, "typed")
     }
 }
