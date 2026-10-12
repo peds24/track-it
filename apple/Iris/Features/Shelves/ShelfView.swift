@@ -8,6 +8,9 @@ struct ShelfView: View {
     @Bindable var model: ShelfModel
     /// Builds the detail screen's model for a tapped row (I8).
     let makeDetail: @MainActor (TrackRef) -> DetailModel
+    /// The Add sheet's model (I9); nil on Done, which has no Add.
+    let makeAdd: (@MainActor () -> AddModel)?
+    @State private var adding: AddModel?
 
     @State private var opened: TrackRef?
     @State private var renaming: TrackSummary?
@@ -18,7 +21,10 @@ struct ShelfView: View {
     var body: some View {
         content
             .navigationTitle(Self.title(model.shelf))
-            .toolbar { filterMenu }
+            .toolbar { filterMenu; addButton }
+            .sheet(item: Binding(get: { adding.map(AddSheetItem.init) }, set: { if $0 == nil { adding = nil } })) { item in
+                AddView(model: item.model)
+            }
             .navigationDestination(item: $opened) { TrackDetailView(model: makeDetail($0)) }
             .confirmationDialog(
                 model.pending.map(ShelfModel.dialogTitle) ?? "",
@@ -121,6 +127,15 @@ struct ShelfView: View {
         }
     }
 
+    @ToolbarContentBuilder private var addButton: some ToolbarContent {
+        if let makeAdd {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Add a track", systemImage: IrisSymbol.add.systemName) { adding = makeAdd() }
+                    .accessibilityIdentifier("shelf.add")
+            }
+        }
+    }
+
     @ToolbarContentBuilder private var filterMenu: some ToolbarContent {
         if model.shelf != .currently {
             ToolbarItem(placement: .topBarTrailing) {
@@ -156,4 +171,10 @@ struct ShelfView: View {
         case .done: ("Nothing finished yet", "Completed tracks will be listed here.")
         }
     }
+}
+
+/// Identifies one presentation of the Add sheet.
+private struct AddSheetItem: Identifiable {
+    let model: AddModel
+    var id: ObjectIdentifier { ObjectIdentifier(model) }
 }

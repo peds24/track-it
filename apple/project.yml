@@ -34,6 +34,8 @@ targets:
         GOOGLE_BOOKS_API_KEY: $(GOOGLE_BOOKS_API_KEY)
         METRON_USERNAME: $(METRON_USERNAME)
         METRON_PASSWORD: $(METRON_PASSWORD)
+        # I9: VisionKit barcode scanning on the Add sheet.
+        NSCameraUsageDescription: Iris uses the camera to scan a book’s or comic’s barcode.
     dependencies:
       - package: IrisCore
     settings:

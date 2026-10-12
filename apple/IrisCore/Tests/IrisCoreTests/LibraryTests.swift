@@ -146,4 +146,58 @@ final class LibraryTests: XCTestCase {
         XCTAssertEqual(page.detail.metadata.releaseYear, "1965")
         XCTAssertGreaterThan(page.detail.metadata.description?.count ?? 0, 600)
     }
+
+    // MARK: Add (I9)
+
+    private func input(_ title: String, _ category: IrisCore.Category, comicMode: ComicMode? = nil, picked: SearchResult? = nil,
+                       draft: SeriesDraft? = nil) -> AddTrackInput {
+        addTrackInput(category: category, comicMode: comicMode, saveTitle: title, picked: picked, draft: draft, previewMetadata: nil)
+    }
+
+    func testAddingABookAndStartingItPutsItOnCurrently() async throws {
+        let library = try Library.inMemory()
+        let ref = try await library.add(input("Dune", .book), startNow: true, now: Date(), hydrate: manualHydrate)
+        XCTAssertEqual(try library.snapshot(shelf: .currently).map(\.id), [ref.id])
+    }
+
+    func testAMovieAddedAsWatchedLandsOnDone() async throws {
+        let library = try Library.inMemory()
+        let ref = try await library.add(input("Arrival", .movie), startNow: true, now: Date(), hydrate: manualHydrate)
+        XCTAssertEqual(try library.snapshot(shelf: .done).map(\.id), [ref.id])
+    }
+
+    func testAddingToBacklogLeavesItUnstarted() async throws {
+        let library = try Library.inMemory()
+        let ref = try await library.add(input("Dune", .book), startNow: false, now: Date(), hydrate: manualHydrate)
+        XCTAssertEqual(try library.snapshot(shelf: .backlog).map(\.id), [ref.id])
+    }
+
+    func testAShowWithItsDraftStartsWithEpisodeOneUnderWay() async throws {
+        let library = try Library.inMemory()
+        let shows = DemoCatalogue().provider(for: .category(.show))
+        let hit = try await shows.search("Expanse").first
+        let draft = try await shows.hydrate(XCTUnwrap(hit))
+        _ = try await library.add(input("The Expanse", .show, draft: draft), startNow: true, now: Date(), hydrate: manualHydrate)
+        let show = try XCTUnwrap(library.snapshot(shelf: .currently).first)
+        // "Start watching" puts episode 1 under way, as on Android.
+        XCTAssertEqual(show.nextEntryTitle, "Episode 1")
+        XCTAssertEqual(show.nextEntryStatus, .inProgress)
+        XCTAssertFalse(show.seasons?.isEmpty ?? true)
+    }
+
+    func testATypedComicIssueStartsAtItsNumber() async throws {
+        let library = try Library.inMemory()
+        _ = try await library.add(input("Saga #12", .comic, comicMode: .single), startNow: false, now: Date(), hydrate: manualHydrate)
+        // A10 + A4: an ongoing series has one entry, renumbered to the typed issue.
+        let saga = try XCTUnwrap(library.snapshot(shelf: .currently).first ?? library.snapshot(shelf: .backlog).first)
+        XCTAssertEqual(saga.nextEntryTitle, "Issue 12")
+        XCTAssertTrue(saga.ongoing)
+    }
+
+    func testAComicCollectionIsStandalone() async throws {
+        let library = try Library.inMemory()
+        let hit = SearchResult(id: "gb-1", title: "Saga, Volume One", category: .comic, count: 1)
+        let ref = try await library.add(input(hit.title, .comic, comicMode: .collection, picked: hit), startNow: false, now: Date(), hydrate: manualHydrate)
+        XCTAssertEqual(ref.kind, TrackKind.entry)
+    }
 }
