@@ -7,7 +7,8 @@ import { formatScore } from '@/domain/rating';
 import type { Category } from '@/domain/types';
 import { CoverImage } from '@/ui/CoverImage';
 import { useDatabase } from '@/ui/DatabaseProvider';
-import { CATEGORY_PLURAL, sentimentColors } from '@/ui/rating';
+import { sentimentColors } from '@/ui/rating';
+import { rankingRowLabel, rankingsEmpty } from '@/ui/rateText';
 import { font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
 
 const CATEGORIES: readonly { value: Category; label: string; iconName: keyof typeof Ionicons.glyphMap }[] = [
@@ -83,7 +84,7 @@ export default function RankingsScreen() {
             <Pressable
               style={styles.row}
               accessibilityRole="button"
-              accessibilityLabel={`Number ${item.rank}, ${item.title}, ${formatScore(item.score)} out of 10`}
+              accessibilityLabel={rankingRowLabel(item.rank, item.title, item.score)}
               onPress={() => router.push(`/track/${item.kind}/${item.id}`)}
               android_ripple={{ color: c.surfaceContainerHighest }}
             >
@@ -107,10 +108,8 @@ export default function RankingsScreen() {
         }}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>{`No ${CATEGORY_PLURAL[category]} ranked yet`}</Text>
-            <Text style={styles.emptyBody}>
-              Finish something and tap Rate — you’ll compare it with the others you’ve rated, and its score comes from where it lands.
-            </Text>
+            <Text style={styles.emptyTitle}>{rankingsEmpty(category).title}</Text>
+            <Text style={styles.emptyBody}>{rankingsEmpty(category).body}</Text>
           </View>
         }
       />

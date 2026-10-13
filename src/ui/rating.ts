@@ -4,29 +4,10 @@ import { getTrackDetail } from '@/data/trackRepo';
 import type { SqlDriver } from '@/db/driver';
 import type { Sentiment } from '@/domain/rating';
 import type { Category } from '@/domain/types';
+import { ratePrompt } from '@/ui/rateText';
 import type { Palette } from '@/ui/theme';
 
-/** A26: what a ranking is "of" — "#3 of 12 movies". */
-export const CATEGORY_PLURAL: Record<Category, string> = {
-  show: 'shows',
-  movie: 'movies',
-  book: 'books',
-  comic: 'comics',
-  manga: 'manga',
-};
-
-export const SENTIMENT_LABEL: Record<Sentiment, string> = {
-  liked: 'I liked it',
-  fine: 'It was fine',
-  disliked: 'I didn’t like it',
-};
-
-/** "Question 2 · among the movies you liked". */
-export const SENTIMENT_GROUP: Record<Sentiment, string> = {
-  liked: 'you liked',
-  fine: 'that were fine',
-  disliked: 'you didn’t like',
-};
+export { CATEGORY_PLURAL, SENTIMENT_GROUP, SENTIMENT_LABEL } from '@/ui/rateText';
 
 /** The score badge's fill and ink — strongest for liked, alarm for disliked. */
 export function sentimentColors(c: Palette, sentiment: Sentiment): { bg: string; fg: string } {
@@ -48,7 +29,8 @@ export function promptToRate(
   track: { kind: 'series' | 'entry'; id: string; title: string; category: Category },
   open: (href: `/rate/${string}`) => void,
 ): void {
-  Alert.alert(`Finished ${track.title}`, `Rank it against the other ${CATEGORY_PLURAL[track.category]} you’ve rated?`, [
+  const prompt = ratePrompt(track.title, track.category);
+  Alert.alert(prompt.title, prompt.message, [
     { text: 'Later', style: 'cancel' },
     { text: 'Rate it', onPress: () => open(rateHref(track)) },
   ]);

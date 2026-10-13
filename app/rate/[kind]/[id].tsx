@@ -18,7 +18,17 @@ import {
 } from '@/domain/rating';
 import { CoverImage } from '@/ui/CoverImage';
 import { useDatabase } from '@/ui/DatabaseProvider';
-import { CATEGORY_PLURAL, SENTIMENT_GROUP, SENTIMENT_LABEL, sentimentColors } from '@/ui/rating';
+import { sentimentColors } from '@/ui/rating';
+import {
+  existingRatingNote,
+  questionFootnote,
+  rankLine,
+  rateFootnote,
+  scoredLabel,
+  seeYourLabel,
+  SENTIMENT_LABEL,
+  undoLabel,
+} from '@/ui/rateText';
 import { elevation, font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
 
 type Loaded = {
@@ -130,7 +140,6 @@ export default function RateScreen() {
 
   const { detail, existing } = loaded;
   const track = detail.summary;
-  const plural = CATEGORY_PLURAL[track.category];
 
   if (result) {
     const colors = sentimentColors(c, result.sentiment);
@@ -140,10 +149,10 @@ export default function RateScreen() {
         <ScrollView contentContainerStyle={styles.resultScroll}>
           <CoverImage uri={detail.metadata.coverUrl} title={track.title} category={track.category} width={120} height={180} />
           <Text style={styles.title}>{track.title}</Text>
-          <View style={[styles.bigScore, { backgroundColor: colors.bg }]} accessibilityLabel={`Scored ${formatScore(result.score)} out of 10`}>
+          <View style={[styles.bigScore, { backgroundColor: colors.bg }]} accessibilityLabel={scoredLabel(result.score)}>
             <Text style={[styles.bigScoreText, { color: colors.fg }]}>{formatScore(result.score)}</Text>
           </View>
-          <Text style={styles.rankLine}>{`#${result.rank} of ${result.outOf} ${plural}`}</Text>
+          <Text style={styles.rankLine}>{rankLine(result.rank, result.outOf, track.category)}</Text>
           <View style={styles.resultActions}>
             <Pressable style={styles.primary} accessibilityRole="button" onPress={() => router.back()}>
               <Text style={styles.primaryText}>Done</Text>
@@ -153,7 +162,7 @@ export default function RateScreen() {
               accessibilityRole="button"
               onPress={() => router.replace(`/rankings?category=${track.category}`)}
             >
-              <Text style={styles.secondaryText}>{`See your ${plural}`}</Text>
+              <Text style={styles.secondaryText}>{seeYourLabel(track.category)}</Text>
             </Pressable>
           </View>
         </ScrollView>
@@ -201,9 +210,9 @@ export default function RateScreen() {
             <Text style={styles.secondaryText}>Too tough to call</Text>
           </Pressable>
           <Pressable style={styles.link} accessibilityRole="button" disabled={saving} onPress={undo}>
-            <Text style={styles.linkText}>{history.length === 0 ? 'Change how I felt' : 'Undo last answer'}</Text>
+            <Text style={styles.linkText}>{undoLabel(history.length)}</Text>
           </Pressable>
-          <Text style={styles.footnote}>{`Question ${session.comparisons + 1} · among the ${plural} ${SENTIMENT_GROUP[session.sentiment]}`}</Text>
+          <Text style={styles.footnote}>{questionFootnote(session.comparisons, session.sentiment, track.category)}</Text>
         </ScrollView>
       </View>
     );
@@ -220,7 +229,7 @@ export default function RateScreen() {
         <Text style={styles.prompt}>How was it?</Text>
         {existing && (
           <Text style={styles.muted}>
-            {`Currently ${formatScore(existing.score)} · #${existing.rank} of ${existing.outOf} ${plural}. Rating it again replaces that.`}
+            {existingRatingNote(existing, track.category)}
           </Text>
         )}
         <View style={styles.sentiments}>
@@ -240,7 +249,7 @@ export default function RateScreen() {
           })}
         </View>
         <Text style={styles.footnote}>
-          {`You’ll compare it with other ${plural} you’ve rated — by the same creator or in the same genre where possible — and its 1–10 score comes from where it lands.`}
+          {rateFootnote(track.category)}
         </Text>
       </ScrollView>
     </View>

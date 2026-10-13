@@ -21,7 +21,8 @@ import { CoverImage } from '@/ui/CoverImage';
 import { ExpandableText } from '@/ui/ExpandableText';
 import { useDatabase } from '@/ui/DatabaseProvider';
 import { ProgressEditor } from '@/ui/ProgressEditor';
-import { CATEGORY_PLURAL, offerRatingIfFinished, rateHref, SENTIMENT_LABEL, sentimentColors } from '@/ui/rating';
+import { offerRatingIfFinished, rateHref, sentimentColors } from '@/ui/rating';
+import { notRatedYet, rankLine, SENTIMENT_LABEL } from '@/ui/rateText';
 import { canEditPosition, positionLabel, seasonPositionLabel } from '@/ui/TrackRow';
 import { detailMeta, detailPrimaryLabel, detailStats, progressCaption } from '@/ui/trackDetail';
 import { elevation, font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
@@ -200,12 +201,12 @@ export default function TrackDetailScreen() {
                   <Text style={[styles.scoreText, { color: sentimentColors(c, rating.sentiment).fg }]}>{formatScore(rating.score)}</Text>
                 </View>
                 <View style={styles.ratingText}>
-                  <Text style={styles.position}>{`#${rating.rank} of ${rating.outOf} ${CATEGORY_PLURAL[track.category]}`}</Text>
+                  <Text style={styles.position}>{rankLine(rating.rank, rating.outOf, track.category)}</Text>
                   <Text style={styles.muted}>{SENTIMENT_LABEL[rating.sentiment]}</Text>
                 </View>
               </View>
             ) : (
-              <Text style={styles.muted}>{`Not rated yet. Rank it against the other ${CATEGORY_PLURAL[track.category]} you’ve finished.`}</Text>
+              <Text style={styles.muted}>{notRatedYet(track.category)}</Text>
             )}
             <View style={styles.secondaryRow}>
               <Pressable style={styles.secondary} accessibilityRole="button" onPress={() => router.push(rateHref(track))}>
