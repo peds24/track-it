@@ -13,6 +13,8 @@ protocol ShelfLibrary: Sendable {
     func rename(_ track: TrackRef, title: String) async throws
     func delete(_ track: TrackRef) async throws
     func syncAfterAdvance(entryId: String, registry: ProviderRegistry?) async -> Bool
+    /// I10: Done and unrated — the rate prompt's test.
+    func finishedUnrated(_ ref: TrackRef) async -> Bool
 }
 
 extension Library: ShelfLibrary {}
@@ -63,6 +65,8 @@ final class ShelfModel {
     private(set) var commits = 0
     var pending: Pending?
     var failure: Failure?
+    /// I10: set after an action finished an unrated track.
+    var ratePrompt: RatePromptItem?
 
     @ObservationIgnored private let library: any ShelfLibrary
     @ObservationIgnored private let registry: ProviderRegistry?
@@ -132,6 +136,7 @@ final class ShelfModel {
             let advanced = await run("Could not update") { try await $0.advance(entryId: action.entryId, now: Date()) }
             guard advanced else { return }
             commits += 1
+            await offerRating(track)
             // A25: a catalogued comic moves its issue along; observation shows it.
             _ = await library.syncAfterAdvance(entryId: action.entryId, registry: registry)
         }
@@ -152,13 +157,23 @@ final class ShelfModel {
         case let .delete(t): await run("Could not delete") { try await $0.delete(t.ref) }
         case let .moveToBacklog(t): await run("Could not move track") { try await $0.returnToBacklog(t.ref) }
         case let .complete(t):
-            if await run("Could not complete", { try await $0.complete(t.ref, now: Date()) }) { commits += 1 }
+            if await run("Could not complete", { try await $0.complete(t.ref, now: Date()) }) {
+                commits += 1
+                await offerRating(t)
+            }
         }
     }
 
     /// A15: reversible, so no confirmation.
     func rename(_ track: TrackSummary, to title: String) async {
         await run("Could not rename track") { try await $0.rename(track.ref, title: title) }
+    }
+
+    /// A26: ask to rate only if the action really finished it and it has no rating.
+    private func offerRating(_ track: TrackSummary) async {
+        if await library.finishedUnrated(track.ref) {
+            ratePrompt = RatePromptItem(ref: track.ref, title: track.title, category: track.category)
+        }
     }
 
     @discardableResult

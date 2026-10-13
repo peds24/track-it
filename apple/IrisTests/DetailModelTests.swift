@@ -9,6 +9,8 @@ final class FakeDetailLibrary: DetailLibrary, @unchecked Sendable {
     private var _calls: [Call] = []
     private var conts: [AsyncStream<Result<TrackPage?, Error>>.Continuation] = []
     var failWith: Error?
+    var finishedUnratedAnswer = false
+    func finishedUnrated(_ ref: TrackRef) async -> Bool { finishedUnratedAnswer }
     var calls: [Call] { lock.withLock { _calls } }
     var subscriptions: Int { lock.withLock { conts.count } }
 
@@ -180,5 +182,24 @@ final class DetailModelTests: XCTestCase {
         XCTAssertNotNil(model)
         model = nil
         XCTAssertNil(model)
+    }
+
+    // MARK: Rate prompt (I10)
+
+    func testThePrimaryButtonFinishingAnUnratedTrackAsksToRate() async {
+        let fake = FakeDetailLibrary(); fake.finishedUnratedAnswer = true
+        let (model, _) = await loaded(page(), fake)
+        await model.primary()
+        XCTAssertEqual(model.ratePrompt?.title, "Severance")
+    }
+
+    func testCompleteAsksOnlyWhenFinishedAndUnrated() async {
+        let (model, _) = await loaded(page())
+        await model.confirm(.complete)
+        XCTAssertNil(model.ratePrompt)
+        let fake = FakeDetailLibrary(); fake.finishedUnratedAnswer = true
+        let (asking, _) = await loaded(page(), fake)
+        await asking.confirm(.complete)
+        XCTAssertNotNil(asking.ratePrompt)
     }
 }

@@ -23,6 +23,9 @@ final class AddModel {
     var failure: ShelfModel.Failure?
     /// Set once saved; the sheet closes.
     private(set) var saved: TrackRef?
+    /// I10 (moved from I9): a track added as Watched/Start that is now
+    /// finished and unrated; the shelf asks once the sheet has closed.
+    private(set) var ratePrompt: RatePromptItem?
     private(set) var saving = false
 
     @ObservationIgnored private var draft: SeriesDraft?
@@ -233,7 +236,11 @@ final class AddModel {
         )
         let catalogue = catalogue
         do {
-            saved = try await library.add(input, startNow: startNow, now: Date()) { try await catalogue.hydrate($0, key: key) }
+            let ref = try await library.add(input, startNow: startNow, now: Date()) { try await catalogue.hydrate($0, key: key) }
+            if startNow, await library.finishedUnrated(ref) {
+                ratePrompt = RatePromptItem(ref: ref, title: input.title, category: category)
+            }
+            saved = ref
         } catch {
             failure = ShelfModel.Failure(title: "Could not add track", message: ShelfModel.message(error))
         }

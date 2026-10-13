@@ -22,8 +22,10 @@ extension IrisShelfRow.Model {
             accessory = .action(title: action.label, symbol: symbol, accessibilityName: action.accessibilityLabel)
         } else if let rating {
             accessory = .rating(score: rating.score, sentiment: rating.sentiment)
+        } else if track.shelf == .done {
+            accessory = .rate // A26: unrated and finished
         } else {
-            accessory = .none // I10 adds Rate
+            accessory = .none
         }
 
         // Summaries carry no cover on either platform; rows use the category art.
