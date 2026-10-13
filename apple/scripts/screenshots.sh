@@ -3,7 +3,8 @@
 # docs/design/iris/: <Component>-{light,dark,ax5}.png from the debug Gallery,
 # and (full runs only) screens/<Tab>-{light,dark,ax5}.png of the shelves plus
 # screens/Detail-<Track>-{light,dark,ax5}.png of the detail screen and
-# screens/Add-<Step>-{light,dark,ax5}.png of the Add sheet.
+# screens/Add-<Step>-{light,dark,ax5}.png of the Add sheet, and
+# screens/Rate-<Step>- / Rankings-{light,dark,ax5}.png (I10).
 #   apple/scripts/screenshots.sh                         # all ten components
 #   apple/scripts/screenshots.sh IrisCover,IrisProgress  # just these
 #   IRIS_SIM="iPhone 17 Pro" apple/scripts/screenshots.sh
@@ -58,6 +59,14 @@ if [[ -z "${1:-}" ]]; then
     -destination "platform=iOS Simulator,name=$SIM" \
     -derivedDataPath "$APPLE_DIR/DerivedData" \
     -only-testing:IrisUITests/AddTests/testCaptureAddScreenshots \
+    -quiet
+  # Rate and Rankings (I10).
+  TEST_RUNNER_IRIS_RATE_SCREENSHOT_DIR="$OUT/screens" xcodebuild test \
+    -project "$APPLE_DIR/Iris.xcodeproj" \
+    -scheme Iris \
+    -destination "platform=iOS Simulator,name=$SIM" \
+    -derivedDataPath "$APPLE_DIR/DerivedData" \
+    -only-testing:IrisUITests/RateTests/testCaptureRateScreenshots \
     -quiet
 fi
 
