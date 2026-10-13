@@ -54,7 +54,8 @@ each pinned by a "Swift parity" fixture.
 `src/ui/trackLabels.ts` and `src/ui/completionMessage.ts`, so iOS rows read
 exactly as Android rows; `trackDetail` records the detail screen's text and
 the position editor's input rules from `src/ui/trackDetail.ts`; `addFlow`
-(I9) records the Add screen's rules from `src/ui/addFlow.ts`. Its `testFiles` list is empty: the matching tests
+(I9) records the Add screen's rules from `src/ui/addFlow.ts`; `rateText` (I10)
+records the Rate, Rankings and rate-prompt copy from `src/ui/rateText.ts`. Its `testFiles` list is empty: the matching tests
 render components, so the coverage-by-title check skips it.
 
 ## scenarios/ (Iris I4, A29)
