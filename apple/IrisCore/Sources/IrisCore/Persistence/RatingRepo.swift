@@ -25,6 +25,17 @@ public struct RankedTrack: Codable, Equatable, Sendable {
     public var score: Double
     /// 1-based.
     public var rank: Int
+
+    public init(key: String, kind: TrackKind, id: String, title: String, coverUrl: String?, creator: String?,
+                genres: [String], releaseYear: String?, sentiment: Sentiment, score: Double, rank: Int) {
+        self.key = key; self.kind = kind; self.id = id; self.title = title; self.coverUrl = coverUrl
+        self.creator = creator; self.genres = genres; self.releaseYear = releaseYear
+        self.sentiment = sentiment; self.score = score; self.rank = rank
+    }
+
+    /// What the ranking engine compares by.
+    public var item: RankedItem { RankedItem(key: key, creator: creator, genres: genres, releaseYear: releaseYear, sentiment: sentiment) }
+    public var profile: RatingProfile { RatingProfile(key: key, creator: creator, genres: genres, releaseYear: releaseYear) }
 }
 
 /// `kind:id` — the key the domain layer ranks by.

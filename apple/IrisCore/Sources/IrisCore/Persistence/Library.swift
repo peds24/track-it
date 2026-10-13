@@ -22,6 +22,10 @@ public struct RateContext: Equatable, Sendable {
     /// The category's ranking, best first.
     public let ranking: [RankedTrack]
     public let existing: RatingSummary?
+
+    public init(detail: TrackDetail, profile: RatingProfile, ranking: [RankedTrack], existing: RatingSummary?) {
+        self.detail = detail; self.profile = profile; self.ranking = ranking; self.existing = existing
+    }
 }
 
 /// The app's one door to the library (I7). It wraps the GRDB queue, so the app
