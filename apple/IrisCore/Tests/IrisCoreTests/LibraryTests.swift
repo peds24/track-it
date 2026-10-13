@@ -258,4 +258,14 @@ final class LibraryTests: XCTestCase {
         let context = try await library.rateContext(ref)
         XCTAssertNil(context)
     }
+
+    func testAMovieAddedAsWatchedIsFinishedAndUnrated() async throws {
+        let library = try Library.inMemory()
+        let input = addTrackInput(category: .movie, comicMode: nil, saveTitle: "Dune: Part Two",
+                                  picked: SearchResult(id: "demo-dune2", title: "Dune: Part Two", category: .movie, count: 1),
+                                  draft: nil, previewMetadata: TrackMetadata(creator: "Denis Villeneuve"))
+        let ref = try await library.add(input, startNow: true, now: Date(), hydrate: manualHydrate)
+        let unrated = await library.finishedUnrated(ref)
+        XCTAssertTrue(unrated)
+    }
 }

@@ -41,6 +41,12 @@ final class Shelves {
     func detail(_ ref: TrackRef) -> DetailModel { DetailModel(ref: ref, library: library, registry: AppLibrary.registry) }
 
     func add() -> AddModel { AddModel(catalogue: AppLibrary.addCatalogue, library: library) }
+
+    func rate(_ ref: TrackRef) -> RateModel { RateModel(ref: ref, library: library) }
+
+    func rankings(_ category: IrisCore.Category) -> RankingsModel { RankingsModel(category: category, library: library) }
+
+    var factories: IrisFactories { IrisFactories(detail: detail, rate: rate, rankings: rankings) }
 }
 
 private struct ShelfTabs: View {
@@ -72,5 +78,6 @@ private struct ShelfTabs: View {
                 NavigationStack { ShelfView(model: shelves.done, makeDetail: shelves.detail, makeAdd: nil) }
             }
         }
+        .environment(\.irisFactories, shelves.factories)
     }
 }

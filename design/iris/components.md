@@ -63,13 +63,13 @@ uses it and this file says only how it must behave.
 ## IrisRatingBadge
 **Purpose.** A finished track's score out of 10 (A26).
 **Anatomy.** A capsule holding `formatScore(score)` in `subheadline` semibold, monospaced digits. The fill depends on sentiment and the text is always `color.label`: liked is `color.accent` at 22%, fine is `color.fill`, disliked is `color.destructive` at 15%. White on the accent, or tinted text on its own tint, falls under 4.5:1 (I7 audit). Minimum width 44 pt.
-**States.** liked, fine, disliked.
+**States.** liked, fine, disliked; regular, or large (`largeTitle`, the Rate result's score, I10).
 **Behaviour.** Static.
 **Accessibility.** Its label is "Rated <score> out of 10".
 
 ## IrisComparisonCard
 **Purpose.** One side of Rate's "which did you prefer?" (A26).
-**Anatomy.** A card at `radius.card`, background `color.secondaryGroupedBackground`, holding an `IrisCover` (card size), the title (`headline`, up to 3 lines) and a subtitle (`footnote`, `color.secondaryLabel`, e.g. the creator). Two cards sit side by side; at accessibility sizes they stack.
+**Anatomy.** A card at `radius.card`, background `color.secondaryGroupedBackground`, holding an `IrisCover` (card size), the title (`headline`, up to 3 lines) and a subtitle (`footnote`, `color.label` — grey failed the contrast audit, I10 — e.g. the creator). Two cards sit side by side; at accessibility sizes they stack.
 **States.** Default, pressed (scales to 0.97 with `motion.snappy`, no scale under Reduce Motion), chosen (a 2 pt `color.accent` border, set by the caller).
 **Behaviour.** Tapping chooses this side, with a selection haptic.
 **Accessibility.** A button labelled "<title>" with hint "Choose this one".

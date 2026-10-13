@@ -7,6 +7,10 @@ import SwiftUI
 struct TrackDetailView: View {
     @State var model: DetailModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.irisFactories) private var factories
+    /// The Rate sheet's track (I10).
+    @State private var rating_: RatePromptItem?
+    @State private var rankingsCategory: IrisCore.Category?
 
     var body: some View {
         content
@@ -35,6 +39,13 @@ struct TrackDetailView: View {
             }
             .sensoryFeedback(.success, trigger: model.commits)
             .onChange(of: model.dismissed) { _, gone in if gone { dismiss() } }
+            .ratePrompt($model.ratePrompt) { rating_ = $0 }
+            .sheet(item: $rating_) { item in
+                if let factories { RateView(model: factories.rate(item.ref)) { rankingsCategory = $0 } }
+            }
+            .navigationDestination(item: $rankingsCategory) { category in
+                if let factories { RankingsView(model: factories.rankings(category)) }
+            }
             .task { model.start() }
     }
 
@@ -133,15 +144,29 @@ struct TrackDetailView: View {
             HStack(spacing: IrisTokens.Space.md) {
                 IrisRatingBadge(score: rating.score, sentiment: rating.sentiment)
                 VStack(alignment: .leading, spacing: IrisTokens.Space.xxs) {
-                    Text("#\(rating.rank) of \(rating.outOf) \(track.category.plural)").font(IrisTokens.Typography.headline.font)
-                    Text(Self.sentimentLabel(rating.sentiment)).font(IrisTokens.Typography.subheadline.font)
+                    Text(rankLine(rank: rating.rank, outOf: rating.outOf, category: track.category)).font(IrisTokens.Typography.headline.font)
+                    Text(sentimentLabel(rating.sentiment)).font(IrisTokens.Typography.subheadline.font)
                 }
             }
             .accessibilityElement(children: .combine)
         } else {
-            Text("Not rated yet. Rank it against the other \(track.category.plural) you’ve finished.")
-                .font(IrisTokens.Typography.subheadline.font)
+            Text(notRatedYet(track.category)).font(IrisTokens.Typography.subheadline.font)
         }
+        // A26: Rate it / Re-rank, and Rankings once rated (I10).
+        HStack(spacing: IrisTokens.Space.sm) {
+            Button(rating == nil ? "Rate it" : "Re-rank") {
+                rating_ = RatePromptItem(ref: track.ref, title: track.title, category: track.category)
+            }
+            .accessibilityIdentifier("detail.rate")
+            if rating != nil {
+                Button("Rankings") { rankingsCategory = track.category }
+                    .accessibilityIdentifier("detail.rankings")
+            }
+        }
+        .font(IrisTokens.Typography.headline.font)
+        .buttonStyle(.bordered)
+        .tint(IrisTokens.Colors.label)
+        .frame(minHeight: 44)
     }
 
     /// Section headers in the label colour: the default grey fails 4.5:1 (I7/I8 audit).
@@ -152,14 +177,6 @@ struct TrackDetailView: View {
             .textCase(nil)
     }
 
-    /// SENTIMENT_LABEL in src/ui/rating.ts.
-    static func sentimentLabel(_ s: Sentiment) -> String {
-        switch s {
-        case .liked: "I liked it"
-        case .fine: "It was fine"
-        case .disliked: "I didn’t like it"
-        }
-    }
 
     @ToolbarContentBuilder private var actionsMenu: some ToolbarContent {
         if let track = model.track {
