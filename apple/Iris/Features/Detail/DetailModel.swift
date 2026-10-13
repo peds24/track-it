@@ -12,6 +12,8 @@ protocol DetailLibrary: Sendable {
     func delete(_ track: TrackRef) async throws
     func setPosition(seriesId: String, ordinal: Int, now: Date) async throws
     func syncAfterMove(seriesId: String, registry: ProviderRegistry?) async -> Bool
+    /// I10: Done and unrated — the rate prompt's test.
+    func finishedUnrated(_ ref: TrackRef) async -> Bool
 }
 
 extension Library: DetailLibrary {}
@@ -33,6 +35,8 @@ final class DetailModel {
     private(set) var state: State = .loading
     var pending: Pending?
     var failure: ShelfModel.Failure?
+    /// I10: set after an action finished an unrated track.
+    var ratePrompt: RatePromptItem?
     /// The position editor sheet (A12).
     var editing = false
     /// Turns true once the track is deleted; the view pops.
@@ -91,6 +95,7 @@ final class DetailModel {
         }
         // No `commits` bump: IrisPrimaryButton plays its own haptic on the tap.
         guard await run("Could not update", { try await $0.advance(entryId: next, now: Date()) }) else { return }
+        await offerRating(track)
         if track.kind == .series { _ = await library.syncAfterMove(seriesId: track.id, registry: registry) }
     }
 
@@ -112,7 +117,10 @@ final class DetailModel {
         guard let track else { return }
         switch p {
         case .complete:
-            if await run("Could not complete", { try await $0.complete(track.ref, now: Date()) }) { commits += 1 }
+            if await run("Could not complete", { try await $0.complete(track.ref, now: Date()) }) {
+                commits += 1
+                await offerRating(track)
+            }
         case .moveToBacklog:
             await run("Could not move") { try await $0.returnToBacklog(track.ref) }
         case .delete:
@@ -128,6 +136,12 @@ final class DetailModel {
         guard let track else { return }
         guard await run("Could not update", { try await $0.setPosition(seriesId: track.id, ordinal: ordinal, now: Date()) }) else { return }
         _ = await library.syncAfterMove(seriesId: track.id, registry: registry)
+    }
+
+    private func offerRating(_ track: TrackSummary) async {
+        if await library.finishedUnrated(track.ref) {
+            ratePrompt = RatePromptItem(ref: track.ref, title: track.title, category: track.category)
+        }
     }
 
     @discardableResult

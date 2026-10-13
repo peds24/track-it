@@ -21,14 +21,20 @@ struct IrisRatingBadge: View {
 
     let score: Double
     let sentiment: Sentiment
+    /// I10: the Rate result's big score.
+    var large = false
+
+    init(score: Double, sentiment: Sentiment, large: Bool = false) {
+        self.score = score; self.sentiment = sentiment; self.large = large
+    }
 
     var body: some View {
         let style = Self.style(for: sentiment)
         Text(formatScore(score))
-            .font(IrisTokens.Typography.subheadline.font.weight(.semibold).monospacedDigit())
+            .font((large ? IrisTokens.Typography.largeTitle.font : IrisTokens.Typography.subheadline.font).weight(.semibold).monospacedDigit())
             .foregroundStyle(Self.color(style.ink))
-            .padding(.horizontal, IrisTokens.Space.sm)
-            .padding(.vertical, IrisTokens.Space.xs)
+            .padding(.horizontal, large ? IrisTokens.Space.xl : IrisTokens.Space.sm)
+            .padding(.vertical, large ? IrisTokens.Space.sm : IrisTokens.Space.xs)
             .frame(minWidth: 44)
             .background(Capsule().fill(Self.color(style.fill)))
             .accessibilityElement(children: .ignore)

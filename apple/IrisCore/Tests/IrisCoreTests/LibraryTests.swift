@@ -71,8 +71,8 @@ final class LibraryTests: XCTestCase {
         try seedDemoLibrary(library)
         var scores = library.scores().makeAsyncIterator()
         let value = await scores.next() ?? [:]
-        XCTAssertEqual(value.count, 1)
-        XCTAssertEqual(value.values.first?.sentiment, .liked)
+        XCTAssertEqual(value.count, 4, "Project Hail Mary plus the three rated movies (I10)")
+        XCTAssertEqual(Set(value.values.map(\.sentiment)), [.liked])
     }
 
     func testDemoSeedFillsEveryShelfWithTheGalleryStates() throws {
@@ -81,7 +81,8 @@ final class LibraryTests: XCTestCase {
         XCTAssertEqual(Set(try library.snapshot(shelf: .currently).map(\.title)), ["Severance", "Dune", "Saga"])
         XCTAssertEqual(Set(try library.snapshot(shelf: .backlog).map(\.title)),
                        ["Arrival", "One Piece", "The Lord of the Rings: The Fellowship of the Ring (Extended Edition)"])
-        XCTAssertEqual(Set(try library.snapshot(shelf: .done).map(\.title)), ["Project Hail Mary", "Interstellar"])
+        XCTAssertEqual(Set(try library.snapshot(shelf: .done).map(\.title)),
+                       ["Project Hail Mary", "Interstellar", "Blade Runner 2049", "Sicario", "Prisoners"])
         let severance = try XCTUnwrap(library.snapshot(shelf: .currently).first { $0.title == "Severance" })
         XCTAssertEqual(severance.progress, Progress(done: 13, total: 19))
         let onePiece = try XCTUnwrap(library.snapshot(shelf: .backlog).first { $0.title == "One Piece" })
@@ -199,5 +200,72 @@ final class LibraryTests: XCTestCase {
         let hit = SearchResult(id: "gb-1", title: "Saga, Volume One", category: .comic, count: 1)
         let ref = try await library.add(input(hit.title, .comic, comicMode: .collection, picked: hit), startNow: false, now: Date(), hydrate: manualHydrate)
         XCTAssertEqual(ref.kind, TrackKind.entry)
+    }
+
+    // MARK: Rating (I10)
+
+    func testRateContextForAnUnratedMovieSeesTheThreeRatedOnes() async throws {
+        let library = try Library.inMemory()
+        try seedDemoLibrary(library)
+        let ref = try seededRef(library, "Interstellar", .done)
+        let context = try await library.rateContext(ref)
+        XCTAssertEqual(context?.profile.key, ratingKey(ref))
+        XCTAssertEqual(context?.ranking.map(\.title), ["Blade Runner 2049", "Sicario", "Prisoners"])
+        XCTAssertNil(context?.existing)
+        XCTAssertEqual(context?.detail.summary.title, "Interstellar")
+    }
+
+    func testSaveRatingReturnsWhereItLanded() async throws {
+        let library = try Library.inMemory()
+        try seedDemoLibrary(library)
+        let ref = try seededRef(library, "Interstellar", .done)
+        let summary = try await library.saveRating(RatableTrack(kind: ref.kind, id: ref.id, category: .movie),
+                                                   sentiment: .liked, indexInBucket: 0, now: Date())
+        XCTAssertEqual(summary.rank, 1)
+        XCTAssertEqual(summary.outOf, 4)
+        XCTAssertEqual(summary.score, scoreAt(.liked, index: 0, size: 4), accuracy: 1e-9)
+    }
+
+    func testRankingsStreamAgainAfterASave() async throws {
+        let library = try Library.inMemory()
+        try seedDemoLibrary(library)
+        let ref = try seededRef(library, "Interstellar", .done)
+        var stream = library.rankings(category: .movie).makeAsyncIterator()
+        guard case .success(let before)? = await stream.next() else { return XCTFail("no ranking") }
+        XCTAssertEqual(before.count, 3)
+        _ = try await library.saveRating(RatableTrack(kind: ref.kind, id: ref.id, category: .movie), sentiment: .fine, indexInBucket: 0, now: Date())
+        guard case .success(let after)? = await stream.next() else { return XCTFail("no update") }
+        XCTAssertEqual(after.count, 4)
+        XCTAssertEqual(after.last?.title, "Interstellar")
+    }
+
+    func testFinishedUnratedIsTheRatePromptsTest() async throws {
+        let library = try Library.inMemory()
+        try seedDemoLibrary(library)
+        let interstellar = try await library.finishedUnrated(seededRef(library, "Interstellar", .done))
+        let hailMary = try await library.finishedUnrated(seededRef(library, "Project Hail Mary", .done))
+        let dune = try await library.finishedUnrated(seededRef(library, "Dune", .currently))
+        XCTAssertTrue(interstellar)
+        XCTAssertFalse(hailMary, "already rated")
+        XCTAssertFalse(dune, "not finished")
+    }
+
+    func testRateContextForADeletedTrackIsNil() async throws {
+        let library = try Library.inMemory()
+        try seedDemoLibrary(library)
+        let ref = try seededRef(library, "Interstellar", .done)
+        try await library.delete(ref)
+        let context = try await library.rateContext(ref)
+        XCTAssertNil(context)
+    }
+
+    func testAMovieAddedAsWatchedIsFinishedAndUnrated() async throws {
+        let library = try Library.inMemory()
+        let input = addTrackInput(category: .movie, comicMode: nil, saveTitle: "Dune: Part Two",
+                                  picked: SearchResult(id: "demo-dune2", title: "Dune: Part Two", category: .movie, count: 1),
+                                  draft: nil, previewMetadata: TrackMetadata(creator: "Denis Villeneuve"))
+        let ref = try await library.add(input, startNow: true, now: Date(), hydrate: manualHydrate)
+        let unrated = await library.finishedUnrated(ref)
+        XCTAssertTrue(unrated)
     }
 }

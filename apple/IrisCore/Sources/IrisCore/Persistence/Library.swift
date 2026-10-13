@@ -15,6 +15,19 @@ public struct TrackPage: Equatable, Sendable {
     public init(detail: TrackDetail, rating: RatingSummary?) { self.detail = detail; self.rating = rating }
 }
 
+/// Everything the Rate screen needs to start (I10, A26).
+public struct RateContext: Equatable, Sendable {
+    public let detail: TrackDetail
+    public let profile: RatingProfile
+    /// The category's ranking, best first.
+    public let ranking: [RankedTrack]
+    public let existing: RatingSummary?
+
+    public init(detail: TrackDetail, profile: RatingProfile, ranking: [RankedTrack], existing: RatingSummary?) {
+        self.detail = detail; self.profile = profile; self.ranking = ranking; self.existing = existing
+    }
+}
+
 /// The app's one door to the library (I7). It wraps the GRDB queue, so the app
 /// target never imports GRDB. Every write is one repository call, as in TS.
 /// A `DatabaseQueue`, not a pool: one user, one writer, a small library.
@@ -71,6 +84,38 @@ public final class Library: Sendable {
             return TrackPage(detail: detail, rating: try getRating(db, ref))
         }
         return stream(observation)
+    }
+
+    /// nil when the track (or its rating profile) no longer exists.
+    public func rateContext(_ ref: TrackRef) async throws -> RateContext? {
+        try await queue.read { db in
+            guard let detail = try getTrackDetail(db, kind: ref.kind, id: ref.id),
+                  let profile = try ratingProfileOf(db, ref) else { return nil }
+            return RateContext(detail: detail, profile: profile,
+                               ranking: try listRanking(db, category: detail.summary.category),
+                               existing: try getRating(db, ref))
+        }
+    }
+
+    /// A26: place `track` at `indexInBucket` within `sentiment`; returns where it landed.
+    public func saveRating(_ track: RatableTrack, sentiment: Sentiment, indexInBucket: Int, now: Date) async throws -> RatingSummary {
+        try await queue.write { db in
+            try IrisCore.saveRating(db, track, sentiment: sentiment, indexInBucket: indexInBucket, now: toISOString(now))
+            guard let summary = try getRating(db, track.ref) else { throw DomainError("Rating for \(track.id) was not saved") }
+            return summary
+        }
+    }
+
+    /// A category's ranking now, then after every change to it.
+    public func rankings(category: Category) -> AsyncStream<Result<[RankedTrack], Error>> {
+        stream(ValueObservation.tracking { db in try listRanking(db, category: category) })
+    }
+
+    /// offerRatingIfFinished's test: Done and not yet rated. Never throws.
+    public func finishedUnrated(_ ref: TrackRef) async -> Bool {
+        (try? await queue.read { db in
+            try getTrackDetail(db, kind: ref.kind, id: ref.id)?.summary.shelf == .done && getRating(db, ref) == nil
+        }) ?? false
     }
 
     /// A12: put a series at `ordinal` (the unit you are on).

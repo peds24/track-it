@@ -16,6 +16,8 @@ protocol AddCatalogue: Sendable {
 protocol AddLibrary: Sendable {
     func add(_ input: AddTrackInput, startNow: Bool, now: Date,
              hydrate: @Sendable (SearchResult) async throws -> SeriesDraft) async throws -> TrackRef
+    /// I10: Done and unrated — the rate prompt's test.
+    func finishedUnrated(_ ref: TrackRef) async -> Bool
 }
 
 extension Library: AddLibrary {}

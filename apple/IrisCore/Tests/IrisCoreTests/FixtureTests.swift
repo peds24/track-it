@@ -6,7 +6,7 @@ final class FixtureTests: XCTestCase {
     /// Fixture modules not ported yet. Each task moves its modules out; I3 is
     /// done when this is empty (Task 7).
     static let pending: Set<String> = []
-    static let ported: Set<String> = ["whatsNew", "mode", "shelf", "advance", "validate", "seriesTitle", "genres", "seasons", "rating", "formatters", "trackLabels", "trackDetail", "addFlow"]
+    static let ported: Set<String> = ["whatsNew", "mode", "shelf", "advance", "validate", "seriesTitle", "genres", "seasons", "rating", "formatters", "trackLabels", "trackDetail", "addFlow", "rateText"]
 
     private func check(_ module: String, _ registry: [String: FixtureFn]) throws {
         let failures = try runFixtures(module, registry)
@@ -31,6 +31,7 @@ final class FixtureTests: XCTestCase {
     func testTrackLabels() throws { try check("trackLabels", trackLabelsFixtures) }
     func testTrackDetail() throws { try check("trackDetail", trackDetailFixtures) }
     func testAddFlow() throws { try check("addFlow", addFlowFixtures) }
+    func testRateText() throws { try check("rateText", rateTextFixtures) }
     func testAdvance() throws { try check("advance", advanceFixtures) }
     func testValidate() throws { try check("validate", validateFixtures) }
     func testSeriesTitle() throws { try check("seriesTitle", seriesTitleFixtures) }

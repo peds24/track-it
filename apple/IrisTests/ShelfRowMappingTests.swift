@@ -56,10 +56,10 @@ final class ShelfRowMappingTests: XCTestCase {
         XCTAssertEqual(m.accessory, .rating(score: 8.7, sentiment: .liked))
     }
 
-    func testAnUnratedDoneMovieHasNoAccessoryUntilI10() {
+    func testAnUnratedDoneMovieOffersRate() {
         let m = IrisShelfRow.Model(track(kind: .entry, title: "Interstellar", category: .movie, shelf: .done, progress: nil, next: nil, nextId: nil), rating: nil)
         XCTAssertEqual(m.detail, "Watched")
-        XCTAssertEqual(m.accessory, IrisShelfRow.Accessory.none)
+        XCTAssertEqual(m.accessory, .rate)
     }
 
     func testASeriesWithNoTotalDrawsNoBar() {

@@ -38,6 +38,14 @@ public func seedDemoLibrary(_ library: Library) throws {
             metadata: TrackMetadata(creator: "Christopher Nolan", releaseYear: "2014")), now: now())
         try advanceEntry(db, entryId: try firstEntryOf(db, TrackRef(kind: .entry, id: interstellar)).id, now: now())
 
+        // Done and rated, all liked: the I10 walk-through ranks Interstellar against them.
+        for (index, (title, year)) in [("Blade Runner 2049", "2017"), ("Sicario", "2015"), ("Prisoners", "2013")].enumerated() {
+            let id = try createStandaloneTrack(db, StandaloneInput(title: title, category: .movie,
+                metadata: TrackMetadata(creator: "Denis Villeneuve", releaseYear: year)), now: now())
+            try advanceEntry(db, entryId: try firstEntryOf(db, TrackRef(kind: .entry, id: id)).id, now: now())
+            try saveRating(db, RatableTrack(kind: .entry, id: id, category: .movie), sentiment: .liked, indexInBucket: index, now: now())
+        }
+
         // Backlog
         _ = try createStandaloneTrack(db, StandaloneInput(title: "The Lord of the Rings: The Fellowship of the Ring (Extended Edition)", category: .movie), now: now())
         let onePiece = try createSeriesTrack(db, SeriesDraft(title: "One Piece", mediaType: .manga, unitLabel: .volume, entries: units("Volume", 108)), now: now())

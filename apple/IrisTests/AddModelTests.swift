@@ -63,6 +63,8 @@ final class FakeCatalogue: AddCatalogue, @unchecked Sendable {
 final class FakeAddLibrary: AddLibrary, @unchecked Sendable {
     private(set) var added: [(AddTrackInput, Bool)] = []
     var failWith: Error?
+    var finishedUnratedAnswer = false
+    func finishedUnrated(_ ref: TrackRef) async -> Bool { finishedUnratedAnswer }
     func add(_ input: AddTrackInput, startNow: Bool, now: Date,
              hydrate: @Sendable (SearchResult) async throws -> SeriesDraft) async throws -> TrackRef {
         if let failWith { throw failWith }
@@ -296,5 +298,25 @@ final class AddModelTests: XCTestCase {
         cat.release("upc")
         await lookup.value
         XCTAssertEqual(model.picked?.id, "typed")
+    }
+
+    /// I9 moved this here: a movie added as Watched asks to be rated.
+    func testAddingAsWatchedAsksToRateOnceTheSheetCloses() async {
+        let lib = FakeAddLibrary(); lib.finishedUnratedAnswer = true
+        let (model, _, _) = make(FakeCatalogue(), lib)
+        model.choose(.movie)
+        model.query = "Arrival"
+        await model.save(startNow: true)
+        XCTAssertEqual(model.ratePrompt?.title, "Arrival")
+        XCTAssertEqual(model.ratePrompt?.category, .movie)
+    }
+
+    func testAddingToBacklogNeverAsks() async {
+        let lib = FakeAddLibrary(); lib.finishedUnratedAnswer = true
+        let (model, _, _) = make(FakeCatalogue(), lib)
+        model.choose(.movie)
+        model.query = "Arrival"
+        await model.save(startNow: false)
+        XCTAssertNil(model.ratePrompt)
     }
 }

@@ -11,6 +11,13 @@ struct ShelfView: View {
     /// The Add sheet's model (I9); nil on Done, which has no Add.
     let makeAdd: (@MainActor () -> AddModel)?
     @State private var adding: AddModel?
+    /// The Add sheet's model, kept past its dismissal: its rate prompt, if any,
+    /// is asked here once the sheet has gone (I10). Kept from when the sheet
+    /// opens, because the item binding isn't reliably cleared before onDismiss.
+    @State private var lastAdd: AddModel?
+    @State private var rating: RatePromptItem?
+    @State private var rankingsCategory: IrisCore.Category?
+    @Environment(\.irisFactories) private var factories
 
     @State private var opened: TrackRef?
     @State private var renaming: TrackSummary?
@@ -21,9 +28,20 @@ struct ShelfView: View {
     var body: some View {
         content
             .navigationTitle(Self.title(model.shelf))
-            .toolbar { filterMenu; addButton }
-            .sheet(item: Binding(get: { adding.map(AddSheetItem.init) }, set: { if $0 == nil { adding = nil } })) { item in
+            .toolbar { filterMenu; addButton; rankingsButton }
+            .sheet(item: Binding(get: { adding.map(AddSheetItem.init) }, set: { if $0 == nil { adding = nil } }),
+                   onDismiss: {
+                       if let prompt = lastAdd?.ratePrompt { model.ratePrompt = prompt }
+                       lastAdd = nil
+                   }) { item in
                 AddView(model: item.model)
+            }
+            .ratePrompt($model.ratePrompt) { rating = $0 }
+            .sheet(item: $rating) { item in
+                if let factories { RateView(model: factories.rate(item.ref)) { rankingsCategory = $0 } }
+            }
+            .navigationDestination(item: $rankingsCategory) { category in
+                if let factories { RankingsView(model: factories.rankings(category)) }
             }
             .navigationDestination(item: $opened) { TrackDetailView(model: makeDetail($0)) }
             .confirmationDialog(
@@ -88,6 +106,10 @@ struct ShelfView: View {
     private func rows(_ tracks: [TrackSummary]) -> some View {
         ForEach(tracks, id: \.id) { track in
             IrisShelfRow(model.rowModel(track), onOpen: { opened = track.ref }, onAccessory: {
+                if model.rowModel(track).accessory == .rate {
+                    rating = RatePromptItem(ref: track.ref, title: track.title, category: track.category)
+                    return
+                }
                 Task { await model.performAccessory(track) }
             })
             .accessibilityIdentifier("row.\(track.id)")
@@ -127,10 +149,23 @@ struct ShelfView: View {
         }
     }
 
+    /// Spec §6: Finished's toolbar opens Rankings (A26).
+    @ToolbarContentBuilder private var rankingsButton: some ToolbarContent {
+        if model.shelf == .done {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Rankings", systemImage: IrisSymbol.rankings.systemName) { rankingsCategory = model.category ?? .movie }
+                    .accessibilityIdentifier("shelf.rankings")
+            }
+        }
+    }
+
     @ToolbarContentBuilder private var addButton: some ToolbarContent {
         if let makeAdd {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Add a track", systemImage: IrisSymbol.add.systemName) { adding = makeAdd() }
+                Button("Add a track", systemImage: IrisSymbol.add.systemName) {
+                    adding = makeAdd()
+                    lastAdd = adding
+                }
                     .accessibilityIdentifier("shelf.add")
             }
         }

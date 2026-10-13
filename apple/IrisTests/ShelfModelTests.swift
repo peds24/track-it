@@ -11,6 +11,8 @@ final class FakeLibrary: ShelfLibrary, @unchecked Sendable {
     private var _observed: [(Shelf, IrisCore.Category?)] = []
     private var trackConts: [AsyncStream<Result<[TrackSummary], Error>>.Continuation] = []
     var failWith: Error?
+    var finishedUnratedAnswer = false
+    func finishedUnrated(_ ref: TrackRef) async -> Bool { finishedUnratedAnswer }
 
     var calls: [Call] { lock.withLock { _calls } }
     var observed: [(Shelf, IrisCore.Category?)] { lock.withLock { _observed } }
@@ -188,5 +190,35 @@ final class ShelfModelTests: XCTestCase {
         XCTAssertNotNil(model)
         model = nil
         XCTAssertNil(model)
+    }
+
+    // MARK: Rate prompt (I10)
+
+    func testAnAdvanceThatFinishesAnUnratedTrackAsksToRate() async {
+        let fake = FakeLibrary(); fake.finishedUnratedAnswer = true
+        let model = ShelfModel(shelf: .currently, library: fake, registry: nil)
+        await model.performAccessory(t("s1", title: "Severance"))
+        XCTAssertEqual(model.ratePrompt?.ref, TrackRef(kind: .series, id: "s1"))
+        XCTAssertEqual(model.ratePrompt?.title, "Severance")
+    }
+
+    func testAnAdvanceThatDoesNotFinishDoesNotAsk() async {
+        let model = ShelfModel(shelf: .currently, library: FakeLibrary(), registry: nil)
+        await model.performAccessory(t("s1"))
+        XCTAssertNil(model.ratePrompt)
+    }
+
+    func testAFailedAdvanceNeverAsks() async {
+        let fake = FakeLibrary(); fake.finishedUnratedAnswer = true; fake.failWith = DomainError("nope")
+        let model = ShelfModel(shelf: .currently, library: fake, registry: nil)
+        await model.performAccessory(t("s1"))
+        XCTAssertNil(model.ratePrompt)
+    }
+
+    func testCompletingAnUnratedTrackAsksToRate() async {
+        let fake = FakeLibrary(); fake.finishedUnratedAnswer = true
+        let model = ShelfModel(shelf: .currently, library: fake, registry: nil)
+        await model.confirm(.complete(t("s1")))
+        XCTAssertNotNil(model.ratePrompt)
     }
 }

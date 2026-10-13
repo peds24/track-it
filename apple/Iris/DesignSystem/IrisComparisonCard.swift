@@ -23,7 +23,8 @@ struct IrisComparisonCard: View {
                 Text(title).font(IrisTokens.Typography.headline.font).foregroundStyle(IrisTokens.Colors.label)
                     .lineLimit(3).multilineTextAlignment(.center)
                 if let subtitle {
-                    Text(subtitle).font(IrisTokens.Typography.footnote.font).foregroundStyle(IrisTokens.Colors.secondaryLabel)
+                    // Label colour: grey footnote text failed the contrast audit (I10).
+                    Text(subtitle).font(IrisTokens.Typography.footnote.font).foregroundStyle(IrisTokens.Colors.label)
                         .multilineTextAlignment(.center)
                 }
             }

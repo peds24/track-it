@@ -1,5 +1,27 @@
 # DEVLOG
 
+## 2026-10-13 — Iris I10: Rate, Rankings and the rate prompts
+
+- The A26 flow on iOS on the engine and data layer already held to TS by
+  I3/I4: a Rate sheet (sentiment → comparisons → result), Rankings per
+  category, and "Rank it now?" wherever a track finishes, including Add as
+  Watched (moved here from I9 by the user).
+- **Fourth `src/ui` fixture module** (`rateText`): every string the Rate,
+  Rankings and prompt surfaces show, from the sentiment labels to "Question 2
+  · among the movies you liked" — 66 cases.
+- **Factories in the environment**: a detail screen reached from Rankings
+  needs to open Rate and Rankings again; an `IrisFactories` environment value
+  set at the root builds those models instead of closures threaded through
+  every view.
+- **Gotchas**: an item-based sheet's custom binding isn't reliably cleared
+  before `onDismiss`, which dropped Add's prompt — the shelf keeps the Add
+  model from when the sheet opens; tab-bar "Done" and the result's "Done"
+  share a label (identifiers fix the tests); and the audit failed grey
+  footnote subtitles on comparison cards and an 18 pt "Change how I felt"
+  hit area (the frame belongs inside a plain button's label); and the AX5
+  screenshots showed Rankings titles broken mid-word in a one-line row, now
+  stacked at accessibility sizes like a shelf row.
+
 ## 2026-10-09 — Iris I9: Add
 
 - The Add sheet: categories → comic mode → search or scan → confirm →
