@@ -1,0 +1,643 @@
+{
+  "module": "rateText",
+  "generatedBy": "npm run fixtures:record",
+  "timezone": "UTC",
+  "cases": [
+    {
+      "name": "sentimentLabel: liked",
+      "fn": "sentimentLabel",
+      "args": [
+        "liked"
+      ],
+      "expect": "I liked it"
+    },
+    {
+      "name": "sentimentLabel: fine",
+      "fn": "sentimentLabel",
+      "args": [
+        "fine"
+      ],
+      "expect": "It was fine"
+    },
+    {
+      "name": "sentimentLabel: disliked",
+      "fn": "sentimentLabel",
+      "args": [
+        "disliked"
+      ],
+      "expect": "I didn’t like it"
+    },
+    {
+      "name": "categoryPlural: show",
+      "fn": "categoryPlural",
+      "args": [
+        "show"
+      ],
+      "expect": "shows"
+    },
+    {
+      "name": "rateFootnote: show",
+      "fn": "rateFootnote",
+      "args": [
+        "show"
+      ],
+      "expect": "You’ll compare it with other shows you’ve rated — by the same creator or in the same genre where possible — and its 1–10 score comes from where it lands."
+    },
+    {
+      "name": "seeYourLabel: show",
+      "fn": "seeYourLabel",
+      "args": [
+        "show"
+      ],
+      "expect": "See your shows"
+    },
+    {
+      "name": "notRatedYet: show",
+      "fn": "notRatedYet",
+      "args": [
+        "show"
+      ],
+      "expect": "Not rated yet. Rank it against the other shows you’ve finished."
+    },
+    {
+      "name": "rankingsEmpty: show",
+      "fn": "rankingsEmpty",
+      "args": [
+        "show"
+      ],
+      "expect": {
+        "title": "No shows ranked yet",
+        "body": "Finish something and tap Rate — you’ll compare it with the others you’ve rated, and its score comes from where it lands."
+      }
+    },
+    {
+      "name": "rankLine: show",
+      "fn": "rankLine",
+      "args": [
+        3,
+        12,
+        "show"
+      ],
+      "expect": "#3 of 12 shows"
+    },
+    {
+      "name": "ratePrompt: show",
+      "fn": "ratePrompt",
+      "args": [
+        "Arrival",
+        "show"
+      ],
+      "expect": {
+        "title": "Finished Arrival",
+        "message": "Rank it against the other shows you’ve rated?"
+      }
+    },
+    {
+      "name": "questionFootnote: show liked",
+      "fn": "questionFootnote",
+      "args": [
+        1,
+        "liked",
+        "show"
+      ],
+      "expect": "Question 2 · among the shows you liked"
+    },
+    {
+      "name": "questionFootnote: show fine",
+      "fn": "questionFootnote",
+      "args": [
+        1,
+        "fine",
+        "show"
+      ],
+      "expect": "Question 2 · among the shows that were fine"
+    },
+    {
+      "name": "questionFootnote: show disliked",
+      "fn": "questionFootnote",
+      "args": [
+        1,
+        "disliked",
+        "show"
+      ],
+      "expect": "Question 2 · among the shows you didn’t like"
+    },
+    {
+      "name": "categoryPlural: movie",
+      "fn": "categoryPlural",
+      "args": [
+        "movie"
+      ],
+      "expect": "movies"
+    },
+    {
+      "name": "rateFootnote: movie",
+      "fn": "rateFootnote",
+      "args": [
+        "movie"
+      ],
+      "expect": "You’ll compare it with other movies you’ve rated — by the same creator or in the same genre where possible — and its 1–10 score comes from where it lands."
+    },
+    {
+      "name": "seeYourLabel: movie",
+      "fn": "seeYourLabel",
+      "args": [
+        "movie"
+      ],
+      "expect": "See your movies"
+    },
+    {
+      "name": "notRatedYet: movie",
+      "fn": "notRatedYet",
+      "args": [
+        "movie"
+      ],
+      "expect": "Not rated yet. Rank it against the other movies you’ve finished."
+    },
+    {
+      "name": "rankingsEmpty: movie",
+      "fn": "rankingsEmpty",
+      "args": [
+        "movie"
+      ],
+      "expect": {
+        "title": "No movies ranked yet",
+        "body": "Finish something and tap Rate — you’ll compare it with the others you’ve rated, and its score comes from where it lands."
+      }
+    },
+    {
+      "name": "rankLine: movie",
+      "fn": "rankLine",
+      "args": [
+        3,
+        12,
+        "movie"
+      ],
+      "expect": "#3 of 12 movies"
+    },
+    {
+      "name": "ratePrompt: movie",
+      "fn": "ratePrompt",
+      "args": [
+        "Arrival",
+        "movie"
+      ],
+      "expect": {
+        "title": "Finished Arrival",
+        "message": "Rank it against the other movies you’ve rated?"
+      }
+    },
+    {
+      "name": "questionFootnote: movie liked",
+      "fn": "questionFootnote",
+      "args": [
+        1,
+        "liked",
+        "movie"
+      ],
+      "expect": "Question 2 · among the movies you liked"
+    },
+    {
+      "name": "questionFootnote: movie fine",
+      "fn": "questionFootnote",
+      "args": [
+        1,
+        "fine",
+        "movie"
+      ],
+      "expect": "Question 2 · among the movies that were fine"
+    },
+    {
+      "name": "questionFootnote: movie disliked",
+      "fn": "questionFootnote",
+      "args": [
+        1,
+        "disliked",
+        "movie"
+      ],
+      "expect": "Question 2 · among the movies you didn’t like"
+    },
+    {
+      "name": "categoryPlural: book",
+      "fn": "categoryPlural",
+      "args": [
+        "book"
+      ],
+      "expect": "books"
+    },
+    {
+      "name": "rateFootnote: book",
+      "fn": "rateFootnote",
+      "args": [
+        "book"
+      ],
+      "expect": "You’ll compare it with other books you’ve rated — by the same creator or in the same genre where possible — and its 1–10 score comes from where it lands."
+    },
+    {
+      "name": "seeYourLabel: book",
+      "fn": "seeYourLabel",
+      "args": [
+        "book"
+      ],
+      "expect": "See your books"
+    },
+    {
+      "name": "notRatedYet: book",
+      "fn": "notRatedYet",
+      "args": [
+        "book"
+      ],
+      "expect": "Not rated yet. Rank it against the other books you’ve finished."
+    },
+    {
+      "name": "rankingsEmpty: book",
+      "fn": "rankingsEmpty",
+      "args": [
+        "book"
+      ],
+      "expect": {
+        "title": "No books ranked yet",
+        "body": "Finish something and tap Rate — you’ll compare it with the others you’ve rated, and its score comes from where it lands."
+      }
+    },
+    {
+      "name": "rankLine: book",
+      "fn": "rankLine",
+      "args": [
+        3,
+        12,
+        "book"
+      ],
+      "expect": "#3 of 12 books"
+    },
+    {
+      "name": "ratePrompt: book",
+      "fn": "ratePrompt",
+      "args": [
+        "Arrival",
+        "book"
+      ],
+      "expect": {
+        "title": "Finished Arrival",
+        "message": "Rank it against the other books you’ve rated?"
+      }
+    },
+    {
+      "name": "questionFootnote: book liked",
+      "fn": "questionFootnote",
+      "args": [
+        1,
+        "liked",
+        "book"
+      ],
+      "expect": "Question 2 · among the books you liked"
+    },
+    {
+      "name": "questionFootnote: book fine",
+      "fn": "questionFootnote",
+      "args": [
+        1,
+        "fine",
+        "book"
+      ],
+      "expect": "Question 2 · among the books that were fine"
+    },
+    {
+      "name": "questionFootnote: book disliked",
+      "fn": "questionFootnote",
+      "args": [
+        1,
+        "disliked",
+        "book"
+      ],
+      "expect": "Question 2 · among the books you didn’t like"
+    },
+    {
+      "name": "categoryPlural: comic",
+      "fn": "categoryPlural",
+      "args": [
+        "comic"
+      ],
+      "expect": "comics"
+    },
+    {
+      "name": "rateFootnote: comic",
+      "fn": "rateFootnote",
+      "args": [
+        "comic"
+      ],
+      "expect": "You’ll compare it with other comics you’ve rated — by the same creator or in the same genre where possible — and its 1–10 score comes from where it lands."
+    },
+    {
+      "name": "seeYourLabel: comic",
+      "fn": "seeYourLabel",
+      "args": [
+        "comic"
+      ],
+      "expect": "See your comics"
+    },
+    {
+      "name": "notRatedYet: comic",
+      "fn": "notRatedYet",
+      "args": [
+        "comic"
+      ],
+      "expect": "Not rated yet. Rank it against the other comics you’ve finished."
+    },
+    {
+      "name": "rankingsEmpty: comic",
+      "fn": "rankingsEmpty",
+      "args": [
+        "comic"
+      ],
+      "expect": {
+        "title": "No comics ranked yet",
+        "body": "Finish something and tap Rate — you’ll compare it with the others you’ve rated, and its score comes from where it lands."
+      }
+    },
+    {
+      "name": "rankLine: comic",
+      "fn": "rankLine",
+      "args": [
+        3,
+        12,
+        "comic"
+      ],
+      "expect": "#3 of 12 comics"
+    },
+    {
+      "name": "ratePrompt: comic",
+      "fn": "ratePrompt",
+      "args": [
+        "Arrival",
+        "comic"
+      ],
+      "expect": {
+        "title": "Finished Arrival",
+        "message": "Rank it against the other comics you’ve rated?"
+      }
+    },
+    {
+      "name": "questionFootnote: comic liked",
+      "fn": "questionFootnote",
+      "args": [
+        1,
+        "liked",
+        "comic"
+      ],
+      "expect": "Question 2 · among the comics you liked"
+    },
+    {
+      "name": "questionFootnote: comic fine",
+      "fn": "questionFootnote",
+      "args": [
+        1,
+        "fine",
+        "comic"
+      ],
+      "expect": "Question 2 · among the comics that were fine"
+    },
+    {
+      "name": "questionFootnote: comic disliked",
+      "fn": "questionFootnote",
+      "args": [
+        1,
+        "disliked",
+        "comic"
+      ],
+      "expect": "Question 2 · among the comics you didn’t like"
+    },
+    {
+      "name": "categoryPlural: manga",
+      "fn": "categoryPlural",
+      "args": [
+        "manga"
+      ],
+      "expect": "manga"
+    },
+    {
+      "name": "rateFootnote: manga",
+      "fn": "rateFootnote",
+      "args": [
+        "manga"
+      ],
+      "expect": "You’ll compare it with other manga you’ve rated — by the same creator or in the same genre where possible — and its 1–10 score comes from where it lands."
+    },
+    {
+      "name": "seeYourLabel: manga",
+      "fn": "seeYourLabel",
+      "args": [
+        "manga"
+      ],
+      "expect": "See your manga"
+    },
+    {
+      "name": "notRatedYet: manga",
+      "fn": "notRatedYet",
+      "args": [
+        "manga"
+      ],
+      "expect": "Not rated yet. Rank it against the other manga you’ve finished."
+    },
+    {
+      "name": "rankingsEmpty: manga",
+      "fn": "rankingsEmpty",
+      "args": [
+        "manga"
+      ],
+      "expect": {
+        "title": "No manga ranked yet",
+        "body": "Finish something and tap Rate — you’ll compare it with the others you’ve rated, and its score comes from where it lands."
+      }
+    },
+    {
+      "name": "rankLine: manga",
+      "fn": "rankLine",
+      "args": [
+        3,
+        12,
+        "manga"
+      ],
+      "expect": "#3 of 12 manga"
+    },
+    {
+      "name": "ratePrompt: manga",
+      "fn": "ratePrompt",
+      "args": [
+        "Arrival",
+        "manga"
+      ],
+      "expect": {
+        "title": "Finished Arrival",
+        "message": "Rank it against the other manga you’ve rated?"
+      }
+    },
+    {
+      "name": "questionFootnote: manga liked",
+      "fn": "questionFootnote",
+      "args": [
+        1,
+        "liked",
+        "manga"
+      ],
+      "expect": "Question 2 · among the manga you liked"
+    },
+    {
+      "name": "questionFootnote: manga fine",
+      "fn": "questionFootnote",
+      "args": [
+        1,
+        "fine",
+        "manga"
+      ],
+      "expect": "Question 2 · among the manga that were fine"
+    },
+    {
+      "name": "questionFootnote: manga disliked",
+      "fn": "questionFootnote",
+      "args": [
+        1,
+        "disliked",
+        "manga"
+      ],
+      "expect": "Question 2 · among the manga you didn’t like"
+    },
+    {
+      "name": "existingRatingNote: a top score",
+      "fn": "existingRatingNote",
+      "args": [
+        {
+          "sentiment": "liked",
+          "score": 10,
+          "rank": 1,
+          "outOf": 4,
+          "category": "movie"
+        },
+        "movie"
+      ],
+      "expect": "Currently 10.0 · #1 of 4 movies. Rating it again replaces that."
+    },
+    {
+      "name": "existingRatingNote: a score that rounds",
+      "fn": "existingRatingNote",
+      "args": [
+        {
+          "sentiment": "liked",
+          "score": 8.45,
+          "rank": 3,
+          "outOf": 12,
+          "category": "movie"
+        },
+        "book"
+      ],
+      "expect": "Currently 8.4 · #3 of 12 books. Rating it again replaces that."
+    },
+    {
+      "name": "existingRatingNote: the bottom",
+      "fn": "existingRatingNote",
+      "args": [
+        {
+          "sentiment": "liked",
+          "score": 0,
+          "rank": 12,
+          "outOf": 12,
+          "category": "movie"
+        },
+        "manga"
+      ],
+      "expect": "Currently 0.0 · #12 of 12 manga. Rating it again replaces that."
+    },
+    {
+      "name": "undoLabel: no answers yet",
+      "fn": "undoLabel",
+      "args": [
+        0
+      ],
+      "expect": "Change how I felt"
+    },
+    {
+      "name": "undoLabel: one answer",
+      "fn": "undoLabel",
+      "args": [
+        1
+      ],
+      "expect": "Undo last answer"
+    },
+    {
+      "name": "undoLabel: several answers",
+      "fn": "undoLabel",
+      "args": [
+        3
+      ],
+      "expect": "Undo last answer"
+    },
+    {
+      "name": "questionFootnote: the first question",
+      "fn": "questionFootnote",
+      "args": [
+        0,
+        "liked",
+        "movie"
+      ],
+      "expect": "Question 1 · among the movies you liked"
+    },
+    {
+      "name": "scoredLabel: ten",
+      "fn": "scoredLabel",
+      "args": [
+        10
+      ],
+      "expect": "Scored 10.0 out of 10"
+    },
+    {
+      "name": "scoredLabel: a half",
+      "fn": "scoredLabel",
+      "args": [
+        7.25
+      ],
+      "expect": "Scored 7.3 out of 10"
+    },
+    {
+      "name": "rankLine: one of one",
+      "fn": "rankLine",
+      "args": [
+        1,
+        1,
+        "show"
+      ],
+      "expect": "#1 of 1 shows"
+    },
+    {
+      "name": "rankingRowLabel: plain",
+      "fn": "rankingRowLabel",
+      "args": [
+        3,
+        "Arrival",
+        8.4
+      ],
+      "expect": "Number 3, Arrival, 8.4 out of 10"
+    },
+    {
+      "name": "rankingRowLabel: an apostrophe and emoji",
+      "fn": "rankingRowLabel",
+      "args": [
+        1,
+        "Bob’s Burgers 🍔",
+        10
+      ],
+      "expect": "Number 1, Bob’s Burgers 🍔, 10.0 out of 10"
+    },
+    {
+      "name": "ratePrompt: a long title",
+      "fn": "ratePrompt",
+      "args": [
+        "The Lord of the Rings: The Fellowship of the Ring (Extended Edition)",
+        "movie"
+      ],
+      "expect": {
+        "title": "Finished The Lord of the Rings: The Fellowship of the Ring (Extended Edition)",
+        "message": "Rank it against the other movies you’ve rated?"
+      }
+    }
+  ]
+}

@@ -44,6 +44,21 @@ import {
 import { announcementFor } from '@/domain/whatsNew';
 import { addBarcodeTypes, addCatalogueKey, addIsSeries, addSaveTitle, addTrackInput, confirmPrimaryLabel, manualPrimaryLabel, matchSummary } from '@/ui/addFlow';
 import { completionMessage } from '@/ui/completionMessage';
+import {
+  categoryPlural,
+  existingRatingNote,
+  notRatedYet,
+  questionFootnote,
+  rankingRowLabel,
+  rankingsEmpty,
+  rankLine,
+  rateFootnote,
+  ratePrompt,
+  scoredLabel,
+  seeYourLabel,
+  sentimentLabel,
+  undoLabel,
+} from '@/ui/rateText';
 import { detailMeta, detailPrimaryLabel, detailStats, positionEdit, progressCaption } from '@/ui/trackDetail';
 import { canEditPosition, positionLabel, rowAction, seasonPositionLabel, verbFor } from '@/ui/trackLabels';
 
@@ -131,6 +146,19 @@ export const registry: Record<string, AnyFn> = {
   addSaveTitle,
   addTrackInput,
   matchSummary,
+  sentimentLabel,
+  categoryPlural,
+  existingRatingNote,
+  rateFootnote,
+  questionFootnote,
+  undoLabel,
+  rankLine,
+  scoredLabel,
+  seeYourLabel,
+  notRatedYet,
+  rankingsEmpty,
+  rankingRowLabel,
+  ratePrompt,
 };
 
 /** JSON-safe, deterministic: Maps become objects (insertion order), undefined becomes null at the top level. */
