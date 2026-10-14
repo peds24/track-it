@@ -9,15 +9,38 @@ enum AppLibrary {
     }
 
     /// The library to run on. DEBUG builds launched with `-IrisSeed demo` get a
-    /// fresh in-memory library with one track in every row state, for UI tests
-    /// and screenshots; everything else opens the real file.
-    static func make() -> Result<Library, Error> {
+    /// fresh in-memory library with one track in every row state (UI tests and
+    /// screenshots), `-IrisSeed perf` 1,000 tracks (I12), `-IrisSeed empty`
+    /// nothing; everything else opens the real file. Async and off the main
+    /// actor: opening and migrating a big library must not hold the first frame (I12).
+    static func make(seed: String? = launchSeed) async -> Result<Library, Error> {
+        await Task.detached(priority: .userInitiated) { open(seed: seed) }.value
+    }
+
+    /// `-IrisSeed`, DEBUG only: Release never reads it (I12, testflight.sh --check).
+    static var launchSeed: String? {
+        #if DEBUG
+        UserDefaults.standard.string(forKey: "IrisSeed")
+        #else
+        nil
+        #endif
+    }
+
+    private static func open(seed: String?) -> Result<Library, Error> {
         Result {
             #if DEBUG
-            if UserDefaults.standard.string(forKey: "IrisSeed") == "demo" {
+            switch seed {
+            case "demo":
                 let library = try Library.inMemory()
                 try seedDemoLibrary(library)
                 return library
+            case "perf":
+                let library = try Library.inMemory()
+                try seedLargeLibrary(library)
+                return library
+            case "empty":
+                return try Library.inMemory()
+            default: break
             }
             #endif
             return try Library.open(at: defaultURL)

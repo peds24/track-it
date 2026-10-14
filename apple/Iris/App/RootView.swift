@@ -18,7 +18,7 @@ struct RootView: View {
         }
         .task {
             guard shelves == nil, openError == nil else { return }
-            switch AppLibrary.make() {
+            switch await AppLibrary.make() {
             case let .success(library): shelves = Shelves(library: library)
             case let .failure(error): openError = ShelfModel.message(error)
             }
