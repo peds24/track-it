@@ -1,5 +1,24 @@
 # DEVLOG
 
+## 2026-10-14 — Iris I11: the spectrum-iris rebrand
+
+- Three aperture concepts went to the user; they picked **B**, six blades in
+  the accent and the five category colours. It says "everything you track"
+  without a wordmark.
+- **The mark is generated, not drawn.** `design/iris/mark.json` holds only
+  geometry, token names and the tinted greys; `scripts/iris-mark.js` reads
+  `tokens.json` for the colours. A palette change can't leave the icon
+  behind, and jest fails if the committed SVGs are stale. PNGs come from a
+  separate rsvg step and are committed, so a build needs neither tool.
+- **Dark uses `accent`, not `accentFill`, for the blue blade.**
+  `accentFill.dark` (#0066CC) is a fill tuned to carry white text; on a black
+  icon it read dim next to the bright dark category tints.
+- **Tinted** is six greys 14% apart (1.0 → 0.30): iOS tints by luminance, so
+  equal-luminance colours would merge into one disc.
+- Icons are full-bleed squares (iOS masks them), opaque (rsvg `-b` drops the
+  alpha channel the App Store rejects). The launch mark is two images,
+  because the blade gaps are drawn in the launch background's colour.
+
 ## 2026-10-13 — Iris I10: Rate, Rankings and the rate prompts
 
 - The A26 flow on iOS on the engine and data layer already held to TS by

@@ -27,7 +27,7 @@ won't work.
     IrisCore/      Swift package: Domain, Persistence, Providers. No SwiftUI/UIKit.
     Iris/          SwiftUI app: App, DesignSystem, Features, Resources, Config
     IrisUITests/   launch/smoke/screenshot tests
-    scripts/       test.sh
+    scripts/       test.sh, screenshots.sh, render-mark.sh
 
 ## Rules
 
@@ -47,6 +47,9 @@ won't work.
   `shared/providers`. Providers take an injected `HTTPClient`; tests never
   touch the network — they replay the recorded calls. Keys come from
   `Iris/Config/Secrets.xcconfig` (git-ignored) via Info.plist.
+- The app icon and launch mark come from `design/iris/mark.json` (I11): run
+  `npm run mark`, then `apple/scripts/render-mark.sh` (needs `rsvg-convert`),
+  and commit the SVGs and PNGs. Never hand-edit them.
 - Never hand-edit `Iris/DesignSystem/IrisTokens.swift`. Edit
   `design/iris/tokens.json` and run `npm run tokens` from the repo root.
 - The kit in `Iris/DesignSystem/` implements `design/iris/components.md`.

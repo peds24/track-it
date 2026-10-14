@@ -9,6 +9,7 @@ type Gen = {
   OUTPUTS: Record<'swift' | 'ts' | 'css' | 'html', string>;
   SOURCE: string;
   COMPONENTS: string[];
+  MARK_FILES: string[];
 };
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const gen: Gen = require('../iris-tokens');
@@ -161,5 +162,18 @@ describe('component reference renderings (I6)', () => {
     const { html } = gen.generate(fs.readFileSync(path.join(ROOT, 'design/iris/tokens.json'), 'utf8'));
     for (const c of gen.COMPONENTS) for (const v of VARIANTS) expect(html).toContain(`iris/${c}-${v}.png`);
     expect(html).not.toContain('Component specimens arrive in I6');
+  });
+});
+
+describe('the mark (I11)', () => {
+  const ROOT = path.join(__dirname, '..', '..');
+
+  test('iris.html shows the mark and every icon variant, and each file exists', () => {
+    const { html } = gen.generate(fs.readFileSync(path.join(ROOT, 'design/iris/tokens.json'), 'utf8'));
+    expect(gen.MARK_FILES).toEqual(['design/iris/mark.svg', 'design/iris/icon/light.svg', 'design/iris/icon/dark.svg', 'design/iris/icon/tinted.svg']);
+    for (const file of gen.MARK_FILES) {
+      expect(fs.existsSync(path.join(ROOT, file))).toBe(true);
+      expect(html).toContain(`src="../../${file}"`);
+    }
   });
 });

@@ -43,7 +43,9 @@
     "typecheck": "tsc --noEmit",
     "fixtures:record": "RECORD_FIXTURES=1 jest shared/",
     "tokens": "node scripts/iris-tokens.js",
-    "tokens:check": "node scripts/iris-tokens.js --check"
+    "tokens:check": "node scripts/iris-tokens.js --check",
+    "mark": "node scripts/iris-mark.js",
+    "mark:check": "node scripts/iris-mark.js --check"
   },
   "private": true
 }

@@ -268,7 +268,11 @@ Tab names are proposals for I7, not decisions; they stay "Currently / Backlog
 
 - Display name **Iris**; URL scheme `iris`; new aperture mark per ROADMAP
   v2.0.0 (icon, iOS 26 layered/tinted icon variants, launch screen).
-- iOS bundle ID: decided in I11. Proposed `com.peds24.iris`.
+- iOS bundle ID: `com.peds24.iris` (decided in I11, 2026-10-14).
+- The mark (decided in I11): the **spectrum iris** — six blades in the
+  accent and the five category colours, drawn from `design/iris/mark.json`
+  and the tokens by `npm run mark`. The iOS icon ships light, dark and
+  tinted appearances; the launch screen is the mark on white / black.
 - Android keeps `com.peds24.trackit` at takeover (I13) so existing local
   databases survive — renaming an Android package is a new app to the OS.
 - Repo name, `app.json` slug and the landing page URL change only at

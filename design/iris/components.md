@@ -74,6 +74,9 @@ uses it and this file says only how it must behave.
 **Behaviour.** Tapping chooses this side, with a selection haptic.
 **Accessibility.** A button labelled "<title>" with hint "Choose this one".
 
+## Mark
+Not a component; the app's identity (I11, spec §7). The spectrum iris: six aperture blades, one per colour, in `color.accentFill` then the five category tints in spectrum order (show, comic, movie, book, manga), with gaps in the background colour. Its geometry and colour order live in `design/iris/mark.json`; `npm run mark` draws the SVGs in `design/iris/` from it and from the tokens, so a category colour change redraws the mark. Dark uses the dark token values and `color.accent` for the blue blade; the tinted icon is six greys 14% apart. Never hand-edit the SVGs or the icon PNGs (`apple/scripts/render-mark.sh` renders those).
+
 ## Materials (glass)
 Not a component; the rule every glass surface follows. Floating controls use the platform glass (`glass.regular` or `glass.clear`). Under Reduce Transparency, or where glass isn't available, they use the solid fallback: the glass tint composited over `color.secondaryGroupedBackground`, which is opaque, plus the 1 px glass border. The token's blur is for platforms that composite blur themselves; it is never used under Reduce Transparency.
 
