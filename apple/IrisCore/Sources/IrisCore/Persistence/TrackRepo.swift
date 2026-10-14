@@ -106,6 +106,18 @@ func toEntry(_ row: Row) -> Entry {
     )
 }
 
+/// `toEntry`'s columns, in the order `toEntryAtPositions` reads them.
+let entryColumns = "id, series_id, title, ordinal, media_type, status, started_at, finished_at, created_at, paused, external_source, external_id"
+
+func toEntryAtPositions(_ row: Row) -> Entry {
+    Entry(
+        id: row[0], seriesId: row[1], title: row[2], ordinal: row[3],
+        mediaType: EntryMediaType(rawValue: row[4])!, status: Status(rawValue: row[5])!,
+        startedAt: row[6], finishedAt: row[7], createdAt: row[8],
+        paused: (row[9] as Int? ?? 0) == 1, externalSource: row[10], externalId: row[11]
+    )
+}
+
 private func metadataOf(_ row: Row) -> TrackMetadata {
     TrackMetadata(
         coverUrl: sharpCoverUrl(row["cover_url"]), creator: row["creator"],
@@ -224,9 +236,12 @@ private func lastAdvanceAcross(_ children: [Entry]) -> String? {
 
 private func buildSummaries(_ seriesRows: [Row], _ entries: [Entry]) -> [TrackSummary] {
     var summaries: [TrackSummary] = []
+    // Grouped once, not filtered per series: that was series × entries, 2.7 s
+    // per shelf on a 1,000-track library (I12). Grouping keeps input order.
+    let bySeries = Dictionary(grouping: entries.filter { $0.seriesId != nil }, by: { $0.seriesId! })
     for row in seriesRows {
         let id: String = row["id"]
-        let children = entries.filter { $0.seriesId == id }
+        let children = bySeries[id] ?? []
         let next = nextEntry(children)
         let ongoing = (row["ongoing"] as Int? ?? 0) == 1
         let paused = (row["paused"] as Int? ?? 0) == 1
@@ -274,7 +289,9 @@ private func sortedForShelf(_ tracks: [TrackSummary], _ shelf: Shelf) -> [TrackS
 /// Shelf is computed in the domain, never queried for (D3).
 public func listTracks(_ db: Database, shelf: Shelf, category: Category? = nil) throws -> [TrackSummary] {
     let seriesRows = try Row.fetchAll(db, sql: "SELECT * FROM series")
-    let entries = try Row.fetchAll(db, sql: "SELECT * FROM entry").map(toEntry)
+    // Only an Entry's columns, read by position from a cursor: SELECT * and
+    // by-name decoding were most of a 1,000-track shelf's time (I12).
+    let entries = try Array(Row.fetchCursor(db, sql: "SELECT \(entryColumns) FROM entry").map(toEntryAtPositions))
     let matching = buildSummaries(seriesRows, entries).filter { $0.shelf == shelf && (category == nil || $0.category == category) }
     return sortedForShelf(matching, shelf)
 }

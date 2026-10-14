@@ -47,10 +47,8 @@ private func parseGenres(_ json: String?) -> [String] {
     return items.compactMap(\.string)
 }
 
-/// A category's ranking, best first, with each track's derived score; a row
-/// whose track no longer exists is left out.
-public func listRanking(_ db: Database, category: Category) throws -> [RankedTrack] {
-    let rows = try Row.fetchAll(db, sql: """
+/// The ranking query, shared with the query-plan test (I12).
+let rankingSQL = """
         SELECT r.track_kind, r.track_id, r.sentiment,
                COALESCE(s.title, e.title) AS title,
                COALESCE(s.cover_url, e.cover_url) AS cover_url,
@@ -62,7 +60,12 @@ public func listRanking(_ db: Database, category: Category) throws -> [RankedTra
         LEFT JOIN entry e ON r.track_kind = 'entry' AND e.id = r.track_id
         WHERE r.category = ?
         ORDER BY r.position ASC, r.rated_at ASC
-        """, arguments: [category.rawValue]).filter { ($0["title"] as String?) != nil }
+        """
+
+/// A category's ranking, best first, with each track's derived score; a row
+/// whose track no longer exists is left out.
+public func listRanking(_ db: Database, category: Category) throws -> [RankedTrack] {
+    let rows = try Row.fetchAll(db, sql: rankingSQL, arguments: [category.rawValue]).filter { ($0["title"] as String?) != nil }
     let items = rows.map {
         KeyedSentiment(key: ratingKey(TrackRef(kind: TrackKind(rawValue: $0["track_kind"])!, id: $0["track_id"])),
                        sentiment: Sentiment(rawValue: $0["sentiment"])!)
