@@ -1,3 +1,6 @@
+#if DEBUG
+// DEBUG only: UI tests and screenshots seed it; Release never carries it
+// (testflight.sh check, I12).
 import Foundation
 import GRDB
 
@@ -90,3 +93,4 @@ the life he was raised for and closer to a future he can see but does not want.
 It is a story about ecology and empire, about prophecy as a tool, and about what it costs to become the \
 thing other people need you to be. Read slowly; the appendices are worth it.
 """
+#endif

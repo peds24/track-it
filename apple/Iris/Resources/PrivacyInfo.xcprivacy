@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Iris's privacy manifest (I12). Local-only: no tracking, nothing collected.
+     No required-reason APIs in Release (the UserDefaults launch flags are
+     DEBUG-only); GRDB ships its own manifest for what it uses. Held by
+     IrisTests/ReleaseReadinessTests and apple/scripts/testflight.sh check. -->
+<plist version="1.0">
+<dict>
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array/>
+</dict>
+</plist>

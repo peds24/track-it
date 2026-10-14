@@ -36,6 +36,8 @@ targets:
         METRON_PASSWORD: $(METRON_PASSWORD)
         # I9: VisionKit barcode scanning on the Add sheet.
         NSCameraUsageDescription: Iris uses the camera to scan a book’s or comic’s barcode.
+        # I12: HTTPS only, so exempt — no export-compliance question per upload.
+        ITSAppUsesNonExemptEncryption: false
         # I11: the mark on white / black while the app launches.
         UILaunchScreen:
           UIImageName: LaunchMark
