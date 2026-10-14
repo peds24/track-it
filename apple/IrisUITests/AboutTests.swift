@@ -50,4 +50,64 @@ final class AboutTests: XCTestCase {
         app.buttons["Close"].tap()
         XCTAssertTrue(app.navigationBars["Done"].waitForExistence(timeout: 5))
     }
+
+    // MARK: Screenshots
+
+    /// Feedback and Data Sources, and the rename sheet, in light, dark and
+    /// system AX5 (every screenful at AX5). PNGs when IRIS_ABOUT_SCREENSHOT_DIR is set.
+    @MainActor func testCaptureAboutScreenshots() throws {
+        let dir = ProcessInfo.processInfo.environment["IRIS_ABOUT_SCREENSHOT_DIR"].map(URL.init(fileURLWithPath:))
+        let variants: [(name: String, args: [String])] = [
+            ("light", ["-IrisColorScheme", "light"]),
+            ("dark", ["-IrisColorScheme", "dark"]),
+            ("ax5", ["-IrisColorScheme", "light", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]),
+        ]
+        for variant in variants {
+            let app = XCUIApplication()
+            app.launchArguments = ["-IrisSeed", "demo"] + variant.args
+            app.launch()
+            XCTAssertTrue(app.tabBars.buttons["Done"].waitForExistence(timeout: 10))
+            app.tabBars.buttons["Done"].tap()
+            openMore("Send Feedback…", in: app)
+            XCTAssertTrue(app.navigationBars["Send feedback"].waitForExistence(timeout: 5))
+            sleep(1); try capture("Feedback-\(variant.name)", app, scroll: variant.name == "ax5", to: dir)
+            app.buttons["Cancel"].firstMatch.tap()
+            openMore("Data Sources", in: app)
+            XCTAssertTrue(app.navigationBars["Data sources"].waitForExistence(timeout: 5))
+            sleep(1); try capture("DataSources-\(variant.name)", app, scroll: variant.name == "ax5", to: dir)
+            app.buttons["Close"].tap()
+            app.tabBars.buttons["Backlog"].tap()
+            let row = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH 'Arrival,'")).firstMatch
+            XCTAssertTrue(row.waitForExistence(timeout: 5))
+            row.press(forDuration: 1.2)
+            app.buttons["Rename…"].tap()
+            XCTAssertTrue(app.navigationBars["Rename Track"].waitForExistence(timeout: 5))
+            sleep(1); try capture("Rename-\(variant.name)", app, scroll: false, to: dir)
+            app.terminate()
+        }
+    }
+
+    @MainActor private func capture(_ name: String, _ app: XCUIApplication, scroll: Bool, to dir: URL?) throws {
+        try save(name, to: dir)
+        guard scroll else { return }
+        let list = app.collectionViews.firstMatch
+        for page in 2...6 {
+            let anchor = list.staticTexts.firstMatch
+            guard anchor.exists else { return }
+            let before = anchor.frame
+            list.swipeUp(velocity: .slow)
+            sleep(1)
+            if !anchor.exists || anchor.frame == before { return }
+            try save("\(name)-p\(page)", to: dir)
+        }
+    }
+
+    @MainActor private func save(_ name: String, to dir: URL?) throws {
+        let shot = XCUIScreen.main.screenshot()
+        let attachment = XCTAttachment(screenshot: shot)
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        if let dir { try shot.pngRepresentation.write(to: dir.appendingPathComponent("\(name).png")) }
+    }
 }
