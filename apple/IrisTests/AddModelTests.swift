@@ -319,4 +319,40 @@ final class AddModelTests: XCTestCase {
         await model.save(startNow: false)
         XCTAssertNil(model.ratePrompt)
     }
+
+    // MARK: I12 hardening
+
+    /// I9 minor: saved but not started — say where it is, and close the sheet
+    /// once read, rather than offer a retry that would add it twice.
+    func testAnAddWhoseStartFailedSaysWhereItIsThenCloses() async {
+        let lib = FakeAddLibrary()
+        let ref = TrackRef(kind: .entry, id: "new")
+        lib.failWith = AddedButNotStarted(ref: ref, underlying: DomainError("start refused"))
+        let (model, _, _) = make(FakeCatalogue(), lib)
+        model.choose(.book)
+        model.query = "Dune"
+        await model.save(startNow: true)
+        XCTAssertEqual(model.failure?.title, "Added, but couldn’t start it")
+        XCTAssertEqual(model.failure?.message, "Dune is in your Backlog. Start it from there.")
+        XCTAssertNil(model.saved, "still open while the alert reads")
+        model.acknowledgeFailure()
+        XCTAssertEqual(model.saved, ref)
+    }
+
+    func testAcknowledgingAnOrdinaryFailureKeepsTheSheet() async {
+        let lib = FakeAddLibrary(); lib.failWith = DomainError("A track needs a title")
+        let (model, _, _) = make(FakeCatalogue(), lib)
+        model.choose(.book)
+        await model.save(startNow: true)
+        model.acknowledgeFailure()
+        XCTAssertNil(model.saved)
+    }
+
+    /// I9 minor: a double tap can't push the same step twice.
+    func testAStepIsPushedOnce() {
+        XCTAssertEqual(AddView.pushing(.search, onto: []), [.search])
+        XCTAssertEqual(AddView.pushing(.search, onto: [.search]), [.search])
+        XCTAssertEqual(AddView.pushing(.search, onto: [.comicMode]), [.comicMode, .search])
+        XCTAssertEqual(AddView.pushing(.confirm, onto: [.search, .confirm]), [.search, .confirm])
+    }
 }

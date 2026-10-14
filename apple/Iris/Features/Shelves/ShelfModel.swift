@@ -65,6 +65,9 @@ final class ShelfModel {
     private(set) var commits = 0
     var pending: Pending?
     var failure: Failure?
+    /// Tracks with an advance or resume on its way (I12): a second tap on the
+    /// same one is the same tap, not a second write.
+    private var inFlight: Set<String> = []
     /// I10: set after an action finished an unrated track.
     var ratePrompt: RatePromptItem?
 
@@ -128,7 +131,9 @@ final class ShelfModel {
 
     /// The row's button or leading swipe: advance the next unit, or resume.
     func performAccessory(_ track: TrackSummary) async {
-        guard let action = rowAction(track) else { return }
+        guard let action = rowAction(track), !inFlight.contains(track.id) else { return }
+        inFlight.insert(track.id)
+        defer { inFlight.remove(track.id) }
         switch action.kind {
         case .resume:
             await run("Could not resume track") { try await $0.resume(track.ref) }

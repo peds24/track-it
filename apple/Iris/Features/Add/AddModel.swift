@@ -23,6 +23,8 @@ final class AddModel {
     var failure: ShelfModel.Failure?
     /// Set once saved; the sheet closes.
     private(set) var saved: TrackRef?
+    /// Saved but not started (I12): the sheet closes once the alert is read.
+    @ObservationIgnored private var savedOnceAcknowledged: TrackRef?
     /// I10 (moved from I9): a track added as Watched/Start that is now
     /// finished and unrated; the shelf asks once the sheet has closed.
     private(set) var ratePrompt: RatePromptItem?
@@ -241,8 +243,19 @@ final class AddModel {
                 ratePrompt = RatePromptItem(ref: ref, title: input.title, category: category)
             }
             saved = ref
+        } catch let notStarted as AddedButNotStarted {
+            // Retrying would add it twice: say where it is instead (I12).
+            let copy = addedNotStarted(input.title)
+            savedOnceAcknowledged = notStarted.ref
+            failure = ShelfModel.Failure(title: copy.title, message: copy.message)
         } catch {
             failure = ShelfModel.Failure(title: "Could not add track", message: ShelfModel.message(error))
         }
+    }
+
+    /// The failure alert was dismissed.
+    func acknowledgeFailure() {
+        failure = nil
+        if let ref = savedOnceAcknowledged { savedOnceAcknowledged = nil; saved = ref }
     }
 }

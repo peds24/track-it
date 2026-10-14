@@ -87,10 +87,14 @@ final class ShelvesTests: XCTestCase {
         XCTAssertTrue(dune.waitForExistence(timeout: 5))
         dune.press(forDuration: 1.2)
         app.buttons["Rename…"].tap()
-        let field = app.textFields.firstMatch
+        // A sheet, not an alert: UIKit's text-field alert crashed when the
+        // text size changed while it was open (I12 audit).
+        XCTAssertTrue(app.navigationBars["Rename Track"].waitForExistence(timeout: 5))
+        let field = app.textFields["rename.title"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
         field.typeText(" Messiah")
-        app.buttons["Save"].tap()
+        app.buttons["rename.save"].tap()
         XCTAssertTrue(row("Dune Messiah", in: app).waitForExistence(timeout: 5))
     }
 

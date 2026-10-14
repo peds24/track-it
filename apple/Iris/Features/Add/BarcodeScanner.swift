@@ -75,11 +75,19 @@ private struct DataScanner: UIViewControllerRepresentable {
             qualityLevel: .balanced, isHighlightingEnabled: true
         )
         scanner.delegate = context.coordinator
-        try? scanner.startScanning()
+        ScannerLifecycle.begin(scanner)
         return scanner
     }
 
-    func updateUIViewController(_ controller: DataScannerViewController, context: Context) {}
+    func updateUIViewController(_ controller: DataScannerViewController, context: Context) {
+        // A start refused before the view was on screen gets another go.
+        ScannerLifecycle.begin(controller)
+    }
+
+    /// The camera stops with the view, not whenever iOS gets round to it (I9 minor).
+    static func dismantleUIViewController(_ controller: DataScannerViewController, coordinator: Coordinator) {
+        ScannerLifecycle.end(controller)
+    }
 
     func makeCoordinator() -> Coordinator { Coordinator(onCode: onCode) }
 
@@ -99,5 +107,27 @@ private struct DataScanner: UIViewControllerRepresentable {
                 }
             }
         }
+    }
+}
+
+/// What the scanner's lifecycle needs from DataScannerViewController (I12).
+@MainActor protocol ScanSession: AnyObject {
+    var isScanning: Bool { get }
+    func startScanning() throws
+    func stopScanning()
+}
+
+extension DataScannerViewController: ScanSession {}
+
+/// Start once, stop on teardown.
+@MainActor enum ScannerLifecycle {
+    static func begin(_ session: some ScanSession) {
+        guard !session.isScanning else { return }
+        try? session.startScanning()
+    }
+
+    static func end(_ session: some ScanSession) {
+        guard session.isScanning else { return }
+        session.stopScanning()
     }
 }

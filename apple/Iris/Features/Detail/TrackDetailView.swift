@@ -40,7 +40,7 @@ struct TrackDetailView: View {
             .sensoryFeedback(.success, trigger: model.commits)
             .onChange(of: model.dismissed) { _, gone in if gone { dismiss() } }
             .ratePrompt($model.ratePrompt) { rating_ = $0 }
-            .sheet(item: $rating_) { item in
+            .irisSheet(item: $rating_, detents: [.large]) { item in
                 if let factories { RateView(model: factories.rate(item.ref)) { rankingsCategory = $0 } }
             }
             .navigationDestination(item: $rankingsCategory) { category in

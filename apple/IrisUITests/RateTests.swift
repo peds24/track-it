@@ -104,6 +104,14 @@ final class RateTests: XCTestCase {
         XCTAssertTrue(note.waitForExistence(timeout: 5))
     }
 
+    /// I10 minor: the Rate sheet shows its grabber, as every Iris sheet does.
+    @MainActor func testTheRateSheetHasAGrabber() {
+        let app = launch()
+        openRate("Interstellar", in: app)
+        let grabber = app.descendants(matching: .any).matching(NSPredicate(format: "label ==[c] 'Sheet Grabber'")).firstMatch
+        XCTAssertTrue(grabber.waitForExistence(timeout: 3), "no visible grabber on the Rate sheet")
+    }
+
     @MainActor func testFinishingAnUnratedTrackAsksToRateAndLaterLeavesRate() {
         let app = launch()
         let dune = row("Dune", in: app)
