@@ -1,0 +1,16 @@
+{
+  "blades": 6,
+  "outerRadius": 360,
+  "innerRadius": 150,
+  "twist": 38,
+  "gap": 14,
+  "order": [
+    { "light": "accentFill", "dark": "accent" },
+    "categoryShow",
+    "categoryComic",
+    "categoryMovie",
+    "categoryBook",
+    "categoryManga"
+  ],
+  "tinted": [1.0, 0.86, 0.72, 0.58, 0.44, 0.30]
+}
