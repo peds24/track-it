@@ -27,6 +27,9 @@
     .glass { padding: var(--iris-space-lg) var(--iris-space-xl); border-radius: var(--iris-radius-sheet); }
     .component { margin: 0 0 var(--iris-space-xxl); }
     .shots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--iris-space-md); margin-top: var(--iris-space-sm); }
+    .marks { display: flex; flex-wrap: wrap; gap: 16px; }
+    .mark { margin: 0; text-align: center; }
+    .mark img { width: 128px; height: 128px; border-radius: 28px; }
     .shots img { width: 100%; height: auto; border-radius: var(--iris-radius-card); border: 1px solid var(--iris-color-separator); }
     @media (max-width: 600px) { .shots { grid-template-columns: 1fr; } }
   </style>
@@ -123,6 +126,15 @@
         <div class="glass" style="backdrop-filter: blur(var(--iris-glass-regular-blur)); -webkit-backdrop-filter: blur(var(--iris-glass-regular-blur)); background: var(--iris-glass-regular-tint); border: 1px solid var(--iris-glass-regular-border)"><code>glass.regular</code></div>
         <div class="glass" style="backdrop-filter: blur(var(--iris-glass-clear-blur)); -webkit-backdrop-filter: blur(var(--iris-glass-clear-blur)); background: var(--iris-glass-clear-tint); border: 1px solid var(--iris-glass-clear-border)"><code>glass.clear</code></div>
         </div>
+      </div>
+    </section>
+    <section>
+      <h2 class="iris-type-title3">Mark — design/iris/mark.json</h2>
+      <div class="marks">
+        <figure class="mark"><img src="../../design/iris/mark.svg" alt="Iris mark"><figcaption class="iris-type-footnote">mark</figcaption></figure>
+        <figure class="mark"><img src="../../design/iris/icon/light.svg" alt="Iris light app icon"><figcaption class="iris-type-footnote">light</figcaption></figure>
+        <figure class="mark"><img src="../../design/iris/icon/dark.svg" alt="Iris dark app icon"><figcaption class="iris-type-footnote">dark</figcaption></figure>
+        <figure class="mark"><img src="../../design/iris/icon/tinted.svg" alt="Iris tinted app icon"><figcaption class="iris-type-footnote">tinted</figcaption></figure>
       </div>
     </section>
     <section>

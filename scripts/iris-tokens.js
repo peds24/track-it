@@ -16,6 +16,8 @@ const COMPONENTS = [
   'IrisShelfRow', 'IrisCover', 'IrisProgress', 'IrisCategoryChip', 'IrisPrimaryButton',
   'IrisSheet', 'IrisEmptyState', 'IrisRatingBadge', 'IrisComparisonCard', 'IrisSymbol',
 ];
+// The aperture mark and its app-icon variants (I11, `npm run mark`).
+const MARK_FILES = ['design/iris/mark.svg', 'design/iris/icon/light.svg', 'design/iris/icon/dark.svg', 'design/iris/icon/tinted.svg'];
 const SHOT_VARIANTS = { light: 'light appearance', dark: 'dark appearance', ax5: 'accessibility text size 5' };
 
 const OUTPUTS = {
@@ -234,6 +236,10 @@ function renderHtml(t, hash) {
           .join('')}</div>
       </figure>`,
   ).join('\n      ');
+  const marks = MARK_FILES.map((f) => {
+    const name = path.basename(f, '.svg');
+    return `<figure class="mark"><img src="../../${f}" alt="Iris ${name === 'mark' ? 'mark' : `${name} app icon`}"><figcaption class="iris-type-footnote">${name}</figcaption></figure>`;
+  }).join('\n        ');
   return `<!DOCTYPE html>
 ${header('<!--', ' -->', hash)}<html lang="en">
 <head>
@@ -261,6 +267,9 @@ ${header('<!--', ' -->', hash)}<html lang="en">
     .glass { padding: var(--iris-space-lg) var(--iris-space-xl); border-radius: var(--iris-radius-sheet); }
     .component { margin: 0 0 var(--iris-space-xxl); }
     .shots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--iris-space-md); margin-top: var(--iris-space-sm); }
+    .marks { display: flex; flex-wrap: wrap; gap: 16px; }
+    .mark { margin: 0; text-align: center; }
+    .mark img { width: 128px; height: 128px; border-radius: 28px; }
     .shots img { width: 100%; height: auto; border-radius: var(--iris-radius-card); border: 1px solid var(--iris-color-separator); }
     @media (max-width: 600px) { .shots { grid-template-columns: 1fr; } }
   </style>
@@ -303,6 +312,12 @@ ${header('<!--', ' -->', hash)}<html lang="en">
         <div class="stage" data-theme="dark">
         ${glass}
         </div>
+      </div>
+    </section>
+    <section>
+      <h2 class="iris-type-title3">Mark — design/iris/mark.json</h2>
+      <div class="marks">
+        ${marks}
       </div>
     </section>
     <section>
@@ -356,5 +371,5 @@ function main(argv, root = ROOT) {
   return 0;
 }
 
-module.exports = { generate, parseColor, main, OUTPUTS, SOURCE, COMPONENTS };
+module.exports = { generate, parseColor, main, OUTPUTS, SOURCE, COMPONENTS, MARK_FILES };
 if (require.main === module) process.exit(main(process.argv.slice(2)));
