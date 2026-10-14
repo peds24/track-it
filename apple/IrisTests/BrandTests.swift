@@ -30,6 +30,24 @@ final class BrandTests: XCTestCase {
         XCTAssertEqual(primary["CFBundleIconName"] as? String, "AppIcon")
     }
 
+    func testIdentityIsIris() {
+        XCTAssertEqual(Bundle.main.bundleIdentifier, "com.peds24.iris")
+        XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String, "Iris")
+    }
+
+    func testTheIrisURLSchemeIsRegistered() throws {
+        let types = try XCTUnwrap(Bundle.main.object(forInfoDictionaryKey: "CFBundleURLTypes") as? [[String: Any]])
+        XCTAssertEqual(types.count, 1)
+        XCTAssertEqual(types.first?["CFBundleURLSchemes"] as? [String], ["iris"])
+        XCTAssertEqual(types.first?["CFBundleURLName"] as? String, "com.peds24.iris")
+    }
+
+    func testTheLaunchScreenShowsTheMarkOnLaunchBackground() throws {
+        let launch = try XCTUnwrap(Bundle.main.object(forInfoDictionaryKey: "UILaunchScreen") as? [String: Any])
+        XCTAssertEqual(launch["UIImageName"] as? String, "LaunchMark")
+        XCTAssertEqual(launch["UIColorName"] as? String, "LaunchBackground")
+    }
+
     // MARK: - Helpers
 
     private struct RGBA { var red, green, blue, alpha: CGFloat }

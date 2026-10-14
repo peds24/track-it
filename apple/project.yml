@@ -36,6 +36,14 @@ targets:
         METRON_PASSWORD: $(METRON_PASSWORD)
         # I9: VisionKit barcode scanning on the Add sheet.
         NSCameraUsageDescription: Iris uses the camera to scan a book’s or comic’s barcode.
+        # I11: the mark on white / black while the app launches.
+        UILaunchScreen:
+          UIImageName: LaunchMark
+          UIColorName: LaunchBackground
+        # I11 (spec §7): iris:// opens the app; no deep links yet.
+        CFBundleURLTypes:
+          - CFBundleURLName: com.peds24.iris
+            CFBundleURLSchemes: [iris]
     dependencies:
       - package: IrisCore
     settings:
@@ -44,7 +52,6 @@ targets:
         PRODUCT_NAME: Iris
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Iris
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
         # I11: the spectrum-iris icon (light, dark, tinted) from Resources/Assets.xcassets.
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS: YES
