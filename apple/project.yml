@@ -45,6 +45,9 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Iris
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        # I11: the spectrum-iris icon (light, dark, tinted) from Resources/Assets.xcassets.
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
         TARGETED_DEVICE_FAMILY: "1,2"
   IrisUITests:
