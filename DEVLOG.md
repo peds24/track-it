@@ -1,5 +1,35 @@
 # DEVLOG
 
+## 2026-10-14 — Iris I12: hardening and TestFlight prep
+
+- **No Developer account yet**, so I12 ends at `testflight.sh check` and the
+  upload is I12b (spec §8 amended). The script is local and uses an App Store
+  Connect API key from the environment, never from the repo.
+- **One audit, every screen.** `AppAuditTests` drives 27 screens in light,
+  dark and AX5 through one `Audit` helper; its excuses (system chrome and bar
+  bands, disabled controls, UIKit dialogs, decorative initials and placeholder
+  digits) each say why. Apple's `.dynamicType` and `.textClipped` checks were
+  wrong again: they flagged rows, labels and toolbar buttons that render
+  whole, which I7 had found too. Dynamic Type is held by a source scan (no
+  fixed fonts; every animation through `IrisMotion`, every glass surface
+  through `irisGlass`); clipping by the AX5 screenshots of every screenful.
+- **The audit found a crash.** UIKit's text-field alert (Rename) crashed in
+  `UICollectionViewFlowLayout` when the text size changed with it open.
+  Rename is a sheet now.
+- **Performance on 1,000 tracks.** A deterministic seed (8-season shows,
+  400-issue comics; repositories plus bulk progress) put every shelf at
+  2.7 s: `buildSummaries` filtered all entries for each series (O(S×E)).
+  Grouping once cut it to 325 ms. Reading only an Entry's 12 columns by
+  position from a cursor cut it to 111 ms debug, ~28 ms release. Rankings
+  take ≤1 ms and the 400-issue detail 6 ms; their lookups are indexed. In the
+  app, a 530-row Backlog switches in only ~0.2–0.3 s slower than a 3-row one;
+  XCUITest's idle wait is ~1.7 s on both, so the UI budget is relative.
+  Launch averages 1.1 s (debug, simulator). Android has the same loop.
+- **Small rules worth keeping:** a double tap is the same tap (per-track
+  in-flight sets); swipe and menu haptics wait for the write; a dialog closes
+  with a track deleted elsewhere; saved-but-not-started says where the track
+  is instead of inviting a duplicate retry.
+
 ## 2026-10-14 — Iris I11: the spectrum-iris rebrand
 
 - Three aperture concepts went to the user; they picked **B**, six blades in

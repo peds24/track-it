@@ -14,6 +14,8 @@ Xcode 27+, an iOS 26 simulator runtime, and `xcodegen` (`brew install xcodegen`)
     apple/scripts/test.sh --core-only   # IrisCore only, no simulator
     IRIS_SIM="iPhone 17 Pro" apple/scripts/test.sh
     apple/scripts/screenshots.sh        # regenerate docs/design/iris/*.png from the Gallery
+    apple/scripts/testflight.sh check   # pre-upload check: Release build, bundle, launch (I12)
+    apple/scripts/testflight.sh upload  # archive, sign, upload — needs the Developer account (I12b)
 
 To work in Xcode: `xcodegen generate --spec apple/project.yml --project apple && open apple/Iris.xcodeproj`.
 **Never commit `Iris.xcodeproj`**: edit `project.yml` and regenerate.
@@ -27,7 +29,7 @@ won't work.
     IrisCore/      Swift package: Domain, Persistence, Providers. No SwiftUI/UIKit.
     Iris/          SwiftUI app: App, DesignSystem, Features, Resources, Config
     IrisUITests/   launch/smoke/screenshot tests
-    scripts/       test.sh, screenshots.sh, render-mark.sh
+    scripts/       test.sh, screenshots.sh, render-mark.sh, testflight.sh
 
 ## Rules
 
@@ -50,6 +52,13 @@ won't work.
 - The app icon and launch mark come from `design/iris/mark.json` (I11): run
   `npm run mark`, then `apple/scripts/render-mark.sh` (needs `rsvg-convert`),
   and commit the SVGs and PNGs. Never hand-edit them.
+- Accessibility is audited app-wide by `IrisUITests/AppAuditTests` (every
+  screen, light/dark/AX5) through the one `Audit` helper; every excuse lives
+  in `Audit.swift` with its reason. A new screen joins `AppAuditTests.screens`.
+  Fonts, animations and glass go through text styles, `IrisMotion` and
+  `irisGlass` (`AccessibilitySourceTests` scans for anything else).
+- DEBUG-only stays DEBUG-only: launch flags, seeds (`-IrisSeed demo|perf|empty`)
+  and the Gallery. `testflight.sh check` fails if a Release binary carries them.
 - Never hand-edit `Iris/DesignSystem/IrisTokens.swift`. Edit
   `design/iris/tokens.json` and run `npm run tokens` from the repo root.
 - The kit in `Iris/DesignSystem/` implements `design/iris/components.md`.

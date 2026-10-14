@@ -298,7 +298,8 @@ verification passes. Steps in the same column can run in parallel.
 | **I9** | **Add** — search, provider results, barcode scan, add-to-Watched → rate prompt | I5, I7 | §5 checklist; real search on device/simulator |
 | **I10** | **Rate + Rankings** | I7 | §5 checklist; a three-track ranking session walks through |
 | **I11** | **Rebrand** — name, mark, icons, launch screen, bundle ID | I6 | Icon renders in all variants |
-| **I12** | **iOS hardening + TestFlight** — a11y audit, performance on a 1,000-track library, EAS or Xcode Cloud TestFlight | I7–I11 | TestFlight build installed on a device |
+| **I12** | **iOS hardening + TestFlight prep** — a11y audit, performance on a 1,000-track library, release readiness (privacy manifest, export compliance, `apple/scripts/testflight.sh`) | I7–I11 | `testflight.sh check` passes (amended 2026-10-14: no Developer Program account yet — user's call) |
+| **I12b** | **TestFlight** — join the Developer Program, create the App Store Connect app `com.peds24.iris`, `testflight.sh upload` (a local script with an App Store Connect API key, user's pick over Xcode Cloud); expect ITMS-90474 until iPad orientations are fixed | I12 + account | TestFlight build installed on a device |
 | **I13** | **Takeover** — `src/ui/iris/` TS kit from the same tokens + contract, migrate Android screens, merge `iris` → `android`, port to `web`, re-skin `gh-pages` from `iris.css`, rename app on Android/web | I12 stable | Android/web screenshots match the iOS reference |
 
 I1 and I2 can run in parallel after I0; so can I4/I5/I6 after their
