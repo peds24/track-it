@@ -127,3 +127,25 @@ describe('rendered PNGs (apple/scripts/render-mark.sh)', () => {
     }
   });
 });
+
+describe('mark.json validation (I11 review)', () => {
+  const withMark = (edit: (m: Record<string, unknown>) => void) => {
+    const m = JSON.parse(markRaw);
+    edit(m);
+    return () => gen.generate(JSON.stringify(m), tokensRaw);
+  };
+  test('blades must be a positive whole number', () => {
+    expect(withMark((m) => (m.blades = 0))).toThrow('mark.json: "blades" must be a positive whole number');
+    expect(withMark((m) => (m.blades = 2.5))).toThrow('mark.json: "blades" must be a positive whole number');
+  });
+  test('the opening sits inside the rim', () => {
+    expect(withMark((m) => (m.innerRadius = 400))).toThrow('mark.json: needs 0 < innerRadius < outerRadius');
+    expect(withMark((m) => (m.innerRadius = 0))).toThrow('mark.json: needs 0 < innerRadius < outerRadius');
+  });
+  test('the gap is not negative', () => {
+    expect(withMark((m) => (m.gap = -1))).toThrow('mark.json: "gap" must be 0 or more');
+  });
+  test('a per-mode entry names its missing mode', () => {
+    expect(withMark((m) => ((m.order as unknown[])[0] = { light: 'accentFill' }))).toThrow('mark.json: order[0] has no "dark" token');
+  });
+});
