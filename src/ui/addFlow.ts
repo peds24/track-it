@@ -39,7 +39,8 @@ export function addBarcodeTypes(category: Category, comicMode: ComicMode | null)
   return category === 'book' || category === 'manga' ? ISBN_BARCODE_TYPES : null;
 }
 
-/** A11/A17: the confirm screen's main button. */
+/** A11/A17: the confirm screen's main button, per medium — D2's "Watched"
+ * for a movie, and a reading medium's own verb rather than a generic "Start". */
 export function confirmPrimaryLabel(category: Category): string {
   if (category === 'movie') return 'Watched';
   if (category === 'show') return 'Start watching';
@@ -92,4 +93,16 @@ export function addTrackInput(args: {
 export function matchSummary(isSeries: boolean, draft: SeriesDraft | null, preview: MatchPreview | null): MatchPreview | null {
   if (!isSeries) return preview;
   return draft ? { title: draft.title, metaLine: draft.metaLine ?? [], blurb: draft.blurb ?? null, metadata: draft.metadata } : null;
+}
+
+/** A9: the 5-digit supplemental barcode, as typed — ASCII digits only, at
+ * most five (I12; only a five-digit code is ever sent). */
+export function normalizeEan5(text: string): string {
+  return text.replace(/[^0-9]/g, '').slice(0, 5);
+}
+
+/** I12: the track was saved but its start failed. Retrying the add would
+ * duplicate it, so this says where it is instead of "Could not add track". */
+export function addedNotStarted(title: string): { title: string; message: string } {
+  return { title: 'Added, but couldn’t start it', message: `${title} is in your Backlog. Start it from there.` };
 }

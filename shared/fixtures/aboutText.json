@@ -1,0 +1,87 @@
+{
+  "module": "aboutText",
+  "generatedBy": "npm run fixtures:record",
+  "timezone": "UTC",
+  "cases": [
+    {
+      "name": "aboutCopy: every string",
+      "fn": "aboutCopy",
+      "args": [],
+      "expect": {
+        "feedbackTitle": "Send feedback",
+        "feedbackIntro": "Something broken, missing, or great? It opens in your mail app, addressed to the developer.",
+        "feedbackPlaceholder": "Your feedback",
+        "noMailTitle": "No mail app found",
+        "dataSourcesTitle": "Data sources",
+        "dataSources": [
+          "This product uses the TMDB API but is not endorsed or certified by TMDB.",
+          "Book and manga data from Google Books. Comic data from Metron."
+        ]
+      }
+    },
+    {
+      "name": "noMailMessage: the address",
+      "fn": "noMailMessage",
+      "args": [],
+      "expect": "You can email your feedback to serdiopedro@gmail.com."
+    },
+    {
+      "name": "versionLine: Android",
+      "fn": "versionLine",
+      "args": [
+        "Track It",
+        "1.3.0",
+        "Android"
+      ],
+      "expect": "Track It v1.3.0 · Android"
+    },
+    {
+      "name": "versionLine: iOS",
+      "fn": "versionLine",
+      "args": [
+        "Iris",
+        "2.0.0",
+        "iOS"
+      ],
+      "expect": "Iris v2.0.0 · iOS"
+    },
+    {
+      "name": "feedbackMailto: Android, no name",
+      "fn": "feedbackMailto",
+      "args": [
+        "Love it & the covers.\nMore stats?",
+        {
+          "version": "1.3.0",
+          "platform": "android"
+        }
+      ],
+      "expect": "mailto:serdiopedro@gmail.com?subject=Track%20It%20feedback%20(v1.3.0)&body=Love%20it%20%26%20the%20covers.%0AMore%20stats%3F%0A%0A%E2%80%94%0ATrack%20It%201.3.0%20%C2%B7%20android"
+    },
+    {
+      "name": "feedbackMailto: Iris on iOS",
+      "fn": "feedbackMailto",
+      "args": [
+        "  Scanner froze  \n",
+        {
+          "version": "2.0.0",
+          "platform": "iOS",
+          "name": "Iris"
+        }
+      ],
+      "expect": "mailto:serdiopedro@gmail.com?subject=Iris%20feedback%20(v2.0.0)&body=Scanner%20froze%0A%0A%E2%80%94%0AIris%202.0.0%20%C2%B7%20iOS"
+    },
+    {
+      "name": "feedbackMailto: unicode and reserved characters",
+      "fn": "feedbackMailto",
+      "args": [
+        "Café #1? 50% & “quotes” — ok",
+        {
+          "version": "2.0.0",
+          "platform": "iOS",
+          "name": "Iris"
+        }
+      ],
+      "expect": "mailto:serdiopedro@gmail.com?subject=Iris%20feedback%20(v2.0.0)&body=Caf%C3%A9%20%231%3F%2050%25%20%26%20%E2%80%9Cquotes%E2%80%9D%20%E2%80%94%20ok%0A%0A%E2%80%94%0AIris%202.0.0%20%C2%B7%20iOS"
+    }
+  ]
+}

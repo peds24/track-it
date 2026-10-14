@@ -56,4 +56,11 @@ export const cases: FixtureCase[] = [
   { name: 'matchSummary: a standalone with its preview', fn: 'matchSummary', args: [false, null, arrivalPreview] },
   { name: 'matchSummary: a standalone still previewing', fn: 'matchSummary', args: [false, expanseDraft, null] },
   { name: 'matchSummary: a draft without metaLine or blurb', fn: 'matchSummary', args: [true, bareDraft, null] },
+  // I12: the EAN-5 field and the add-then-start failure.
+  { name: 'normalizeEan5: five digits', fn: 'normalizeEan5', args: ['12345'] },
+  { name: 'normalizeEan5: too long', fn: 'normalizeEan5', args: ['1234567'] },
+  { name: 'normalizeEan5: letters, spaces and dashes', fn: 'normalizeEan5', args: [' 12a3-4 '] },
+  { name: 'normalizeEan5: empty', fn: 'normalizeEan5', args: [''] },
+  { name: 'normalizeEan5: non-ASCII digits', fn: 'normalizeEan5', args: ['١٢٣'] },
+  { name: 'addedNotStarted: a title', fn: 'addedNotStarted', args: ['Dune'] },
 ];

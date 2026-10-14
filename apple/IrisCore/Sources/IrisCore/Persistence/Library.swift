@@ -141,9 +141,14 @@ public final class Library: Sendable {
         let stamp = toISOString(now)
         let ref = try await addTrack(queue, input, now: stamp, hydrate: hydrate)
         if startNow {
-            try await queue.write { db in
-                let first = try firstEntryOf(db, ref)
-                if first.status != .inProgress { try advanceEntry(db, entryId: first.id, now: stamp) }
+            do {
+                try await queue.write { db in
+                    let first = try firstEntryOf(db, ref)
+                    if first.status != .inProgress { try advanceEntry(db, entryId: first.id, now: stamp) }
+                }
+            } catch {
+                // The track is saved: a retry of the add would duplicate it (I12).
+                throw AddedButNotStarted(ref: ref, underlying: error)
             }
         }
         return ref
@@ -202,4 +207,11 @@ public final class Library: Sendable {
             continuation.onTermination = { _ in task.cancel() }
         }
     }
+}
+
+/// `Library.add` saved the track but couldn't start it (I12).
+public struct AddedButNotStarted: Error, Sendable {
+    public let ref: TrackRef
+    public let underlying: any Error
+    public init(ref: TrackRef, underlying: any Error) { self.ref = ref; self.underlying = underlying }
 }

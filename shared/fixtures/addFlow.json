@@ -886,6 +886,57 @@
           "releaseYear": "2015"
         }
       }
+    },
+    {
+      "name": "normalizeEan5: five digits",
+      "fn": "normalizeEan5",
+      "args": [
+        "12345"
+      ],
+      "expect": "12345"
+    },
+    {
+      "name": "normalizeEan5: too long",
+      "fn": "normalizeEan5",
+      "args": [
+        "1234567"
+      ],
+      "expect": "12345"
+    },
+    {
+      "name": "normalizeEan5: letters, spaces and dashes",
+      "fn": "normalizeEan5",
+      "args": [
+        " 12a3-4 "
+      ],
+      "expect": "1234"
+    },
+    {
+      "name": "normalizeEan5: empty",
+      "fn": "normalizeEan5",
+      "args": [
+        ""
+      ],
+      "expect": ""
+    },
+    {
+      "name": "normalizeEan5: non-ASCII digits",
+      "fn": "normalizeEan5",
+      "args": [
+        "١٢٣"
+      ],
+      "expect": ""
+    },
+    {
+      "name": "addedNotStarted: a title",
+      "fn": "addedNotStarted",
+      "args": [
+        "Dune"
+      ],
+      "expect": {
+        "title": "Added, but couldn’t start it",
+        "message": "Dune is in your Backlog. Start it from there."
+      }
     }
   ]
 }

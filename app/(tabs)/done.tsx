@@ -15,7 +15,8 @@ import { allScores, ratingKey } from '@/data/ratingRepo';
 import { syncUnitForEntry } from '@/data/syncSeriesUnit';
 import type { Category } from '@/domain/types';
 import { useDatabase } from '@/ui/DatabaseProvider';
-import { FEEDBACK_EMAIL, feedbackMailto } from '@/ui/feedback';
+import { aboutCopy, noMailMessage, versionLine } from '@/ui/aboutText';
+import { feedbackMailto } from '@/ui/feedback';
 import { FilterBar } from '@/ui/FilterBar';
 import { rateHref } from '@/ui/rating';
 import { elevation, font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
@@ -24,6 +25,7 @@ import { useTracks } from '@/ui/useTracks';
 import appConfig from '../../app.json';
 
 /** A27: which build this is, in the ? sheet. */
+const COPY = aboutCopy();
 const PLATFORM_LABEL: Partial<Record<typeof Platform.OS, string>> = { android: 'Android', ios: 'iOS', web: 'Web' };
 
 export default function DoneScreen() {
@@ -132,7 +134,7 @@ export default function DoneScreen() {
         setFeedback('');
         setFeedbackOpen(false);
       } catch {
-        Alert.alert('No mail app found', `You can email your feedback to ${FEEDBACK_EMAIL}.`);
+        Alert.alert(COPY.noMailTitle, noMailMessage());
       }
     })();
   }
@@ -217,17 +219,15 @@ export default function DoneScreen() {
       >
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Send feedback</Text>
-            <Text style={styles.modalBody}>
-              Something broken, missing, or great? It opens in your mail app, addressed to the developer.
-            </Text>
+            <Text style={styles.modalTitle}>{COPY.feedbackTitle}</Text>
+            <Text style={styles.modalBody}>{COPY.feedbackIntro}</Text>
             <TextInput
               style={styles.feedbackInput}
               value={feedback}
               onChangeText={setFeedback}
-              placeholder="Your feedback"
+              placeholder={COPY.feedbackPlaceholder}
               placeholderTextColor={palette.onSurfaceVariant}
-              accessibilityLabel="Your feedback"
+              accessibilityLabel={COPY.feedbackPlaceholder}
               multiline
               textAlignVertical="top"
               autoFocus
@@ -264,14 +264,11 @@ export default function DoneScreen() {
       >
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Data sources</Text>
-            <Text style={styles.modalBody}>
-              This product uses the TMDB API but is not endorsed or certified by TMDB.
-            </Text>
-            <Text style={styles.modalBody}>
-              Book and manga data from Google Books. Comic data from Metron.
-            </Text>
-            <Text style={styles.version}>{`Track It v${appConfig.expo.version} · ${PLATFORM_LABEL[Platform.OS] ?? Platform.OS}`}</Text>
+            <Text style={styles.modalTitle}>{COPY.dataSourcesTitle}</Text>
+            {COPY.dataSources.map((line) => (
+              <Text key={line} style={styles.modalBody}>{line}</Text>
+            ))}
+            <Text style={styles.version}>{versionLine('Track It', appConfig.expo.version, PLATFORM_LABEL[Platform.OS] ?? Platform.OS)}</Text>
             <Pressable
               onPress={() => setAttributionOpen(false)}
               accessibilityRole="button"
