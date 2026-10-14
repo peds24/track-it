@@ -90,3 +90,40 @@ describe('iris mark', () => {
     log.mockRestore();
   });
 });
+
+describe('rendered PNGs (apple/scripts/render-mark.sh)', () => {
+  const ASSETS = 'apple/Iris/Resources/Assets.xcassets';
+  // png → [svg, px, background]: render-mark.sh's own table.
+  const PNGS: Record<string, [string, number, string?]> = {
+    'AppIcon.appiconset/icon-light.png': ['light.svg', 1024, '#FFFFFF'],
+    'AppIcon.appiconset/icon-dark.png': ['dark.svg', 1024, '#000000'],
+    'AppIcon.appiconset/icon-tinted.png': ['tinted.svg', 1024, '#000000'],
+    'LaunchMark.imageset/launch-light@2x.png': ['launch-light.svg', 400],
+    'LaunchMark.imageset/launch-dark@2x.png': ['launch-dark.svg', 400],
+    'LaunchMark.imageset/launch-light@3x.png': ['launch-light.svg', 600],
+    'LaunchMark.imageset/launch-dark@3x.png': ['launch-dark.svg', 600],
+  };
+  /** Width, height and colour type from a PNG's IHDR chunk. */
+  const ihdr = (buf: Buffer) => ({ width: buf.readUInt32BE(16), height: buf.readUInt32BE(20), colourType: buf[25] });
+
+  test('every PNG exists at its size; icons are opaque RGB, launch marks keep alpha', () => {
+    for (const [rel, [, px, background]] of Object.entries(PNGS)) {
+      const file = path.join(ROOT, ASSETS, rel);
+      expect([rel, fs.existsSync(file)]).toEqual([rel, true]);
+      // Colour type 2 = RGB (no alpha, as the App Store requires for icons); 6 = RGBA.
+      expect([rel, ihdr(fs.readFileSync(file))]).toEqual([rel, { width: px, height: px, colourType: background ? 2 : 6 }]);
+    }
+  });
+
+  const rsvg = require('child_process').spawnSync('rsvg-convert', ['--version']).status === 0;
+  (rsvg ? test : test.skip)('the committed PNGs are what render-mark.sh draws from the current SVGs', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'iris-png-'));
+    for (const [rel, [svg, px, background]] of Object.entries(PNGS)) {
+      const out = path.join(tmp, path.basename(rel));
+      const args = ['-w', `${px}`, '-h', `${px}`, ...(background ? ['-b', background] : []), path.join(ROOT, 'design/iris/icon', svg), '-o', out];
+      require('child_process').execFileSync('rsvg-convert', args);
+      const same = fs.readFileSync(out).equals(fs.readFileSync(path.join(ROOT, ASSETS, rel)));
+      expect([rel, same ? 'fresh' : 'stale — run apple/scripts/render-mark.sh']).toEqual([rel, 'fresh']);
+    }
+  });
+});
