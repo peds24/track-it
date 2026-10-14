@@ -20,7 +20,7 @@ const tokens = JSON.parse(tokensRaw);
 const out = gen.generate(markRaw, tokensRaw);
 
 /** The fill of each blade path, in order. */
-const bladeFills = (svg: string) => [...svg.matchAll(/<path [^>]*fill="(#[0-9A-F]{6})"/g)].map((m) => m[1]);
+const bladeFills = (svg: string) => [...svg.matchAll(/<path [^>]*fill="(#[0-9A-F]{6})"/g)].map((m) => m[1]!);
 const grey = (hex: string) => parseInt(hex.slice(1, 3), 16) / 255;
 
 describe('iris mark', () => {
@@ -53,7 +53,7 @@ describe('iris mark', () => {
     for (const f of fills) expect(f.slice(1, 3)).toBe(f.slice(3, 5));
     const levels = fills.map(grey);
     for (let i = 0; i < levels.length; i++)
-      for (let j = i + 1; j < levels.length; j++) expect(Math.abs(levels[i] - levels[j])).toBeGreaterThanOrEqual(0.12);
+      for (let j = i + 1; j < levels.length; j++) expect(Math.abs(levels[i]! - levels[j]!)).toBeGreaterThanOrEqual(0.12);
   });
 
   test('icons are opaque full-bleed squares; the mark and launch marks have no background', () => {
