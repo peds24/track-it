@@ -106,3 +106,15 @@ export function rowAction(track: TrackSummary): RowAction | null {
         : `Mark ${nextEntryTitle} ${verbFor(track.category)}`,
   };
 }
+
+/**
+ * The row's detail line as one string (I12): where you are, then "Ongoing",
+ * then the count — the parts TrackRow.tsx draws side by side with "·"
+ * between them. iOS shows it as one line; fixtures hold both to this.
+ */
+export function rowDetailLine(track: TrackSummary): string {
+  const parts = [seasonPositionLabel(track) ?? positionLabel(track)];
+  if (track.ongoing) parts.push('Ongoing');
+  if (track.progress) parts.push(`${track.progress.done} of ${track.progress.total}`);
+  return parts.join(' · ');
+}

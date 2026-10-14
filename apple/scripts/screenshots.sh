@@ -37,6 +37,8 @@ TEST_RUNNER_IRIS_SCREENSHOT_DIR="$OUT" TEST_RUNNER_IRIS_SCREENSHOT_ONLY="${1:-}"
 # The shelves (I7) on the demo library, unless the run was narrowed to components.
 if [[ -z "${1:-}" ]]; then
   mkdir -p "$OUT/screens"
+  # A screen that now fits in fewer AX5 pages must not keep its old extras (I8 minor).
+  rm -f "$OUT/screens/"*-p[0-9]*.png
   TEST_RUNNER_IRIS_SHELF_SCREENSHOT_DIR="$OUT/screens" xcodebuild test \
     -project "$APPLE_DIR/Iris.xcodeproj" \
     -scheme Iris \

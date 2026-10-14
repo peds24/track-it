@@ -83,3 +83,12 @@ public func completionMessage(_ track: TrackSummary) -> String {
         ? "Everything you have reached is marked done and the series stops growing. It moves to Done."
         : "Every remaining unit is marked done. It moves to Done."
 }
+
+/// The row's detail line as one string (I12): where you are, then "Ongoing",
+/// then the count — TrackRow.tsx's parts, joined with " · ".
+public func rowDetailLine(_ track: TrackSummary) -> String {
+    var parts = [seasonPositionLabel(track) ?? positionLabel(track)]
+    if track.ongoing { parts.append("Ongoing") }
+    if let p = track.progress { parts.append("\(p.done) of \(p.total)") }
+    return parts.joined(separator: " · ")
+}

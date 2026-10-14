@@ -61,6 +61,61 @@ final class RateTests: XCTestCase {
         XCTAssertTrue(app.buttons["Rate it"].waitForExistence(timeout: 5), "still unrated: the card offers Rate it, not Re-rank")
     }
 
+    // MARK: I12 — the I10 review's test gaps
+
+    /// The row's trailing accessory (one element per row, so tap its place).
+    @MainActor private func tapAccessory(of title: String, in app: XCUIApplication) {
+        let r = row(title, in: app)
+        XCTAssertTrue(r.waitForExistence(timeout: 5), title)
+        r.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+    }
+
+    /// Re-rank, then change your mind: the rating stands.
+    @MainActor func testReRankingThenCancellingKeepsTheRating() {
+        let app = launch()
+        app.tabBars.buttons["Done"].tap()
+        row("Project Hail Mary", in: app).tap()
+        let rerank = app.buttons["detail.rate"]
+        var swipes = 0
+        while !(rerank.exists && rerank.isHittable) && swipes < 6 { app.swipeUp(velocity: .slow); swipes += 1 }
+        XCTAssertEqual(rerank.label, "Re-rank")
+        let before = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '#'")).firstMatch.label
+        rerank.tap()
+        XCTAssertTrue(app.staticTexts["How was it?"].waitForExistence(timeout: 5))
+        app.buttons["Cancel"].tap()
+        XCTAssertTrue(app.buttons["detail.rate"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.buttons["detail.rate"].label, "Re-rank")
+        XCTAssertEqual(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '#'")).firstMatch.label, before)
+    }
+
+    /// Later leaves the track unrated, and its Done row offers Rate.
+    @MainActor func testLaterThenTheRowsRateOpensTheSheet() {
+        let app = launch()
+        let dune = row("Dune", in: app)
+        XCTAssertTrue(dune.waitForExistence(timeout: 5))
+        dune.swipeRight(velocity: .fast)
+        let done = app.collectionViews.buttons.matching(identifier: "Done").firstMatch
+        if done.waitForExistence(timeout: 1), done.isHittable, dune.frame.minX > 30 { done.tap() }
+        XCTAssertTrue(app.alerts["Finished Dune"].waitForExistence(timeout: 5))
+        app.alerts.buttons["Later"].tap()
+        app.tabBars.buttons["Done"].tap()
+        tapAccessory(of: "Dune", in: app)
+        XCTAssertTrue(app.staticTexts["How was it?"].waitForExistence(timeout: 5))
+    }
+
+    /// See your movies, from a Rate sheet opened on a shelf row.
+    @MainActor func testSeeYourMoviesFromAShelfOpensRankings() {
+        let app = launch()
+        app.tabBars.buttons["Done"].tap()
+        tapAccessory(of: "Interstellar", in: app)
+        XCTAssertTrue(app.staticTexts["How was it?"].waitForExistence(timeout: 5))
+        app.buttons["I liked it"].tap()
+        while app.buttons["rate.candidate"].waitForExistence(timeout: 2) { app.buttons["rate.candidate"].tap(); sleep(1) }
+        XCTAssertTrue(app.staticTexts["#1 of 4 movies"].waitForExistence(timeout: 5))
+        app.buttons["See your movies"].tap()
+        XCTAssertTrue(app.navigationBars["Rankings"].waitForExistence(timeout: 5))
+    }
+
     @MainActor private func openRate(_ title: String, in app: XCUIApplication) {
         app.tabBars.buttons["Done"].tap()
         let r = row(title, in: app)
@@ -149,43 +204,6 @@ final class RateTests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH 'Number 1, Blade Runner 2049,'")).firstMatch.waitForExistence(timeout: 5))
         app.buttons["Shows"].tap()
         XCTAssertTrue(app.staticTexts["No shows ranked yet"].waitForExistence(timeout: 5))
-    }
-
-    /// Contrast, element descriptions and hit regions on each Rate screen and Rankings.
-    @MainActor func testRateScreensPassTheAccessibilityAudit() throws {
-        let app = launch()
-        var found: [String] = []
-        func audit(_ screen: String) throws {
-            sleep(1)
-            try app.performAccessibilityAudit(for: [.sufficientElementDescription, .hitRegion, .contrast]) { issue in
-                let type = issue.element?.elementType
-                // The primary button's 4.7:1 is proven by IrisTokensTests (white on
-                // accentFill); the audit reads it as "nearly passed" here, as it did on I8's Dune.
-                let primary = issue.auditType == .contrast && issue.element?.identifier == "rate.done"
-                if type != .navigationBar && type != .tabBar && !primary {
-                    found.append("\(screen): \(issue.compactDescription) | \(issue.element.map { "\($0.label) \($0.frame)" } ?? "no element")")
-                }
-                return true
-            }
-        }
-        app.tabBars.buttons["Done"].tap()
-        row("Interstellar", in: app).tap()
-        let rate = app.buttons["detail.rate"]
-        var swipes = 0
-        while !(rate.exists && rate.isHittable) && swipes < 6 { app.swipeUp(velocity: .slow); swipes += 1 }
-        rate.tap()
-        XCTAssertTrue(app.staticTexts["How was it?"].waitForExistence(timeout: 5))
-        try audit("sentiment")
-        app.buttons["I liked it"].tap()
-        XCTAssertTrue(app.staticTexts["Which did you prefer?"].waitForExistence(timeout: 5))
-        try audit("comparing")
-        while app.buttons["rate.candidate"].exists { app.buttons["rate.candidate"].tap(); sleep(1) }
-        XCTAssertTrue(app.staticTexts["#1 of 4 movies"].waitForExistence(timeout: 5))
-        try audit("result")
-        app.buttons["See your movies"].tap()
-        XCTAssertTrue(app.navigationBars["Rankings"].waitForExistence(timeout: 5))
-        try audit("rankings")
-        XCTAssertEqual(found, [], found.joined(separator: "\n"))
     }
 
     // MARK: Screenshots

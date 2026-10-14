@@ -63,6 +63,10 @@ const edits: [string, TrackSummary, string, string][] = [
   ['seasons, season 2 episode 5', show, '2', '5'],
   ['seasons, season 1 episode 9', show, '1', '9'],
   ['seasons, the current season by default', show, '', '5'],
+  // I12 (I8 minor): the season field's own odd input.
+  ['seasons, season zero', show, '0', '1'],
+  ['seasons, a season not digits', show, '3a', '1'],
+  ['seasons, a padded season', show, ' 2 ', '5'],
   ['seasons, a typed season shows its own total', show, '1', ''],
   ['a show without seasons', t({ progress: { done: 3, total: 10 } }), '', '4'],
   ['Swift parity: a season too long for an Int', show, '99999999999999999999', '5'],

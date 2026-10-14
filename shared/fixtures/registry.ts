@@ -62,7 +62,7 @@ import {
   undoLabel,
 } from '@/ui/rateText';
 import { detailMeta, detailPrimaryLabel, detailStats, positionEdit, progressCaption } from '@/ui/trackDetail';
-import { canEditPosition, positionLabel, rowAction, seasonPositionLabel, verbFor } from '@/ui/trackLabels';
+import { canEditPosition, positionLabel, rowAction, rowDetailLine, seasonPositionLabel, verbFor } from '@/ui/trackLabels';
 
 /** A whole ranking session as one vector: the opponents asked, in order,
  * and where the candidate lands. Not a TS export; Swift mirrors it (I3). */
@@ -132,6 +132,7 @@ export const registry: Record<string, AnyFn> = {
   verbFor,
   positionLabel,
   seasonPositionLabel,
+  rowDetailLine,
   canEditPosition,
   rowAction,
   completionMessage,
