@@ -105,7 +105,7 @@ enum GallerySample {
     static let cover: Image = {
         let art = LinearGradient(colors: [IrisTokens.Colors.categoryMovie, IrisTokens.Colors.categoryShow], startPoint: .top, endPoint: .bottom)
             .frame(width: 200, height: 300)
-            .overlay(Text("SAMPLE").font(.system(size: 28, weight: .heavy)).foregroundStyle(.white))
+            .overlay(Text("SAMPLE").font(.title.weight(.heavy)).foregroundStyle(.white))
         return ImageRenderer(content: art).uiImage.map(Image.init(uiImage:)) ?? Image(systemName: "photo")
     }()
 }

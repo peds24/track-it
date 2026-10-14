@@ -16,7 +16,8 @@ struct IrisEmptyState: View {
         ContentUnavailableView {
             Label(title, systemImage: symbol.systemName)
         } description: {
-            Text(message)
+            // Label colour: the system's grey description only nearly passes 4.5:1 (I12 audit).
+            Text(message).foregroundStyle(IrisTokens.Colors.label)
         } actions: {
             if let actionTitle, let action { IrisPrimaryButton(actionTitle, symbol: .add, action: action) }
         }

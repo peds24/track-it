@@ -8,6 +8,7 @@ struct ExpandableText: View {
     var lines = 6
 
     @State private var expanded = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var fullHeight: CGFloat = 0
     @State private var clampedHeight: CGFloat = 0
 
@@ -32,7 +33,7 @@ struct ExpandableText: View {
                 }
             if Self.overflows(fullHeight: fullHeight, clampedHeight: clampedHeight) {
                 Button {
-                    withAnimation(IrisTokens.Motion.smooth) { expanded.toggle() }
+                    withAnimation(IrisMotion.animation(IrisTokens.Motion.smooth, reduceMotion: reduceMotion)) { expanded.toggle() }
                 } label: {
                     // Label colour, not accent: system blue text is ~3.5:1 (I8 review).
                     // The 44 pt frame is inside the label, so it is the hit area.
