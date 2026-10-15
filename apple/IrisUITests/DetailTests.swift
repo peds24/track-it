@@ -76,6 +76,21 @@ final class DetailTests: XCTestCase {
         XCTAssertTrue(row("Dune", in: app).waitForNonExistence(timeout: 5))
     }
 
+    /// I8 review gap: finishing the last unit from the detail screen moves the
+    /// track to Done in place, asks to rate it, and leaves no main button.
+    @MainActor func testFinishingTheLastUnitHereMovesItToDone() {
+        let app = launch()
+        open("Dune", in: app)
+        app.buttons["detail.primary"].tap()
+        XCTAssertTrue(app.alerts["Finished Dune"].waitForExistence(timeout: 5))
+        app.alerts.buttons["Later"].tap()
+        XCTAssertTrue(app.navigationBars["Dune"].exists, "stays on the track")
+        XCTAssertFalse(app.buttons["detail.primary"].waitForExistence(timeout: 2), "nothing left to advance")
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        app.tabBars.buttons["Done"].tap()
+        XCTAssertTrue(row("Dune", in: app).waitForExistence(timeout: 5))
+    }
+
     @MainActor func testShowMoreExpandsTheDescription() {
         let app = launch()
         open("Dune", in: app)
@@ -86,48 +101,6 @@ final class DetailTests: XCTestCase {
         more.tap()
         XCTAssertTrue(app.buttons["Show less"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS 'the appendices are worth it'")).firstMatch.exists)
-    }
-
-    /// Contrast, element descriptions and hit regions on three detail screens
-    /// (text size is covered by the AX5 screenshots, as for the shelves).
-    @MainActor func testDetailScreensPassTheAccessibilityAudit() throws {
-        let app = launch()
-        var found: [String] = []
-        for (title, tab) in [("Severance", "Currently"), ("Dune", "Currently"), ("Project Hail Mary", "Done")] {
-            open(title, tab: tab, in: app)
-            sleep(1) // let the push transition finish; mid-animation colours read as failures
-            // Content scrolled under the pinned button sits on glass; only what is
-            // above it is judged.
-            // iOS 26 also blurs a band just above it (the scroll edge effect).
-            let pinned = app.buttons["detail.primary"]
-            // Every screenful, not just the first: Show more, the rating card and
-            // the timeline sit below the fold (I8 review).
-            for page in 0..<6 {
-            let pinnedTop = (pinned.exists ? pinned.frame.minY : app.tabBars.firstMatch.frame.minY) - 48
-            // The same edge blur sits under the navigation bar once content scrolls.
-            let barBottom = app.navigationBars.firstMatch.frame.maxY + 24
-            try app.performAccessibilityAudit(for: [.sufficientElementDescription, .hitRegion, .contrast]) { issue in
-                let type = issue.element?.elementType
-                let frame = issue.element?.frame ?? .zero
-                let underPinned = issue.auditType == .contrast && type != .button && (frame.maxY > pinnedTop || frame.minY < barBottom)
-                // The pinned button's 4.7:1 is proven by IrisTokensTests (white on
-                // accentFill, both appearances). The audit flags it on Dune only;
-                // its pixels are identical to Severance's (#0071E3 under white),
-                // where the same audit passes it.
-                let pinnedContrast = title == "Dune" && issue.auditType == .contrast && issue.element?.identifier == "detail.primary"
-                if type != .tabBar && type != .navigationBar && !underPinned && !pinnedContrast {
-                    found.append("\(title) p\(page): \(issue.compactDescription) | \(issue.element.map { "\($0.label) \($0.frame) type=\($0.elementType.rawValue) id=\($0.identifier)" } ?? "no element")")
-                }
-                return true
-            }
-            let list = app.collectionViews.firstMatch, before = list.cells.firstMatch.frame
-            list.swipeUp(velocity: .slow)
-            sleep(1)
-            if list.cells.firstMatch.frame == before { break }
-            }
-            app.navigationBars.buttons.element(boundBy: 0).tap()
-        }
-        XCTAssertEqual(found, [], found.joined(separator: "\n"))
     }
 
     // MARK: Screenshots

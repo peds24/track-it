@@ -18,6 +18,7 @@ import { cases as seasons } from '../cases/seasons';
 import { cases as seriesTitle } from '../cases/seriesTitle';
 import { cases as shelf } from '../cases/shelf';
 import { cases as validate } from '../cases/validate';
+import { cases as aboutText } from '../cases/aboutText';
 import { cases as addFlow } from '../cases/addFlow';
 import { cases as rateText } from '../cases/rateText';
 import { cases as trackDetail } from '../cases/trackDetail';
@@ -41,6 +42,7 @@ const MODULES: Record<string, { cases: FixtureCase[]; testFiles: string[] }> = {
   trackDetail: { cases: trackDetail, testFiles: [] },
   addFlow: { cases: addFlow, testFiles: [] },
   rateText: { cases: rateText, testFiles: [] },
+  aboutText: { cases: aboutText, testFiles: [] },
 };
 
 const FIXTURES = path.resolve(__dirname, '..');

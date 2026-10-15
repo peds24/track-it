@@ -23,3 +23,10 @@ test('trims the message', () => {
 test('sends to serdiopedro@gmail.com', () => {
   expect(FEEDBACK_EMAIL).toBe('serdiopedro@gmail.com');
 });
+
+test('an app name changes the subject and signature (Iris on iOS, I12)', () => {
+  const url = feedbackMailto('hi', { version: '2.0.0', platform: 'iOS', name: 'Iris' });
+  const params = new URLSearchParams(url.slice(url.indexOf('?') + 1));
+  expect(params.get('subject')).toBe('Iris feedback (v2.0.0)');
+  expect(params.get('body')).toBe('hi\n\n—\nIris 2.0.0 · iOS');
+});

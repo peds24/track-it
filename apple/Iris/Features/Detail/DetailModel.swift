@@ -50,6 +50,8 @@ final class DetailModel {
     @ObservationIgnored private let observer = TaskBag()
     /// Set while our own delete runs: its nil page must not flash "not found" as we pop.
     @ObservationIgnored private var deleting = false
+    /// The main button's write on its way (I12): a second tap is the same tap.
+    @ObservationIgnored private var primaryInFlight = false
 
     init(ref: TrackRef, library: any DetailLibrary, registry: ProviderRegistry?) {
         self.ref = ref
@@ -71,7 +73,12 @@ final class DetailModel {
                 guard let self else { return }
                 switch result {
                 case let .success(page?): self.state = .loaded(page)
-                case .success(nil): if !self.deleting && !self.dismissed { self.state = .missing }
+                case .success(nil):
+                    if !self.deleting && !self.dismissed {
+                        self.state = .missing
+                        // Deleted elsewhere: its dialog would show blank (I8 minor).
+                        self.pending = nil
+                    }
                 case .failure:
                     // TS shows the not-found state for a failed read; keep a page
                     // already on screen. Forget the ended stream so the next
@@ -88,13 +95,18 @@ final class DetailModel {
 
     /// The bottom button: advance the next unit, or resume.
     func primary() async {
-        guard let track, let next = track.nextEntryId, !next.isEmpty else { return }
+        guard let track, let next = track.nextEntryId, !next.isEmpty, !primaryInFlight else { return }
+        // Held for the write only, not the rating check or catalogue sync (review I1).
+        primaryInFlight = true
         if track.shelf == .backlog && track.paused {
             await run("Could not resume") { try await $0.resume(track.ref) }
+            primaryInFlight = false
             return
         }
         // No `commits` bump: IrisPrimaryButton plays its own haptic on the tap.
-        guard await run("Could not update", { try await $0.advance(entryId: next, now: Date()) }) else { return }
+        let advanced = await run("Could not update", { try await $0.advance(entryId: next, now: Date()) })
+        primaryInFlight = false
+        guard advanced else { return }
         await offerRating(track)
         if track.kind == .series { _ = await library.syncAfterMove(seriesId: track.id, registry: registry) }
     }

@@ -42,8 +42,10 @@ import {
   isStandaloneMediaType,
 } from '@/domain/validate';
 import { announcementFor } from '@/domain/whatsNew';
-import { addBarcodeTypes, addCatalogueKey, addIsSeries, addSaveTitle, addTrackInput, confirmPrimaryLabel, manualPrimaryLabel, matchSummary } from '@/ui/addFlow';
+import { addBarcodeTypes, addCatalogueKey, addedNotStarted, addIsSeries, addSaveTitle, addTrackInput, confirmPrimaryLabel, manualPrimaryLabel, matchSummary, normalizeEan5 } from '@/ui/addFlow';
+import { aboutCopy, noMailMessage, versionLine } from '@/ui/aboutText';
 import { completionMessage } from '@/ui/completionMessage';
+import { feedbackMailto } from '@/ui/feedback';
 import {
   categoryPlural,
   existingRatingNote,
@@ -60,7 +62,7 @@ import {
   undoLabel,
 } from '@/ui/rateText';
 import { detailMeta, detailPrimaryLabel, detailStats, positionEdit, progressCaption } from '@/ui/trackDetail';
-import { canEditPosition, positionLabel, rowAction, seasonPositionLabel, verbFor } from '@/ui/trackLabels';
+import { canEditPosition, positionLabel, rowAction, rowDetailLine, seasonPositionLabel, verbFor } from '@/ui/trackLabels';
 
 /** A whole ranking session as one vector: the opponents asked, in order,
  * and where the candidate lands. Not a TS export; Swift mirrors it (I3). */
@@ -130,6 +132,7 @@ export const registry: Record<string, AnyFn> = {
   verbFor,
   positionLabel,
   seasonPositionLabel,
+  rowDetailLine,
   canEditPosition,
   rowAction,
   completionMessage,
@@ -146,6 +149,8 @@ export const registry: Record<string, AnyFn> = {
   addSaveTitle,
   addTrackInput,
   matchSummary,
+  normalizeEan5,
+  addedNotStarted,
   sentimentLabel,
   categoryPlural,
   existingRatingNote,
@@ -159,6 +164,10 @@ export const registry: Record<string, AnyFn> = {
   rankingsEmpty,
   rankingRowLabel,
   ratePrompt,
+  aboutCopy,
+  noMailMessage,
+  versionLine,
+  feedbackMailto,
 };
 
 /** JSON-safe, deterministic: Maps become objects (insertion order), undefined becomes null at the top level. */

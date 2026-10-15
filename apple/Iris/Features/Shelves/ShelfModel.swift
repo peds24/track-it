@@ -61,10 +61,13 @@ final class ShelfModel {
     private(set) var tracks: [TrackSummary] = []
     private(set) var ratings: [String: RowRating] = [:]
     private(set) var loaded = false
-    /// Bumped by every successful advance or completion: the view's haptic trigger.
+    /// Bumped by every successful advance, resume or completion: the view's haptic trigger.
     private(set) var commits = 0
     var pending: Pending?
     var failure: Failure?
+    /// Tracks with an advance or resume on its way (I12): a second tap on the
+    /// same one is the same tap, not a second write.
+    private var inFlight: Set<String> = []
     /// I10: set after an action finished an unrated track.
     var ratePrompt: RatePromptItem?
 
@@ -128,12 +131,18 @@ final class ShelfModel {
 
     /// The row's button or leading swipe: advance the next unit, or resume.
     func performAccessory(_ track: TrackSummary) async {
-        guard let action = rowAction(track) else { return }
+        guard let action = rowAction(track), !inFlight.contains(track.id) else { return }
+        // Held for the write only: once it lands the row shows the next unit,
+        // and a tap during the catalogue sync is a new advance (review I1).
+        inFlight.insert(track.id)
         switch action.kind {
         case .resume:
-            await run("Could not resume track") { try await $0.resume(track.ref) }
+            let resumed = await run("Could not resume track") { try await $0.resume(track.ref) }
+            inFlight.remove(track.id)
+            if resumed { commits += 1 }
         case .advance:
             let advanced = await run("Could not update") { try await $0.advance(entryId: action.entryId, now: Date()) }
+            inFlight.remove(track.id)
             guard advanced else { return }
             commits += 1
             await offerRating(track)

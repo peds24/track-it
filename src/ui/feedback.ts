@@ -9,8 +9,10 @@ export const FEEDBACK_EMAIL = 'serdiopedro@gmail.com';
  * `encodeURIComponent`, not `URLSearchParams`: the latter writes spaces as
  * `+`, which several mail apps show literally in the draft.
  */
-export function feedbackMailto(message: string, app: { version: string; platform: string }): string {
-  const subject = `Track It feedback (v${app.version})`;
-  const body = `${message.trim()}\n\n—\nTrack It ${app.version} · ${app.platform}`;
+export function feedbackMailto(message: string, app: { version: string; platform: string; name?: string }): string {
+  // `name` is the app's (Iris on iOS, I12); Android stays Track It until I13.
+  const name = app.name ?? 'Track It';
+  const subject = `${name} feedback (v${app.version})`;
+  const body = `${message.trim()}\n\n—\n${name} ${app.version} · ${app.platform}`;
   return `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }

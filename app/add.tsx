@@ -30,12 +30,6 @@ import { useDatabase } from '@/ui/DatabaseProvider';
 import { SearchResultRow } from '@/ui/SearchResultRow';
 import { elevation, font, layout, radius, space, useTheme, type Palette } from '@/ui/theme';
 
-/** book/manga are ISBN barcodes (EAN-13). A single-issue comic is UPC-A
- * (A9); a comic collection (A14) is ISBN-barcoded like a book — Metron
- * only catalogues single issues, so collections are Google Books' job.
- * Show/movie have no retail barcode at all — TMDB is search-by-title
- * only (D5/A9). */
-
 /**
  * A14: comic collections (TPB, hardcover, omnibus) are matched by title
  * like a book, not by single-issue UPC — Metron doesn't catalogue them at
@@ -68,11 +62,6 @@ function providerForAdd(category: Category, comicMode: ComicMode | null) {
   const key = addCatalogueKey(category, comicMode);
   return key === 'comic-collection' ? googleBooksComic : providerFor(key);
 }
-
-/** A11's confirm screen: what the primary button says once a real match is
- * matched, per medium (D2's own "Watched"-not-"Start" case for a movie
- * carries over unchanged; A17 gives reading media a name of their own
- * rather than the generic "Start"). */
 
 export default function AddTrackScreen() {
   const db = useDatabase();

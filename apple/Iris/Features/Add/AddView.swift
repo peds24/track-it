@@ -15,6 +15,11 @@ struct AddView: View {
 
     enum Step: Hashable { case comicMode, search, confirm }
 
+    /// A step goes on once: a double tap can't push it twice (I9 minor).
+    static func pushing(_ step: Step, onto path: [Step]) -> [Step] {
+        path.contains(step) ? path : path + [step]
+    }
+
     var body: some View {
         NavigationStack(path: Binding(get: { path }, set: navigate)) {
             categories
@@ -32,7 +37,9 @@ struct AddView: View {
         .onChange(of: model.picked) { _, picked in
             if picked == nil, path.last == .confirm { path.removeLast() }
         }
-        .alert(item: $model.failure) { Alert(title: Text($0.title), message: Text($0.message)) }
+        .alert(item: $model.failure) { failure in
+            Alert(title: Text(failure.title), message: Text(failure.message), dismissButton: .default(Text("OK")) { model.acknowledgeFailure() })
+        }
     }
 
     /// A pop (back button or swipe) steps the model back the way TS's beforeRemove did.
@@ -56,7 +63,7 @@ struct AddView: View {
                 ForEach(IrisCore.Category.allCases, id: \.self) { category in
                     Button {
                         model.choose(category)
-                        path.append(category == .comic ? .comicMode : .search)
+                        path = Self.pushing(category == .comic ? .comicMode : .search, onto: path)
                     } label: {
                         chevronRow(Label(category.label, systemImage: category.symbol.systemName))
                     }
@@ -75,9 +82,9 @@ struct AddView: View {
     private var comicModes: some View {
         List {
             Section {
-                Button { model.chooseComicMode(.single); path.append(.search) } label: { chevronRow(Text("Single issue")) }
+                Button { model.chooseComicMode(.single); path = Self.pushing(.search, onto: path) } label: { chevronRow(Text("Single issue")) }
                     .accessibilityIdentifier("add.mode.single")
-                Button { model.chooseComicMode(.collection); path.append(.search) } label: { chevronRow(Text("Collection")) }
+                Button { model.chooseComicMode(.collection); path = Self.pushing(.search, onto: path) } label: { chevronRow(Text("Collection")) }
                     .accessibilityIdentifier("add.mode.collection")
             } footer: {
                 Text("A single issue is tracked issue by issue, matched exactly by barcode or issue number. A collection — a trade paperback, hardcover, or omnibus — tracks as one item, the same way a book does.")
@@ -113,7 +120,7 @@ struct AddView: View {
             ForEach(model.results, id: \.id) { result in
                 Button {
                     model.pick(result)
-                    path.append(.confirm)
+                    path = Self.pushing(.confirm, onto: path)
                 } label: { SearchResultRow(result: result) }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("add.result.\(result.id)")
@@ -147,6 +154,11 @@ struct AddView: View {
         }
         .alert("5-digit issue code?", isPresented: Binding(get: { model.pendingUPC != nil }, set: { if !$0 { model.pendingUPC = nil } })) {
             TextField("12345", text: $ean5).keyboardType(.numberPad)
+                // Digits only, five at most (I12; shared rule in addFlow.ts).
+                .onChange(of: ean5) { _, typed in
+                    let clean = normalizeEan5(typed)
+                    if clean != typed { ean5 = clean }
+                }
             Button("Search") {
                 let code = ean5, upc = model.pendingUPC
                 ean5 = ""

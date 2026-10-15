@@ -21,14 +21,18 @@ struct ShelfView: View {
 
     @State private var opened: TrackRef?
     @State private var renaming: TrackSummary?
-    @State private var renameDraft = ""
+    /// Done's More menu (I12): feedback (A25) and data sources (A27).
+    @State private var sendingFeedback = false
+    @State private var showingDataSources = false
     /// Haptic for swipe and menu commits; the row button has its own (kit).
+    /// It plays when the model reports the write succeeded, not on the gesture (I12).
     @State private var swipeCommits = 0
+    @State private var hapticOnNextCommit = false
 
     var body: some View {
         content
             .navigationTitle(Self.title(model.shelf))
-            .toolbar { filterMenu; addButton; rankingsButton }
+            .toolbar { filterMenu; addButton; rankingsButton; moreMenu }
             .sheet(item: Binding(get: { adding.map(AddSheetItem.init) }, set: { if $0 == nil { adding = nil } }),
                    onDismiss: {
                        if let prompt = lastAdd?.ratePrompt { model.ratePrompt = prompt }
@@ -37,7 +41,7 @@ struct ShelfView: View {
                 AddView(model: item.model)
             }
             .ratePrompt($model.ratePrompt) { rating = $0 }
-            .sheet(item: $rating) { item in
+            .irisSheet(item: $rating, detents: [.large]) { item in
                 if let factories { RateView(model: factories.rate(item.ref)) { rankingsCategory = $0 } }
             }
             .navigationDestination(item: $rankingsCategory) { category in
@@ -51,7 +55,7 @@ struct ShelfView: View {
                 presenting: model.pending
             ) { pending in
                 Button(ShelfModel.confirmLabel(pending), role: ShelfModel.isDestructive(pending) ? .destructive : nil) {
-                    if case .complete = pending { swipeCommits += 1 }
+                    if case .complete = pending { hapticOnNextCommit = true }
                     Task { await model.confirm(pending) }
                 }
                 Button("Cancel", role: .cancel) { model.pending = nil }
@@ -59,15 +63,19 @@ struct ShelfView: View {
             .alert(item: $model.failure) { failure in
                 Alert(title: Text(failure.title), message: Text(failure.message))
             }
-            .alert("Rename", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
-                TextField("Title", text: $renameDraft)
-                Button("Save") {
-                    if let track = renaming { Task { await model.rename(track, to: renameDraft) } }
-                    renaming = nil
+            .irisSheet(isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } }), detents: [.medium]) {
+                if let track = renaming {
+                    RenameSheet(original: track.title) { title in Task { await model.rename(track, to: title) } }
                 }
-                Button("Cancel", role: .cancel) { renaming = nil }
             }
+            .irisSheet(isPresented: $sendingFeedback, detents: [.medium, .large]) { FeedbackSheet() }
+            .irisSheet(isPresented: $showingDataSources, detents: [.medium]) { DataSourcesSheet() }
             .sensoryFeedback(.success, trigger: swipeCommits)
+            .onChange(of: model.commits) {
+                if hapticOnNextCommit { swipeCommits += 1 }
+                hapticOnNextCommit = false
+            }
+            .onChange(of: model.failure?.id) { hapticOnNextCommit = false }
             .task { model.start() }
     }
 
@@ -116,7 +124,7 @@ struct ShelfView: View {
             .swipeActions(edge: .leading, allowsFullSwipe: true) {
                 if let action = rowAction(track) {
                     Button(action.label, systemImage: (action.kind == .resume || track.shelf == .backlog ? IrisSymbol.start : .advance).systemName) {
-                        swipeCommits += 1
+                        hapticOnNextCommit = true
                         Task { await model.performAccessory(track) }
                     }
                     .tint(IrisTokens.Colors.accent)
@@ -131,10 +139,7 @@ struct ShelfView: View {
                 }
             }
             .contextMenu {
-                Button("Rename…", systemImage: "pencil") {
-                    renameDraft = track.title
-                    renaming = track
-                }
+                Button("Rename…", systemImage: "pencil") { renaming = track }
                 if track.shelf == .currently {
                     Button("Pause", systemImage: IrisSymbol.pause.systemName) { Task { await model.pause(track) } }
                 }
@@ -155,6 +160,21 @@ struct ShelfView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Rankings", systemImage: IrisSymbol.rankings.systemName) { rankingsCategory = model.category ?? .movie }
                     .accessibilityIdentifier("shelf.rankings")
+            }
+        }
+    }
+
+    /// Spec §6 Finished: everything that isn't a track lives behind More.
+    @ToolbarContentBuilder private var moreMenu: some ToolbarContent {
+        if model.shelf == .done {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button("Send Feedback…", systemImage: "envelope") { sendingFeedback = true }
+                    Button("Data Sources", systemImage: "info.circle") { showingDataSources = true }
+                } label: {
+                    Label("More", systemImage: IrisSymbol.more.systemName)
+                }
+                .accessibilityIdentifier("shelf.more")
             }
         }
     }

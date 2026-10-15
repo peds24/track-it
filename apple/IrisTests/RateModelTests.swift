@@ -131,4 +131,16 @@ final class RateModelTests: XCTestCase {
         var m: AnyObject? = RateModel(ref: ref, library: FakeRateLibrary())
         XCTAssertNotNil(m); m = nil; XCTAssertNil(m)
     }
+
+    /// I10 minor: "Too tough to call" is an answer too — it plays the
+    /// comparison's selection haptic, which the cards play for themselves.
+    func testATieBumpsTheTieHaptic() async {
+        let lib = FakeRateLibrary()
+        lib.context = context(ranking: [ranked("a", "Arrival", rank: 1), ranked("b", "Blade Runner", rank: 2), ranked("c", "Contact", rank: 3)])
+        let m = await model(lib)
+        await m.choose(.liked)
+        XCTAssertEqual(m.ties, 0)
+        await m.answer(.tie)
+        XCTAssertEqual(m.ties, 1)
+    }
 }

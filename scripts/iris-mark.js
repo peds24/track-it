@@ -44,6 +44,9 @@ function blade(i, m) {
 function validate(mark, tokens) {
   for (const k of ['blades', 'outerRadius', 'innerRadius', 'twist', 'gap'])
     if (typeof mark[k] !== 'number') throw new Error(`mark.json: "${k}" must be a number`);
+  if (!Number.isInteger(mark.blades) || mark.blades < 1) throw new Error('mark.json: "blades" must be a positive whole number');
+  if (!(mark.innerRadius > 0 && mark.innerRadius < mark.outerRadius)) throw new Error('mark.json: needs 0 < innerRadius < outerRadius');
+  if (mark.gap < 0) throw new Error('mark.json: "gap" must be 0 or more');
   for (const k of ['order', 'tinted'])
     if (!Array.isArray(mark[k]) || mark[k].length !== mark.blades) throw new Error(`mark.json: "${k}" needs ${mark.blades} entries`);
   const colour = (name, mode, i) => {
@@ -53,7 +56,11 @@ function validate(mark, tokens) {
   };
   const fills = { light: [], dark: [] };
   mark.order.forEach((entry, i) => {
-    for (const mode of ['light', 'dark']) fills[mode].push(colour(typeof entry === 'string' ? entry : entry[mode], mode, i));
+    for (const mode of ['light', 'dark']) {
+      const name = typeof entry === 'string' ? entry : entry?.[mode];
+      if (typeof name !== 'string') throw new Error(`mark.json: order[${i}] has no "${mode}" token`);
+      fills[mode].push(colour(name, mode, i));
+    }
   });
   fills.tinted = mark.tinted.map((level, i) => {
     if (typeof level !== 'number' || level < 0 || level > 1) throw new Error(`mark.json: tinted[${i}] must be 0…1`);

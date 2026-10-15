@@ -4,9 +4,7 @@ import IrisCore
 /// come from IrisCore's trackLabels port, which fixtures hold to TS.
 extension IrisShelfRow.Model {
     init(_ track: TrackSummary, rating: RowRating?) {
-        var detail = seasonPositionLabel(track) ?? positionLabel(track)
-        if track.ongoing { detail += " · Ongoing" }
-        if let p = track.progress { detail += " · \(p.done) of \(p.total)" }
+        let detail = rowDetailLine(track)
 
         let progress: IrisProgress.Value? = {
             guard let p = track.progress, p.total > 0, track.shelf != .done else { return nil }

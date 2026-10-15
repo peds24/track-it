@@ -1093,6 +1093,144 @@
       }
     },
     {
+      "name": "positionEdit: seasons, season zero",
+      "fn": "positionEdit",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "show",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 13,
+            "total": 19
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": [
+            {
+              "number": 1,
+              "episodeCount": 9
+            },
+            {
+              "number": 2,
+              "episodeCount": 10
+            }
+          ],
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "0",
+        "1"
+      ],
+      "expect": {
+        "unitWord": "Episode",
+        "seasoned": true,
+        "seasonPlaceholder": 2,
+        "seasonCount": 2,
+        "unitPlaceholder": 5,
+        "unitTotal": null,
+        "target": null
+      }
+    },
+    {
+      "name": "positionEdit: seasons, a season not digits",
+      "fn": "positionEdit",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "show",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 13,
+            "total": 19
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": [
+            {
+              "number": 1,
+              "episodeCount": 9
+            },
+            {
+              "number": 2,
+              "episodeCount": 10
+            }
+          ],
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        "3a",
+        "1"
+      ],
+      "expect": {
+        "unitWord": "Episode",
+        "seasoned": true,
+        "seasonPlaceholder": 2,
+        "seasonCount": 2,
+        "unitPlaceholder": 5,
+        "unitTotal": 10,
+        "target": 10
+      }
+    },
+    {
+      "name": "positionEdit: seasons, a padded season",
+      "fn": "positionEdit",
+      "args": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "title": "Severance",
+          "category": "show",
+          "shelf": "currently",
+          "createdAt": "2026-08-12T10:00:00.000Z",
+          "progress": {
+            "done": 13,
+            "total": 19
+          },
+          "ongoing": false,
+          "paused": false,
+          "seasons": [
+            {
+              "number": 1,
+              "episodeCount": 9
+            },
+            {
+              "number": 2,
+              "episodeCount": 10
+            }
+          ],
+          "nextEntryStatus": "unstarted",
+          "nextEntryId": "e4",
+          "nextEntryTitle": "Episode 4",
+          "lastAdvancedAt": null,
+          "completionDrops": null
+        },
+        " 2 ",
+        "5"
+      ],
+      "expect": {
+        "unitWord": "Episode",
+        "seasoned": true,
+        "seasonPlaceholder": 2,
+        "seasonCount": 2,
+        "unitPlaceholder": 5,
+        "unitTotal": 10,
+        "target": 14
+      }
+    },
+    {
       "name": "positionEdit: seasons, a typed season shows its own total",
       "fn": "positionEdit",
       "args": [

@@ -33,11 +33,15 @@ const tracks: [string, TrackSummary][] = [
   ['a finished movie', t({ ...finished, kind: 'entry', category: 'movie', title: 'Arrival', progress: null })],
   ['a series with no total', t({ progress: { done: 0, total: 0 } })],
   ['a title with an apostrophe and emoji', t({ title: 'Bob’s Burgers 🍔', nextEntryTitle: 'Episode 1' })],
+  // I12 (I7 minor): empty strings, which a hand-typed track can carry.
+  ['an empty title and next title', t({ title: '', nextEntryTitle: '' })],
+  ['a standalone with an empty title', t({ kind: 'entry', category: 'book', title: '', progress: null, nextEntryStatus: 'in_progress', nextEntryTitle: '' })],
+  ['an empty next entry id', t({ nextEntryId: '' })],
 ];
 
 const each = (fn: string) => tracks.map(([name, track]): FixtureCase => ({ name: `${fn}: ${name}`, fn, args: [track] }));
 
 export const cases: FixtureCase[] = [
   ...(['show', 'movie', 'book', 'comic', 'manga'] as const).map((c): FixtureCase => ({ name: `verbFor: ${c}`, fn: 'verbFor', args: [c] })),
-  ...['positionLabel', 'seasonPositionLabel', 'canEditPosition', 'rowAction', 'completionMessage'].flatMap(each),
+  ...['positionLabel', 'seasonPositionLabel', 'canEditPosition', 'rowAction', 'completionMessage', 'rowDetailLine'].flatMap(each),
 ];

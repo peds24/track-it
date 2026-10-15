@@ -14,4 +14,17 @@ extension View {
                 .presentationDragIndicator(.visible)
         }
     }
+
+    /// The same, presenting one item at a time (the Rate sheet, I12).
+    func irisSheet<Item: Identifiable, Content: View>(
+        item: Binding<Item?>,
+        detents: Set<PresentationDetent> = [.medium, .large],
+        @ViewBuilder content: @escaping (Item) -> Content
+    ) -> some View {
+        sheet(item: item) { value in
+            content(value)
+                .presentationDetents(detents)
+                .presentationDragIndicator(.visible)
+        }
+    }
 }

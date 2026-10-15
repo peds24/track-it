@@ -95,3 +95,19 @@ public func normalizedBarcode(_ payload: String, for kinds: [BarcodeKind]) -> St
     if kinds == [.upcA], code.count == 13, code.hasPrefix("0") { return String(code.dropFirst()) }
     return code
 }
+
+/// A9: the 5-digit supplemental barcode, as typed — ASCII digits only, at
+/// most five (I12; only a five-digit code is ever sent).
+public func normalizeEan5(_ text: String) -> String {
+    String(text.unicodeScalars.filter { ("0"..."9").contains($0) }.prefix(5).map(Character.init))
+}
+
+/// I12: the track was saved but its start failed. Retrying the add would
+/// duplicate it, so this says where it is instead of "Could not add track".
+public struct AddedNotStarted: Encodable, Equatable, Sendable {
+    public let title: String, message: String
+}
+
+public func addedNotStarted(_ title: String) -> AddedNotStarted {
+    AddedNotStarted(title: "Added, but couldn’t start it", message: "\(title) is in your Backlog. Start it from there.")
+}

@@ -27,11 +27,13 @@ struct PositionEditorSheet: View {
                     }
                     field(edit.unitWord, text: $unit, placeholder: edit.unitPlaceholder, total: edit.unitTotal, id: "editor.unit")
                         .focused($unitFocused)
-                } footer: {
-                    Text(track.title)
                 }
             }
             .navigationTitle("Edit track number")
+            // The track's name as the bar's subtitle, not a section footer/header:
+            // a medium sheet is glass, and text between rows sat on whatever was
+            // behind it — the audit failed it in both appearances (I12).
+            .navigationSubtitle(track.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel", action: onCancel) }

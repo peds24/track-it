@@ -22,6 +22,7 @@ struct RateView: View {
         }
         .alert(item: $model.failure) { Alert(title: Text($0.title), message: Text($0.message)) }
         .sensoryFeedback(.success, trigger: isResult)
+        .sensoryFeedback(.selection, trigger: model.ties)
         .task { if model.step == .loading { await model.start() } }
     }
 

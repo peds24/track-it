@@ -45,6 +45,8 @@ yarn-error.*
 /apple/**/.build/
 /apple/**/.swiftpm/
 /apple/DerivedData/
+# testflight.sh's builds, archives and launch screenshot (I12)
+/apple/build/
 /apple/Iris/Config/Secrets.xcconfig
 /apple/Iris/Info.plist
 xcuserdata/

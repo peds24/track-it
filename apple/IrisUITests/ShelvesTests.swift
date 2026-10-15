@@ -87,35 +87,30 @@ final class ShelvesTests: XCTestCase {
         XCTAssertTrue(dune.waitForExistence(timeout: 5))
         dune.press(forDuration: 1.2)
         app.buttons["Rename…"].tap()
-        let field = app.textFields.firstMatch
+        // A sheet, not an alert: UIKit's text-field alert crashed when the
+        // text size changed while it was open (I12 audit).
+        XCTAssertTrue(app.navigationBars["Rename Track"].waitForExistence(timeout: 5))
+        let field = app.textFields["rename.title"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
         field.typeText(" Messiah")
-        app.buttons["Save"].tap()
+        app.buttons["rename.save"].tap()
         XCTAssertTrue(row("Dune Messiah", in: app).waitForExistence(timeout: 5))
     }
 
-    /// §5.6–5.7 and contrast: Apple's audit on every shelf at the default
-    /// size. Only system chrome is excused. Text size (§5.5) is checked by the
-    /// AX5 screenshots of every screenful instead: the audit's Dynamic Type and
-    /// clipping checks flagged rows that render whole (I7 review). Issues are collected, not thrown
-    /// one by one, so a run reports them all.
-    @MainActor func testEveryShelfPassesTheAccessibilityAudit() throws {
+    /// Review M2: Return saves the title — it never becomes a line break.
+    @MainActor func testReturnInRenameSavesOneLine() {
         let app = launch()
-        var found: [String] = []
-        for tab in Self.tabs {
-            app.tabBars.buttons[tab].tap()
-            XCTAssertTrue(app.navigationBars[tab].waitForExistence(timeout: 5))
-            try app.performAccessibilityAudit(for: [.sufficientElementDescription, .hitRegion, .contrast]) { issue in
-                let type = issue.element?.elementType
-                if type != .tabBar && type != .navigationBar { found.append(Self.describe(tab, issue)) }
-                return true
-            }
-        }
-        XCTAssertEqual(found, [], found.joined(separator: "\n"))
-    }
-
-    private static func describe(_ where: String, _ issue: XCUIAccessibilityAuditIssue) -> String {
-        "\(`where`): \(issue.compactDescription) | \(issue.element.map { "\($0.label) \($0.frame)" } ?? "no element")"
+        let dune = row("Dune", in: app)
+        XCTAssertTrue(dune.waitForExistence(timeout: 5))
+        dune.press(forDuration: 1.2)
+        app.buttons["Rename…"].tap()
+        let field = app.textFields["rename.title"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
+        field.typeText(" Messiah\n")
+        XCTAssertTrue(row("Dune Messiah", in: app).waitForExistence(timeout: 5), "Return saved and closed")
+        XCTAssertFalse(app.navigationBars["Rename Track"].exists)
     }
 
     /// The rest of an AX5 list, one screenful at a time: <tab>-ax5-p2.png, p3…

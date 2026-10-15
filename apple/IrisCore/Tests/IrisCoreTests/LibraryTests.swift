@@ -167,6 +167,21 @@ final class LibraryTests: XCTestCase {
         XCTAssertEqual(try library.snapshot(shelf: .done).map(\.id), [ref.id])
     }
 
+    /// I12: the add succeeded, the start didn't — say so, with the saved
+    /// track, so the UI doesn't offer a retry that would add it twice.
+    func testAFailedStartAfterASuccessfulAddIsItsOwnError() async throws {
+        let library = try Library.inMemory()
+        try await library.queue.write { db in
+            try db.execute(sql: "CREATE TEMP TRIGGER no_start BEFORE UPDATE OF status ON entry BEGIN SELECT RAISE(ABORT, 'start refused'); END")
+        }
+        do {
+            _ = try await library.add(input("Dune", .book), startNow: true, now: Date(), hydrate: manualHydrate)
+            XCTFail("the start should have failed")
+        } catch let error as AddedButNotStarted {
+            XCTAssertEqual(try library.snapshot(shelf: .backlog).map(\.id), [error.ref.id], "saved, unstarted")
+        }
+    }
+
     func testAddingToBacklogLeavesItUnstarted() async throws {
         let library = try Library.inMemory()
         let ref = try await library.add(input("Dune", .book), startNow: false, now: Date(), hydrate: manualHydrate)

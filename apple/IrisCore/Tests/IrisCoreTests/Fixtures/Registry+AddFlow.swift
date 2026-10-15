@@ -26,4 +26,6 @@ let addFlowFixtures: [String: FixtureFn] = [
                                         picked: i.picked, draft: i.draft, previewMetadata: i.previewMetadata))
     },
     "matchSummary": { a in try toJSON(matchSummary(isSeries: arg(a, 0), draft: arg(a, 1), preview: arg(a, 2))) },
+    "normalizeEan5": { a in try toJSON(normalizeEan5(arg(a, 0))) },
+    "addedNotStarted": { a in try toJSON(addedNotStarted(arg(a, 0))) },
 ]

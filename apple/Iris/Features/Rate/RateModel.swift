@@ -18,6 +18,9 @@ final class RateModel {
     enum Step: Equatable { case loading, missing, sentiment, comparing, saving, result(RatingSummary) }
 
     let ref: TrackRef
+    /// Bumped by "Too tough to call": the cards play their own haptic, a tie
+    /// plays this one (I10 minor).
+    private(set) var ties = 0
     private(set) var step: Step = .loading
     private(set) var context: RateContext?
     private(set) var session: RankingSession?
@@ -67,6 +70,7 @@ final class RateModel {
 
     func answer(_ choice: Answer) async {
         guard let current = session, step == .comparing else { return }
+        if choice == .tie { ties += 1 }
         let next = IrisCore.answer(current, choice)
         history.append(current)
         session = next

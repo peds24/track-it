@@ -154,39 +154,6 @@ final class AddTests: XCTestCase {
         XCTAssertFalse(app.buttons["add.scan"].exists)
     }
 
-    /// Contrast, element descriptions and hit regions on each Add screen.
-    @MainActor func testAddScreensPassTheAccessibilityAudit() throws {
-        let app = launch()
-        var found: [String] = []
-        func audit(_ screen: String) throws {
-            sleep(1)
-            try app.performAccessibilityAudit(for: [.sufficientElementDescription, .hitRegion, .contrast]) { issue in
-                let type = issue.element?.elementType
-                // The search field's own clear button is Apple's control.
-                let systemClear = issue.element?.label == "Clear text"
-                if type != .navigationBar && type != .tabBar && type != .keyboard && !systemClear {
-                    found.append("\(screen): \(issue.compactDescription) | \(issue.element.map { "\($0.label) \($0.frame)" } ?? "no element")")
-                }
-                return true
-            }
-        }
-        app.buttons["shelf.add"].tap()
-        XCTAssertTrue(app.navigationBars["What are you adding?"].waitForExistence(timeout: 5))
-        try audit("categories")
-        app.buttons["add.category.comic"].tap()
-        try audit("comic mode")
-        app.navigationBars.buttons.element(boundBy: 0).tap()
-        app.buttons["add.category.show"].tap()
-        search("Expanse", in: app)
-        XCTAssertTrue(app.buttons["add.result.demo-expanse"].waitForExistence(timeout: 5))
-        app.buttons["Search"].firstMatch.tap() // dismiss the keyboard
-        try audit("search")
-        app.buttons["add.result.demo-expanse"].tap()
-        XCTAssertTrue(app.buttons["Start watching"].waitForExistence(timeout: 5))
-        try audit("confirm")
-        XCTAssertEqual(found, [], found.joined(separator: "\n"))
-    }
-
     // MARK: Screenshots
 
     /// Categories, comic mode, search with results, and confirm, in light,

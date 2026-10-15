@@ -11,6 +11,14 @@ final class FakeDetailLibrary: DetailLibrary, @unchecked Sendable {
     var failWith: Error?
     var finishedUnratedAnswer = false
     func finishedUnrated(_ ref: TrackRef) async -> Bool { finishedUnratedAnswer }
+    /// Holds every advance until `releaseAdvances()` (I12 double-tap tests).
+    var holdAdvances = false
+    private var gates: [CheckedContinuation<Void, Never>] = []
+    var heldAdvances: Int { lock.withLock { gates.count } }
+    func releaseAdvances() {
+        let held = lock.withLock { () -> [CheckedContinuation<Void, Never>] in holdAdvances = false; defer { gates = [] }; return gates }
+        held.forEach { $0.resume() }
+    }
     var calls: [Call] { lock.withLock { _calls } }
     var subscriptions: Int { lock.withLock { conts.count } }
 
@@ -20,14 +28,39 @@ final class FakeDetailLibrary: DetailLibrary, @unchecked Sendable {
         lock.withLock { _calls.append(c) }
         if let failWith { throw failWith }
     }
-    func advance(entryId: String, now: Date) async throws { try record(.advance(entryId)) }
+    func advance(entryId: String, now: Date) async throws {
+        try record(.advance(entryId))
+        await withCheckedContinuation { (c: CheckedContinuation<Void, Never>) in
+            let now = lock.withLock { () -> Bool in
+                guard holdAdvances else { return true }
+                gates.append(c)
+                return false
+            }
+            if now { c.resume() }
+        }
+    }
     func resume(_ track: TrackRef) async throws { try record(.resume(track.id)) }
     func returnToBacklog(_ track: TrackRef) async throws { try record(.returnToBacklog(track.id)) }
     func complete(_ track: TrackRef, now: Date) async throws { try record(.complete(track.id)) }
     func delete(_ track: TrackRef) async throws { try record(.delete(track.id)) }
     func setPosition(seriesId: String, ordinal: Int, now: Date) async throws { try record(.setPosition(seriesId, ordinal)) }
+    var holdSyncs = false
+    private var syncGates: [CheckedContinuation<Void, Never>] = []
+    var heldSyncs: Int { lock.withLock { syncGates.count } }
+    func releaseSyncs() {
+        let held = lock.withLock { () -> [CheckedContinuation<Void, Never>] in holdSyncs = false; defer { syncGates = [] }; return syncGates }
+        held.forEach { $0.resume() }
+    }
     func syncAfterMove(seriesId: String, registry: ProviderRegistry?) async -> Bool {
         lock.withLock { _calls.append(.sync(seriesId)) }
+        await withCheckedContinuation { (c: CheckedContinuation<Void, Never>) in
+            let now = lock.withLock { () -> Bool in
+                guard holdSyncs else { return true }
+                syncGates.append(c)
+                return false
+            }
+            if now { c.resume() }
+        }
         return false
     }
 }
@@ -201,5 +234,51 @@ final class DetailModelTests: XCTestCase {
         let (asking, _) = await loaded(page(), fake)
         await asking.confirm(.complete)
         XCTAssertNotNil(asking.ratePrompt)
+    }
+
+    // MARK: I12 hardening
+
+    func testADoubleTapOnTheMainButtonAdvancesOnce() async {
+        let fake = FakeDetailLibrary()
+        fake.holdAdvances = true
+        let (model, _) = await loaded(page(), fake)
+        let first = Task { await model.primary() }
+        for _ in 0..<200 where fake.heldAdvances == 0 { await Task.yield() }
+        await model.primary()   // ignored: the first is in flight
+        fake.releaseAdvances()
+        await first.value
+        XCTAssertEqual(fake.calls.filter { if case .advance = $0 { true } else { false } }.count, 1)
+    }
+
+    func testTheNextTapAfterAnAdvanceAdvancesAgain() async {
+        let (model, fake) = await loaded(page())
+        await model.primary()
+        await model.primary()
+        XCTAssertEqual(fake.calls.filter { if case .advance = $0 { true } else { false } }.count, 2)
+    }
+
+    /// I8 minor: a dialog open on a track deleted elsewhere closes with it,
+    /// instead of showing blank.
+    func testATrackDeletedElsewhereClosesItsOpenDialog() async {
+        let (model, fake) = await loaded(page())
+        model.requestComplete()
+        fake.send(.success(nil))
+        for _ in 0..<200 where model.state != .missing { await Task.yield() }
+        XCTAssertEqual(model.state, .missing)
+        XCTAssertNil(model.pending)
+    }
+
+    /// Review I1: the main button's next tap during the catalogue sync advances.
+    func testATapWhileTheCatalogueSyncRunsStillAdvances() async {
+        let fake = FakeDetailLibrary()
+        fake.holdSyncs = true
+        let (model, _) = await loaded(page(), fake)
+        let first = Task { await model.primary() }
+        for _ in 0..<200 where fake.heldSyncs == 0 { await Task.yield() }
+        let second = Task { await model.primary() }
+        for _ in 0..<200 where fake.heldSyncs < 2 { await Task.yield() }
+        XCTAssertEqual(fake.calls.filter { if case .advance = $0 { true } else { false } }.count, 2)
+        fake.releaseSyncs()
+        await first.value; await second.value
     }
 }
