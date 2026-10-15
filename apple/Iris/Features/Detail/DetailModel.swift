@@ -96,14 +96,17 @@ final class DetailModel {
     /// The bottom button: advance the next unit, or resume.
     func primary() async {
         guard let track, let next = track.nextEntryId, !next.isEmpty, !primaryInFlight else { return }
+        // Held for the write only, not the rating check or catalogue sync (review I1).
         primaryInFlight = true
-        defer { primaryInFlight = false }
         if track.shelf == .backlog && track.paused {
             await run("Could not resume") { try await $0.resume(track.ref) }
+            primaryInFlight = false
             return
         }
         // No `commits` bump: IrisPrimaryButton plays its own haptic on the tap.
-        guard await run("Could not update", { try await $0.advance(entryId: next, now: Date()) }) else { return }
+        let advanced = await run("Could not update", { try await $0.advance(entryId: next, now: Date()) })
+        primaryInFlight = false
+        guard advanced else { return }
         await offerRating(track)
         if track.kind == .series { _ = await library.syncAfterMove(seriesId: track.id, registry: registry) }
     }

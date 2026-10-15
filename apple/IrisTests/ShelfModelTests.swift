@@ -56,8 +56,24 @@ final class FakeLibrary: ShelfLibrary, @unchecked Sendable {
     func complete(_ track: TrackRef, now: Date) async throws { try record(.complete(track.id)) }
     func rename(_ track: TrackRef, title: String) async throws { try record(.rename(track.id, title)) }
     func delete(_ track: TrackRef) async throws { try record(.delete(track.id)) }
+    /// Holds every catalogue sync until `releaseSyncs()` (review I1).
+    var holdSyncs = false
+    private var syncGates: [CheckedContinuation<Void, Never>] = []
+    var heldSyncs: Int { lock.withLock { syncGates.count } }
+    func releaseSyncs() {
+        let gates = lock.withLock { () -> [CheckedContinuation<Void, Never>] in holdSyncs = false; defer { syncGates = [] }; return syncGates }
+        gates.forEach { $0.resume() }
+    }
     func syncAfterAdvance(entryId: String, registry: ProviderRegistry?) async -> Bool {
         lock.withLock { _calls.append(.sync(entryId)) }
+        await withCheckedContinuation { (c: CheckedContinuation<Void, Never>) in
+            let now = lock.withLock { () -> Bool in
+                guard holdSyncs else { return true }
+                syncGates.append(c)
+                return false
+            }
+            if now { c.resume() }
+        }
         return false
     }
 }
@@ -294,5 +310,30 @@ final class ShelfModelTests: XCTestCase {
         await model.performAccessory(t("s1"))
         await model.confirm(.complete(t("s2")))
         XCTAssertEqual(model.commits, 0)
+    }
+
+    /// Review I1: once the write is done, the row shows the next unit; a tap
+    /// while the catalogue sync is still out is a new advance, not a repeat.
+    func testATapWhileTheCatalogueSyncRunsStillAdvances() async {
+        let fake = FakeLibrary()
+        fake.holdSyncs = true
+        let model = ShelfModel(shelf: .currently, library: fake, registry: nil)
+        let track = t("c1", .comic)
+        let first = Task { await model.performAccessory(track) }
+        await settle(model) { fake.heldSyncs == 1 }
+        let second = Task { await model.performAccessory(track) }
+        await settle(model) { fake.heldSyncs == 2 }
+        XCTAssertEqual(fake.calls.filter { if case .advance = $0 { true } else { false } }.count, 2)
+        fake.releaseSyncs()
+        await first.value; await second.value
+    }
+
+    /// Review M1: a resume is a commit too — swipe-to-resume's haptic waits on it.
+    func testAResumeBumpsTheHapticTrigger() async {
+        let fake = FakeLibrary()
+        let model = ShelfModel(shelf: .backlog, library: fake, registry: nil)
+        await model.performAccessory(t("p1", shelf: .backlog, paused: true))
+        XCTAssertEqual(fake.calls, [.resume("p1")])
+        XCTAssertEqual(model.commits, 1)
     }
 }

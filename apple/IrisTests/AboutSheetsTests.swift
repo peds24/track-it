@@ -20,4 +20,14 @@ final class AboutSheetsTests: XCTestCase {
     func testTheVersionLine() {
         XCTAssertEqual(DataSourcesSheet.version(), "Iris v2.0.0 · iOS")
     }
+
+    /// Review I2: Mail can accept the draft with no account set up and open
+    /// its own setup screen — the draft must survive that, so it's only
+    /// cleared when Mail can really send.
+    func testWhatSendingDoesWithTheDraft() {
+        XCTAssertEqual(FeedbackSheet.outcome(canSendMail: true, accepted: true), .sentClearAndClose)
+        XCTAssertEqual(FeedbackSheet.outcome(canSendMail: false, accepted: true), .handedOffKeepDraft)
+        XCTAssertEqual(FeedbackSheet.outcome(canSendMail: false, accepted: false), .noMailApp)
+        XCTAssertEqual(FeedbackSheet.outcome(canSendMail: true, accepted: false), .noMailApp)
+    }
 }

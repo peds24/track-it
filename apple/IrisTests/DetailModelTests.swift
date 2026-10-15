@@ -44,8 +44,23 @@ final class FakeDetailLibrary: DetailLibrary, @unchecked Sendable {
     func complete(_ track: TrackRef, now: Date) async throws { try record(.complete(track.id)) }
     func delete(_ track: TrackRef) async throws { try record(.delete(track.id)) }
     func setPosition(seriesId: String, ordinal: Int, now: Date) async throws { try record(.setPosition(seriesId, ordinal)) }
+    var holdSyncs = false
+    private var syncGates: [CheckedContinuation<Void, Never>] = []
+    var heldSyncs: Int { lock.withLock { syncGates.count } }
+    func releaseSyncs() {
+        let held = lock.withLock { () -> [CheckedContinuation<Void, Never>] in holdSyncs = false; defer { syncGates = [] }; return syncGates }
+        held.forEach { $0.resume() }
+    }
     func syncAfterMove(seriesId: String, registry: ProviderRegistry?) async -> Bool {
         lock.withLock { _calls.append(.sync(seriesId)) }
+        await withCheckedContinuation { (c: CheckedContinuation<Void, Never>) in
+            let now = lock.withLock { () -> Bool in
+                guard holdSyncs else { return true }
+                syncGates.append(c)
+                return false
+            }
+            if now { c.resume() }
+        }
         return false
     }
 }
@@ -251,5 +266,19 @@ final class DetailModelTests: XCTestCase {
         for _ in 0..<200 where model.state != .missing { await Task.yield() }
         XCTAssertEqual(model.state, .missing)
         XCTAssertNil(model.pending)
+    }
+
+    /// Review I1: the main button's next tap during the catalogue sync advances.
+    func testATapWhileTheCatalogueSyncRunsStillAdvances() async {
+        let fake = FakeDetailLibrary()
+        fake.holdSyncs = true
+        let (model, _) = await loaded(page(), fake)
+        let first = Task { await model.primary() }
+        for _ in 0..<200 where fake.heldSyncs == 0 { await Task.yield() }
+        let second = Task { await model.primary() }
+        for _ in 0..<200 where fake.heldSyncs < 2 { await Task.yield() }
+        XCTAssertEqual(fake.calls.filter { if case .advance = $0 { true } else { false } }.count, 2)
+        fake.releaseSyncs()
+        await first.value; await second.value
     }
 }

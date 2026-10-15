@@ -1,15 +1,18 @@
 import XCTest
 
-/// I12: every screen and state, audited with every audit type, in light, dark
-/// and system AX5 — on the `-IrisSeed demo` library and demo catalogue.
-/// `Self.screens` is the declared walk; the test fails if it skipped one.
+/// I12: the app's screens and states, audited in light, dark and system AX5 —
+/// on the `-IrisSeed demo` library and demo catalogue. `Self.screens` is the
+/// declared walk; the test fails if it skipped one. Not walked: the states
+/// that need a fault to reach (a track or rating that went missing, a library
+/// that won't open) — they reuse IrisEmptyState, which every empty shelf audits.
 final class AppAuditTests: XCTestCase {
     static let screens = [
         "Currently", "Backlog", "Done",
         "detail Severance", "detail Dune", "detail Saga", "detail Interstellar", "detail Project Hail Mary",
+        "detail One Piece", "detail Arrival",
         "position editor", "complete dialog", "delete dialog", "move to backlog dialog", "rename sheet",
-        "add categories", "add comic mode", "add search", "add confirm",
-        "rate sentiment", "rate compare", "rate result", "rankings", "rate prompt",
+        "add categories", "add comic mode", "add search", "add confirm", "scanner unavailable", "ean5 prompt",
+        "rate sentiment", "rate compare", "rate result", "rankings", "rankings empty", "rate prompt",
         "feedback", "data sources",
         "empty Currently", "empty Backlog", "empty Done",
     ]
@@ -47,7 +50,8 @@ final class AppAuditTests: XCTestCase {
         }
 
         for (title, tab) in [("Severance", "Currently"), ("Dune", "Currently"), ("Saga", "Currently"),
-                             ("Interstellar", "Done"), ("Project Hail Mary", "Done")] {
+                             ("Interstellar", "Done"), ("Project Hail Mary", "Done"),
+                             ("One Piece", "Backlog"), ("Arrival", "Backlog")] {
             open(title, tab: tab, in: app)
             try audit.check("detail \(title)", excusing: detailExcuses, pages: true)
             app.navigationBars.buttons.element(boundBy: 0).tap()
@@ -103,6 +107,30 @@ final class AppAuditTests: XCTestCase {
         XCTAssertTrue(app.buttons["Start watching"].waitForExistence(timeout: 5))
         try audit.check("add confirm", pages: true)
 
+        // The scanner, which a simulator can't run: its "not available" cover.
+        app = relaunch(app, variant)
+        audit.switchTo(app)
+        app.buttons["shelf.add"].tap()
+        tap(app.buttons["add.category.book"], in: app)
+        tap(app.buttons["add.scan"], in: app)
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        let allow = springboard.buttons["Allow"]
+        if allow.waitForExistence(timeout: 3) { allow.tap() }
+        XCTAssertTrue(app.navigationBars["Scan barcode"].waitForExistence(timeout: 5))
+        try audit.check("scanner unavailable")
+        app.buttons["Cancel"].firstMatch.tap()
+
+        // A single-issue comic's scan asks for its 5-digit code (A9).
+        app = relaunch(app, variant + ["-IrisScan", "0761941333509"])
+        audit.switchTo(app)
+        app.buttons["shelf.add"].tap()
+        tap(app.buttons["add.category.comic"], in: app)
+        tap(app.buttons["add.mode.single"], in: app)
+        tap(app.buttons["add.scan"], in: app)
+        XCTAssertTrue(app.staticTexts["5-digit issue code?"].waitForExistence(timeout: 5))
+        try audit.check("ean5 prompt", excusing: [.systemDialog])
+        app.buttons["Skip"].tap()
+
         // Rate, then Rankings.
         app = relaunch(app, variant)
         audit.switchTo(app)
@@ -121,6 +149,8 @@ final class AppAuditTests: XCTestCase {
         tap(app.buttons["See your movies"], in: app)
         XCTAssertTrue(app.navigationBars["Rankings"].waitForExistence(timeout: 5))
         try audit.check("rankings", excusing: [.underBars(pinned: nil)], pages: true)
+        tap(app.buttons["Comics"].firstMatch, in: app)   // nothing rated yet; paging left it above
+        try audit.check("rankings empty")
 
         // The finish prompt.
         app = relaunch(app, variant)

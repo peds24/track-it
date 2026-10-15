@@ -1,4 +1,5 @@
 import IrisCore
+import MessageUI
 import SwiftUI
 
 /// A25 on iOS (I12): a note for the developer, sent from the user's own mail
@@ -42,6 +43,17 @@ struct FeedbackSheet: View {
 
     static func isBlank(_ text: String) -> Bool { jsTrim(text).isEmpty }
 
+    enum Outcome: Equatable { case sentClearAndClose, handedOffKeepDraft, noMailApp }
+
+    /// What a send does with the draft. Mail with no account still accepts a
+    /// mailto: (and opens its own setup screen), so the draft is cleared only
+    /// when Mail can really send; a third-party mail app gets it, and the
+    /// draft stays here in case (review I2).
+    static func outcome(canSendMail: Bool, accepted: Bool) -> Outcome {
+        guard accepted else { return .noMailApp }
+        return canSendMail ? .sentClearAndClose : .handedOffKeepDraft
+    }
+
     /// The draft for this build, as iOS's Iris.
     static func mailto(_ message: String, bundle: Bundle = .main) -> URL? {
         let version = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
@@ -51,8 +63,13 @@ struct FeedbackSheet: View {
     private func send() {
         guard let url = Self.mailto(draft) else { noMailApp = true; return }
         // Rejected when no app handles mailto: — say where to write instead.
+        let canSend = MFMailComposeViewController.canSendMail()
         openURL(url) { accepted in
-            if accepted { draft = ""; dismiss() } else { noMailApp = true }
+            switch Self.outcome(canSendMail: canSend, accepted: accepted) {
+            case .sentClearAndClose: draft = ""; dismiss()
+            case .handedOffKeepDraft: break
+            case .noMailApp: noMailApp = true
+            }
         }
     }
 }

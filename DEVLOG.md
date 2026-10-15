@@ -5,7 +5,7 @@
 - **No Developer account yet**, so I12 ends at `testflight.sh check` and the
   upload is I12b (spec §8 amended). The script is local and uses an App Store
   Connect API key from the environment, never from the repo.
-- **One audit, every screen.** `AppAuditTests` drives 27 screens in light,
+- **One audit, every screen.** `AppAuditTests` drives 32 screens in light,
   dark and AX5 through one `Audit` helper; its excuses (system chrome and bar
   bands, disabled controls, UIKit dialogs, decorative initials and placeholder
   digits) each say why. Apple's `.dynamicType` and `.textClipped` checks were

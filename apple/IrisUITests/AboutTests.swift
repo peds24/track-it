@@ -20,8 +20,9 @@ final class AboutTests: XCTestCase {
         app.buttons[item].tap()
     }
 
-    /// The simulator has no mail account, so iOS rejects the mailto: draft —
-    /// the real no-mail-app path, not a mock (Review Focus 3).
+    /// The simulator has no Mail app, so iOS rejects the mailto: draft — the
+    /// real no-handler path, not a mock (Review Focus 3). Mail installed with
+    /// no account is FeedbackSheet.outcome's job (AboutSheetsTests).
     @MainActor func testFeedbackNeedsTextThenSaysWhereToWriteWithoutAMailApp() {
         let app = launchOnDone()
         openMore("Send Feedback…", in: app)

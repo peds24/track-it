@@ -98,6 +98,21 @@ final class ShelvesTests: XCTestCase {
         XCTAssertTrue(row("Dune Messiah", in: app).waitForExistence(timeout: 5))
     }
 
+    /// Review M2: Return saves the title — it never becomes a line break.
+    @MainActor func testReturnInRenameSavesOneLine() {
+        let app = launch()
+        let dune = row("Dune", in: app)
+        XCTAssertTrue(dune.waitForExistence(timeout: 5))
+        dune.press(forDuration: 1.2)
+        app.buttons["Rename…"].tap()
+        let field = app.textFields["rename.title"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
+        field.typeText(" Messiah\n")
+        XCTAssertTrue(row("Dune Messiah", in: app).waitForExistence(timeout: 5), "Return saved and closed")
+        XCTAssertFalse(app.navigationBars["Rename Track"].exists)
+    }
+
     /// The rest of an AX5 list, one screenful at a time: <tab>-ax5-p2.png, p3…
     @MainActor private func capturePages(of tab: String, in app: XCUIApplication, to dir: URL?) throws {
         let list = app.collectionViews.firstMatch

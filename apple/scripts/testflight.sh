@@ -42,9 +42,12 @@ require_upload_env() {
     exit 2
   fi
   [[ -f "$ASC_KEY_PATH" ]] || fail "ASC_KEY_PATH: no file at that path"
-  case "$(cd "$(dirname "$ASC_KEY_PATH")" && pwd)/" in
-    "$REPO_DIR"/*) fail "ASC_KEY_PATH is inside the repo — keep the .p8 outside it" ;;
-  esac
+  # Any git work tree, not just this one: a .p8 in a checkout is one `git add` from leaking.
+  if git -C "$(dirname "$ASC_KEY_PATH")" rev-parse --show-toplevel >/dev/null 2>&1; then
+    fail "ASC_KEY_PATH is inside a git work tree — keep the .p8 outside every repo"
+  fi
+  # self-test stops here: the guards passed, nothing is built or uploaded.
+  [[ -z "${IRIS_SELF_TEST:-}" ]] || { echo "self-test: upload guards passed"; exit 0; }
 }
 
 check_secrets() {
@@ -106,12 +109,12 @@ launch_check() {
   xcrun simctl terminate "$SIM" com.peds24.iris 2>/dev/null || true
   # Simulator apps are host processes: watch the launched pid itself (launchd's
   # list lagged under load and read as a quit).
-  local pid; pid="$(xcrun simctl launch "$SIM" com.peds24.iris | awk '{print $NF}')"
+  local pid; pid="$(xcrun simctl launch "$SIM" com.peds24.iris 2>/dev/null | awk '{print $NF}' || true)"
   [[ "$pid" =~ ^[0-9]+$ ]] || fail "simctl launch gave no pid"
   sleep 3
   kill -0 "$pid" 2>/dev/null || fail "Iris quit within 3 s of launch"
   mkdir -p "$BUILD"
-  xcrun simctl io "$SIM" screenshot "$BUILD/check-launch.png" >/dev/null 2>&1
+  xcrun simctl io "$SIM" screenshot "$BUILD/check-launch.png" >/dev/null 2>&1 || fail "couldn't screenshot $SIM"
   ok "launches and stays up on $SIM (apple/build/check-launch.png)"
 }
 
@@ -126,7 +129,8 @@ check() {
 upload() {
   require_upload_env
   check
-  local build_number; build_number="$(date +%Y%m%d%H%M)"
+  # YYYYMMDD.HHMM: rises with time, and each part stays well under 2^31.
+  local build_number; build_number="$(date +%Y%m%d.%H%M)"
   local auth=(-allowProvisioningUpdates -authenticationKeyPath "$ASC_KEY_PATH"
               -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID")
   # The build number is passed, never written to project.yml.
@@ -145,17 +149,23 @@ upload() {
 self_test() {
   local out status
   set +e
-  out="$(env -u IRIS_TEAM_ID -u ASC_KEY_ID -u ASC_ISSUER_ID -u ASC_KEY_PATH "$0" upload 2>&1)"; status=$?
+  out="$(env -u IRIS_TEAM_ID -u ASC_KEY_ID -u ASC_ISSUER_ID -u ASC_KEY_PATH IRIS_SELF_TEST=1 "$0" upload 2>&1)"; status=$?
   set -e
   [[ $status -eq 2 ]] || fail "self-test: upload without an account exited $status, not 2"
   for v in IRIS_TEAM_ID ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_PATH; do
     grep -q "  $v" <<<"$out" || fail "self-test: the checklist doesn't name $v"
   done
   set +e
-  out="$(IRIS_TEAM_ID=T ASC_KEY_ID=K ASC_ISSUER_ID=I ASC_KEY_PATH="$REPO_DIR/package.json" "$0" upload 2>&1)"; status=$?
+  out="$(IRIS_SELF_TEST=1 IRIS_TEAM_ID=T ASC_KEY_ID=K ASC_ISSUER_ID=I ASC_KEY_PATH="$REPO_DIR/package.json" "$0" upload 2>&1)"; status=$?
   set -e
-  [[ $status -ne 0 ]] && grep -q "inside the repo" <<<"$out" || fail "self-test: a key inside the repo wasn't refused"
-  ok "self-test: upload refuses to run without an account, and refuses a key inside the repo"
+  [[ $status -ne 0 ]] && grep -q "inside a git work tree" <<<"$out" || fail "self-test: a key inside the repo wasn't refused"
+  local outside; outside="$(mktemp -d /tmp/iris-selftest.XXXXXX)"; touch "$outside/AuthKey_TEST.p8"
+  set +e
+  out="$(IRIS_SELF_TEST=1 IRIS_TEAM_ID=T ASC_KEY_ID=K ASC_ISSUER_ID=I ASC_KEY_PATH="$outside/AuthKey_TEST.p8" "$0" upload 2>&1)"; status=$?
+  set -e
+  rm -rf "$outside"
+  [[ $status -eq 0 ]] && grep -q "upload guards passed" <<<"$out" || fail "self-test: a key outside every repo was refused"
+  ok "self-test: upload refuses no account and a key inside a repo, and accepts one outside"
 }
 
 case "${1:-}" in

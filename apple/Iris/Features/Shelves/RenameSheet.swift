@@ -19,8 +19,11 @@ struct RenameSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                TextField("Title", text: $draft, axis: .vertical)
+                // One line: a title has no line breaks, and Return saves (review M2).
+                TextField("Title", text: $draft)
                     .focused($focused)
+                    .submitLabel(.done)
+                    .onSubmit(save)
                     .accessibilityIdentifier("rename.title")
             }
             .navigationTitle("Rename Track")
@@ -28,13 +31,21 @@ struct RenameSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { onSave(draft); dismiss() }
+                    Button("Save", action: save)
                         // The Library ignores an empty title anyway (I7); don't offer it.
-                        .disabled(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .disabled(!canSave)
                         .accessibilityIdentifier("rename.save")
                 }
             }
             .onAppear { focused = true }
         }
+    }
+
+    private var canSave: Bool { !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+
+    private func save() {
+        guard canSave else { return }
+        onSave(draft)
+        dismiss()
     }
 }

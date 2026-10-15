@@ -80,8 +80,15 @@ final class Audit {
         var pinnedTop = CGFloat.infinity, barBottom = -CGFloat.infinity
         /// Every navigation bar and tab bar on screen, sheets' included.
         var bars: [CGRect] = []
+        /// The keyboard plus the QuickType bar above it.
+        var keyboards: [CGRect] = []
         init(_ app: XCUIApplication, _ excuses: [Excuse]) {
             bars = (app.navigationBars.allElementsBoundByIndex + app.tabBars.allElementsBoundByIndex).map { $0.frame }
+            // QuickType's bar sits on top of the keyboard's frame (44 pt above
+            // it at AX5 on an iPhone 17: keyboard 583, bar 539), not inside it.
+            keyboards = app.keyboards.allElementsBoundByIndex.map {
+                CGRect(x: $0.frame.minX, y: $0.frame.minY - 48, width: $0.frame.width, height: $0.frame.height + 48)
+            }
             for case let .underBars(pinned) in excuses {
                 let button = pinned.map { app.buttons[$0] }
                 let top = (button?.exists == true ? button!.frame.minY : app.tabBars.firstMatch.frame.minY)
@@ -93,10 +100,16 @@ final class Audit {
 
     private static func excused(_ issue: XCUIAccessibilityAuditIssue, _ excuses: [Excuse], _ bands: Bands) -> Bool {
         let element = issue.element
-        // System chrome: Apple's bars and keyboard, and whatever sits in a bar
-        // (a sheet's toolbar buttons are drawn by iOS, glass and all).
+        // System chrome: Apple's bars and keyboard. A bar's own items are drawn
+        // on its glass by iOS, so their contrast isn't ours to judge — contrast
+        // only (labels and hit regions still are), and only for what is
+        // frontmost: a bar behind a sheet has nothing hittable (review I3).
         if let type = element?.elementType, [.tabBar, .navigationBar, .keyboard].contains(type) { return true }
-        if let frame = element?.frame, bands.bars.contains(where: { $0.contains(CGPoint(x: frame.midX, y: frame.midY)) }) { return true }
+        // The QuickType suggestions sit in the keyboard but report as plain
+        // elements with no description: they are the keyboard's, not ours.
+        if let frame = element?.frame, bands.keyboards.contains(where: { $0.contains(CGPoint(x: frame.midX, y: frame.midY)) }) { return true }
+        if issue.auditType == .contrast, let element, element.isHittable,
+           bands.bars.contains(where: { $0.contains(CGPoint(x: element.frame.midX, y: element.frame.midY)) }) { return true }
         // Element-less clipping is text cut by the scroll viewport's edge: a
         // truncated label always has an element to blame.
         if issue.auditType == .textClipped, element == nil { return true }
